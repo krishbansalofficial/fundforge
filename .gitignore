@@ -1,0 +1,24 @@
+# Secrets and local runtime state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/settings.local.json
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+.next/
+dist/
+coverage/
+.DS_Store
+Thumbs.db
+# Data/model outputs require separate licensing and reproducibility decisions
+data/raw/
+data/private/
+artifacts/
+mlruns/
+logs/
