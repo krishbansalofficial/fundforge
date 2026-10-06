@@ -9,9 +9,10 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = [
- 'README.md','docs/MASTER_SPEC.md','docs/GAME_SYSTEMS.md',
+ 'README.md','docs/REALISM_AUDIT.md','docs/MASTER_SPEC.md','docs/GAME_SYSTEMS.md',
  'docs/SEASON_SCENARIOS.md','docs/FUND_ACCOUNTING.md',
- 'docs/OPENSEO_INTEGRATION.md','docs/IMPLEMENTATION_PLAN.md',
+ 'docs/LIBRARY_RESEARCH.md','docs/OPENSEO_INTEGRATION.md',
+ 'docs/SIMULATION_ARCHITECTURE.md','docs/IMPLEMENTATION_PLAN.md',
  'docs/ACCEPTANCE_TESTS.md','docs/DECISIONS.md','docs/CLAUDE_HANDOFF.md',
  'docs/PROMPT_PACK.md','docs/AGENT_WORKFLOW.md','docs/RECRUITER_EVIDENCE.md',
  'docs/SOURCES.md','docs/PROGRESS.md','docs/PACKAGING_VALIDATION.md'
@@ -46,7 +47,7 @@ def markdown_links(text,source):
 
 def build():
     texts=[(p,(ROOT/p).read_text()) for p in SOURCES]
-    combined='# FundForge — complete design and implementation handoff\n\nVersion 2.0 · 6 October 2026 · Design package; application unimplemented.\n\n'
+    combined='# FundForge — complete design and implementation handoff\n\nVersion 2.1 · 6 October 2026 · Design package; application unimplemented.\n\n'
     combined+='Generated from canonical repository documents. Edit the sources and rerun scripts/build_documents.py.\n\n'
     for p,s in texts:
         combined+=f'\n---\n\nSource: `{p}`\n\n'+markdown_links(s,p)+'\n'
@@ -60,14 +61,14 @@ def build():
         doc.styles[st].font.color.rgb=RGBColor.from_string('17435B')
     doc.add_heading('FundForge',0)
     doc.add_paragraph('A cooperative hedge-fund management strategy game',style='Subtitle')
-    doc.add_paragraph('Design v2.0 | 6 October 2026')
+    doc.add_paragraph('Design v2.1 | 6 October 2026')
     doc.add_paragraph('Two partners. Investor capital. Financing pressure. A firm worth keeping alive.')
     doc.add_paragraph('Specification and implementation handoff. This package defines proposed behavior; no application, provider integration or model is implemented.')
     doc.add_heading('Document map',1)
     for p,_ in texts:
         doc.add_paragraph(p,style='List Bullet')
     footer=sec.footer.paragraphs[0];footer.alignment=2
-    footer.add_run('FundForge v2.0 | ')
+    footer.add_run('FundForge v2.1 | ')
     field=OxmlElement('w:fldSimple');field.set(qn('w:instr'),'PAGE');footer._p.append(field)
     for source,text in texts:
         doc.add_page_break();doc.add_paragraph(source,style='Caption')
@@ -84,6 +85,8 @@ def build():
                 while i<len(lines) and lines[i].startswith('|'):rows.append(lines[i]);i+=1
                 cells=[[x.strip() for x in row.strip('|').split('|')] for row in rows]
                 table=doc.add_table(rows=1,cols=len(cells[0]));table.style='Light Shading Accent 1'
+                header=OxmlElement('w:tblHeader');header.set(qn('w:val'),'true')
+                table.rows[0]._tr.get_or_add_trPr().append(header)
                 for ri,row in enumerate(cells):
                     tc=table.rows[0].cells if ri==0 else table.add_row().cells
                     for ci,value in enumerate(row):inline(tc[ci].paragraphs[0],value,source)

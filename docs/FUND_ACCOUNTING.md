@@ -1,16 +1,18 @@
 # Fund accounting, treasury and deterministic resolution
 
-Version 2.0 · Launch simulation contract · Not a description of universal fund accounting or prime-broker terms.
+Version 2.1 · Proposed launch contract · Not implemented and not universal fund accounting, law or prime-broker terms.
 
-## 1. Boundaries and precision
+## 1. Boundaries, calendar and precision
 
-Maintain two legal-entity-style ledgers: investor fund and management company. Their balances are never pooled. A season-level transaction coordinator can post the two sides of an actual fee transfer atomically while each journal balances independently.
+Maintain separate investor-fund and management-company ledgers. A season transaction coordinator posts actual inter-entity fee transfers atomically while each journal balances independently. LP capital, fund AUM, management-company equity and partner ownership are different claims. No fund asset finances company payroll.
 
-Use Decimal/fixed precision: cash cents; prices at least six decimals; fee calculations at least twelve decimal places; investor units eight decimal places. Round monetary postings HALF_EVEN to cents. Carry fractional accrual residuals per obligation instead of rounding them away every day. For pro-rata cents/units use largest remainder, ties by immutable series ID. No binary-float money, silent penny creation or rewrite of a posted journal.
+Use Decimal/fixed precision: cash cents, prices at least six decimals, fee calculations at least twelve decimals, investor units eight decimals. Monetary postings round HALF_EVEN; carry fractional accrual residuals per obligation. Allocate pro-rata cents/units by largest remainder, ties by immutable series ID. No binary-float money or rewriting journals. Preserve gross economic identities even when cash settles net.
 
-Quantity/borrow/lot subledgers reconcile separately to monetary journals. One journal balancing does not prove the economic event is correct. Every event has a unique business identity, phase/order, effective time, recorded time, rule versions and reversal link.
+**Calendar contract.** Day1 is Monday 5 January 2026; day20 30 January, day40 27 February, day60 27 March, day61 30 March. The fictional calendar trades Monday–Friday and deliberately ignores exchange holidays; it is not a NYSE calendar. Initialize capital immediately before day1 opening, with no prelaunch fee. Every calendar date from 5 January has one end-of-date accrual, including Saturdays and Sundays. The scored period through day60 contains 82 calendar accrual dates and 60 business days. Calendar dates, business-day indexes and wall-clock audit times are separate fields. Historical packs must replace this calendar explicitly.
 
-## 2. Minimum chart of accounts
+For calendar date D: management fees use the previous calendar close's post-flow capital before reversible performance provisions (initialized opening capital for day1); borrow/debit costs use D's closing settled borrowed shares/debt. New settled borrows incur D's charge; a return completed at D opening incurs none for D. Rates effective at D opening apply prospectively for that date; an intraday rate notice first affects the next date. Nonbusiness dates repeat the same close process with carried last available marks, their original mark timestamps and no trades or company payroll. A daily balance convention is a disclosed contract simplification, not intraday interest integration. ACT/365 means actual calendar dates divided by a fixed 365; ACT/360 uses a fixed 360. Never silently substitute 252 or leap-year ACT/ACT.
+
+## 2. Balance sheet and independent records
 
 | Fund assets | Fund liabilities / capital |
 |---|---|
@@ -19,118 +21,98 @@ Quantity/borrow/lot subledgers reconcile separately to monetary journals. One jo
 | Trade receivables | Marked short-position liability |
 | Marked long securities | Accrued borrow/debit interest |
 | Dividend receivables | Dividend-in-lieu payable |
-| Other explicitly eligible receivables | Management and crystallized/uncrystallized performance-fee payables |
+| Other explicitly eligible receivables | Management, crystallized and provisional performance-fee liabilities |
 | | Dealt redemption payables; LP series capital |
 
-Management company: unrestricted cash; accrued contractual management-fee receivable; crystallized performance-fee receivable; payroll/overhead payable; owner capital; fee income; operating expenses. Uncrystallized performance estimates are a disclosed forecast, not recognized company cash or an enforceable receivable.
+Company accounts include unrestricted cash, contractual management-fee receivable, crystallized performance-fee receivable, operating payables, owner capital, fee income and operating expenses. Provisional performance fees are only a company forecast, with no company receivable/revenue until crystallization under this game convention. This is a management-book simulation, not a GAAP/IFRS assertion.
 
-Fund NAV = unrestricted cash + restricted cash + trade receivables + long MV + other valid assets − trade payables − short MV magnitude − broker debt − all other fund liabilities.
+Fund NAV = unrestricted cash + restricted cash + trade receivables + long MV + valid other assets − trade payables − short MV magnitude − debt − other liabilities. Do not subtract both a signed short MV and the short liability. Fees already in liabilities are not deducted again. Reservations are resource commitments, never extra expenses or NAV liabilities.
 
-Short quantity is negative in the position view, but the monetary balance sheet represents a short liability. Do not subtract both signed short MV and another duplicate liability. Likewise, an accrued fee already in liabilities must not be subtracted twice in reported net NAV.
+Balanced internal journals are necessary but insufficient. Reconcile economic/settled/borrowed quantities, cash and settlement records against separately authored broker statements; compare series, fees and NAV to independent administrator control records. Fixture control records must not be produced by calling the same posting function being checked. This is simulated external evidence, not an actual appointed administrator or audit. Record source, as-of time, expected timing differences, tolerance, owner and resolution for every break. Cash tolerance is one cent only where specified rounding explains it; quantities and economic identities match exactly. No unexplained plug.
 
-Reservations are commitments, not expenses or extra liabilities. They affect available resources, never NAV by themselves.
+A valid internal ledger with an external discrepancy blocks new risk and official NAV/dealing certification while the team investigates; verified mandatory payments, cancels and authorized risk reductions can continue from reconciled resources. An internally failed invariant is a technical integrity fault: pause economic transitions until repaired/replayed, without pretending financial deadlines have been satisfied. Correct errors through linked reversal/reposting and an explicit restatement, not a player-selected favorable mark. Missing or stale prices remain visible; a stale price may support a provisional estimate but cannot silently become a fresh executable quote.
 
-## 3. Long and short trade meaning
+## 3. Trades, settlement, borrow and corporate actions
 
-At a long purchase, recognize economic shares/cost and trade payable on the trade event. At settlement, extinguish the payable against cash. At a long sale, remove sold lots, recognize trade receivable and realized gain/loss; transfer receivable to cash on settlement. Mark remaining economic positions after the trade. FIFO applies separately to long and short lots.
+Recognize long economic shares/cost and a trade payable at purchase execution; settle cash later. A sale removes FIFO lots, creates a trade receivable and realizes gain/loss. At a short sale, recognize receivable and short liability; proceeds settle into restricted cash. The economic short changes with marks on trade date, whereas settled borrowed shares begin on delivery/borrow settlement. Covers create trade payables and reduce economic short liability; borrowed shares and pending returns remain until settlement. A cover never creates a long lot. Position reversal consists of explicit close/open legs, with fresh locate/risk checks on the new short.
 
-At a short sale, recognize trade receivable and short liability at the executed price. On settlement, route the proceeds to restricted collateral cash. A later rise in the mark raises the liability and causes a loss. A cover creates trade payable and reduces the economic short liability; realize the difference against the matched short lots. Maintain borrowed-share and pending-return quantities through settlement; a cover does not create a long share lot. Short-to-long and long-to-short reversals are explicit close and open legs with fresh borrow/risk checks.
+Synthetic T+1 means next business date on the declared calendar. Selling an economically owned unsettled long requires an explicitly supported delivery chain and broker funding. Net cash only among due obligations with the same fund, counterparty, currency, settlement date and contractually eligible netting set. Restricted short proceeds cannot be netted into freely withdrawable long-sale proceeds. Retain gross obligations and settlement status; a failed receivable cannot fund a payable merely because their projected totals offset. Atomic cover settlement may release its linked collateral to pay the cover and return shares; only residual collateral becomes unrestricted.
 
-Launch uses T+1 on its synthetic business calendar. It permits selling an economically owned unsettled long, because linked settlement obligations and broker financing are modeled; this differs from the old strict-cash tutorial. Unsupported delivery chains must be blocked rather than hidden. All trades create actual settlement obligations; net same-day eligible cash settlements under the declared broker contract, retaining gross obligation records.
+Borrow fees = settled borrowed quantity × reference closing price × active annual rate /360 for each calendar date, including pending returns and weekends. No ordinary fee on a locate or unfilled reservation. Pre-borrow is excluded. If a short sells Friday and settles Monday, ordinary borrow starts Monday; if covered Friday and returned Monday, Friday–Sunday fees continue. Weekend closes use the last available reference price, including for a zero-economic-short pending return.
 
-Short borrow fees continue on borrowed shares until their return settles, using that day's reference close value and active fee rate/252. Dividend-in-lieu expenses apply to borrowed short entitlements under the authored ex-date/pay-date events. Splits adjust positions, lots, borrowed quantities, pending settlement and limits consistently. Launch scenario tape may omit corporate actions, but the engine must reject unsupported imported actions.
+Support two launch corporate actions with dedicated cases: cash distributions and integer splits. A distribution event declares entitlement snapshot, ex-date, pay date and amount. Determine economic long/short entitlement at the immediately preceding cum-dividend close; recognize long receivable or short dividend-in-lieu expense/payable at ex-date, settle at pay-date. Preserve any manufactured-payment/settlement-chain record so a closed-but-undelivered position cannot double count entitlement. This is the synthetic contract, not a full tax or market-claims engine. A $2 distribution with a $50→$48 mark on an unchanged 100-share long yields −$200 price P&L +$200 income; on a short it yields +$200 price P&L −$200 expense. It is not free alpha.
 
-Execution slippage is embedded in executed cost/proceeds. Separate explicit commissions, if enabled, are expenses. Do not charge embedded slippage again as another expense.
+An integer split adjusts economic and settled shares, lots, borrow, pending delivery quantities, per-share costs, resting order quantities/prices and locate reservations once under one action identity; invariant value is preserved at the reciprocal price. Fractional entitlements, reverse splits producing fractions, rights, spin-offs, mergers and special tax classifications are excluded; reject such imported actions. Raw execution marks plus explicit distributions are authoritative; adjusted total-return series must never generate a second dividend. Slippage is already in executed cost/proceeds; explicit commissions alone post separately.
 
-## 4. Cash, collateral, funding and margin are different
+## 4. Cash, collateral, credit and margin
 
-Restricted collateral target =100% of marked economic short exposure plus the contractually required collateral on unsettled share returns. A sold-short receivable counts toward the collateral commitment before settlement but cannot be withdrawn. A covered short's existing collateral becomes releasable at the cover's settlement, concurrently with payment and share return. Use obligation-level records to avoid releasing it on trade date and spending it twice.
+Restricted collateral target = 100% of marked economic short exposure plus collateral contractually retained for pending share returns. A short-sale receivable commits to collateral before settlement and is not withdrawable. Map collateral to obligations so a covered short cannot release cash on trade date and spend it again at settlement. Transfers between restricted/unrestricted cash do not change NAV.
 
-At each price/settlement phase, compute collateral shortfall or excess. Transfer between unrestricted/restricted cash, with broker funding only if the credit line and applicable margin checks permit. Excess can release only when no unsettled obligation still requires it. Collateral movements do not change NAV.
+Initial credit limit $7.5m, annual debit rate 6% ACT/360, ordinary borrow rate 2% ACT/360. Broker debt is a positive liability, never negative cash. Credit funds authorized fund obligations, never the company. Cash earns 0% in the launch contract, as does restricted short collateral; the matched cash benchmark uses this same zero rate. Future interest/rebate variants require explicit rates, eligibility and posting, not an external risk-free rate attached to non-interest-bearing game cash.
 
-Broker debit balance is a positive liability, not negative cash. Credit limit is $7.5m initially. An authorized sweep can draw credit to meet fund settlement/collateral obligations; it cannot finance management-company costs. Debit interest accrues daily at6%/252 of the prior closing funded debt, with a separately versioned rate. Borrow fees default2%/252 and can vary by instrument.
+Available credit = max(0, limit − funded debt − reserved credit). Initial requirement = 0.50×long MV +0.60×short MV; maintenance =0.35×long MV +0.40×short MV. Margin equity is net NAV unless an expressly named receivable has a haircut; valid ordinary T+1 receivables are eligible. Liabilities already deducted from NAV are not deducted twice. A margin pass is not a cash pass. Neither test grants legal rights against a real broker.
 
-Available credit = max(0, credit limit − funded debt − credit reserved for already accepted obligations). Initial-margin headroom = margin equity − (0.50×long MV +0.60×short MV). Maintenance headroom = margin equity − (0.35×long MV +0.40×short MV). Negative maintenance headroom triggers the call state; initial headroom is required for new risk.
+Forecast each due-event cash balance after collateral, trades, redemptions, fees and permitted credit. Reserve resources for the earliest competing commitment. Unexecuted future sales are conditional scenarios, not settled resources. Test the book after an anticipated redemption as well as before it: canceling units creates a liability and shrinks risk-bearing equity even before cash leaves. A timely valid redemption is not refused merely to preserve a leverage ratio; players must plan sales, use the contractually permitted gate before dealing, or enter a real remediation/default state.
 
-Margin equity defaults to net fund NAV, with ordinary valid T+1 trade receivables eligible. A scenario may explicitly haircut named receivables; unpublished subscriptions never exist on the fund balance sheet. Do not subtract liabilities a second time.
+At each treasury sweep: (1) settle eligible trade obligations, including linked cover collateral release; (2) top up collateral using permitted credit; (3) pay due dealt redemptions; (4) pay due fixed fees and financing invoices; (5) repay debt above the policy cash buffer only after reserving already-known subsequent obligations. Each priority group is netted only where eligible; equally ranked short-funded claims pay pro rata with stable residuals. No negative cash or unauthorized credit. Record unpaid obligations and distress. These payment priorities are a fictional contract, not insolvency-law priority.
 
-The settlement forecast computes unrestricted cash at each future due event after collateral needs, already accepted payables, scheduled redemptions/fees and permitted credit. Resources are reserved against the earliest conflicting obligation. Projected cash cannot be presented as guaranteed when sale price/liquidity is still unknown. The new-risk checker must satisfy both the forecast and initial margin; a liquidation/cure uses the documented maintenance exception.
+Cash buffer defaults to 2% of NAV and can be lowered jointly; mandatory obligations outrank it. It is not another asset or a direct score reward. Accrued borrow/debit interest is invoiced at each day20/40/60 close and due next business opening; unpaid accrual remains a liability and does not silently capitalize into credit. New series admitted at close do not inherit earlier common expenses.
 
-At a due event, the treasury sweep:
-1. Settles eligible trade receivables and payables, including linked cover collateral release.
-2. Tops up required collateral; draws permitted credit if needed.
-3. Pays dealt redemptions due now.
-4. Pays crystallized/management fees due now.
-5. Repays debt from residual unrestricted cash above the chosen operating buffer if the policy permits.
+## 5. Series participation, flows and return
 
-No payment may create negative unrestricted cash or exceed authorized credit. A failed step creates a named unpaid obligation and distress state. Equal-priority claims use pro-rata settlement and stable residual allocation, not arbitrary order IDs. The above seniority is a disclosed game rule. Actual priority across creditors is jurisdiction/contract-dependent and not simulated as law.
+Original series: Seed100,000 units, Patient80,000, Tactical70,000, each at $100 and HWM100. Each subscription creates a new series at100/HWM100. One fee schedule applies; different entry histories are not custom side letters.
 
-The operating cash buffer is a player treasury policy, not an extra NAV asset. Defaults to2% of NAV and may be lowered jointly. Mandatory due payments take priority over the buffer. Keeping a buffer has opportunity cost but receives no direct score reward.
+**Common P&L weights use opening participation capital A_s = prior calendar-close net series capital N_s + its reversible performance provision F_s.** Exclude crystallized fees, management liabilities and dealt redemption liabilities; those claims no longer participate. Allocate common investment P&L and common fund expenses using A_s/sum(A). Series-specific management and performance fees follow. A subscription participates from the next calendar period. Intraday investment P&L remains allocated to opening participants because all dealing is at close. Zero/negative total participation capital enters distress rather than division by zero.
 
-## 5. Series accounting and external flows
+This avoids charging a fee-accruing cohort for a smaller fraction of subsequent recovery/loss merely because its provision differs from another cohort's. It is an explicit launch allocation contract; alternative equalization methods are not interchangeable. A net-capital weighting can be coherent under a different fee-reserve investment policy, but v2.0 never defined such a policy. All allocated cents and series net capital must reconcile to fund NAV after provisions.
 
-Each initial LP owns its own series at $100/unit: Seed100,000; Patient80,000; Tactical70,000. Each later subscription opens a new series at $100 and HWM100, even for an existing LP. A subscription therefore cannot inherit another cohort's performance-fee loss carryforward. Launch has one fee schedule; series exist to handle entry timing, not custom side letters.
+A subscription remains outside the fund in a simulated escrow until funded and eligible at dealing. Admission receives cash/issues units, not revenue. A request is not a liability. At dealing, use certified values, fees and any gate to fix accepted units/net amount; crystallize only their pro-rata provision when appropriate, cancel accepted units and create redemption payable. That amount immediately ceases portfolio participation. Payment is cash/payable reduction, not a second flow. Gated units remain invested and fee-bearing with unchanged fee history.
 
-Allocate common daily investment P&L and common fund expenses proportionally to prior-close net assets of active series, after the previous dealing flows. Series-specific fees follow after common allocation. A new subscription begins participating the next daily period. Allocate cents deterministically and reconcile all series net capital to total fund NAV.
+Calendar-period net return = pre-flow net NAV / prior close post-flow net NAV −1; geometrically chain into a wealth index starting100. Business-day reports roll nonbusiness subperiods into the next business period; retain calendar subperiods for fees and audit. All subscriptions and dealt redemptions are excluded from investment return. Cash payment of an existing liability is NAV-neutral. Aggregate returns can reflect changing cohort/fee mix; also show gross investment return and each LP's net series return. An aggregate NAV/unit across different fee series is misleading.
 
-An externally funded subscription is not revenue. Until its dealing admission, hold it outside the fund in a simulated escrow record; it is not collateral or usable fund cash. On admission, receive cash and issue units. If the scenario models escrow on the same ledger instead, an equal liability must exclude it from NAV; do not mix the two policies.
+Show LP contributions, dealt/paid distributions, requests, remaining capital and own fees. Money-weighted return is deferred until a dated solver/undefined-case contract exists. Net TWR, fee drag and market contribution are accounting decompositions; none identifies skill or proves causal alpha.
 
-A redemption request is not a liability. At a dealing event, after valuations/fees and gate allocation, fix the accepted units and price, cancel those units, reduce that series capital and create a redemption payable. The investor no longer bears portfolio risk on the dealt amount. Payment next business day reduces cash and payable equally; that payment is not a second external flow.
+## 6. Management fee, performance provision and crystallization
 
-Undealt gated units remain invested and fee-bearing under the existing terms. They are not a fixed dollar claim. At the next dealing date their then-current value may differ.
+Management rate is1.5% ACT/365 fixed. For date D, fee_s = opening A_s ×0.015/365. This base is after earlier common expenses and fixed liabilities, before reversible incentive provisions and today's management charge. Accrue fund expense/payable and company contractual revenue/receivable. Pay amounts accrued through day20/40/60 at the next business opening. Weekend accrual after a dealing close belongs to the next payment window. No fee on escrow capital or canceled units.
 
-Fund time-weighted daily return = (net fund NAV immediately before today's dealing flows / prior-close NAV after prior dealing flows)−1. Chain those returns into a wealth index starting at100. Cash settlement of an already-recorded redemption payable is NAV-neutral. Subscriptions and dealing-date redemptions change AUM, not investment return. All time-weighted comparisons use that index, including drawdown.
+Let U_s be active units, H_s the last annual crystallized post-fee HWM, and B_s be current participation capital after common P&L/expenses and the current management charge, before the current reversible performance provision. Target F_s =0.20×max(0, B_s/U_s−H_s)×U_s; net capital N_s=B_s−F_s. Post only change in F, including reversals. Reconstructing B from a net ledger means adding back the **previous** reversible provision exactly once. No fee hurdle; cash interest would be fee-eligible if a future contract enabled it.
 
-Report each LP's contributions, dealt distributions, pending requests, current net capital, fees and own return. Money-weighted LP return can be added only with a specified dated-cash-flow solver and undefined-case handling.
+Annual performance crystallization is **31 December**, for all active series, after that calendar date's accruals. The January–March launch season never reaches it. Convert F into fixed fee payable without another expense; recognize company revenue/receivable; reset F to0 and H to max(old H, post-fee NAV/unit). New subscriptions use the same fund year-end, not a new anniversary. A short inaugural annual period is contractual. If year-end is a nonbusiness date, use the ordinary dated close and pay next business opening. Retain HWM and provisional claims through renewal; restarting a season cannot reset losses or collect a provisional fee.
 
-## 6. Management and performance fees
+At an earlier redemption, crystallize F_s×(accepted units/U_s), with deterministic residual allocation, and reduce surviving F and U in the same proportion. **Surviving H stays unchanged.** Do not reset a whole series HWM because one investor fraction redeems. An annual full-series crystallization on the same date takes precedence, so redemption never charges a second fee. Full closure preserves the closed record. Crystallized performance fees are due at the same next-business opening as the redemption. A later loss reverses only surviving uncrystallized provision; fixed fees are not refunded under this contract.
 
-Annual management fee1.5%; business-day basis252. For each series, daily management fee = previous-close post-flow net assets ×0.015/252. Accrue fund expense/payable and management-company contractual revenue/receivable. No fee on capital before admission. No extra weekends in this synthetic calendar. A historical calendar must select and disclose its own contract instead of silently treating this as actual/365.
+Accrual, crystallization and payment are distinct: provisional liability reduces LP net NAV; crystallization makes the manager's claim fixed/recognized; payment turns its receivable into cash. A manager cannot spend a forecast or accelerate the annual date to meet payroll. Winddown crystallization applies only to actual final investor liquidation under its explicit termination contract, never merely because a season score is displayed.
 
-Daily provisional performance fee for series s:
+### Isolated arithmetic oracles (other costs/flows off)
 
-- Let U be its current units and H its last crystallized post-performance-fee HWM per unit.
-- Let B be today's capital attributable to the series after common P&L and management fee, with its previous uncrystallized performance liability added back.
-- Pre-performance NAV/unit p = B/U.
-- Target liability F =0.20×max(0, p−H)×U.
-- Post-fee series capital = B−F.
-- Post only the change from the previous provisional liability to F, including reversals after losses.
+1. U1000/H100/B110000 → F2000/N108000. Annual crystallization H108; later B104000 or108000 produces no fee, B110000 produces400 and net109600.
+2. Before annual crystallization, B110000→105000 reverses provision2000→1000. Previously fixed/paid fees would not reverse.
+3. Entry fairness: old1000 units/H100/B95000, new950 units/H100/B95000; common return10% produces oldB104500/F900 and newB104500/F1900. Net capitals103600/102600.
+4. Cohort allocation: seriesA N108000/F2000/A110000; underwater seriesB N100000/F0/A100000/H120 with1000 units each. Common P&L21000 allocates11000/10000, not10903.85/10096.15. Closing A B121000/F4200/N116800; B B110000/F0/N110000; total NAV226800.
+5. Partial redemption: U1000/H100/B110000/F2000/N108000; accept250 units → redemption27000, fixed performance fee500, remaining U750/F1500/N81000/H100. No full-series H108 reset.
+6. $25m fixed opening fee base ×0.015/365 =1027.397260273973… per calendar date; displayed first posting1027.40 with residual. Three constant-base dates sum3082.19178082…→3082.19. Actual recurring bases change with posted accruals, so this is an isolated constant-base oracle. $3m settled debt at6%/360 costs500/date. $1m settled borrow at2%/360 costs55.555555…/date; three dates total166.67 after residual rounding.
+7. Redemption leverage: NAV25m/L27.5m/S5m gives gross130%, net90%. Deal5m at unchanged holdings → NAV20m, gross162.5%, net112.5%. Payment itself creates no additional ratio change.
+8. Cover direction: NAV25m/L25m/S5m gives net80%; cover all5m, costs off → net100%, gross100%. With just$100 cost net becomes100.0004%, so a cover-only plan breaches a100% net cap. Sell enough long exposure first/alongside under separately executable safe prefixes; never assume an atomic basket on an event tape.
 
-Crystallize on days20/40/60 after the day's accruals. Transfer the provisional fee into a fixed fee payable without charging it again. Set H to max(old H, post-fee series NAV/unit). Zero the provisional bucket; never lower H to enable charging again on mere recovery. Company recognizes performance-fee revenue/receivable only at crystallization.
+These cases are expected arithmetic, not executed application tests.
 
-All series crystallize at each dealing date before flows, so a redemption cannot escape the fee accrued to that date. No separate second redemption fee. When a series redeems fully, retain its closed record and crystallized obligations. A later subscription is a new series.
+## 7. Authoritative event order and endpoint
 
-Management fees accrued since the prior window and crystallized performance fees are payable at the next business-day treasury sweep, after due redemptions. Payment is a fund asset/liability decrease and a company cash/receivable transfer; it is not new fund expense or second company revenue. Insufficient fund cash is a real fee-payment liability and can leave the company short of payroll.
+Business date:
+1. Opening administration: activate effective contracts, process prior-trade settlements and due payments, settle corporate-action cash and effective staff changes. Due failure enters distress before elective trading.
+2. Opening market: publish available public evidence/quotes/borrow and ex-date actions; mark coherently; recheck recalls, credit, margin and mandates. Material crisis pauses before its next eligible execution event.
+3. Execution: due forced obligations first, then authorized voluntary orders in stable acceptance order. Revalidate authority, restriction status, available resources and every risk dimension for each partial fill; post journal/obligations/reservations/outbox atomically.
+4. Further tape events repeat publish → mark/risk → eligible execution. New commands require a strictly later information/execution event.
+5. Close: mark, accrue calendar-date financing/dividends/common expenses, allocate common P&L, accrue management fees and recompute provisional performance fees; accrue/pay business-day company costs as due; run risk/treasury and independent reconciliation controls.
+6. Certified dealing close: annual crystallization if its actual date; compute eligible requests/gate on certified pre-flow post-provision NAV; crystallize accepted redemptions pro rata; cancel units/create payables; admit funded subscriptions; recheck post-flow risk. An unresolved certification break blocks the dealing operation and produces an explicit missed-event incident, not stale-price dealing. Fund an obligation due earlier today before considering tonight's subscription.
+7. Certified checkpoint: certify both ledgers/series/independent controls, apply chapter relationship transitions once, create notice-cutoff requests, record outcomes/hash. Cutoffs15/35/55 use the latest certified relationship state then available, not the future dealing result.
 
-### Arithmetic reference cases (isolated, costs off)
+Nonbusiness dates run only dated accrual/provision and control/risk checks, carrying mark timestamps. Material alerts pause before the next tradable event; they cannot create weekend executable liquidity. No company business-day payroll on weekends. One event identity per date/phase prevents replay double charges.
 
-1. Performance fee:1,000 units, H100, pre-fee unit NAV110 → provisional fee $2,000; net capital$108,000; crystallized H108.
-2. Loss/recovery: after that crystallization, pre-fee unit NAV104 → no incentive; a later108 → none;110 → fee$400 and net unitNAV109.60. H never falls to104.
-3. Reversible accrual: before crystallization, p110 produces$2,000 accrued; next p105 produces$1,000. Reverse$1,000. Crystallizing earlier would instead leave the paid fee irreversible; timing is contractual.
-4. Entry fairness: old series1,000 units has H100 and p95; new$95,000 subscription opens950 units at100/H100. Next common return10%: old p104.50 → fee$900; new p110 → fee$1,900. Old investors recover their own loss before paying; new investors pay on their own gain.
-5. Management fee: $25m opening net assets ×0.015/252 =$1,488.095238… daily before residual rounding. Three months is not automatically $93,750; this 60-business-day season uses60/252 and a changing fee base.
+The first slice checkpoints after the ordinary day21 opening administration. The full season checkpoints after ordinary day61 opening administration. Both include their intervening Saturday/Sunday accruals, settle due prior-day obligations, and stop **before** that Monday's market event or daily accrual. There is no frozen terminal market or synthetic one-day carry charge. Day60 performance remains the scored investment period; separately bridge day60 net NAV to the day61 opening cash/holdings state, including weekend expenses, provisional-fee reversals and already-recorded flows. The checkpoint carries last observed Friday marks with their age; it is not a fresh Monday valuation or proof of liquidated proceeds. Continuing resumes the next pending event exactly once.
 
-Cases isolate specific rules; they are not asserted full-season outputs.
-
-## 7. One authoritative daily event order
-
-Each day uses a frozen, versioned ordered tape. Commands enter only during open decision windows; each has an eligibility event strictly later than its accepted information cutoff.
-
-1. **Opening administrative phase:** activate previously announced contract changes; process prior-trade settlements and scheduled capital/fee cash payments via treasury; activate effective staff changes. A due failure opens distress before elective trading.
-2. **Opening market event:** publish newly available public information and price/volume/borrow updates; mark all affected positions coherently; test recalls, credit and margin; open a crisis window if required.
-3. **Execution event:** execute due forced obligations first; then authorized voluntary orders by accepted simulation sequence and immutable ID. Revalidate authority, borrow, settlements, margin and mandate for every partial fill against the state after earlier fills. Post journals/obligations/reservation conversions atomically.
-4. **Further tape events:** repeat publish → mark/risk → eligible execution in timestamp order. Material pauses allow new commands only for strictly later events.
-5. **Closing accrual phase:** close-mark positions; accrue debt interest, stock borrow, dividend obligations, management fee and company payroll/overhead; allocate series P&L; recompute provisional performance fees; run margin/treasury checks.
-6. **Dealing close, when scheduled:** crystallize fees; apply elected gate to eligible redemption requests; create redemption payables/cancel units; admit funded subscriptions/new series; recompute NAV/collateral/risk after capital changes. If the flow creates a margin deficit, open a crisis for the next eligible event; admission never excuses missing a due payment earlier that day.
-7. **Certified close:** reconcile both ledgers, obligations, collateral, quantities and series; certify reports; apply chapter LP confidence once; create upcoming cutoff requests when that day is a notice cutoff; compute outcome/progress; persist state hash and checkpoint.
-
-At days15/35/55, a notice cutoff uses confidence most recently certified before the cutoff; it does not use an unknown future chapter result. Request generation is a unique business event.
-
-Initial margin is checked before admitting voluntary risk. Maintenance is rechecked after each price, fill, fee and flow phase that changes equity or requirements. No end-of-day-only loophole.
-
-Day61 is a terminal administrative tail for day60 T+1 trades, redemptions and fee payments. No new elective trades, market marks, research, management-fee accrual, company operating day or return period is added. Existing final marks are frozen solely for this disclosed game boundary; one extra day of borrowing/debit carry on still-open funding is accrued and allocated before final settlement certification, and deducted from terminal investor value. Report day60 strategy return separately from this terminal funding adjustment. The twenty-day opening slice instead stops after the ordinary day21 opening administrative phase: settle day20 obligations, then checkpoint before market events. Do not apply the special terminal carry projection there. Continuing chapter3 resumes from that phase checkpoint without repeating settlements; normal day21 accrual happens once at its close. Later continuous campaigns replace this simplification with a full next day and must not mix ranking versions.
-
-After day61, surviving residual positions are marked holdings, not fictionally liquidated cash. Renewal can carry them into the next season; a winddown scenario continues its explicit liquidation tail and cannot claim all investors were paid from marks alone.
+Renewal carries holdings, debt, series HWM, provisional fees, requests and claims into the next season. A winddown continues actual market/settlement/calendar events and charges until final liquidation/payment or documented default. Do not manufacture final investor cash by marking remaining positions. Endpoint obligations, including newly accrued not-yet-due fees, remain in the balance sheet and debrief.
 
 ## 8. Execution model
 
@@ -144,20 +126,20 @@ A limit order fills only at actual tape events where the modeled executed price 
 
 Complete states include DRAFT, PENDING_APPROVAL, AUTHORIZED_QUEUED, PARTIALLY_FILLED, FILLED, CANCELED, EXPIRED and REJECTED. “Authorized” can reference a delegation or specific committee signatures. A remaining partial order owns only its remaining reservations. Duplicate event delivery cannot consume the same liquidity, borrow or cash twice.
 
-## 9. Required invariants and replay evidence
+## 9. Required invariants and evidence
 
-- Fund assets minus liabilities equals the sum of active series net capital.
-- Company assets minus liabilities equals equity plus retained income.
-- Total cash movement across a paid fee is equal and opposite; payment is not a second expense.
-- Series performance fee follows its own entry/HWM history through loss, recovery, flow and closure.
-- External subscriptions/redemptions do not create investment return.
-- Restricted collateral, receivables, reservations and spendable cash never count as the same available dollar twice.
-- Economic short quantity, borrowed quantity and pending return explain every difference.
-- Credit limit, margin equity and settlement sufficiency are checked separately.
-- Gate allocations conserve accepted units/value and treat eligible requests pro-rata.
-- Forced liquidation obeys liquidity and preserves remaining deficit; it cannot erase insolvency.
-- Fixed tape + commands + rules produce identical typed events, journal balances and checkpoint hash.
-- A retry, cancellation/fill race or reversed event cannot duplicate economic meaning.
-- Reconciliation failure pauses economic execution and report certification without concealing the failure.
+- Assets minus liabilities equals the sum of active series net capital; adding back provisional performance liabilities reconciles to participation capital.
+- Company equity/revenue/receivables/cash remain distinct; paid fees are equal/opposite transfers, never repeated expense/revenue.
+- Cohort allocation, admission, HWM, partial redemption and annual crystallization conserve both claims and units.
+- Borrow starts on settlement and continues through, but not including, settled return date; weekends and split quantities cannot be lost.
+- Netting respects counterparty/date/currency/collateral eligibility; failed receipts do not fund payments.
+- External flows do not create return; redemption changes equity at dealing, not again at payment.
+- Initial margin, maintenance, credit, settlement sufficiency, mandate deficits and restricted-list status are independent checks.
+- Corporate actions preserve economic value correctly; adjusted data cannot double count income.
+- A gate conserves accepted/deferred quantities and allocates eligible claims fairly.
+- A reduction checks all resulting ratios, including net exposure and post-flow denominators; forced action records any unavoidable breach rather than concealing it.
+- Independent broker/admin discrepancies are detectable even when the internal journal balances; corrections preserve the original evidence.
+- Fixed tape/commands/rules reproduce events, balances and hash; retries and partial-fill races cannot duplicate meaning.
+- Day21/day61 resume at the saved phase without duplicated weekend accrual, settlement or Monday returns.
 
-These are acceptance obligations. The current documentation does not claim that their implementation or tests exist.
+These are required future acceptance behaviors. Document arithmetic and fixture syntax checks do not establish an implemented engine or independent financial certification.

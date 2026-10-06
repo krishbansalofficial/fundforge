@@ -1,0 +1,515 @@
+{
+  "schema_version": "fundforge.scenario-cases.design.v2.1",
+  "prepared_on": "2026-10-06",
+  "status": "AUTHORED_DESIGN_AND_ARITHMETIC_ORACLES_NOT_RUNNABLE_ENGINE_OR_PLAYTEST",
+  "authoritative_docs": [
+    "docs/FUND_ACCOUNTING.md",
+    "docs/SEASON_SCENARIOS.md"
+  ],
+  "money": "FICTIONAL_USD",
+  "rounding": {
+    "money": "HALF_EVEN_2_DP",
+    "execution_price": "HALF_EVEN_6_DP",
+    "units": "8_DP_LARGEST_REMAINDER_FOR_PRO_RATA"
+  },
+  "arithmetic_scope": "ISOLATED_CHECKPOINTS_ORDINARY_DAILY_ACCRUALS_HELD_CONSTANT_UNLESS_CASE_EXPLICITLY_TESTS_ACCRUAL",
+  "arithmetic_cases": [
+    {
+      "id": "cohort_participation_before_reversible_provision",
+      "opening": [
+        {
+          "series": "a",
+          "units": "1000",
+          "hwm": "100",
+          "net_capital": "108000",
+          "provisional_fee": "2000"
+        },
+        {
+          "series": "b",
+          "units": "1000",
+          "hwm": "120",
+          "net_capital": "100000",
+          "provisional_fee": "0"
+        }
+      ],
+      "common_pnl": "21000",
+      "performance_rate": "0.20",
+      "expected": {
+        "participation_capital": [
+          "110000",
+          "100000"
+        ],
+        "common_pnl_allocated": [
+          "11000",
+          "10000"
+        ],
+        "closing_pre_performance": [
+          "121000",
+          "110000"
+        ],
+        "closing_provision": [
+          "4200",
+          "0"
+        ],
+        "closing_net_capital": [
+          "116800",
+          "110000"
+        ],
+        "fund_nav": "226800"
+      }
+    },
+    {
+      "id": "partial_redemption_preserves_surviving_hwm",
+      "units": "1000",
+      "hwm": "100",
+      "pre_performance_capital": "110000",
+      "performance_rate": "0.20",
+      "redeem_units": "250",
+      "expected": {
+        "provision_before": "2000",
+        "net_before": "108000",
+        "redemption_payable": "27000",
+        "crystallized_fee": "500",
+        "remaining_units": "750",
+        "remaining_provision": "1500",
+        "remaining_net_capital": "81000",
+        "remaining_hwm": "100"
+      }
+    },
+    {
+      "id": "redemption_shrinks_risk_equity",
+      "nav": "25000000",
+      "long_mv": "27500000",
+      "short_mv": "5000000",
+      "dealt_redemption": "5000000",
+      "expected": {
+        "pre_gross": "1.30",
+        "pre_net": "0.90",
+        "post_nav": "20000000",
+        "post_gross": "1.625",
+        "post_net": "1.125",
+        "payment_nav_change": "0"
+      }
+    },
+    {
+      "id": "cover_increases_net_after_costs",
+      "nav": "25000000",
+      "long_mv": "25000000",
+      "short_mv": "5000000",
+      "cover_reference": "5000000",
+      "cost": "100",
+      "net_max": "1",
+      "expected": {
+        "post_nav": "24999900",
+        "post_long": "25000000",
+        "post_short": "0",
+        "net_cap_breached": true,
+        "net_rounded_12dp": "1.000004000016"
+      }
+    },
+    {
+      "id": "calendar_fee_constant_base",
+      "management_base": "25000000",
+      "management_rate": "0.015",
+      "management_basis": "365",
+      "calendar_dates": 3,
+      "debt": "3000000",
+      "debit_rate": "0.06",
+      "debit_basis": "360",
+      "borrow_reference": "1000000",
+      "borrow_rate": "0.02",
+      "borrow_basis": "360",
+      "expected": {
+        "management_one_date_posting": "1027.40",
+        "management_three_dates_total_posting": "3082.19",
+        "debit_one_date": "500.00",
+        "borrow_three_dates_total_posting": "166.67"
+      }
+    },
+    {
+      "id": "short_distribution_and_fee_reversal",
+      "units": "250000",
+      "hwm": "100",
+      "pre_correction_pre_performance_capital": "27500000",
+      "performance_rate": "0.20",
+      "short_quantity": "100000",
+      "distribution_per_share": "2",
+      "expected": {
+        "missing_payable": "200000",
+        "pre_correction_provision": "500000",
+        "corrected_pre_performance_capital": "27300000",
+        "corrected_provision": "460000",
+        "provision_reversal": "40000",
+        "corrected_net_nav": "26840000",
+        "net_nav_correction": "-160000"
+      }
+    },
+    {
+      "id": "distribution_total_return",
+      "quantity": "100",
+      "cum_price": "50",
+      "ex_price": "48",
+      "distribution_per_share": "2",
+      "expected": {
+        "long_price_pnl": "-200",
+        "long_income": "200",
+        "short_price_pnl": "200",
+        "short_distribution_expense": "-200",
+        "long_total_pnl": "0",
+        "short_total_pnl": "0"
+      }
+    },
+    {
+      "id": "borrow_weekend_lifecycle",
+      "short_trade_date": "2026-01-09",
+      "short_settlement_date": "2026-01-12",
+      "cover_trade_date": "2026-01-16",
+      "return_settlement_date": "2026-01-19",
+      "expected": {
+        "pre_settlement_weekend_borrow_dates": [],
+        "charged_calendar_dates": [
+          "2026-01-12",
+          "2026-01-13",
+          "2026-01-14",
+          "2026-01-15",
+          "2026-01-16",
+          "2026-01-17",
+          "2026-01-18"
+        ],
+        "return_date_charged": false
+      }
+    },
+    {
+      "id": "terminal_calendar_boundary",
+      "day_1": "2026-01-05",
+      "day_60": "2026-03-27",
+      "day_61": "2026-03-30",
+      "expected": {
+        "scored_business_days": 60,
+        "scored_calendar_dates": 82,
+        "additional_accrual_dates_before_checkpoint": [
+          "2026-03-28",
+          "2026-03-29"
+        ],
+        "monday_full_date_accrual_in_checkpoint": false,
+        "fresh_monday_mark_in_checkpoint": false
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "case_1_borrow_not_thesis",
+      "version": "2.1.0",
+      "mode": "WARM_START_AUTHORED_CHALLENGE",
+      "days": [
+        12,
+        21
+      ],
+      "source_section": "SEASON_SCENARIOS section8 Case1",
+      "opening": {
+        "nav": "25000000",
+        "long_mv": "27500000",
+        "short_mv": "5000000",
+        "restricted_cash": "5000000",
+        "cash": "0",
+        "broker_debt": "2500000",
+        "company_cash": "240000",
+        "company_weekly_cost": "20000"
+      },
+      "shock_reference": {
+        "long_mv": "26125000",
+        "short_mv": "5500000",
+        "nav": "23125000",
+        "maintenance_long": "0.70",
+        "maintenance_short": "0.90",
+        "maintenance_required": "23237500",
+        "shortfall": "112500"
+      },
+      "events": [
+        {
+          "day": 12,
+          "type": "BROKER_STRESS_WARNING",
+          "effective_day": 16
+        },
+        {
+          "day": 13,
+          "type": "RECALL",
+          "instrument": "BRIN",
+          "quantity": "1250",
+          "cover_execution_deadline": "DAY_15_FINAL_EXECUTABLE_EVENT",
+          "replacement_annual_rate": "0.40"
+        },
+        {
+          "day": 16,
+          "type": "RESPONSE_QUOTES",
+          "quotes": [
+            {
+              "instrument": "BEAM",
+              "reference": "95",
+              "volume": "42120"
+            },
+            {
+              "instrument": "BRIN",
+              "reference": "110",
+              "volume": "25000"
+            }
+          ]
+        },
+        {
+          "day": 18,
+          "type": "LIQUIDITY_EXIT",
+          "instrument": "BEAM",
+          "reference": "95",
+          "volume": "400000",
+          "max_sale_quantity": "20000",
+          "expected_execution_price_at_cap": "94.905000",
+          "expected_proceeds_at_cap": "1898100.00",
+          "settles_day": 19
+        },
+        {
+          "day": 20,
+          "type": "BEAM_FINAL_EVENT_HALT",
+          "liquidity": "0",
+          "future_marks_held_at_authored_quotes": {
+            "long": "95",
+            "short": "110"
+          }
+        },
+        {
+          "day": 20,
+          "type": "TACTICAL_REDEMPTION",
+          "unit_request": "10000"
+        },
+        {
+          "day": 21,
+          "type": "OPENING_PAYMENT_CHECKPOINT"
+        }
+      ],
+      "expected_response_branches": [
+        {
+          "id": "sell_liquid_long",
+          "quantity": "2106",
+          "execution_price": "94.905000",
+          "reference_reduction": "200070",
+          "cash_receivable": "199869.93",
+          "cost": "200.07",
+          "nav": "23124799.93",
+          "maintenance_required": "23097451",
+          "maintenance_headroom": "27348.93"
+        },
+        {
+          "id": "cover_short",
+          "quantity": "1250",
+          "execution_price": "110.110000",
+          "reference_reduction": "137500",
+          "cash_payable": "137637.50",
+          "cost": "137.50",
+          "nav": "23124862.50",
+          "maintenance_required": "23113750",
+          "maintenance_headroom": "11112.50"
+        },
+        {
+          "id": "replacement_only",
+          "replacement_reference": "137500",
+          "replacement_rate": "0.40",
+          "calendar_day_borrow_cost_12dp": "152.777777777778",
+          "margin_requirement_release": "0"
+        }
+      ],
+      "objectives": [
+        "positive_nav",
+        "resolve_recall",
+        "pay_tactical_at_day21_open",
+        "no_involuntary_liquidation"
+      ],
+      "recovery": "SURVIVAL_WITH_FORCED_LIQUIDATION_AND_HONEST_PAYMENT_REPORT",
+      "not_yet_compiled": [
+        "full_day12_21_tape",
+        "complete_fee_series_history",
+        "two_success_and_one_failure_command_scripts"
+      ],
+      "continuation_feasibility": {
+        "reserve_before_optional_debt_repayment": "1250000",
+        "max_additional_charges_bound": "100000",
+        "long_sale_branch_pre_charges_nav": "23122899.93",
+        "long_sale_branch_maintenance": "21767451",
+        "tactical_units_fraction": "0.04",
+        "post_redemption_nav_lower_bound": "22101983.93",
+        "maintenance_headroom_lower_bound": "334532.93",
+        "scope": "BOUND_ONLY_USE_ACTUAL_DATED_ENGINE_ACCRUALS"
+      }
+    },
+    {
+      "id": "case_2_profitable_illiquid_redeeming",
+      "version": "2.1.0",
+      "mode": "WARM_START_AUTHORED_CHALLENGE",
+      "days": [
+        39,
+        41
+      ],
+      "source_section": "SEASON_SCENARIOS section8 Case2",
+      "opening_comparison": {
+        "nav": "25000000",
+        "long_mv": "25500000",
+        "short_mv": "5000000",
+        "restricted_cash": "5000000",
+        "cash": "2100000",
+        "broker_debt": "2500000",
+        "fixed_invoice": "100000",
+        "equal_dollar_requests": [
+          "3000000",
+          "3000000"
+        ]
+      },
+      "quote": {
+        "instrument": "BEAM",
+        "reference": "100",
+        "volume": "840000",
+        "participation": "0.05",
+        "half_spread_bps": "5",
+        "impact_coefficient_bps": "2000"
+      },
+      "expected_branches": [
+        {
+          "id": "pay_all",
+          "sell_quantity": "42000",
+          "execution_price": "99.900000",
+          "sale_proceeds": "4195800.00",
+          "cost": "4200.00",
+          "pre_flow_nav": "24995800.00",
+          "dealt": "6000000.00",
+          "post_flow_nav": "18995800.00",
+          "post_long_mv": "21300000",
+          "post_short_mv": "5000000",
+          "payment_cash": "195800.00",
+          "deferred_each": "0.00"
+        },
+        {
+          "id": "elect_gate",
+          "sell_quantity": "32000",
+          "execution_price": "99.920975",
+          "sale_proceeds": "3197471.20",
+          "cost": "2528.80",
+          "pre_flow_nav": "24997471.20",
+          "dealt": "4999494.24",
+          "dealt_each": "2499747.12",
+          "post_flow_nav": "19997976.96",
+          "post_long_mv": "22300000",
+          "post_short_mv": "5000000",
+          "payment_cash": "197976.96",
+          "deferred_each": "500252.88"
+        }
+      ],
+      "objectives": [
+        "pay_all_dealt_claims",
+        "post_flow_mandate_compliant",
+        "fair_gate_if_elected",
+        "known_next_window_plan_for_deferred_units"
+      ],
+      "failure": "LATE_SALE_OR_SPENDING_RESTRICTED_CASH_CANNOT_PAY_DUE_REDEMPTION",
+      "not_yet_compiled": [
+        "full_day39_41_tape",
+        "request_to_units_rounding",
+        "calendar_accrual_nav_bridge",
+        "halt_variant_as_separate_fixed_version"
+      ]
+    },
+    {
+      "id": "case_3_balanced_but_wrong_nav",
+      "version": "2.1.0",
+      "mode": "WARM_START_AUTHORED_CHALLENGE",
+      "days": [
+        29,
+        41
+      ],
+      "source_section": "SEASON_SCENARIOS section8 Case3",
+      "fund_arithmetic_case": "short_distribution_and_fee_reversal",
+      "company": {
+        "opening_cash": "72000",
+        "baseline_weekly_cost": "20000",
+        "ops_recruitment": "10000",
+        "ops_extra_weekly_cost": "4000",
+        "management_fee_receivable_due_day41": "35000",
+        "prospective_fund_subscription": "5000000"
+      },
+      "events": [
+        {
+          "day": 29,
+          "type": "BROKER_ADMIN_DIVIDEND_BREAK",
+          "payable": "200000"
+        },
+        {
+          "day": 29,
+          "type": "RESTRICTED_SOURCE",
+          "instrument": "ALTO",
+          "release_day": 33
+        },
+        {
+          "day": 35,
+          "type": "LP_CORRECTED_REPORT_DEADLINE"
+        },
+        {
+          "day": 40,
+          "type": "FUNDED_LP_ADMISSION_AND_COMPANY_PAYROLL"
+        },
+        {
+          "day": 41,
+          "type": "PAY_FIXED_MANAGEMENT_INVOICE"
+        }
+      ],
+      "expected_company_branches": [
+        {
+          "id": "stay_lean",
+          "day30_cash": "52000",
+          "day35_cash": "32000",
+          "day40_cash": "12000",
+          "day41_cash": "47000",
+          "weekly_cost": "20000",
+          "runway_weeks": "2.35"
+        },
+        {
+          "id": "hire_operations",
+          "day30_cash": "42000",
+          "day35_cash": "18000",
+          "day40_cash": "0",
+          "day40_unpaid_payroll": "6000",
+          "day41_invoice_receipt": "35000",
+          "day41_arrears_paid": "6000",
+          "day41_cash": "29000",
+          "weekly_cost": "24000",
+          "runway_weeks_12dp": "1.208333333333"
+        }
+      ],
+      "objectives": [
+        "correct_and_certify_nav",
+        "respect_restricted_status",
+        "meet_offer_condition_if_accepting",
+        "company_cured_by_day41"
+      ],
+      "failure": "UNPAID_FEE_LEAVES_COMPANY_ARREARS_AND_CAN_EXHAUST_FIVE_BUSINESS_DAY_CURE",
+      "not_yet_compiled": [
+        "independently_authored_statements",
+        "correction_restated_report_events",
+        "complete_company_and_fee_opening_ledgers",
+        "restricted_clearance_asof_tests"
+      ],
+      "fund_opening": {
+        "cash": "5035000",
+        "restricted_cash": "4800000",
+        "long_mv": "22500000",
+        "short_mv": "4800000",
+        "fixed_management_fee_payable": "35000",
+        "provisional_performance_fee": "500000",
+        "net_nav": "27000000"
+      }
+    }
+  ],
+  "release_gate": [
+    "complete_immutable_event_tapes",
+    "two_distinct_success_paths_per_case",
+    "explainable_failure_recovery_path_per_case",
+    "two_human_role_balance_playtest",
+    "deterministic_replay_and_control_reconciliation"
+  ],
+  "executed_application_tests": false
+}

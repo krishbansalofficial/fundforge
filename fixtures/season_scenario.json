@@ -1,8 +1,8 @@
 {
-  "schema_version": "fundforge.season-design.v2",
+  "schema_version": "fundforge.season-design.v2.1",
   "status": "AUTHORED_DESIGN_CONTRACT_NOT_A_COMPLETE_PLAYABLE_TAPE",
   "scenario_id": "the_first_mandate",
-  "scenario_version": "2.0.0",
+  "scenario_version": "2.1.0",
   "prepared_on": "2026-10-06",
   "money": "FICTIONAL_USD",
   "clock": {
@@ -10,10 +10,21 @@
     "week_days": 5,
     "chapters": 6,
     "days_per_chapter": 10,
-    "annual_accrual_days": 252,
     "first_playable_days": 20,
     "terminal_settlement_day": 61,
-    "wall_clock_attendance_required": false
+    "wall_clock_attendance_required": false,
+    "calendar": "SYNTHETIC_MON_FRI_NO_EXCHANGE_HOLIDAYS",
+    "first_business_date": "2026-01-05",
+    "day_20_date": "2026-01-30",
+    "day_40_date": "2026-02-27",
+    "last_scored_business_date": "2026-03-27",
+    "day_61_date": "2026-03-30",
+    "scored_calendar_accrual_dates": 82,
+    "initialization": "IMMEDIATELY_BEFORE_DAY_1_OPEN_NO_PRELAUNCH_ACCRUAL",
+    "nonbusiness_calendar_accrual": true,
+    "terminal_boundary": "ORDINARY_DAY_61_OPENING_ADMIN_BEFORE_MARKET_EVENT",
+    "opening_slice_boundary": "ORDINARY_DAY_21_OPENING_ADMIN_BEFORE_MARKET_EVENT",
+    "no_special_frozen_terminal_marks": true
   },
   "opening": {
     "fund_nav": "25000000.00",
@@ -55,16 +66,24 @@
     "annual_management_rate": "0.015",
     "performance_rate": "0.20",
     "hurdle_rate": "0",
-    "accrual_basis": "SIMULATED_BUSINESS_DAYS_252",
     "hwm_method": "PER_SUBSCRIPTION_SERIES_POST_FEE",
     "new_series_unit_price": "100.00000000",
-    "crystallization_days": [
+    "pay_business_days_after_crystallization": 1,
+    "reversible_uncrystallized_performance_accrual": true,
+    "management_accrual_basis": "ACT_365_FIXED_EACH_CALENDAR_DATE",
+    "management_fee_base": "PRIOR_CALENDAR_CLOSE_NET_SERIES_CAPITAL_PLUS_REVERSIBLE_PERFORMANCE_PROVISION",
+    "management_invoice_business_days": [
       20,
       40,
       60
     ],
-    "pay_business_days_after_crystallization": 1,
-    "reversible_uncrystallized_performance_accrual": true
+    "performance_crystallization": "ANNUAL_DECEMBER_31_AND_PRO_RATA_DEALT_REDEMPTION",
+    "annual_crystallization_month_day": "12-31",
+    "fundwide_performance_crystallization_within_launch_quarter": false,
+    "partial_redemption_surviving_hwm_unchanged": true,
+    "company_performance_recognition": "ONLY_ON_CRYSTALLIZATION",
+    "common_pnl_weight": "OPENING_NET_SERIES_CAPITAL_PLUS_REVERSIBLE_PERFORMANCE_PROVISION",
+    "renewal_preserves_fee_history": true
   },
   "dealing": {
     "days": [
@@ -91,7 +110,9 @@
     "direct_sector_gross_max": "0.35",
     "diversified_etf_max": "0.50",
     "drawdown_warning": "0.10",
-    "drawdown_risk_addition_freeze": "0.15"
+    "drawdown_risk_addition_freeze": "0.15",
+    "issuer_cap_scope": "SINGLE_NAME_EQUITIES",
+    "diversified_etf_cap_scope": "ABSOLUTE_MV_EITHER_DIRECTION_INSTEAD_OF_SINGLE_EQUITY_CAP"
   },
   "prime_broker": {
     "id": "harbor_prime_fictional",
@@ -104,7 +125,27 @@
     "maintenance_long_coefficient": "0.35",
     "maintenance_short_coefficient": "0.40",
     "recall_cover_execution_deadline_business_days": 2,
-    "settlement_lag_business_days": 1
+    "settlement_lag_business_days": 1,
+    "debit_day_count": "ACT_360",
+    "borrow_day_count": "ACT_360",
+    "financing_balance": "CURRENT_CALENDAR_DATE_CLOSING_SETTLED_BALANCE",
+    "borrow_starts": "SHORT_SETTLEMENT_DATE_INCLUSIVE",
+    "borrow_ends": "RETURN_SETTLEMENT_DATE_EXCLUSIVE",
+    "financing_invoice_business_days": [
+      20,
+      40,
+      60
+    ],
+    "unrestricted_cash_credit_rate": "0",
+    "restricted_short_proceeds_credit_rate": "0",
+    "netting_scope": [
+      "FUND",
+      "COUNTERPARTY",
+      "CURRENCY",
+      "SETTLEMENT_DATE",
+      "ELIGIBLE_NETTING_SET"
+    ],
+    "restricted_proceeds_unrestricted_netting_allowed": false
   },
   "governance": {
     "human_managers": 2,
@@ -138,7 +179,12 @@
     "no_overdue_dealt_redemptions": true,
     "no_terminal_gated_requests": true,
     "no_broker_default": true,
-    "reconciled_positive_nav": true
+    "reconciled_positive_nav": true,
+    "label": "RENEWAL_CONDITIONAL_CONTINUATION",
+    "business_viability_claim": false,
+    "display_13_week_company_forecast": true,
+    "display_unfunded_next_season_gap": true,
+    "cash_benchmark_annual_rate": "0"
   },
   "chapters": [
     {
@@ -260,12 +306,52 @@
     "Prospect terms and conditional rules",
     "Commands engine and journal implementation",
     "LP and company transition implementation",
-    "Observed two-user playtest and feasible-path balance evidence"
+    "Observed two-user playtest and feasible-path balance evidence",
+    "Independent broker/admin control records and correction paths",
+    "Dated weekend accrual and annual/redemption fee cases",
+    "Cash-distribution and integer-split event cases",
+    "Compile three decision cases into immutable full event tapes"
   ],
   "sources_are_concepts_not_scenario_terms": [
     "https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds",
     "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/new-t1-settlement-cycle-what-investors-need-know-investor-bulletin",
     "https://www.sec.gov/investor/pubs/regsho.htm",
     "https://www.interactivebrokers.com/campus/glossary-terms/loan-recall/"
-  ]
+  ],
+  "controls": {
+    "independent_broker_and_admin_fixture_records": true,
+    "balanced_journal_alone_is_reconciliation": false,
+    "external_break_policy": "BLOCK_NEW_RISK_AND_CERTIFICATION_ALLOW_VERIFIED_OBLIGATIONS",
+    "internal_invariant_failure_policy": "PAUSE_ECONOMIC_TRANSITIONS_REPAIR_AND_REPLAY",
+    "restricted_instrument_policy": "BLOCK_ALL_ELECTIVE_TRADES_UNTIL_AUTHORED_CLEARANCE",
+    "corporate_actions_supported": [
+      "CASH_DISTRIBUTION",
+      "INTEGER_SPLIT_WITHOUT_FRACTIONAL_ENTITLEMENTS"
+    ],
+    "unsupported_imported_actions": "REJECT"
+  },
+  "investor_state_presentation": {
+    "kind": "DETERMINISTIC_LATENT_BALANCE_MODEL",
+    "bands": {
+      "strong": {
+        "minimum_inclusive": "70",
+        "maximum_inclusive": "100"
+      },
+      "stable": {
+        "minimum_inclusive": "55",
+        "maximum_exclusive": "70"
+      },
+      "concerned": {
+        "minimum_inclusive": "40",
+        "maximum_exclusive": "55"
+      },
+      "withdrawal_risk": {
+        "minimum_inclusive": "0",
+        "maximum_exclusive": "40"
+      }
+    },
+    "exact_values_available_in_rulebook_replay": true,
+    "gate_penalty_only_on_actual_deferral": true
+  },
+  "scenario_cases_fixture": "fixtures/scenario_cases.json"
 }

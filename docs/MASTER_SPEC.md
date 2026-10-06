@@ -1,6 +1,6 @@
 # FundForge — hedge fund management game
 
-Version 2.0 · Design reset · 6 October 2026 · Specification, not implemented software
+Version 2.1 · Realism and implementation review · 6 October 2026 · Specification, not implemented software
 
 ## 1. The game we are building
 
@@ -23,19 +23,19 @@ All capital, entities, counterparties, salaries, investor communications and rew
 | Item | Default |
 |---|---|
 | Managers | Exactly two human partners; interchangeable chapter roles |
-| Season | 60 simulated business days, 12 five-day weeks, six 10-day chapters |
+| Season | 60 synthetic Mon–Fri business days, 5 January–27 March 2026; 82 calendar accrual dates; six chapters |
 | Play cadence | Typically 20–30 minutes per chapter; save/resume; no real-market-hours requirement |
 | Starting fund | $25,000,000 NAV; initial series price $100; 250,000 initial units across three LP series |
 | Investors | Seed LP $10m; Patient LP $8m; Tactical LP $7m |
 | Management company | $300,000 cash; $20,000 baseline weekly payroll and overhead |
 | Fund terms | 1.5% annual management fee; 20% performance fee; no hurdle; series-specific high-water marks |
-| Fee clock | 252 simulated business accrual days per year; crystallize on days 20, 40 and 60 |
+| Fee clock | Dated calendar accrual: management ACT/365; financing/borrow ACT/360; performance crystallizes annually on 31 December and pro rata on redeemed units |
 | Investor dealing | Days 20, 40, 60; five-business-day notice; payment next business day |
 | Optional contractual gate | 20% of pre-flow dealing NAV per window, pro-rata among eligible redemption requests |
 | Universe | Twelve fictional USD instruments: ten equities in five sectors, broad equity ETF, defensive bond ETF |
 | Prime broker | One fictional contract, explicit financing/collateral/borrow terms |
 | Launch orders | Market and limit, whole shares, synthetic event-level tape, partial fills |
-| Launch mandate | Gross <=150%; net -20% to100%; long issuer <=15%; short issuer <=8%; direct sector gross <=35%; each approved diversified ETF <=50% |
+| Launch mandate | Gross <=150%; net -20% to100%; single-equity issuer long <=15%, short <=8%; direct sector gross <=35%; each approved diversified ETF absolute exposure <=50% |
 | Drawdown | 10% warning; 15% freezes risk additions, with remediation still possible |
 | Data | Versioned authored synthetic scenarios; deterministic server-side tape |
 | Primary outcome | Earn renewal through published scenario objectives while remaining solvent |
@@ -72,13 +72,13 @@ A jointly approved strategy sleeve names an owner, allowed instruments and sides
 
 Both partners approve new sleeves, changed budgets, gate use, new investor terms, large firm hires, prime-broker changes and exceptions to previously delegated authority. The proposer cannot supply the required second signature. An edited committee proposal loses its signatures. Risk limits remain hard constraints; signatures cannot waive them.
 
-Either partner may cancel an unfilled order or activate the jointly pre-approved emergency reduction policy. Emergency trades must reduce a defined risk deficit without creating another hard breach; this is not a general “risk officer can trade anything” escape. Automatic margin liquidation and contractual buy-ins are system events, not unauthorized human approvals.
+Either partner may cancel an unfilled order or activate the jointly pre-approved emergency reduction policy. Emergency trades must reduce a defined risk deficit without creating or worsening another hard deficit, including net exposure after costs; this is not a general “risk officer can trade anything” escape. Automatic margin liquidation and contractual buy-ins are system events, not unauthorized human approvals.
 
 At disagreement, existing authorizations remain in force; no unsigned change executes. Teams can choose a smaller jointly acceptable plan, hold, or leave the window paused. The committee UI presents a small number of consequential choices, not an inbox of routine approvals.
 
 ## 5. The business simulation
 
-The fund owns investor assets and pays disclosed fund expenses. The management company earns contractual fees and pays salaries, research services and its own overhead. It cannot silently spend investor capital on payroll or treat subscriptions as revenue.
+The fund owns investor assets and pays disclosed fund expenses. The management company earns contractual fees and pays salaries, research services and its own overhead. Daily performance provisions reduce investor NAV but are not company income/cash until annual or redemption crystallization; renewal carries their history forward. The short season is a quarter-long evaluation, not a fund lifetime. It cannot silently spend investor capital on payroll or treat subscriptions as revenue.
 
 LPs are named counterparties with capital, a contract, a preferred strategy, patience and observable concerns. Performance, style consistency, liquidity handling and honest timely reporting influence confidence. LPs also have external liquidity needs that excellent performance cannot always prevent. New capital needs a lead, due diligence, accepted terms and a dealing date; pressing “fundraise” cannot instantly cure a cash call.
 
@@ -88,7 +88,7 @@ The management company buys capability with real recurring cost. A research anal
 
 ## 6. Portfolio and market depth
 
-Launch focuses on equity long/short and liquid ETF hedges. Short positions require available borrow and accrue explicit costs. Exposure is gross, net, sector and issuer, with hypothetical stress loss and liquidation time visible. Diversification is not a reward for buying many tickers that share one risk.
+Launch focuses on equity long/short and liquid ETF hedges. Short positions require available borrow and accrue explicit costs. Exposure is gross, net, sector and issuer, with hypothetical stress loss and liquidation time visible. Diversification is not a reward for buying many tickers that share one risk. Show scenario-authored market/sector sensitivities and stress P&L alongside notional ratios. A short broad-equity ETF can reduce positive market exposure; a long broad ETF increases it. A bond ETF is a rate-sensitive alternative with its own shock behavior, never a guaranteed negative-equity-beta hedge. These authored sensitivities are not fitted estimates or validated forecasts.
 
 Every thesis has a catalyst, a horizon, observable evidence, a falsification condition and a sizing rule. Research spends attention to reveal scenario-authored evidence of known quality. It does not purchase guaranteed future returns. Information visible to either partner is shareable; useful cooperation comes from attention and judgment, not forced secret screens.
 
@@ -128,14 +128,14 @@ Store event_time, available_at, recorded_at, simulation phase, event identity, s
 
 Commands use an idempotency key, expected state/proposal version and verified actor. PostgreSQL serializes economically conflicting operations at the fund boundary. A single transaction posts fills, journals, obligations, reservations, sleeve consumption and outbox events. Use bounded retries and unique business identities. Delivery can be at least once; economic posting must deduplicate. Replays restore the same state and journals.
 
-FUND_ACCOUNTING defines the strict daily phase order, series accounting, collateral, margin deadlines and flow conventions. Reconciliation failure freezes execution and reporting certification. Repair by explicit reversal/restatement; never overwrite a balance to satisfy a test.
+FUND_ACCOUNTING defines the strict daily phase order, series accounting, collateral, margin deadlines and flow conventions. An internal integrity failure pauses economic transitions; an external broker/admin discrepancy blocks new risk and official NAV/dealing certification while verified obligations can still resolve under the accounting contract. A balanced journal alone is not independent reconciliation. Repair by explicit reversal/restatement; never overwrite a balance to satisfy a test.
 
 ## 10. Scope that preserves the game
 
 | Delivery boundary | Included | Honest completion label |
 |---|---|---|
 | Foundation | Decimal ledger, accounting examples, event clock | Financial engine prototype |
-| Integrated vertical slice | Two partners; 20-day opening arc; three LPs; sleeves; long/short; one broker; fees; firm costs; first dealing; one linked crisis | First playable fund-management slice |
+| Integrated vertical slice | Two partners; 20-day opening arc; three LPs; sleeves; long/short; one broker; fees; firm costs; first dealing; redemption-only performance crystallization; one linked crisis | First playable fund-management slice |
 | Season release | All six chapters/60 days; varied outcomes; operating choices; final renewal/winddown; recovery and security evidence | Hedge fund management game |
 | Later research expansion | Permitted historical data, shared-engine backtests, evaluated ML, optional source-grounded assistant and external research integrations | Research extension |
 
@@ -157,10 +157,26 @@ One later ML candidate is filtered HMM regime inference compared with a simple t
 
 Tutorials attach to decisions: borrow recall, leverage, liquidity, unit issuance, fee recovery and conflicting stakeholder incentives. Template explanations work without AI. Optional LLM narration consumes verified event facts and cannot invent metrics or determine grades.
 
-Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result.
+Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result. The three numerical cases in SEASON_SCENARIOS are authored playable specifications with explicit paths, not implemented or balance-tested episodes.
 
 ## 12. Source discipline
 
 The simulator borrows concepts, then deliberately defines its own contracts. SEC Investor.gov hedge-fund guidance describes fees and redemption limits as terms investors must understand; it does not prescribe this game's 1.5/20 structure or dealing windows. SEC T+1 guidance concerns applicable U.S. transactions, not every market or historical era. Regulation SHO's locate/close-out framework is not reproduced by adding a “borrow available” icon. Brokerage sources describe that broker's practices, not universal contractual deadlines.
 
 Primary reference links and verification notes belong in SOURCES. Any future educational legal claim must be verified in its jurisdiction and date. This game is not an actual fund and does not claim SEC approval or comprehensive broker compliance.
+
+## 13. v2.1 realism boundaries and build decisions
+
+[REALISM_AUDIT.md](REALISM_AUDIT.md) records the source-backed review across portfolio management, risk, operations, accounting, research and game design. Real concepts, specific counterparty terms and deliberate game rules are labeled separately. The first release remains one fund, one broker, one currency and twelve instruments; it does not need derivatives, a complete compliance department or a large optimizer to feel like a fund.
+
+Required small additions fix material errors: calendar accrual, annual/redemption fee timing, fair fee-series participation, post-redemption risk, signed hedge direction, one independent reconciliation exception, simple dividends/splits and a deterministic restricted-instrument state. The Managing Partner resolves funding/reporting/capital decisions; the Investment Partner resolves sizing, hedging and liquidation choices. Neither partner acts as a fictional independent administrator. Admin/broker NPCs are authored control records with separate responsibilities.
+
+Chapter windows are compressed for play: five-business-day redemption notice, one-day payment and publicly specified broker response windows are fictional contracts. Real investors and prime brokers can have very different rights. Daily company payroll allocation and strategic-assignment budgets are house rules. The exact latent relationship score is a balance device, shown primarily as observable concerns and a relationship band.
+
+The ending is an ordinary checkpoint after day61 opening administration, including weekend accruals and due day60 settlements. Residual investments are marked holdings with aged quotes, not liquidated cash. There is no special frozen-price terminal day. Winddown continues actual engine events. The scored 60-business-day investment result and the subsequent cash/claims bridge remain separate.
+
+Use the updated accounting and scenario cases before implementation. Optional research libraries and architecture choices are owned by their dedicated assessment documents; no dependency should replace the authoritative economic event/ledger contract.
+
+Renewal is displayed as **Renewal — conditional continuation**, with remaining company cash runway, a13-week forecast and any unfunded next-season gap. It is not a claim of durable business viability or a guarantee that another12-week campaign is financed. Preserve cash, liabilities and fee history into continuation; no automatic company recapitalization.
+
+Canonical software boundary: [SIMULATION_ARCHITECTURE](SIMULATION_ARCHITECTURE.md). Dependency evidence: [LIBRARY_RESEARCH](LIBRARY_RESEARCH.md). Detailed player decision contracts are in GAME_SYSTEMS section11; the acceptance/implementation documents define pending evidence gates.

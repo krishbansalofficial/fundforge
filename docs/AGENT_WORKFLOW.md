@@ -1,6 +1,6 @@
 # Development and simulated-agent workflow
 
-The 6 October redesign explicitly used Astra with high reasoning at the owner's request. That completed design task does not imply any model, opponent or application is deployed.
+The 6 October v2.1 critical review explicitly used Astra with extra-high reasoning at the owner's request. That completed design task does not imply any model, opponent or application is deployed.
 
 Default implementation workflow: one builder owns the bounded task. For a high-risk accounting, concurrency, information or security boundary, use one scoped reviewer when authorized. Reviewer returns at most five reproducible findings; builder repairs, then verifies the changed boundary. No recursive delegation or unlimited debate. Separate worktrees prevent file collisions, not credential access. Verify agent/model syntax in the actual environment.
 

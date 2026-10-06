@@ -1,6 +1,6 @@
-# Decision log — v2.0
+# Decision log — v2.1
 
-These are proposed product/engineering decisions, not claims of implemented behavior. Approved scope: whole-plan redesign and file update, 6 October 2026. Astra/high led the game and financial-system redesign.
+These are proposed product/engineering decisions, not claims of implemented behavior. Approved scope: whole-plan redesign and file update, 6 October 2026. Astra/extra-high led this critical realism revision;17 repositories were checked against actual source/license snapshots.
 
 | Decision | Current choice | Why / consequence |
 |---|---|---|
@@ -10,14 +10,14 @@ These are proposed product/engineering decisions, not claims of implemented beha
 | Core strategy | Long/short equities and broad ETFs | A bounded but recognizably hedge-fund-like strategy |
 | Governance | Joint sleeve charters; independent consent for exceptions | Preserves two-person control without approving every routine click |
 | Core release | Fees, flows, borrow/margin, runway, crisis and debrief | Optionalizing these produced a shallow trading app |
-| Scope sequencing | One complete chapter before six-chapter campaign | Validate fun before multiplying content |
+| Scope sequencing | Complete two-chapter opening arc before six-chapter campaign | Validate fun before multiplying content |
 | Financial authority | Pure domain + PostgreSQL transactions + immutable journal | Reconciliation, reproducibility and concurrency correctness |
 | Rules authority | Versioned scenario/contract configuration | House rules are explicit; no hidden market manipulation |
 | Data | Synthetic authored fixtures first | Deterministic, no fees/credentials, avoids memorized historical outcomes |
 | OpenSEO | Assess every-app/open-seo at pinned snapshot; optional research adapter | User supplied repo name only; no unsupported assumption it is a market engine |
 | Upstream reuse | Adapt bounded patterns; no wholesale fork/code copied yet | Keep finance ownership and avoid unrelated SaaS dependencies |
 | AI | Optional explanations/baselines after game | No LLM control over financial truth, approvals or scoring |
-| Workflow | One builder, bounded review | Astra/high was explicitly requested for this redesign, not perpetual delegation |
+| Workflow | One builder, bounded review | Astra/extra-high was explicitly requested for this redesign, not perpetual delegation |
 
 ## Superseded defaults
 
@@ -28,3 +28,20 @@ Original 30-day/$100k equal-manager-capital season, strict long-only release, un
 Runtime/dependency pins, auth SDK, database migration tooling, concrete API/schema validation, complete authored price tape, calibrated score/LP/broker parameters, playtest results, exact historical data rights, provider entitlements, hosting/budget and ML target. Resolve at the corresponding gate, not by inventing availability. Fund/accounting rule conflicts must be settled before code.
 
 Log future changes with date, rationale, affected rule/data versions and acceptance cases. Do not change a live season's rule version in place.
+
+## v2.1 corrections and tradeoffs
+
+| Decision | Contract now | Reason / affected checks |
+|---|---|---|
+| Fee cohort participation | Opening net plus reversible performance provision | Avoid unspecified redistribution between fee-accruing cohorts; V01 |
+| Calendar and day count | Jan5–Mar27 synthetic Mon–Fri; calendar-date fees; management ACT/365, borrow/debit ACT/360 |252 is not a universal accrual year; V03–V05 |
+| Incentive timing | Annual Dec31 plus pro-rata dealt redemptions; survivor HWM unchanged | Separate fund provision, fixed manager receivable and cash; V02/V08 |
+| Endpoint | Ordinary day21/day61 opening admin, after intervening weekend accruals | Preserve obligations without artificial frozen-market carry; V09 |
+| Reductions | Validate whole risk vector and feasible sequential fills | Covers can raise net; redemptions shrink denominator; V06/V07 |
+| Controls | Independent simulated broker/admin records and certified NAV | Balanced internal journal can still be wrong; V12 |
+| Corporate actions | Cash distributions and integer splits; reject unsupported imports | Enough lifecycle depth without full tax/claims machinery; V10/V11 |
+| Dependency ownership | Original deterministic kernel, no trading framework in FF5/FF6 | Avoid duplicate clocks/ledgers; library review records alternatives |
+| Research stack | Staged pandas/calendars, optional DuckDB, then justified CVXPY/statsmodels | One tool for each demonstrated need; no mass installation |
+| Role experience | Automate routine work, expose exception decisions and causal recovery | Meaningful operations role requires tradeoffs, not signoff volume |
+
+The changed contracts supersede corresponding v2.0 descriptions, not Git history. Industry examples motivate mechanics; broker coefficients, LP windows, expenses and trust rules are fictional contracts. Remaining uncertainty includes scenario difficulty, player comprehension, provider rights and release compatibility; none is established by this documentation review.

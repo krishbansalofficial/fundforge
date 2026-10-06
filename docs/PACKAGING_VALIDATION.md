@@ -1,20 +1,22 @@
-# Design-package validation — v2.0
+# Design-package validation — v2.1
 
-These checks concern the documentation, reference arithmetic and generated review bundle. They are not application acceptance tests or evidence of playable software.
+These checks concern documents, reference arithmetic and generated review files. They are not application acceptance tests or evidence of playable software.
 
-Validation commands for this revision:
+Executed successfully:
 
 ```bash
 python scripts/build_documents.py
 python scripts/validate_design.py
 ```
 
-Result: PASS for the commands above. Nineteen source Markdown files, sixteen bundled sections and nineteen Word tables were checked. No application result is implied.
+The bundle contains 19 canonical source sections; 22 source Markdown files are checked. The validator reports the current check/table/paragraph counts directly. Both commands passed for this revision; subsequent canonical edits require regeneration and validation before commit.
 
-The validator checks Markdown fences and repository-relative link targets, JSON syntax, all six legacy cash-account NAV states, independent opening-capital/fee/high-water-mark/stress-margin/gate/compounded-return arithmetic, Word archive/XML structure, and inclusion of every canonical source section in the generated Markdown bundle. The Word and Markdown outputs are produced by the same ordered source list.
+Checks include Markdown fences and local links; JSON syntax and version/capital/calendar contracts; six legacy zero-cost cash-account NAV states; 9 separate arithmetic oracles covering fee participation, partial redemption/HWM, post-redemption leverage, cover direction, calendar accrual, short distributions, borrow dates and the terminal boundary; numerical checkpoint calculations across 3 authored cases;17 exact repository/license/source snapshot records; Word archive/XML integrity and source-section inclusion; and exact source-content inclusion in the generated Markdown bundle.
 
-Manual consistency review covers the sixty-day/six-chapter configuration, twenty-day opening slice, independent firm cash, series high-water marks, restricted collateral, dealing-versus-payment timing, deterministic forced actions, missing-partner pause, source provenance and the separation between planned features and implemented software.
+The arithmetic validator independently recomputes expected checkpoint values from fixture inputs. It does not run an application or treat expected-output JSON as gameplay evidence. Episode branches isolate their stated decisive calculations; ordinary date-by-date accrual and complete market tapes must still be compiled and tested by the future engine.
 
-The legacy repository-creation scripts were preserved and not executed during this redesign. Previous mock-script results are in Git history; they are not newly run results. The current remote was inspected as private, with write access. Publication uses one guarded non-force Git ref update after packaging.
+Manual consistency review covers fund/company separation, pre-provision series participation, survivor HWM, annual performance crystallization, weekend accrual, settled borrow/return, whole-vector risk checks, post-flow leverage, independent reconciliation, real data rights versus source licenses, and proposed versus implemented status. Source audit, library review and architecture are now included in the combined Word document. Table headers repeat across pages.
 
-Limitations: no Word application/page-render inspection; no runtime engine or full executable market tape; no application unit/integration, PostgreSQL race, security, gameplay, balance, provider, load or ML checks. All implementation gates remain pending. The authored season manifest records intended behavior, not measured outcomes.
+Existing repository-creation scripts were preserved and not executed. The remote was inspected through the GitHub connection. Publication uses an atomic commit and guarded non-force ref update against the expected existing HEAD; no visibility or hosting change is part of this task.
+
+Limitations: no Word application/page-render inspection; no simulation runtime or complete executable market tape; no application unit/integration, PostgreSQL race, security, two-user gameplay, balance, provider, load or ML tests. Library reviews were source/license/API inspections, not installation/compatibility/benchmark/security tests. Financial sources illustrate practices within their stated scope; contract parameters and synthetic calendar remain authored game choices.

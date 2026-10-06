@@ -1,10 +1,10 @@
-# Copy-ready implementation prompts — v2.0
+# Copy-ready implementation prompts — v2.1
 
-Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/high for the completed design review; verify available model names in the implementation environment.
+Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/extra-high for this completed v2.1 critical review; verify available model names in the implementation environment.
 
 ## P01 — Inspect the redesigned game and freeze FF0
 
-Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Identify concrete contradictions in event order, fee series, collateral, LP dealing, delegated authority and failure conditions. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
+Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read REALISM_AUDIT, SIMULATION_ARCHITECTURE, GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Consult LIBRARY_RESEARCH before choosing dependencies. Check the dated calendar, per-date accrual, pre-provision participation, annual versus partial-redemption crystallization, post-flow risk and independent reconciliation. Identify concrete unresolved contradictions, not a new feature wishlist. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
 
 ## P02 — FF0 scaffold
 
@@ -12,11 +12,11 @@ Implement the approved FF0 contract only. Pin actual supported runtimes and pack
 
 ## P03 — One financial contract
 
-Implement exactly the selected FF1/FUND_ACCOUNTING contract and related acceptance cases. Use fixed precision and an immutable balanced journal. Provide independent expected arithmetic, not expected values obtained from the implementation. Separate fund, firm and investor series. Test replay/reversal and meaningful boundaries. Treat legacy golden_scenario as a primitive fixture only. Report actual commands/results and pending cases.
+Implement exactly the selected FF1/FUND_ACCOUNTING contract and related acceptance cases. Use fixed precision and an immutable balanced journal. Provide independent expected arithmetic, not expected values obtained from the implementation. Separate fund, firm and investor series. Implement opening participation net plus reversible provision; preserve surviving HWM on partial redemption. Use ACT/365 management and ACT/360 settled borrow/debit calendar accrual with residuals. Test replay/reversal and meaningful boundaries. Treat legacy golden_scenario as a primitive fixture only. Report actual commands/results and pending cases.
 
 ## P04 — Execution, borrow and margin
 
-Implement the selected FF2 transition with deterministic future-event eligibility, borrow/collateral/debt identities, settlement and deadline rules. Show a gap/recall/halt case and exact accounting. A forced action can fail; preserve the deficit. No daily-bar invented intraday path, no LLM-owned prices, no unrestricted broker execution. Freeze the contract before adding presentation.
+Implement the selected FF2 transition with deterministic future-event eligibility, borrow/collateral/debt identities, settlement and deadline rules. Show a gap/recall/halt case and exact accounting. Check the entire constraint vector: covering can raise net exposure, redeeming can shrink margin equity, and pending returns keep borrow costs/collateral until settlement. A forced action can fail; preserve the deficit. No daily-bar invented intraday path, no LLM-owned prices, no unrestricted broker execution. Freeze the contract before adding presentation.
 
 ## P05 — Governance and transaction races
 
@@ -28,7 +28,7 @@ Implement the selected FF4 contract for investor notices/dealing, series fees/HW
 
 ## P07 — First complete playable opening arc
 
-Deliver FF5 against verified engine APIs. Read the vertical slice in SEASON_SCENARIOS. Include research effort, thesis/hedging, partner negotiation, investor/financing/business choices, consequences and causal debrief. The operating partner needs independent agency. No fake model/provider results. Run a two-user flow through day20 dealing, including disagreement, pause/resume and one crisis resolution; record confusion and actual duration.
+Deliver FF5 against verified engine APIs. Read the vertical slice in SEASON_SCENARIOS. Include research effort, thesis/hedging, partner negotiation, investor/financing/business choices, consequences and causal debrief. The operating partner needs independent agency. No fake model/provider results. Run a two-user flow through day20 dealing and ordinary day21 opening administration, including weekend accrual, disagreement, pause/resume and one crisis resolution; record confusion and actual duration.
 
 ## P08 — Bounded adversarial review
 
@@ -40,11 +40,11 @@ Complete the selected FF6 chapter or balance task. Run matched seeded baseline p
 
 ## P10 — OpenSEO spike
 
-Read OPENSEO_INTEGRATION and the pinned inspected source paths. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
+Read OPENSEO_INTEGRATION, LIBRARY_RESEARCH and the pinned inspected source paths. Verify every-app/open-seo remains the intended upstream; do not substitute OpenBB. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
 
 ## P11 — Optional research and ML
 
-Use the same cost/execution engine as the game. Freeze point-in-time data and chronological split; define a simple baseline and a concrete target before training HMM or another model. Use filtered inference, avoid future normalization and record rejected candidates. Measure prediction/gameplay value separately from strategy return. LLM explanations have no financial mutation rights. No invented alpha or deployment evidence.
+Read LIBRARY_RESEARCH and SIMULATION_ARCHITECTURE. Select only the dependency needed for this measured task; do not install the candidate list. Use the same cost/execution engine as the game. Freeze point-in-time data and chronological split; define a simple baseline and a concrete target before training HMM or another model. Use filtered inference, avoid future normalization and record rejected candidates. Measure prediction/gameplay value separately from strategy return. LLM explanations have no financial mutation rights. No invented alpha or deployment evidence.
 
 ## P12 — Resume or diagnose
 
@@ -57,3 +57,11 @@ Freeze shared interfaces and choose disjoint tasks with separate ownership/workt
 ## P14 — Evidence and handoff
 
 Review RECRUITER_EVIDENCE. Build a truthful demo and evidence index from actual results. Clearly separate implemented, tested, measured, simulated and proposed. Update PROGRESS, source/rules manifests and docs affected by actual changes. Regenerate combined documents if canonical design changed. Do not add performance numbers or resume claims from aspirations.
+
+## P15 — Implement one authored scenario contract
+
+Read SEASON_SCENARIOS, fixtures/season_scenario.json, fixtures/scenario_cases.json and FUND_ACCOUNTING. Choose one case and freeze its prerequisites, phase ordering, public/hidden observations, executable tape, capacity and independently authored controls. Convert the design contract into a complete runnable fixture without inventing absent data. Implement success, failure and recoverable branches; run engine outputs against independent reference arithmetic. Keep paid services disabled. Record branch results and limitations. A valid manifest or expected-values JSON is not a playable scenario.
+
+## P16 — Dependency or data-source decision
+
+Read LIBRARY_RESEARCH, its 17 pinned evidence records and the proposed feature's acceptance contract. Recheck the exact release/license/module/API using current primary sources, including transitive/solver obligations. Separate software reuse from dataset display/retention/redistribution rights, credentials and real costs. Compare a small original implementation or existing dependency against the candidate. Return adopt/adapt/reference/defer/reject with one concrete integration boundary and actual evidence. Install only if the current task authorizes the implementation and no paid activation is needed; otherwise retain a fixture-based deliverable. Do not equate an API key with redistribution permission.

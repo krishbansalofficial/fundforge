@@ -1,6 +1,6 @@
 # FundForge working rules
 
-Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.0. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
+Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.1. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
 
 Product: two-player cooperative hedge-fund management game. Default fictional campaign: $25m outside capital, separate $300k management company, 60 simulated business days, six chapters. LPs, long/short financing, fund versus firm accounting, fees, investor flows, governance and crises are core release mechanics. A trading-only demo is not a completed game. No real money, brokerage execution, cash prizes or paid investment signals.
 
@@ -18,10 +18,10 @@ Non-negotiables:
 - No invented completed milestones, metrics, tests, security/compliance claims or source provenance.
 - Synthetic fixtures remain usable without external services. Secrets stay server-side; paid provider use requires prior authorization and caps.
 
-`docs/FUND_ACCOUNTING.md` owns financial conventions; `docs/GAME_SYSTEMS.md` owns game rules; `docs/MASTER_SPEC.md` owns architecture/boundaries. If they conflict, resolve and document before implementation. House rules are not universal industry conventions.
+`docs/FUND_ACCOUNTING.md` owns financial conventions; `docs/GAME_SYSTEMS.md` owns game rules; `docs/MASTER_SPEC.md` owns product boundaries; `docs/SIMULATION_ARCHITECTURE.md` owns software interfaces. `docs/REALISM_AUDIT.md` identifies design risks; `docs/LIBRARY_RESEARCH.md` records dependency evidence. If they conflict, resolve and document before implementation. House rules are not universal industry conventions. Opening series participation adds back reversible performance provisions; remaining HWM is unchanged on partial redemption; every calendar date accrues stated ACT/365 or ACT/360 costs. Never restore v2.0 /252 fee accrual or chapter performance crystallization.
 
 Work by explicit objective, owned paths, contracts and acceptance evidence. Inspect before editing; use rg. Run meaningful checks for changed risks. After two unsuccessful repair cycles, preserve the exact failure and choose a narrower diagnosis rather than repeat the same attempts. Do not invent a CLI command or supported model name.
 
-Default one builder, one bounded reviewer only for high-risk boundaries or explicit authorization. No recursive delegation. The owner explicitly requested an Astra/high design review for this revision; that is not standing authorization for unlimited agent teams. Inventory installed relevant skills once, load only applicable guidance.
+Default one builder; use a bounded reviewer only when authorized. No recursive delegation. The owner explicitly requested Astra/extra-high for this v2.1 design review; that is not standing authorization for unlimited agent teams. Inventory installed relevant skills once, load only applicable guidance.
 
 At task end update `docs/PROGRESS.md` with actual state, paths, checks, limitations and one next task. Commit only task-related files when authorized. No force-push, visibility change, public deployment, paid usage or real-money capability without explicit authorization.

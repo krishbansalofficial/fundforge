@@ -1,6 +1,6 @@
 # OpenSEO: repository assessment and bounded integration
 
-Design version 2.0, 6 October 2026. Assumed target: [every-app/open-seo](https://github.com/every-app/open-seo), the upstream of the similarly named afazhriel/openseo fork. The user supplied a name rather than a URL; confirm a different target if intended. This assessment does not silently substitute OpenBB. No upstream source has been copied, installed, deployed, or connected to a paid account.
+Design version 2.1, 6 October 2026. Assumed target: [every-app/open-seo](https://github.com/every-app/open-seo), the upstream of the similarly named afazhriel/openseo fork. The user supplied a name rather than a URL; confirm a different target if intended. This assessment does not silently substitute OpenBB. No upstream source has been copied, installed, deployed, or connected to a paid account.
 
 ## What was actually inspected
 
@@ -88,3 +88,11 @@ OpenSEO can also help discover search terms and audit a future public FundForge 
 After the core game gate, spend one bounded task on: a saved fixture → normalized observation → as-of card; source inspection of the chosen API; rights/credentials/cost decision; one adapter contract test for malformed/partial/error responses; and a dependency/spend comparison of separate OpenSEO versus direct provider adapter. Stop if no valid historical data or useful player decision results. The fixture feature remains valuable without a live connection.
 
 Success is improved research decisions in a blind playtest and correct information cutoffs, not a claim that SEO predicts returns. Any ML experiment needs point-in-time snapshots, an ablation against price-only/fundamental baselines, entity-held-out or chronological evaluation as appropriate, and costs. No claimed alpha until measured honestly.
+
+## v2.1 cross-review
+
+The same upstream snapshot and domain-overview module were rechecked on 6 October 2026; no new integration was implemented. See [LIBRARY_RESEARCH](LIBRARY_RESEARCH.md) and [library_review.json](../fixtures/library_review.json) for the 17-candidate comparison, exact repository/commit/license evidence and recommendation. OpenBB's provider framework is a separate candidate and is not OpenSEO.
+
+Alternative-data relevance depends on the issuer's business, domain mapping and a falsifiable question; an industrial company with little direct consumer search exposure may gain no useful evidence from these tools. A real provider cannot be attached just to make the research room look sophisticated. Fixture evidence and its uncertainty already support the game's decision. Marketing-site SEO remains a separate deferred use.
+
+At FF7, choose separate OpenSEO service versus direct provider adapter using one fixture task, operational burden, measured useful decisions and entitlements. Persist observation revisions and charge-resolution states independently of the economic journal. Server outages may block a new research purchase but never change a frozen campaign, execute an order or silently spend real currency. No current-data refresh can repair a missing historical vintage.
