@@ -1,0 +1,271 @@
+{
+  "schema_version": "fundforge.season-design.v2",
+  "status": "AUTHORED_DESIGN_CONTRACT_NOT_A_COMPLETE_PLAYABLE_TAPE",
+  "scenario_id": "the_first_mandate",
+  "scenario_version": "2.0.0",
+  "prepared_on": "2026-10-06",
+  "money": "FICTIONAL_USD",
+  "clock": {
+    "business_days": 60,
+    "week_days": 5,
+    "chapters": 6,
+    "days_per_chapter": 10,
+    "annual_accrual_days": 252,
+    "first_playable_days": 20,
+    "terminal_settlement_day": 61,
+    "wall_clock_attendance_required": false
+  },
+  "opening": {
+    "fund_nav": "25000000.00",
+    "management_company_cash": "300000.00",
+    "initial_series_unit_price": "100.00000000",
+    "company_weekly_overhead": "20000.00",
+    "cash_buffer_nav_fraction": "0.02"
+  },
+  "investors": [
+    {
+      "id": "seed",
+      "capital": "10000000.00",
+      "units": "100000.00000000",
+      "hwm": "100.00000000",
+      "confidence": "72",
+      "first_redemption_day": 40,
+      "chapter_return_target_percentage_points": "0.35"
+    },
+    {
+      "id": "patient",
+      "capital": "8000000.00",
+      "units": "80000.00000000",
+      "hwm": "100.00000000",
+      "confidence": "80",
+      "first_redemption_day": 60,
+      "chapter_return_target_percentage_points": "0.20"
+    },
+    {
+      "id": "tactical",
+      "capital": "7000000.00",
+      "units": "70000.00000000",
+      "hwm": "100.00000000",
+      "confidence": "65",
+      "first_redemption_day": 20,
+      "chapter_return_target_percentage_points": "0.60"
+    }
+  ],
+  "fees": {
+    "annual_management_rate": "0.015",
+    "performance_rate": "0.20",
+    "hurdle_rate": "0",
+    "accrual_basis": "SIMULATED_BUSINESS_DAYS_252",
+    "hwm_method": "PER_SUBSCRIPTION_SERIES_POST_FEE",
+    "new_series_unit_price": "100.00000000",
+    "crystallization_days": [
+      20,
+      40,
+      60
+    ],
+    "pay_business_days_after_crystallization": 1,
+    "reversible_uncrystallized_performance_accrual": true
+  },
+  "dealing": {
+    "days": [
+      20,
+      40,
+      60
+    ],
+    "notice_days": [
+      15,
+      35,
+      55
+    ],
+    "payment_lag_business_days": 1,
+    "optional_gate_nav_fraction": "0.20",
+    "gate_method": "PRO_RATA_ELIGIBLE_REQUESTS_CARRY_UNDEALT_UNITS",
+    "subscription_is_revenue": false
+  },
+  "mandate": {
+    "gross_max": "1.50",
+    "net_min": "-0.20",
+    "net_max": "1.00",
+    "long_issuer_max": "0.15",
+    "short_issuer_max": "0.08",
+    "direct_sector_gross_max": "0.35",
+    "diversified_etf_max": "0.50",
+    "drawdown_warning": "0.10",
+    "drawdown_risk_addition_freeze": "0.15"
+  },
+  "prime_broker": {
+    "id": "harbor_prime_fictional",
+    "credit_limit": "7500000.00",
+    "annual_debit_rate": "0.06",
+    "ordinary_annual_borrow_rate": "0.02",
+    "short_collateral_fraction": "1.00",
+    "initial_long_coefficient": "0.50",
+    "initial_short_coefficient": "0.60",
+    "maintenance_long_coefficient": "0.35",
+    "maintenance_short_coefficient": "0.40",
+    "recall_cover_execution_deadline_business_days": 2,
+    "settlement_lag_business_days": 1
+  },
+  "governance": {
+    "human_managers": 2,
+    "strategic_assignments_per_manager_per_chapter": 2,
+    "sleeve_slots": 3,
+    "initial_active_sleeves": 2,
+    "delegated_order_nav_max": "0.05",
+    "sleeve_chapter_turnover_fraction_of_opening_nav": "0.15",
+    "automatic_self_approval": false,
+    "delegation_requires_two_signatures": true
+  },
+  "execution": {
+    "order_types": [
+      "MARKET_WITH_CASH_PROTECTION",
+      "LIMIT"
+    ],
+    "whole_shares": true,
+    "partial_fills": true,
+    "event_participation_max": "0.05",
+    "default_half_spread_bps": "5",
+    "default_impact_coefficient_bps": "2000",
+    "impact_method": "INCREMENTAL_CUMULATIVE_SAME_SIDE_COST",
+    "commission_per_share": "0",
+    "reference_tape_exogenous": true
+  },
+  "renewal": {
+    "net_twr_min": "SCENARIO_CASH_BENCHMARK",
+    "drawdown_strictly_below": "0.12",
+    "seed_confidence_min": "60",
+    "company_cash_runway_weeks_min": "4",
+    "no_overdue_dealt_redemptions": true,
+    "no_terminal_gated_requests": true,
+    "no_broker_default": true,
+    "reconciled_positive_nav": true
+  },
+  "chapters": [
+    {
+      "id": 1,
+      "start_day": 1,
+      "end_day": 10,
+      "title": "Earn the risk budget"
+    },
+    {
+      "id": 2,
+      "start_day": 11,
+      "end_day": 20,
+      "title": "The price of conviction"
+    },
+    {
+      "id": 3,
+      "start_day": 21,
+      "end_day": 30,
+      "title": "Bigger is not always better"
+    },
+    {
+      "id": 4,
+      "start_day": 31,
+      "end_day": 40,
+      "title": "Right thesis, wrong deadline"
+    },
+    {
+      "id": 5,
+      "start_day": 41,
+      "end_day": 50,
+      "title": "Show your work"
+    },
+    {
+      "id": 6,
+      "start_day": 51,
+      "end_day": 60,
+      "title": "Earn renewal"
+    }
+  ],
+  "authored_event_contracts": [
+    {
+      "id": "tactical_opening_liquidity",
+      "visible_from_day": 1,
+      "notice_day": 15,
+      "dealing_day": 20,
+      "payment_day": 21,
+      "type": "LP_UNIT_REDEMPTION",
+      "investor_id": "tactical",
+      "units": "10000.00000000",
+      "combine_with_confidence_request": "MAX_NOT_SUM",
+      "reason": "Authored external cash need independent of performance; guarantees a first-slice LP flow."
+    },
+    {
+      "id": "seed_external_liquidity",
+      "visible_from_day": 0,
+      "notice_day": 35,
+      "dealing_day": 40,
+      "payment_day": 41,
+      "type": "LP_DOLLAR_TARGET_REDEMPTION",
+      "investor_id": "seed",
+      "amount": "3000000.00",
+      "combine_with_confidence_request": "MAX_NOT_SUM"
+    },
+    {
+      "id": "broker_stress_reference",
+      "visible_warning_day": 12,
+      "effective_day": 16,
+      "type": "BROKER_COEFFICIENT_STRESS",
+      "stressed_initial_long": "0.80",
+      "stressed_initial_short": "1.00",
+      "stressed_maintenance_long": "0.70",
+      "stressed_maintenance_short": "0.90",
+      "implementation_status": "EVENT_TIMING_AUTHORED_PRICES_AND_COMPLETE_TAPE_PENDING"
+    },
+    {
+      "id": "short_recall_teaching_beat",
+      "earliest_day": 13,
+      "latest_day": 18,
+      "type": "BORROW_RECALL",
+      "implementation_status": "INSTRUMENT_QUANTITY_AND_FULL_EVENT_PATH_PENDING"
+    },
+    {
+      "id": "new_lp_offer",
+      "earliest_day": 21,
+      "latest_day": 30,
+      "type": "CAPITAL_OFFER",
+      "implementation_status": "OFFER_TERMS_AND_TIMING_PENDING"
+    }
+  ],
+  "stress_arithmetic_reference": {
+    "scope": "ISOLATED_COSTS_FEES_AND_SETTLEMENT_CONSTANT",
+    "before": {
+      "nav": "25000000.00",
+      "long_mv": "27500000.00",
+      "short_mv": "5000000.00",
+      "gross": "1.30",
+      "net": "0.90",
+      "initial_margin_required": "16750000.00"
+    },
+    "shock": {
+      "long_return": "-0.05",
+      "short_price_return": "0.10"
+    },
+    "after": {
+      "long_mv": "26125000.00",
+      "short_mv": "5500000.00",
+      "nav": "23125000.00",
+      "maintenance_required": "23237500.00",
+      "maintenance_shortfall": "112500.00",
+      "drawdown": "0.075"
+    },
+    "minimum_continuous_long_sale_before_costs": "160714.285714285714"
+  },
+  "implementation_gaps": [
+    "Complete 20-day event-level market/volume/borrow tape",
+    "Validated production fixture schema",
+    "Instrument universe and sector metadata",
+    "Research evidence reveal schedule",
+    "Prospect terms and conditional rules",
+    "Commands engine and journal implementation",
+    "LP and company transition implementation",
+    "Observed two-user playtest and feasible-path balance evidence"
+  ],
+  "sources_are_concepts_not_scenario_terms": [
+    "https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds",
+    "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/new-t1-settlement-cycle-what-investors-need-know-investor-bulletin",
+    "https://www.sec.gov/investor/pubs/regsho.htm",
+    "https://www.interactivebrokers.com/campus/glossary-terms/loan-recall/"
+  ]
+}

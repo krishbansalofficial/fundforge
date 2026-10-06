@@ -1,1233 +1,1198 @@
+# FundForge — complete design and implementation handoff
+
+Version 2.0 · 6 October 2026 · Design package; application unimplemented.
+
+Generated from canonical repository documents. Edit the sources and rerun scripts/build_documents.py.
+
+
 ---
-title: "FundForge"
-subtitle: "Full project specification, Claude handoff, and build prompts"
-author: "Prepared 6 October 2026"
-lang: en-US
+
+Source: `README.md`
+
+# FundForge
+
+A cooperative hedge-fund management strategy game. Two partners build an investment business, manage outside investors' capital, and survive the consequences of their decisions.
+
+**Status: design package v2.0, 6 October 2026. No application has been implemented.** This revision replaces the original paper-trading-first plan. The previous version remains in Git history.
+
+## The game
+
+Run a fictional $25 million long/short equity fund over 60 simulated business days, organized into six chapters. Choose research priorities, negotiate investment authority, allocate capital, manage financing, handle investor withdrawals, pay the firm's bills, and explain what happened. Sessions advance simulated time; players do not need to attend at real market hours.
+
+The investment partner leads theses and portfolio construction. The operating/risk partner leads liquidity, financing, investor relationships and the business budget. Both can research and challenge decisions. Agreed strategy sleeves let routine actions proceed inside a jointly approved envelope; material exceptions require committee agreement. Every partner has consequential work beyond approving the other's tickets.
+
+The objective is durable, mandate-consistent investor outcomes and a viable firm. A lucky leveraged bet does not erase unpaid obligations, broken promises, or insolvency. A disciplined winddown is a distinct outcome. All money, entities, contracts and obligations in the campaign are fictional.
+
+## Read in this order
+
+1. [Master specification](https://github.com/krishbansalofficial/fundforge/blob/main/docs/MASTER_SPEC.md): product, boundaries and architecture.
+2. [Game systems](https://github.com/krishbansalofficial/fundforge/blob/main/docs/GAME_SYSTEMS.md): actions, roles, capital, progression and scoring.
+3. [Season scenarios](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SEASON_SCENARIOS.md): actual decisions and crisis arcs.
+4. [Fund accounting](https://github.com/krishbansalofficial/fundforge/blob/main/docs/FUND_ACCOUNTING.md): authoritative financial contracts.
+5. [Implementation plan](https://github.com/krishbansalofficial/fundforge/blob/main/docs/IMPLEMENTATION_PLAN.md) and [acceptance cases](https://github.com/krishbansalofficial/fundforge/blob/main/docs/ACCEPTANCE_TESTS.md).
+6. [OpenSEO assessment](https://github.com/krishbansalofficial/fundforge/blob/main/docs/OPENSEO_INTEGRATION.md): inspected code, reuse choices and research boundary.
+
+For coding, start with [Claude handoff](https://github.com/krishbansalofficial/fundforge/blob/main/docs/CLAUDE_HANDOFF.md), [progress](https://github.com/krishbansalofficial/fundforge/blob/main/docs/PROGRESS.md), then P01 in [prompt pack](https://github.com/krishbansalofficial/fundforge/blob/main/docs/PROMPT_PACK.md). The [combined Word document](https://github.com/krishbansalofficial/fundforge/blob/main/documents/FundForge_Project_Spec_and_Claude_Handoff.docx) is generated from the current Markdown documents.
+
+## First playable release
+
+A crisis-rich two-chapter opening arc (20 simulated business days) with two users, a reconciled long/short portfolio, borrow and margin, an investor redemption, fee accounting, separate firm runway, a committee decision, and a causal debrief. A buy/approve/chart demo is only an engineering foundation. The complete initial campaign expands that slice into all six chapters with reproducible seeds, save/resume, failure endings and balancing evidence.
+
+## Engineering direction
+
+Next.js/TypeScript, FastAPI/Python, PostgreSQL; pure deterministic financial domain; fixed precision; immutable events and journal; as-of information access; versioned rules and fixtures. Begin with synthetic data and polling. Add workers, live providers, ML and optional read-only AI after the core game is sound. No external API is required to play the base campaign.
+
+OpenSEO is assessed as an optional source for alternative-data research and integration patterns. It is not the fund engine. No source has been copied, paid service activated, or deployment created in this revision.
+
+The private repository is already set up. Do not rerun the legacy repository-creation scripts here. Nothing in this package represents a live fund, brokerage service, legal compliance certification, measured model result or completed software feature.
+
+
 ---
 
-Two friends. One virtual fund. Fifteen minutes a day.
+Source: `docs/MASTER_SPEC.md`
 
-**Status:** complete build brief and repository starter package; application implementation is pending. The private GitHub repository is available at https://github.com/krishbansalofficial/fundforge; application implementation is pending.
+# FundForge — hedge fund management game
 
-**Build order:** initial Claude review, financial core, playable two-person game, reliable backend, then evaluated ML and optional advanced fund modules.
+Version 2.0 · Design reset · 6 October 2026 · Specification, not implemented software
 
-**Money boundary:** all capital, trades and profit allocations are simulated. This document does not establish a real hedge fund or certify legal compliance.
+## 1. The game we are building
 
-**Use:** extract the repository ZIP and open it in Claude Code. Repository setup is complete. Begin with P01 for the design review. Use one scoped prompt per task afterward. The full Word document is for review; modular repository files are better working context for later sessions.
+Two partners launch a virtual hedge fund and try to earn the right to run it for another season. They find investments, allocate risk, negotiate investor capital, fund the firm, manage a prime broker, and survive situations in which their investment thesis and their business needs conflict. A profitable position can still sink the fund if the team cannot finance it until the thesis pays off.
 
+The core fantasy is **building and running an investment firm together**. Trading is one instrument of that fantasy. The first releasable game must contain investors with different needs, separate firm finances, long/short financing, investment committee decisions, a capital event, and a crisis. A correct trading ledger is an engineering foundation; it is not the finished product.
 
+All capital, entities, counterparties, salaries, investor communications and rewards are fictional. No deposits, real execution, real investment solicitation, cash prizes or money-linked rewards. Numerical terms below are scenario house rules, not universal hedge-fund conventions.
 
-# FundForge — full product and engineering specification
+### Design pillars
 
-Version 1.0 · Prepared 6 October 2026 · Working title, not a cleared brand name
+1. **Every opportunity competes with an obligation.** Research attention, risk capacity, investor patience and payroll cash are scarce.
+2. **Cooperation creates decisions.** Partners have complementary responsibilities and pre-agreed authority; neither spends the game clicking approval on routine tickets.
+3. **Consequences are explainable.** The game explains the chain from a decision to a fill, liquidity problem, investor reaction or business outcome.
+4. **Uncertainty is fair.** Hidden market outcomes are uncertain; contractual deadlines and rule consequences are inspectable.
+5. **A complete small firm before a large instrument catalog.** One prime broker, one base currency and a small equity universe can support a deep game.
 
-## 1. Intended outcome and scope
+## 2. Canonical launch configuration
 
-Build a cooperative finance game where two friends act as the managers of one virtual investment fund. Each contributes $50,000 of fictional capital. They meet for 10–15 minutes on each trading day, review a small market brief, propose and approve trades, and manage a shared portfolio. Both profits and losses are allocated to their virtual capital accounts. The objective is to make defensible decisions within a mandate and understand the consequences, not to encourage constant trading.
-
-The deliverable should demonstrate backend engineering first and an evaluated ML system second. It must be playable by two actual people, reproducible with fixtures, and explainable in an interview. A green P&L chart alone does not establish correctness or skill. Fifteen minutes is the decision window; positions remain exposed between sessions. Overnight gaps and drawdowns still happen.
-
-This document defines a proposed simulation. Its rules are product defaults, not universal hedge-fund practice. A full operating hedge fund involves legal entities, investors, counterparties, service providers, and obligations that cannot be reproduced simply by adding a compliance screen. The project models selected procedures while deliberately keeping all capital fictional.
-
-### Delivery levels
-
-| Level | Included | Completion gate |
-|---|---|---|
-| A: playable financial core | Two managers, invitation, virtual capital, fixtures, next-open market execution, ledger, partner approval, basic mandate, daily session, portfolio and recap | Two users complete a season; financial and isolation tests pass |
-| B: credible backend product | Licensed data adapter, settlement/jobs, outbox, reconnects, observability, load and recovery evidence, corporate actions | Measured concurrency, reconciliation, recovery and authorization results |
-| C: ML/quant extension | Shared backtest engine, chronological validation, HMM/baselines, registry and inference, monitoring, evidence-grounded tutor | Reproducible held-out evaluation; baseline can defeat candidate |
-| D: advanced fund lab | Borrow/margin, synthetic fund fees, redemptions, richer historical scenarios, AI fund opponents | Each extension has an explicit accounting and data contract |
-
-Do not implement all levels in one prompt. No live brokerage or deposits are on this roadmap.
-
-## 2. Why this complements the current resume
-
-The supplied resume already describes ML evaluation at Keshav Enterprises, CNN–Transformer quantitative research, regime detection/backtesting, a Change Assurance Runtime, and a fork/join thread pool. That gives this project a specific purpose: prove a user-facing service whose state stays correct under retries, competing decisions, and data failures, then prove a complete model-to-inference workflow. Do not merely repeat HMM training or add an LLM chat tab.
-
-For backend applications, foreground transactional correctness, idempotency, tenant authorization, reliable jobs, auditability, and measured behavior under faults. For ML applications, foreground point-in-time features, chronological evaluation, baseline comparison, model versioning, inference contracts, and monitoring. Backend and ML variants should describe the same implemented system with different emphasis.
-
-If the project meets those gates, Inventory Management System is a plausible older project to replace. Decide that after evidence exists. Never claim a target load, proposed test count, or expected accuracy as an accomplishment. Short-term fund performance is gameplay output, not a validated investment track record.
-
-## 3. Game premise and daily experience
-
-### Season setup
-
-Both users join a private fund through an expiring single-use invitation. A fund has exactly two active managers; a pending invitation does not count as the second active manager. Trading remains locked until both accept the mandate. A user can belong to multiple funds, but every mutation is authorized against the selected fund and season.
-
-Each fund starts with $100,000 virtual NAV and 1,000 units at $100 per unit. Each manager owns 500 units. Roles alternate between proposer/research lead and risk/review lead, but either can propose and only the other can approve. Equal ownership does not mean each trade can be accurately credited to one manager. Trade collaboration is team behavior.
-
-Choose a name, a simple emblem from preset icons, a benchmark, and a long-only mandate. V1 benchmark is SPY. Universe selection is locked at season start. A separate synthetic tutorial is available before a scored season. Season length is 30 market trading days, based on a configured exchange calendar.
-
-### The fifteen-minute session
-
-| Time | Player activity | Product behavior |
-|---|---|---|
-| 0–2 min | Check overnight results and operations | Reconciliation status, holdings, returns, mandate breaches, stale-data badge |
-| 2–5 min | Review a small market brief | Prices, sources and timestamps, benchmark, 2–3 permitted events; no endless feed |
-| 5–10 min | Discuss and propose up to three trades | Thesis, quantity, projected exposure, costs, settlement, concentration lesson |
-| 10–13 min | Partner approves, rejects, or requests revision | Exact order/version presented; approvals cannot silently survive edits |
-| 13–15 min | Confirm orders and write a short reflection | Queue summary, one lesson, plan for next session; explicitly allow “hold” |
-
-The server owns a single shared session deadline. Either manager starts it; the other may join late and sees the same remaining time. Changing a device clock or reconnecting cannot reset it. Proposal creation and new approvals close at the deadline. Unapproved proposals expire. Accepted orders may execute later. Missing a day causes no automatic sale and no artificial performance penalty. Collaborative practice points can reflect participation without forcing attendance when markets are closed.
-
-Default calendar schedule: daily information cut-off at 17:00 America/New_York; one session may start between 17:00 and 23:45. It lasts 15 minutes and uses a frozen information snapshot. Accepted orders are eligible at the next regular market open. Holiday and early-close sessions come from the exchange calendar, not hard-coded weekdays. Snapshot publication must wait until the source's data is available; a missing required snapshot blocks the session rather than substituting future data.
-
-V1 can use fixtures that advance through this schedule without real waiting. Historical play uses the same rules on a simulated clock. A future live intraday mode would require separate quote, latency, and execution assumptions; it is not a toggle over the daily-bar model.
-
-### Making it feel like a game
-
-Give the fund a season objective, a shared progress bar, concise mission cards, satisfying approval states, and an end-of-season debrief. Show “Market review → Proposals → Partner review → Close session” as a compact checklist. Add restrained transitions and optional sounds; honor reduced-motion preferences. A small badge for a reconciled close can matter as much as a winning trade.
-
-Award knowledge and discipline points for justified decisions, timely review, and risk checks. Do not award XP simply for order volume, leverage, or buying volatile stocks. A hold decision with a sound reason counts. Events should ask the team to reassess its plan; there need not be one correct profitable answer. Synthetic shocks belong only to explicitly labeled synthetic seasons, never overlaid silently onto real returns.
-
-## 4. UI specification: polished, modest, playable
-
-Five main screens are sufficient. Desktop first, usable on a phone, accessible to keyboard and screen readers. Use a restrained dark or light theme, one accent color, red/green only with text labels, readable numbers, and standard components. Avoid 3D, cinematic intros, elaborate illustrations, perpetual animations, or a Bloomberg-sized interface.
-
-| Screen | Primary content | Main action |
-|---|---|---|
-| Lobby and setup | Create/join fund, manager names, mandate, virtual contributions | Start season |
-| Fund desk | NAV, cash/buying power, P&L, benchmark excess return, holdings, current session | Open today's session |
-| Trading room | Frozen brief, thesis form, risk preview, partner queue, shared timer | Propose / approve / reject |
-| Research lab | One instrument chart, information as-of time, approved backtest presets | Inspect evidence |
-| Season report | Return, drawdown, reconciliation, lessons, mandate breaches, shared decisions | Export / replay |
-
-Fund desk layout: a compact header with fund name, season day, paper-mode badge, and connection status; a row of four summary cards; NAV vs benchmark chart; holdings table; partner activity and pending order cards. Trading room uses two columns on desktop: instrument/thesis on the left, risk/proposal review on the right. On mobile, make these sequential with the approval action always easy to locate.
-
-Every quote shows source, event time, availability/as-of time, and whether it is delayed. Show “Queued for next open” rather than “Bought” before a fill. A proposed position weight is an estimate at the snapshot price; the final execution check may reject it after a gap. Show error, empty, loading, offline, expired, stale quote, rejected, partial/complete, and reconnect states explicitly.
-
-### Finance curriculum attached to decisions
-
-Begin with five reviewed concept checks: position sizing, diversification/idiosyncratic risk, market versus limit execution, settlement/buying power, and drawdown. Attach them to relevant proposed trades or daily outcomes. Each card should contain a one-minute explanation, a small numerical example, a factual check, and a source link. Financial decisions themselves rarely have a single guaranteed best answer; grade the concept, not whether a trade happened to profit.
-
-Later lessons cover total versus benchmark excess return, regression alpha/beta, Sharpe/Sortino and sample limitations, volatility/correlation, FIFO realized/unrealized P&L, dividends/splits, P/E/EPS and earnings information, bonds/yields/duration, leverage/short borrow, VaR/CVaR/stress tests, fund NAV/units/flows, and hypothetical fees/high-water marks. Options lessons arrive only with a supported derivative model. Fundamentals such as P/E can be unavailable or misleading for negative earnings; the brief must explain that instead of inventing a number. Record lesson versions and human review. A generated explanation is supplemental rather than an unreviewed curriculum authority.
-
-Use existing Vercel skills only after inspecting their actual names and instructions. React performance and web-interface guidance are likely relevant; their presence or exact names are not assumed. Read only relevant skills during the frontend phase. Set a UI time budget of roughly one task for tokens/components and one task for accessibility/state polish after the core vertical slice works.
-
-### Visual acceptance criteria
-
-Two unfamiliar users can create/join a fund, understand their remaining session time, propose an order, and explain whether it is pending or filled without a tutorial call. The 50/50 capital split and virtual nature are visible. Review requires enough information to understand the trade. The product can be demonstrated in five minutes without scrolling through a large dashboard.
-
-## 5. Fund mandate and governance
-
-V1 uses long-only, unlevered U.S. listed equities and ETFs, USD, whole shares, regular market sessions, no penny stocks, options, futures, crypto, OTC, or short selling. A fixed curated universe of 10–20 liquid instruments is sufficient, with permitted local fixtures. A current curated stock universe creates survivorship/selection limitations for historical studies; label them. Broad ETF experiments reduce some individual-stock issues but do not remove all selection bias.
-
-| Policy | Initial default | Enforcement |
-|---|---|---|
-| Individual company exposure | At most 15% of NAV at acquisition | Hard pre-trade and fill-time gate |
-| Broad diversified ETF exposure | At most 50% per approved broad ETF | Explicit exception; no false company/sector look-through |
-| Direct stock sector exposure | At most 40% of NAV | Hard gate for classified direct holdings |
-| Minimum available cash after commitments | 5% of NAV | Hard gate for new purchases |
-| Gross exposure | At most 100% | No borrowing or naked sells |
-| Proposed trades | At most three new proposals per daily session | Game pacing; canceled proposals still count |
-| Drawdown | 10% warning, 15% acquisition freeze | Risk-reducing sales allowed with partner approval |
-| Approval | Other active manager on same proposal version | Hard authorization rule |
-| Thesis | Brief rationale, risk, expected horizon | Required structured fields |
-
-These limits are house rules. Market movements can produce passive breaches after a valid fill. Record the breach, display it, and block changes that worsen it; do not pretend prices remain within bounds. Trades that demonstrably reduce an existing breach can pass even if they do not remove it entirely. Drawdown is not a guaranteed loss cap: gaps can cross the threshold before the next decision window.
-
-ETF sector exposure requires holdings data from the appropriate historical date. Without it, show direct-stock sector exposure and the separate ETF bucket, not a precise overall sector percentage. Freeze classifications with an effective date. Do not retroactively apply a modern issuer sector to all past periods.
-
-Mandates are immutable within a season. An exceptional correction requires both managers, a recorded reason, a new mandate version, and an unranked/restarted season where comparability changes. A stopped or withdrawn manager freezes new approvals; it does not transfer their authority to an AI.
-
-## 6. Actual fund procedures mapped into a simulator
-
-Hedge funds differ substantially by strategy, jurisdiction, and investor agreements. Use the table as an educational operating model, not a statement that every fund follows the same procedure or fee structure. The SEC's private-fund overview describes entities, governing documents, advisers, and capital-raising considerations [S2]. This project does not create any of those real arrangements.
-
-| Real-world function | Simulated procedure and artifact | Phase |
-|---|---|---|
-| Fund constitution and investor terms | Educational charter: strategy, authority, benchmark, liquidity, virtual ownership | A |
-| Subscription/capital contribution | Each player receives 500 units; no payment rail | A |
-| Investment committee | Recorded thesis, partner decision, exact proposal version | A |
-| Pre-trade compliance and risk | Universe, restricted list, cash, concentration, permissions | A |
-| Execution and trade capture | Simulated eligible future fills, execution cost, fill identifiers | A |
-| Confirmation and settlement | Trade-date payable/receivable, calendar-aware settlement | A/B |
-| Independent administration | Separate close job reconciles cash, shares, lots, NAV and capital | B |
-| Valuation controls | Mark-source hierarchy, stale-price flags, approval of corrections | B |
-| Prime brokerage and financing | Borrow availability, collateral, fees, recall and margin scenarios | D |
-| Management/incentive fees | Optional hypothetical fee ledger with explicit terms | D |
-| Subscriptions/redemptions | Optional virtual unit issuance/redemption at controlled NAV | D |
-| Investor reporting | Season report, capital statement, holdings, costs and limitations | A/B |
-| Audit and error correction | Append-only journal, reversal entries, versioned restatement | A/B |
-| Conflicts and restricted information | Educational restricted-list/MNPI scenarios and attestations | B/D |
-| Business continuity | Backup/restore exercise, worker retry/recovery and incident log | B |
-| Legal/tax/regulatory filings | Educational overview only; no filing generation or compliance certificate | D |
-
-### Operating cadence
-
-Before the open, the worker settles due obligations, applies effective corporate actions, checks dataset freshness, and processes eligible queued orders. Each fill reruns its own risk check under the fund lock. After the close, ingestion validates prices, the administrator-style job marks positions, reconciles all state, produces a new immutable NAV snapshot, and prepares the next brief. During the daily session, managers review this state, record decisions, and approve tomorrow's orders. At season close, cancel remaining orders, finish settlement and mark outstanding positions according to the same policy; report both ending NAV and whether positions remain open.
-
-Roles are simulated divisions of responsibility. A separate reconciliation job is not an independent regulated fund administrator. Avoid naming every background process a microservice just to make the architecture sound sophisticated.
-
-### Virtual profit and loss sharing
-
-No subscriptions/redemptions occur during V1. Both players keep 500 units; unit NAV changes with performance. At $108,420 fund NAV, each capital account is $54,210, and each has $4,210 of profit. At $90,000, each has $45,000 and a $5,000 loss. Losses are allocated with the same ownership rule as gains. A player cannot cash out. Personal capital figures are shares of fund NAV, not separate tradable cash wallets.
-
-If unequal contributions are introduced later, issue units at the current approved dealing NAV. Do not divide profits using the most recent contribution percentages or grant newcomers old gains. Use time-weighted fund returns to remove external flow effects; money-weighted investor returns are a separate calculation. Keep manager attribution descriptive: who proposed, approved, and wrote the thesis, not a causal per-person return claim.
-
-### Optional fee module
-
-V1 has no manager fees. Advanced educational terms can use an explicitly hypothetical 1% annual management rate accrued with actual/365 calendar days and a 10% incentive rate crystallized once at season end above a per-unit high-water mark, with no hurdle. Specify fee ordering, assets included in the accrual base, day count, net/gross reporting, and cash sufficiency. These are chosen teaching terms, not industry requirements.
-
-For example, after all management accruals, 1,000 units at $110 pre-incentive NAV and a $100 high-water mark create $10,000 eligible gain. A 10% incentive fee is $1,000; investor NAV becomes $109,000 or $109 per unit. Set the next high-water mark to $109 after crystallization. Losses below that mark generate no incentive fee. Test recovery after a loss and never reset the mark to charge for the same recovery twice. Keep the fee recipient separate from the two investor accounts; fees are not silently credited as shared investor profit. Flows and unequal investor fee bases require series/equalization or another documented methodology before implementation.
-
-## 7. Order lifecycle and two-manager approval
-
-An order proposal contains fund/season, proposer, instrument ID, buy/sell, integer quantity, type, time-in-force, optional limit, thesis/risk/horizon, creation time, proposal version, content hash, snapshot ID, and estimated costs/exposure. The backend is authoritative for all derived values. Clients cannot submit cash, weight, approval identity, or execution prices as trusted fields.
-
-Lifecycle: DRAFT → PENDING_REVIEW → APPROVED_QUEUED → FILLED, EXPIRED, CANCELED or REJECTED_AT_EXECUTION. PENDING_REVIEW may become REJECTED_BY_PARTNER or EXPIRED. A revision creates a new version returning to review; it cannot mutate approved content. PARTIALLY_FILLED is introduced only when partial fills are supported. Persist an explicit transition table and reject impossible state changes.
-
-The proposer cannot approve. The other manager's approval is bound to the immutable content/version and an active session. Repeated approvals return the same result through idempotency. A stale page attempting approval of a superseded version gets a version-conflict response with current state. Both managers may cancel a not-yet-executed order; cancellation and execution serialize on the same lock. Record actor and reason. Rejection or expiry releases reservations.
-
-On approval, reserve cash for a buy or shares for a sell, under a fund lock. For a next-open buy, use the snapshot price plus a documented maximum cash reservation, with a default 5% price-gap buffer. The buffer caps cash commitment; it is not a guaranteed execution price or a limit-order promise. At the next open, if the entire quantity plus costs exceeds its reservation or any risk limit, reject the whole order and release the reservation. V1 does not partially fill or auto-resize an approved order. The UI explains this possibility before approval.
-
-Process queued orders in a deterministic order by approved-at timestamp then immutable order ID. A fill changes NAV/cash/exposure, so the next order sees the new state. Competing orders cannot all pass against the same old balance. Risk check and ledger posting must share the transaction. No external API call occurs while holding the database lock; immutable eligible prices are loaded first, then freshness/snapshot identity is checked under the lock.
-
-### Execution assumptions
-
-V1 market orders are simulations priced at the next eligible regular-session opening price, with a fixed configurable adverse cost of 5 basis points and zero commissions by default. Buy price = open × (1 + 0.0005); sell price = open × (1 − 0.0005). Label this a simplified daily-bar execution model, not a prediction of obtainable brokerage fills. Model slippage separately from commissions and use the same assumptions for every compared strategy.
-
-An order accepted after close D can first execute at open D+1. Never let the player review close D and then buy at close D. Missing/invalid opening data or an exchange halt produces no invented fill. For DAY orders, expire at that eligible session's close if no fill occurs; publish the reason. Do not silently fill at a later day's close. Data may arrive late, but the immutable execution event must remain chronologically consistent and be published only once available.
-
-Level B adds limit orders with a deliberately conservative daily-bar rule: execute only if the opening price, after modeled cost, satisfies the limit. Otherwise no fill that day, even if the high/low crosses. This understates fills but avoids fabricating the intraday path. A future intraday engine may fill on crossing with explicit liquidity assumptions. Stop and stop-limit orders need gap rules and intrabar ambiguity tests before activation. Investor.gov distinguishes market, limit and stop execution behavior; a stop price is not a guaranteed fill [S4].
-
-## 8. Accounting, ledger and valuation
-
-Use a double-entry financial journal plus a linked quantity/lot journal. Monetary debits equal credits for each posting, and instrument quantities reconcile with lots and positions. Double-entry balance alone cannot prove economic correctness: transaction meaning, marks, fees, quantities and capital allocation also require validation.
-
-USD balances use fixed precision with explicit rounding. Store quantity as an integer in V1. Prices may carry more than two decimals; round each executed total to cents under one documented policy, such as decimal ROUND_HALF_EVEN. Specify that policy in code and fixtures, not only the README. Retain raw source prices and model parameters for reproduction.
-
-Suggested monetary accounts: settled cash; settlement receivable; settlement payable; securities carrying value; unrealized valuation adjustment; investor capital; realized gain/loss; dividend income/receivable; transaction expense; and optional management/incentive fee payable. Journal entries carry posting ID, business-event ID, effective time, recorded time, actor/service, order/fill link, currency, amount, reason, and reversal link.
-
-Trade-date buy: debit securities cost and credit settlement payable. On settlement, debit payable and credit settled cash. Trade-date sell: debit settlement receivable, credit securities at lot cost, and post the realized gain/loss for the difference. On settlement, debit cash and credit receivable. Reservations are commitments, not expenses or journal transfers. Prevent double-subtraction of cash already reserved and payable.
-
-V1 uses FIFO lots. Capitalize modeled buy execution costs through the executed price; separately configured commissions follow a documented expense policy. At close, market value equals quantity times the valid mark. Either post valuation adjustments into the journal or compute an explicitly reconciled valuation subledger; choose one, do not count both. Realized and unrealized P&L must reconcile to total performance after dividends, costs and fees.
-
-NAV = settled cash + settlement receivables − settlement payables + marked securities + other valid assets − other valid liabilities. Available buying power = settled cash − unsettled purchase payables − new buy reservations. Unsettled sale proceeds are excluded from V1 buying power until settlement. Selling an unsettled purchased lot is also blocked in the strict teaching account. This is a chosen conservative simulation policy, not a complete reproduction of every broker cash-account rule.
-
-For current U.S. applicable securities, the SEC bulletin describes T+1 settlement beginning May 28, 2024 [S3]. Use exchange business days, including holidays. Historical replay must apply the era-appropriate settlement schedule or clearly label a fixed modern T+1 simplification. Do not apply modern T+1 silently to a 2008 season. Unsupported eras should be blocked until calendar/schedule data exists.
-
-### Reconciliation and corrections
-
-Rebuild cash and obligations from the journal, quantities from fills/corporate actions, cost basis from FIFO lots, and partner capital from units. Compare with materialized state and NAV snapshots. A mismatch blocks new execution and flags operations; it does not rewrite balances to make the test pass. Repair through an explicit reversal/correction and recomputation, retaining original events and a restatement version.
-
-Use DB permissions that prevent ordinary app code from editing/deleting posted entries. This provides an application-level append-only journal; a privileged database operator can still alter records. Hash chaining plus externally retained checkpoints can add tamper evidence, but do not call it immutable against all administrators. Prefer correct reconciliation before adding cryptography.
-
-### Golden arithmetic
-
-With costs disabled: start $100,000 cash; buy 10 shares at $100; trade-date cash remains $100,000, payable is $1,000 and securities value $1,000, so NAV stays $100,000. After settlement cash is $99,000. Mark shares at $110: NAV is $100,100 and unrealized gain $100. Sell four at $110: sale receivable $440, six shares worth $660, realized gain $40, remaining unrealized gain $60; NAV remains $100,100. After settlement cash is $99,440 and each partner's capital is $50,050.
-
-## 9. Market information and data provenance
-
-Define one market-data interface and fixture adapter before selecting a paid provider. Required fields: stable instrument ID, ticker mapping as-of date, exchange/timezone/calendar, OHLCV bars, source/feed, event timestamp, available timestamp, currency, adjustment flags, ingest timestamp, dataset version and checksum. Fundamentals and news are optional until their timestamps and reuse rights are controlled.
-
-Start with a committed synthetic fixture dataset and generated calendar. A developer demo must run with no API key and no external AI call. For actual market data, review current provider entitlements, historical coverage, adjustments, rate limits, retention, derived-data rules and redistribution/display terms. Alpaca's historical bars documentation exposes feed and adjustment choices [S6]; API availability alone does not grant permission to publish a dataset or its news content.
-
-Live prices can be delayed; label the actual feed. An IEX-specific feed is not interchangeable with consolidated U.S. market coverage. Never mix feeds invisibly across benchmark and traded assets. Cache per dataset/instrument/date/adjustment/feed; enforce a unique ingest identity and paginate completely. Validate positive prices, OHLC ordering, nonnegative volume, duplicates, gaps and inconsistent corporate actions. Quarantine failures and show reduced availability.
-
-Historical execution uses unadjusted prices plus explicit splits/dividend events. Feature calculations can use an appropriate adjusted return series, with adjustment provenance and point-in-time handling. Applying backward adjustments that encode future corporate actions can leak future information into some feature definitions; verify the chosen method. Never pay dividends in the ledger and also use total-return-adjusted marks for the same portfolio. Benchmark total returns need a consistent dividend convention as well.
-
-At a split, adjust shares and lot unit costs while preserving total basis and economic NAV. At the ex-dividend event, recognize an entitled dividend receivable under the chosen accounting policy; transfer to cash on the payment event. Historical entitlements, reverse-split cash-in-lieu, symbol changes, spin-offs and delistings need tests. Unsupported actions block the affected instrument/season rather than being ignored. Delisted securities cannot simply disappear from the portfolio.
-
-Historical information views filter by available_at <= decision cutoff, not merely event date. Revised economic data and filings use the version actually available then. If availability cannot be established, exclude that feature and disclose the omission. A season dataset is frozen and versioned. Corrections generate a new version and unrank/restated affected results; do not silently alter a completed leaderboard.
-
-## 10. Risk engine
-
-The deterministic engine returns PASS, BLOCK, or WARN with reason codes, calculations, input snapshot/version, and rule version. Preview helps the player; final fill checks are authoritative. ML scores and LLM wording never override a BLOCK.
-
-Risk inputs include NAV/mark validity, cash commitments, unsettled obligations, holdings, lot settlement, instrument eligibility, price data, current/passive mandate breaches and all accepted reservations. Reject nonpositive NAV, invalid prices, unknown instruments, incompatible quantity precision, or unsupported products.
-
-Estimate post-trade weights at preview, then recompute with the fill price and current accepted state at execution. Enforce no short quantities. A sale can reduce concentration and drawdown-related acquisition exposure; distinguish improving from worsening trades. Do not refuse a sale merely because pre-sale sector exposure already breaches the limit. Log the logic behind every exception.
-
-Risk dashboard: direct company/sector weights, ETF bucket, cash, gross/net exposure, recent realized volatility and drawdown. Later add rolling beta/correlation and historical VaR/CVaR using a stated window and method. VaR is a quantile of the modeled loss distribution, not the maximum possible loss. Small samples and missing coverage produce “insufficient history,” not precise percentages.
-
-Historical stress scenarios replay actual eligible data; synthetic scenarios apply documented hypothetical shocks to current holdings and label assumptions. Risk scores are educational summaries, not probabilities of success or suitability advice.
-
-## 11. Performance metrics and scoring
-
-Report total return, benchmark return, benchmark excess return, net/gross P&L where relevant, drawdown, daily volatility, turnover, costs, exposure, and reconciliation status. Benchmark excess return = fund cumulative return minus benchmark cumulative return. Do not label this difference Jensen's alpha. Regression alpha and beta require a model, risk-free rate and enough observations.
-
-With no external flows, daily return = NAV_t / NAV_(t−1) − 1. Daily excess return subtracts the matching daily risk-free return. Annualized volatility = sample standard deviation of daily returns × sqrt(252). Sample Sharpe estimate = mean daily excess return / sample standard deviation of daily excess return × sqrt(252), under the stated assumptions. Zero variance or inadequate history means undefined, not infinity. Drawdown_t = NAV_t / historical running peak − 1; maximum drawdown is the most negative value. Total return is a compounded measure, not the sum of daily returns.
-
-Thirty trading days is a small sample. Show “short-sample estimate” on annualized figures and omit ML/causal interpretations. Default main game ranking does not depend on Sharpe. The earlier proposed six-part score is retained as an optional research mode, not shipped as an unvalidated objective.
-
-### Default transparent season score
-
-Performance: 40 points; risk discipline: 30; decision process: 15; knowledge: 10; cooperative participation: 5. All rules and tie-breakers are visible before play. Score only completed, reconciled seasons with the same dataset, universe, mandate, cutoffs and execution model. Synthetic and market seasons have separate leaderboards. V1 can keep standings within the two friends' private fund; a public global board is unnecessary.
-
-Define performance points = clip(20 + 2 × benchmark-excess-return-in-percentage-points, 0, 40). Risk points = 20 × clip(1 − absolute maximum drawdown / 0.15, 0, 1), plus up to 10 mandate-discipline points using a published passive-breach policy. Decision process uses a fixed checklist (thesis, identified risk, horizon, review response); a poor outcome can still have a good process score. Knowledge uses reviewed factual lessons. Cooperative participation allows limited missed days and measures review/reflection, not order count.
-
-For implementation, mandate-discipline points = 10 × (1 − unresolved-breach-close-days / scored-market-close-days). A passive concentration/cash breach becomes unresolved only after two completed joint session opportunities in which it could have been addressed; its first appearance has no discipline penalty. Drawdown warnings/freeze are excluded from this count because the drawdown component already scores them. Decision-process points = 15 × the mean completion fraction of four checklist items across submitted daily reflections, with HOLD eligible and no reflections scoring zero. This measures documentation/process, not the truth of a profitable thesis. Knowledge points = 2 points for each of five reviewed concept checks answered correctly on the first scored attempt; later attempts remain available for learning. Cooperative points = 5 × min(1, jointly completed sessions / min(20, season trading days)). Up to ten missed sessions in a 30-day season therefore do not reduce this component. Round total scores to one decimal place. Ties use lower maximum drawdown magnitude, then benchmark excess return, then stable fund ID. Version these exact defaults before any ranked play.
-
-Final scoring constants are product hypotheses. Run synthetic tests to show that a concentrated lucky gamble cannot systematically dominate disciplined teams, adjust before the first scored season, and version the score. Do not tune after observing a user's outcome. No LLM-only grade controls rankings; LLM feedback can remain qualitative and contestable.
-
-Optional extended research score: 30% risk-adjusted performance, 20% benchmark excess return, 15% drawdown, 10% diversification, 10% decision quality, 10% consistency, 5% knowledge. It needs adequate return history, formal normalization and anti-gaming validation before activation. The prior example's “alpha” component should be renamed or formally calculated.
-
-## 12. Backtesting and historical seasons
-
-Historical gameplay and automated strategy research are different interfaces over the same domain engine. Players see only data available at their simulated date. Researchers may inspect completed periods in the lab, but an active scored historical season must not expose future data via chart endpoints, exports, queries, alerts or AI explanations. Server authorization enforces the date boundary.
-
-Shared pipeline: frozen dataset → chronological event iterator → feature/signal generation → proposed order → mandate/risk check → future-event execution → settlement/ledger → NAV/metrics. Avoid building one simplified backtest that bypasses the live paper engine's cash/risk rules. Strategies can emit intended quantities but cannot mutate portfolio state directly.
-
-### Evaluation protocol
-
-1. Choose the universe, decision cutoff, labels, costs, benchmark and objective before evaluating.
-2. Partition chronologically into training, validation and final holdout; fit scalers, feature selection and models on training only.
-3. Tune only within training/validation. Where labels overlap future horizons, purge samples whose target intervals cross boundaries and apply a justified embargo; document why it is required.
-4. Use walk-forward folds to assess changing regimes; retrain only on history available at each fold's boundary.
-5. Lock the final holdout once. If repeatedly inspected, it is no longer untouched; document that fact and obtain a new evaluation period.
-6. Compare against buy-and-hold, cash, simple momentum and a no-ML risk policy under the same execution/cost/calendar constraints.
-7. Run cost sensitivity at 0/5/10/25 bps, missing-data cases, stress periods and multiple random seeds where applicable.
-8. Report trade count, exposure, turnover, return/drawdown, costs, sample size, fold variance and limitations, not only the best Sharpe.
-
-Synthetic fixtures provide deterministic software evidence, not evidence of investment edge. A contemporary curated stock list cannot support a broad unbiased historical market claim. Missing delisting data or unreconstructable news availability must be visible in the report. Do not silently optimize universe membership or choose start dates after seeing favorable returns.
-
-No arbitrary forward-filling of nonexistent instruments, trade fills, halts or news. For valuation, last valid marks may be carried only within the documented hierarchy with an explicit stale flag; trading remains blocked where price freshness fails. Clock/calendar data and settlement-era policies belong in the experiment configuration.
-
-Save config, seed, commit SHA, dataset checksum, source rights status, execution/risk versions, feature specification, split boundaries, model version and outputs for each run. A rerun of the same frozen inputs must produce the same trades and ledger, within documented numeric tolerance for model computations. Historical year names such as 2008 or 2020 are optional modules after data and settlement rules exist; no dates imply dataset coverage has already been obtained.
-
-## 13. AI/ML: build one evaluated system
-
-The first ML candidate is market-regime detection, reusing the user's prior HMM knowledge while adding a production-style pipeline. Start with simple volatility/trend rules as the baseline. Features can include trailing returns, realized volatility, volume changes and benchmark drawdown, all calculated strictly from available history. Avoid unrestricted feature collections and multiple unrelated models.
-
-For an HMM, use forward-filtered state probabilities at time t, not full-sequence smoothed probabilities that can incorporate future observations. Map latent states to descriptive names using training data only. A number such as “risk-off probability” is posterior state probability under the model, not a calibrated probability that tomorrow's price will fall. Model-state label instability across retraining needs a controlled mapping.
-
-Evaluate stability, interpretability and downstream risk-policy outcomes across chronological folds. Unsupervised state labels do not have a natural ground-truth accuracy score. If future volatility/returns are used as downstream targets, define them separately and use leakage-free supervised evaluation. The deployment gate can require improved forecast loss or risk outcomes over a stated baseline with tolerable turnover; a model that fails remains an experiment. Do not force deployment just to display MLflow.
-
-### Lifecycle
-
-Versioned ingest → validated feature tables → train/validation/holdout → MLflow experiment/model artifact → gated release manifest → batch inference → stored prediction with as-of/model/feature version → serving endpoint → monitoring → reviewed retraining candidate. Start with scheduled batch inference appropriate to a daily game, not a streaming system without need.
-
-Monitor feature freshness, missingness, distribution changes, state occupancy, inference latency/failures, and delayed outcome metrics when defined. Statistical drift is a reason to investigate, not proof the model is bad or an instruction to auto-promote a replacement. On failures, show the deterministic baseline and an unavailable/model-stale badge. Keep a kill switch and the previous approved artifact for rollback.
-
-### LLM explanation layer
-
-Feed structured verified facts and permitted source snippets to the tutor. Allow explanations of position sizing, diversification, risk warnings, and post-session attribution. Require source/metric identifiers, as-of time and explicit uncertainty. Reject invented numbers, future knowledge and missing evidence. The tutor cannot execute trades, approve a proposal, alter the mandate or access credentials.
-
-Start with cached template explanations so the game works without AI spend. Later call an API at most once for the shared daily brief and optionally once for the season report, with a configurable hard application request budget and fallback. Provider API charges are separate from the developer's Claude Code subscription and must not be enabled implicitly.
-
-Untrusted news, instrument text and thesis fields are data. Delimit and label them; they cannot authorize tool actions. Historical mode cannot use an unrestricted browsing LLM to reveal known future results. Even an offline pretrained LLM may remember market history; constrain it to explanations grounded in the supplied snapshot and do not claim perfect prevention of memorized future knowledge. For blind evaluation, use synthetic or appropriately anonymized scenarios and deterministic explanations where needed.
-
-Evaluate on a fixed, versioned set of at least 30 scenarios: valid explanations, wrong metric requests, stale data, missing sources, prompt injection, harmful tool instructions and historical future requests. Annotate factual validity, source faithfulness, numeric consistency and refusal/fallback behavior. Publish denominator and failures. Behavioral labels such as “loss aversion” or “momentum chasing” are descriptive rule-based observations unless a justified dataset and validated classifier exist; no psychological diagnosis.
-
-## 14. Backend architecture and API contracts
-
-Use a modular monolith plus background worker. Deploy web frontend, API, PostgreSQL and worker as simple components. Redis arrives for transient caches/rate limiting and optional pub/sub, never for authoritative balances or approvals. Avoid Kafka, Kubernetes, a feature-store service and multiple microservices in the first release.
-
-Modules: identity/authorization; funds/memberships; sessions; market data; proposals/approvals; accounting/positions; deterministic risk; settlement/corporate actions; NAV/reports; backtesting; optional ML/tutor. Domain services should be callable by both APIs and event-driven jobs and tested without HTTP.
-
-PostgreSQL tables include users, funds, memberships, seasons, mandate_versions, capital_units, daily_sessions, instruments, bars, corporate_actions, snapshots, proposals, proposal_versions, approvals, orders, reservations, fills, journal_entries, journal_lines, lots, settlement_obligations, nav_snapshots, outbox_events, job_runs, lessons, reflections, experiments, predictions and model_releases. Do not create every optional table in milestone one. Migrate module by module.
-
-Required constraints: exactly one manager slot of each index per fund; only two active managers; unique fill/execution business identity; unique journal business event; positive monetary/quantity fields where appropriate; one current session per fund/day; unique approval per proposal version; immutable approved content; monotonic season clock; unique idempotency scope (user/fund/operation/key). Add indexes for fund-time queries and worker eligibility. Database constraints complement authorization checks, not replace them.
-
-| Endpoint concept | Behavior |
+| Item | Default |
 |---|---|
-| POST /funds, invitation/acceptance | Authorized setup; expiring single-use invitation |
-| POST /funds/{id}/seasons | Both managers accept immutable charter |
-| GET portfolio / brief | As-of state with snapshot and stale flags |
-| POST daily-session/start | One shared deadline; idempotent concurrent starts |
-| POST proposals, revision | Typed user input, risk preview, versioned content |
-| POST proposals/{id}/approve | Other manager, expected version, live deadline |
-| POST reject / cancel | Authorized transition and reservation release |
-| GET orders / journal / report | Fund-isolated pagination and versioned evidence |
-| POST backtests | Allowed dataset/config; budgeted asynchronous job |
-| GET backtests/{id}, model-status | Owned result and reproducibility metadata |
+| Managers | Exactly two human partners; interchangeable chapter roles |
+| Season | 60 simulated business days, 12 five-day weeks, six 10-day chapters |
+| Play cadence | Typically 20–30 minutes per chapter; save/resume; no real-market-hours requirement |
+| Starting fund | $25,000,000 NAV; initial series price $100; 250,000 initial units across three LP series |
+| Investors | Seed LP $10m; Patient LP $8m; Tactical LP $7m |
+| Management company | $300,000 cash; $20,000 baseline weekly payroll and overhead |
+| Fund terms | 1.5% annual management fee; 20% performance fee; no hurdle; series-specific high-water marks |
+| Fee clock | 252 simulated business accrual days per year; crystallize on days 20, 40 and 60 |
+| Investor dealing | Days 20, 40, 60; five-business-day notice; payment next business day |
+| Optional contractual gate | 20% of pre-flow dealing NAV per window, pro-rata among eligible redemption requests |
+| Universe | Twelve fictional USD instruments: ten equities in five sectors, broad equity ETF, defensive bond ETF |
+| Prime broker | One fictional contract, explicit financing/collateral/borrow terms |
+| Launch orders | Market and limit, whole shares, synthetic event-level tape, partial fills |
+| Launch mandate | Gross <=150%; net -20% to100%; long issuer <=15%; short issuer <=8%; direct sector gross <=35%; each approved diversified ETF <=50% |
+| Drawdown | 10% warning; 15% freezes risk additions, with remediation still possible |
+| Data | Versioned authored synthetic scenarios; deterministic server-side tape |
+| Primary outcome | Earn renewal through published scenario objectives while remaining solvent |
+| Technology | Next.js/TypeScript, FastAPI/Python modular monolith, PostgreSQL authority; fixtures and polling first |
 
-Each mutation takes an Idempotency-Key and expected version where state matters. Same key + same request returns stored result; same key + different payload gets conflict. Authorization is checked again on replay: a removed member cannot retrieve a previously cached protected response. Store canonical request hash and a reference to the outcome; define retention long enough for season retries. Errors have stable reason codes and a request ID.
+The initial $100 unit price applies to each original LP series. Later subscriptions create separate fee series; a single aggregate “NAV per unit” is then misleading. Show fund AUM, a flow-neutral performance index, and each investor's series value. Managers own the management company 50/50 in narrative terms; this does not give them ownership of all investor assets.
 
-### Concurrency and jobs
+Full rules live in [GAME_SYSTEMS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/GAME_SYSTEMS.md), [FUND_ACCOUNTING.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/FUND_ACCOUNTING.md) and [SEASON_SCENARIOS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SEASON_SCENARIOS.md). Those contracts take precedence over old tutorial defaults. The legacy $100k accounting fixture remains a deliberately isolated arithmetic exercise.
 
-Use a fund/season row lock for operations affecting cash, holdings, reservations and approval state. Fixed lock ordering avoids deadlocks. Workers can use SKIP LOCKED for independent fund jobs, but the ledger posting still serializes at the fund boundary. Retry a serialization/deadlock failure only with a bounded policy and same business identity.
+## 3. The playable loop
 
-Transactional outbox: ledger/order state and an outbox event commit together. Delivery is at-least-once; consumers deduplicate by event ID. Worker crash before commit causes a safe retry; crash after commit/before notification does not duplicate the trade. WebSocket events include monotonically increasing sequence/version. Reconnecting clients request a fresh authoritative snapshot and resume from a cursor; dropped messages must not corrupt portfolios. Polling is acceptable in Level A.
+A chapter opens with a board: the opportunity the team could exploit, the obligations coming due, and their weakest resource. The partners choose a plan, divide attention, and commit policies. Advancing the market resolves deterministic daily events and pauses only at authored decision windows or a material threshold.
 
-## 15. Security and authorization
+Each chapter has three planned decision windows: opening committee, mid-chapter reassessment and chapter close. A material alert can interrupt advancement. Routine accounting days run automatically; the UI must not demand sixty daily checklists.
 
-Use a maintained auth provider with server-side verification. Do not implement password handling for this project. Choose either a same-origin secure-cookie/BFF architecture or a documented verified-token API flow, not an accidental mix. For cookie auth, use HttpOnly, Secure, appropriate SameSite, CSRF protection on mutations and narrow origins. The server derives identity from verified auth, never a user_id in request JSON.
+| Phase | Meaningful choice | Consequence |
+|---|---|---|
+| Brief | Which uncertainty matters? | Select research, LP contact or operating preparation |
+| Committee | What is the fund willing to risk? | Approve thesis sleeves, budgets and contingencies |
+| Operate | What can each partner execute independently? | Place delegated orders, source borrow, work an LP lead |
+| Advance | Are the plans ready? | Resolve later market events, fills, settlements and costs |
+| Respond | What must be sacrificed? | Reduce exposure, seek capital, gate withdrawals or spend runway |
+| Debrief | Was the result luck, process or a constraint? | Explain attribution, update relationships and choose next chapter |
 
-Check fund membership and role on every HTTP, export, job submission, WebSocket subscription and background action. UUIDs are not authorization. Historical as-of restrictions are part of the same server policy. Test both another fund's data and another season's future data. One manager's invite link does not grant trading access until redeemed and bound to an account.
+There is no reward for trading volume or compulsory activity. Holding cash can preserve the firm, but it may miss the contracted investment objective and reduce future fundraising. A fee-maximizing AUM strategy can burden liquidity and disappoint LPs. The design aims for several defensible paths rather than a single optimal checklist.
 
-Validate inputs and price imports, use parameterized SQL, escape thesis/news text, enforce pagination and payload limits, rate-limit expensive backtests/tutor calls, and cap background job concurrency. Secrets belong in deployment secret management; `.env.example` contains placeholders only. Logs exclude tokens, invite secrets and unnecessary personal data. Do not give tutors or opponent agents infrastructure credentials.
+The market advances only after both partners are ready at a decision window. In asynchronous play, a partner can mark ready and leave queued instructions. No wall-clock deadline silently liquidates a fund while a person is offline. When an active session disconnects, pause at the next safe event boundary. A practice-only co-pilot may explain options; it cannot supply a missing human committee approval.
 
-Use minimal database roles; posted journals require privileged correction procedures. Audit security-sensitive decisions, mandate corrections and denied actions. Encrypt traffic, configure backups, test restore, patch dependencies, and add CI checks for secrets/dependency issues. A threat model should identify abuse cases and actual mitigations, not merely list tools.
+## 4. Partners and the investment committee
 
-Highest-priority attacks: self-approval, stale approval after an edit, cross-fund IDOR, simultaneous overspending, duplicate fills, modified session clock, future-data export, compromised market text triggering tools, costly backtest flooding and false audit claims. Review these before cosmetic work.
+The Investment Partner owns research and portfolio construction. The Managing Partner owns treasury, investor relationships and operating capacity. Both can inspect everything and propose anything. Roles can swap at chapter boundaries.
 
-## 16. SEC and legal scope
+A jointly approved strategy sleeve names an owner, allowed instruments and sides, maximum exposure, trade size, chapter turnover allowance, thesis conditions and expiry. Its owner may submit orders inside that authority without a new partner approval. Launch limits: each delegated order <=5% of current NAV; cumulative absolute filled notional <=15% of chapter-opening NAV per sleeve per chapter. Pending commitments count conservatively until resolved. Splitting tickets does not evade a budget.
 
-This project is an educational virtual-money simulation with no brokerage integration, cash deposits, real profit payouts or money-linked rewards. This boundary reduces the investment-management features under consideration; it is not a blanket legal exemption. Avoid promising “SEC approved,” “SEC compliant,” guaranteed safety or profitable AI advice. Ordinary privacy, contracts, data licensing and consumer protection still require attention when deploying a product.
+Both partners approve new sleeves, changed budgets, gate use, new investor terms, large firm hires, prime-broker changes and exceptions to previously delegated authority. The proposer cannot supply the required second signature. An edited committee proposal loses its signatures. Risk limits remain hard constraints; signatures cannot waive them.
 
-SEC investor guidance distinguishes active investment-club participation and passive members and notes fact-specific federal/state questions [S1]. Two participants or separate brokerage accounts do not automatically eliminate regulatory obligations. If real pooling, paid advice, copying/execution, custody, investor solicitation or performance compensation is ever proposed, create a separate project review with qualified counsel and broker/API requirements before implementation.
+Either partner may cancel an unfilled order or activate the jointly pre-approved emergency reduction policy. Emergency trades must reduce a defined risk deficit without creating another hard breach; this is not a general “risk officer can trade anything” escape. Automatic margin liquidation and contractual buy-ins are system events, not unauthorized human approvals.
 
-The SEC private-fund overview identifies entity/document, adviser and offering considerations [S2]. Do not encode simplistic rules such as “under a certain AUM means no regulation” or “friends do not count as investors.” Those depend on facts and jurisdictions. This brief supplies operating concepts, not real subscription agreements, tax filings, offering documents or a registration analysis.
+At disagreement, existing authorizations remain in force; no unsigned change executes. Teams can choose a smaller jointly acceptable plan, hold, or leave the window paused. The committee UI presents a small number of consequential choices, not an inbox of routine approvals.
 
-Regulation SHO guidance addresses short-sale marking, price-test, locate and close-out requirements in the applicable real-world context [S5]. Advanced simulated shorts can teach borrow availability, fee accrual and recall but must not claim the game implements broker compliance. Pattern-day-trading/margin rules, reporting thresholds, and offering/adviser exemptions are intentionally not hard-coded from recollection; verify current primary rules if an educational module covers them.
+## 5. The business simulation
 
-No actual hedge fund is established by creating this repository. The full simulation roadmap is distinct from legal permission to launch a real fund.
+The fund owns investor assets and pays disclosed fund expenses. The management company earns contractual fees and pays salaries, research services and its own overhead. It cannot silently spend investor capital on payroll or treat subscriptions as revenue.
 
-## 17. Advanced trades and operations
+LPs are named counterparties with capital, a contract, a preferred strategy, patience and observable concerns. Performance, style consistency, liquidity handling and honest timely reporting influence confidence. LPs also have external liquidity needs that excellent performance cannot always prevent. New capital needs a lead, due diligence, accepted terms and a dealing date; pressing “fundraise” cannot instantly cure a cash call.
 
-Level D only, after the accounting and validation gates:
+A prime broker supplies a credit line and stock borrow under authored terms. Long positions, short proceeds, financing balances and restricted collateral all interact with investable cash. Borrow fees can rise, shares can be recalled and margin coefficients can tighten. These are core decisions, not flavor text.
 
-- Short selling: separate borrowed-share liability, restricted proceeds/collateral, borrow rate and day-count accrual, locate availability, recall/buy-in, dividend-in-lieu obligations and unlimited-loss explanation.
-- Leverage/margin: marked equity, initial/maintenance assumptions, financing expense, liquidation sequence, gap failure and deficit handling. Thresholds are explicit scenario assumptions, not universal broker rules.
-- Long/short mandate: gross exposure (sum of absolute marked positions / NAV) and net exposure (signed marked positions / NAV), with risk at both approval and fill.
-- Virtual redemptions: dealing dates, notice, cash availability, unit redemption at approved NAV, simulated gates and audit trail. No player withdraws real money.
-- Options/futures: contract multipliers, expiry, exercise/assignment, margin, valuation and reliable data; likely a separate project extension rather than an MVP feature.
-- Economic/earnings events: dated public sources and available-at cutoffs. Missing historical earnings availability means omit the feature.
-- Compliance learning: restricted lists, conflicts, inside-information scenarios and personal-trading disclosure concepts; education only, not legal determinations.
+The management company buys capability with real recurring cost. A research analyst unlocks an additional research assignment; an operations hire provides an additional contingency assignment and scenario-defined early operational warning; an investor-relations hire expands qualified lead capacity. Hiring never creates alpha, reduces ledger truth requirements or secretly changes execution luck.
 
-Do not silently add instruments whose mechanics the ledger cannot represent. Every product type needs event and risk tests before players can trade it.
+## 6. Portfolio and market depth
 
-## 18. AI agents in development and in the game
+Launch focuses on equity long/short and liquid ETF hedges. Short positions require available borrow and accrue explicit costs. Exposure is gross, net, sector and issuer, with hypothetical stress loss and liquidation time visible. Diversification is not a reward for buying many tickers that share one risk.
 
-Development agents can provide adversarial review: one builder proposes/implements and one read-only reviewer attempts to break financial or security invariants. Limit the reviewer to changed files and named boundaries, require concrete reproductions, and allow one revision plus one verification. Endless “agents arguing” burns usage without an objective stop condition. See the dedicated workflow and prompt pack.
+Every thesis has a catalyst, a horizon, observable evidence, a falsification condition and a sizing rule. Research spends attention to reveal scenario-authored evidence of known quality. It does not purchase guaranteed future returns. Information visible to either partner is shareable; useful cooperation comes from attention and judgment, not forced secret screens.
 
-Parallel implementations are useful only for a small unresolved algorithm with fixed tests, such as a risk-policy evaluator or feature computation. Run candidates in separate worktrees and evaluate correctness, clarity, latency and memory under the same inputs. The winner is selected by evidence. Do not commission two complete apps or have multiple agents edit shared migrations.
+The synthetic market engine includes common market and sector factors, idiosyncratic news, changing liquidity and borrow stress. Scenario authors own the causal model and publish its version. Player trades incur modeled execution costs and consume liquidity but do not alter the exogenous reference tape in launch. A later endogenous market is a separate engine contract.
 
-In-game AI fund opponents are a later unranked lab. They submit typed trade proposals against the same frozen information, costs, mandates and ledger as humans. They see no future prices and cannot bypass checks. A proposal must receive the configured approval policy; an AI cannot approve on behalf of an absent human in the cooperative game. For purely AI-versus-AI funds, use a separately labeled two-agent committee.
+Use a few intraday synthetic events with actual ordered timestamps rather than infer an intraday price path from daily OHLC. No order fills at a price the players already observed before submitting it. Limits constrain execution price; market orders can gap and partially fill. Stop orders are a later, separately tested addition; a stop price will not promise an execution price.
 
-Useful opponent styles: passive benchmark; deterministic trend/risk rules; risk-conservative agent; momentum agent; an evidence-constrained LLM agent. Measure run cost, invalid proposals, rejected risk actions, turnover, return and drawdown across many frozen scenarios/seeds. No live market browsing in historical contests. Keep LLM request ceilings and timeouts; invalid/missing actions default to hold. This is an agent evaluation harness, not proof that an AI can run a profitable real hedge fund.
+## 7. Risk, failure and victory
 
-## 19. Token-budget operating plan
+Risk gates run at commitment and execution against reservations and unsettled obligations. Passive market breaches create a remediation state; they do not retroactively invalidate an earlier valid trade. A 15% drawdown pauses risk additions, not the game. The team can deleverage, protect remaining capital and earn a recovery outcome.
 
-There is no honest guarantee that this entire project fits one Claude subscription week. The user's plan, remaining allocation, model, conversation length, tool use, retries and agents are unknown. Anthropic documents shared Claude/Claude Code subscription limits [S7]. Multiple agents do not multiply the included quota. In-game API calls are separate usage.
+The game distinguishes portfolio insolvency, inability to meet a payable, broker default, management-company insolvency and voluntary controlled winddown. A positive NAV does not prove that enough settled cash is available. A firm can close responsibly with investors largely protected and still fail its renewal objective.
 
-Start with one planning review and one implementation session per milestone, with narrow file contracts and an updated handoff. Choose an available lower-cost capable model for routine work; reserve stronger reasoning for the accounting/concurrency/leakage decisions. Check the installed client's usage/status commands and subscription usage settings before and after a representative task. A plain prompt word cap limits output, not hidden reasoning or total tool consumption.
+Launch renewal objectives, exact LP transition rules and defeat deadlines are in GAME_SYSTEMS. Campaign progression unlocks new mandates, scenarios and contract trade-offs. It does not grant better hidden fills or permanent return bonuses. Completed scenarios support a counterfactual replay with altered decisions; replay results are practice, not a fresh blind ranking.
 
-Suggested weekly allocation of the user's actually available capacity: 10% design/inspection, 55% implementation, 20% correctness/debugging, 5% UI polish, 10% reserve. These are planning shares, not provider quotas. At about 70% usage, stop launching optional agent/research work; at 85%, checkpoint and postpone new milestones. Actual enforcement depends on monitoring and configured provider/app controls, not a line in this document.
+The end report explains investment P&L, financing/borrow drag, fees, external flows, investor outcomes and firm cash separately. Show net time-weighted return and drawdown on a flow-neutral wealth index. Benchmark excess return is not regression alpha. Sharpe, beta and alpha are diagnostics only when the sample permits a meaningful estimate; short seasons carry explicit sample caveats.
 
-Load the full brief once for the initial architecture critique. Later tasks read `CLAUDE.md`, the small progress file and only relevant sections/files. Do not repeatedly regenerate plans, inspect unchanged files, install all skills, run every suite after a one-line edit or repeatedly ask for exhaustive explanations. Necessary broad checks still run at integration boundaries. Start fresh sessions at completed milestone boundaries; a fresh session still consumes context to reload its working set and is not itself a discount guarantee.
+## 8. Screen structure and usability
 
-Anthropic's documentation discusses context management, scoped prompts, subagents and multi-agent cost [S8–S10]. This package applies those ideas with explicit scopes and stopping conditions. One targeted reviewer can improve correctness; an unrestricted agent team is inappropriate when preserving a small weekly budget.
+| Workspace | What the player sees | Principal action |
+|---|---|---|
+| Firm desk | Season objective; next three obligations; fund capital; firm runway; risk/LP alerts | Open chapter / advance |
+| Investment room | Theses, sleeves, research evidence, portfolio and execution preview | Commit strategy / place delegated order |
+| Capital and operations | LP pipeline, notice queue, liquidity ladder, borrow and broker contract | Fund an obligation / negotiate a trade-off |
+| Committee | Versioned consequential proposals, alternatives and consequence preview | Approve / counter / reject |
+| Reports and replay | Fund/firm reconciliation, LP statements, causal timeline and outcomes | Review / export / replay |
 
-## 20. Definition of a strong finished project
+The first screen answers “what needs our decision?” before it shows a chart. The user should see the price of an action in attention, cash, risk or trust. Explain blocked actions with the calculation and a feasible next action. A read-only ledger drawer provides depth without occupying the main game loop.
 
-A backend-ready project has a working two-user demo; safe failure on stale approval or overspending; zero duplicated economic events during a documented retry/crash scenario; journal reconciliation; tenant isolation; a recovered backup; and a reproducible load report with hardware, dataset, concurrency, operation mix, latency distribution and errors.
+Accessibility, keyboard use, readable numeric tables, reduced motion, reconnect states and mobile review are required. Avoid decorative terminal density. A five-minute demonstration should show one shared decision, a trade, an investor obligation, a crisis and reconciled consequences.
 
-An ML-ready project additionally has a frozen dataset and features; baselines and chronological holdout; explicit rejected-model cases; a versioned deployed inference artifact; stale/drift/failure monitoring; a tested fallback; and a fixed explanation-evaluation set with results. A chatbot, an untested Sharpe estimate or an MLflow screenshot is insufficient.
+## 9. Deterministic engine and authority
 
-Target checks are gates to implement, not accomplished metrics: zero unauthorized access in defined tests, no double fills or negative buying power under concurrency, deterministic frozen replay, and a short usable session. Load numbers should emerge from measurement rather than a fictional “production-scale” claim.
+The domain engine is a pure state transition over a versioned event log. Inputs are a season configuration, hidden market/event tape, authorized player commands and prior state. Outputs are typed domain events, journals, projections and explanations. No network or model call occurs inside accounting, execution or risk evaluation.
 
-The next action is inspection and an architecture decision, followed by the smallest playable financial vertical slice. Nothing in this package indicates that implementation has already occurred.
+Store event_time, available_at, recorded_at, simulation phase, event identity, scenario/dataset/rule versions and actor. Hidden future tapes remain server-side; downloaded fixtures are developer resources and must never become client bundles in blind play. Fix the pseudorandom algorithm as well as its seed, or pre-generate the complete versioned tape. Separate random streams for market, evidence and LP exogenous needs so opening a panel cannot consume the next market random draw.
 
+Commands use an idempotency key, expected state/proposal version and verified actor. PostgreSQL serializes economically conflicting operations at the fund boundary. A single transaction posts fills, journals, obligations, reservations, sleeve consumption and outbox events. Use bounded retries and unique business identities. Delivery can be at least once; economic posting must deduplicate. Replays restore the same state and journals.
 
-# Claude handoff — start here
+FUND_ACCOUNTING defines the strict daily phase order, series accounting, collateral, margin deadlines and flow conventions. Reconciliation failure freezes execution and reporting certification. Repair by explicit reversal/restatement; never overwrite a balance to satisfy a test.
 
-## Current state
+## 10. Scope that preserves the game
 
-This repository contains a specification, prompts, acceptance cases, review-agent definitions, and private-repository creation scripts. There is no frontend, backend, database, market-data subscription, model, deployment, or measured application result yet. The private repository is now available at https://github.com/krishbansalofficial/fundforge; repository setup is complete. The standalone setup scripts were not used for this upload. Treat every implementation milestone as pending.
+| Delivery boundary | Included | Honest completion label |
+|---|---|---|
+| Foundation | Decimal ledger, accounting examples, event clock | Financial engine prototype |
+| Integrated vertical slice | Two partners; 20-day opening arc; three LPs; sleeves; long/short; one broker; fees; firm costs; first dealing; one linked crisis | First playable fund-management slice |
+| Season release | All six chapters/60 days; varied outcomes; operating choices; final renewal/winddown; recovery and security evidence | Hedge fund management game |
+| Later research expansion | Permitted historical data, shared-engine backtests, evaluated ML, optional source-grounded assistant and external research integrations | Research extension |
 
-The owner wants a strong new-grad backend and AI/ML project, modest polished UI, cooperative gameplay, realistic simulated fund procedures and backtesting, and careful Claude usage. The owner reports having Vercel skills installed locally; this package has not inspected them. Do not infer specific installed skill names or that all skills should be loaded.
+Do not remove LPs, firm cash or financing from the integrated slice to hit an arbitrary date. Reduce scenario variety and cosmetic breadth first. Do not promise the full season in one subscription week.
 
-## First-session instruction
+Launch exclusions: options, futures, swaps, OTC, multi-currency, multi-prime optimization, tax, side pockets, real fund documents, filings, live order routing, real investor outreach, public competitive matchmaking and a freely acting LLM fund manager. Staff, gates and corporate events use the few declared rules needed by launch; deeper variants are later.
 
-Think carefully about this design before writing code. Inspect the actual repository and environment, then review the specification for contradictions, scope risks, missing financial mechanics, data leakage, and unrealistic claims. Give decision rationale and evidence; do not narrate private chain-of-thought. Resolve routine implementation choices within the stated defaults.
+OpenSEO is a potentially useful external SEO/website-intelligence component, not a finance engine or a mandatory market-data source. Follow the separately verified integration document; do not replace it with OpenBB or imply that an untested integration already exists.
 
-Read `CLAUDE.md`, this file, `docs/PROGRESS.md`, `docs/DECISIONS.md`, then the master specification for this initial review. Inventory installed relevant skills by names/descriptions. Check actual Git state and tool versions. Never assume the uploaded resume or this generated brief describes implemented code in this repository.
+## 11. Engineering, research and evidence
 
-Produce one concise architecture review and a dependency-aware plan. Confirm:
+Keep the modular FastAPI/PostgreSQL + Next.js architecture. Domain modules cover identity; seasons/clock; governance/sleeves; market/research; execution/borrow; treasury/margin; fund ledger/LP series; management company; scenario/LP transitions; reporting/replay. Redis, workers and WebSockets arrive only when their reliability problem is being implemented.
 
-1. Single authority for cash, holdings, approvals and time.
-2. Transaction/reservation/settlement policy and race handling.
-3. Future-event execution and historical information cutoffs.
-4. Separation of house rules, financial concepts and legal facts.
-5. One deployable ML candidate with an objective baseline gate.
-6. Token-saving task boundaries, relevant skill selection and evidence gates.
+Auth, tenant isolation, immutable approvals, state-version conflicts, idempotency, fund locking and as-of authorization apply to every UI/API/job/export. Firm transactions use a separate ledger but shared season serialization when transferring fees. Untrusted market text is data. No LLM can approve, trade, post money, change risk or decide hidden outcomes.
 
-Default stack is Next.js + TypeScript, FastAPI + Python, PostgreSQL, then a worker and Redis when justified. Propose alternatives only where they solve a concrete problem; do not generate multiple full stack plans. If a choice requires a credential, paid service or current entitlement, continue with fixture-based work and identify the dependency.
+A market adapter must establish coverage, rights, timestamps, feed, adjustments, corporate actions and reproducibility before historical/live use. Historical gameplay cannot silently inherit current settlement schedules or future data. Backtests reuse the execution, financing, fund and fee engine. Compare like mandates and cash/financing assumptions.
 
-## Authorized initial implementation after review
+One later ML candidate is filtered HMM regime inference compared with a simple trend/volatility baseline. Fit only on chronological training data; use forward-filtered probabilities; evaluate on untouched held-out periods with trading-cost sensitivity. Rejecting a model is an acceptable result. Synthetic game success is not investment-edge evidence.
 
-Implement milestone M0, then a separately scoped M1 if the owner asks to continue. Keep the application paper-only. M0 creates tool configuration, domain skeleton, fixture-loading contract, minimal health screen/API, and CI scaffolding. M1 implements the deterministic accounting scenario and meaningful financial tests before broad UI work.
+Tutorials attach to decisions: borrow recall, leverage, liquidity, unit issuance, fee recovery and conflicting stakeholder incentives. Template explanations work without AI. Optional LLM narration consumes verified event facts and cannot invent metrics or determine grades.
 
-The user can ask “continue the next milestone” after reviewing the first output. Do not rewrite the full brief every session. Update only genuinely changed decisions and the small progress handoff.
+Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result.
 
-## What the first playable version must do
+## 12. Source discipline
 
-Two users form a virtual fund, each has equal units, both accept a mandate, start a shared session, propose/review orders, see queued versus filled states, advance a fixture market day, and inspect reconciled NAV and shared P&L. No AI service or paid market-data plan is needed for that demonstration. The interface should feel like a small cooperative management game, not a terminal with dozens of widgets.
+The simulator borrows concepts, then deliberately defines its own contracts. SEC Investor.gov hedge-fund guidance describes fees and redemption limits as terms investors must understand; it does not prescribe this game's 1.5/20 structure or dealing windows. SEC T+1 guidance concerns applicable U.S. transactions, not every market or historical era. Regulation SHO's locate/close-out framework is not reproduced by adding a “borrow available” icon. Brokerage sources describe that broker's practices, not universal contractual deadlines.
 
-## Repo privacy and setup
+Primary reference links and verification notes belong in SOURCES. Any future educational legal claim must be verified in its jurisdiction and date. This game is not an actual fund and does not claim SEC approval or comprehensive broker compliance.
 
-This repository already has a private remote; skip P00 and start with P01. For a separate future copy only: if GitHub CLI is installed and authenticated on the owner's machine, read `scripts/create-private-repo.ps1` or `.sh`, verify working directory, and run the appropriate script. Inspect the result's `isPrivate` field. If credentials are unavailable, give the precise login/install step; do not invent a repository URL or visibility. Do not change an existing repository's visibility or overwrite a name collision. Never commit secrets, market data without rights, or the supplied personal resume.
 
-GitHub CLI should use the owner's interactive authentication; never ask the owner to paste a token into a chat or into `CLAUDE.md`. Keep repository setup separate from app deployment. The provided scripts only set up the documentation repo, not hosting.
+---
 
-## Evidence standards
+Source: `docs/GAME_SYSTEMS.md`
 
-No “all done” based on generated code alone. Each milestone has named observable behavior, test/verification commands and output. New tests should cover financial meaning, races, access boundaries or leakage, not simply restate a function's own implementation. A test count is not a substitute for invariants.
+# Game systems and balance contract
 
-Before claiming readiness, replay the golden scenario, exercise concurrency with real PostgreSQL, try cross-fund and future-data access, demonstrate worker retry/recovery, and run the two-user flow. Later ML acceptance requires a fixed split and actual evaluation results. Record failed checks and limitations alongside successes.
+Version 2.0 · Proposed, unimplemented defaults · Read with MASTER_SPEC and FUND_ACCOUNTING.
 
-## Completion response for each task
+## 1. Time, attention and cooperation
 
-Keep the task response compact: changed behavior and why; changed files; checks run and actual results; unresolved blocker or risk; one next task. Update `docs/PROGRESS.md` with enough state for a fresh session. Stop when the task's gate is met. Do not launch extra agents, polish other screens, expand instruments or propose a new architecture as a reward for finishing.
+A season has six chapters, each ten simulated business days. Planned windows occur before days 1/6, 11/16, 21/26, 31/36, 41/46 and 51/56, plus each chapter close. A close can also serve as the next opening committee without repeating the recap. Material margin, recall, redemption or solvency events insert a decision window before their deadline. A pause changes real waiting time, never which historical information is visible.
 
-## What remains intentionally optional
+Each partner has two strategic assignments per chapter, four for the team. Researching a thesis, conducting LP due diligence, negotiating a contractual offer or preparing a contingency each costs one assignment. Reviewing data already obtained, discussing, placing authorized orders, responding to a mandatory notice, and reading reports are free. Unused assignments expire; no speed bonus. Emergency remediation must remain possible after attention is spent.
 
-Redis, WebSockets, MLflow, historical seasons, LLM summaries, public rankings, agent opponents, hypothetical fees, shorts, margin, redemptions and derivatives all have later gates. They are not required to make the first session playable. Development reviewers are optional, scoped and bounded; they are not unlimited independent usage pools.
+Role ownership focuses the default task list; it is not an information barrier. Research assignments can be owned by either partner. The Investment Partner starts with portfolio/research responsibilities; the Managing Partner starts with investors/treasury. Each must have a valuable action while the other works. The first usability test should identify idle approval waiting and remove it.
 
+The system does routine administration automatically and exposes exceptions. Players do not click to reconcile every day or type arbitrary reports for points. They decide which risk to take, what to disclose in an LP conversation, and what to fund.
 
-# Implementation plan
+## 2. Strategy sleeves and decision authority
 
-Build one vertical slice and expand it through correctness gates. Timing depends on the owner's experience, subscription capacity and debugging; the complete backend + ML + advanced simulator is not a one-week promise. M0–M4 form a realistic first-release objective across multiple focused sessions. Later stages can take several additional weeks.
+A sleeve contains a named owner, approved instrument set, permitted sides, max gross allocation, max order size, chapter turnover budget, thesis/invalidation evidence, fallback action, review date and expiry. Default three available slots; two active sleeves in the opening scenario. Approved maximum sleeve budgets plus a central cash/hedge reserve cannot exceed the fund's permitted risk allocation.
 
-| ID | Task / owned areas | Depends on | Observable completion |
+Orders require a valid delegation OR an immutable order-specific second signature. A delegation is itself jointly approved. The owner is acting under prior authority, not self-approving a fresh committee proposal. A non-owner needs a fresh order approval or a changed sleeve owner. No human can grant authority to themselves.
+
+Pending orders reserve sleeve capacity, borrow and settlement resources. Fill consumes the actual executed notional; cancellation releases the remaining commitment. Turnover means the sum of absolute fill notionals, including sales and covers, not net position change. Emergency system buy-ins are reported separately and do not block remediation because an elective turnover allowance is exhausted.
+
+Counters are new versions. Version/content hash, actor and mandate/sleeve versions are displayed together. Approving a new version cannot revive a canceled or expired earlier order.
+
+The emergency reduction policy is agreed at season launch. Either partner can submit a reduction plan that demonstrably reduces at least one active deficit and does not worsen another hard deficit; it may close positions and cancel risk-adding orders. System liquidation uses a separately declared deterministic priority. Opening a new hedge is not automatically “reducing risk”: its liquidity, gross exposure and margin effects must pass.
+
+## 3. Research as a game decision
+
+Every opportunity combines:
+- Public evidence already in the brief.
+- One or two researchable uncertainties with authored, fallible signals.
+- A time horizon and a catalyst window.
+- Liquidity/borrow requirements.
+- An invalidation condition that can become visible before the price catches up.
+
+An evidence card has a source, available-at time, reliability class and scope. It can narrow the scenario's possibilities but never reveal a guaranteed target price. Contradictory evidence is intentional and labeled. Content generation may change prose only; hidden outcome facts and reveal mechanics come from the frozen scenario.
+
+Launch example: a manufacturer appears cheap but refinancing is approaching; supplier evidence supports revenue, while an operating report reveals working-capital strain. A pair trade can hedge sector risk while creating borrow cost and recall exposure. The best trade may be to wait for evidence, size smaller, or use the liquid ETF rather than the attractive thinly traded stock.
+
+The research lab later supports reproducible backtests. Launch offers reviewed scenario evidence and a transparent stress calculator, not fake backtest charts.
+
+## 4. Investor relationships and capital
+
+LP confidence is a visible 0–100 state with a causal change log. It is not a hidden dice roll or a score an LLM awards.
+
+| Investor | Initial capital/confidence | Preference | Initial restriction |
 |---|---|---|---|
-| M0 | Repo/tool skeleton; `frontend/`, `backend/`, CI, fixture contract | Initial review | Clean install, basic health route/page, minimal checks from a fresh checkout |
-| M1 | Domain money, units, FIFO lots, double-entry ledger, settlement; `backend/domain/`, domain tests | M0 | Golden arithmetic and replay/reversal tests pass |
-| M2 | PostgreSQL migrations/repositories, proposals/versions/approval/reservations, membership auth | M1 | Two manager identities; no self-approval, stale approval, duplicate fill or overspend |
-| M3 | Fixture clock/calendar, next-open execution, risk gates, snapshot/reconciliation jobs | M2 | One full simulated daily close/open cycle; safe failures on gaps and passive breaches |
-| M4 | Five-screen playable UI and session timer, initial lessons/report; polling | M3 | Two people can complete a 30-day fixture season; mobile/keyboard/error states work |
-| M5 | Data-provider adapter, rights checklist, source/availability metadata, split/dividend events | M4 | Licensed or permitted frozen dataset; action accounting verified; no synthetic/live confusion |
-| M6 | Transactional outbox, robust worker, Redis cache/rate limiter, optional WebSockets | M3/M5 | Crash/retry/reconnect evidence; PostgreSQL still authoritative |
-| M7 | Security/load/recovery/observability and deployment documentation | M4/M6 | Cross-fund tests, backup restore, measured load and two-user demo in intended environment |
-| M8 | Shared-engine research backtesting and historical as-of APIs | M3/M5 | Deterministic replay, leakage tests, cost sensitivity and baseline report |
-| M9 | Regime baseline/HMM features, chronological evaluation, MLflow and release manifest | M8 | Reproducible evaluation; justified gate promotes or rejects candidate |
-| M10 | Batch inference, model monitoring/fallback, tutor templates and optional API | M9 | Model version/as-of visible; failure and explanation evaluation documented |
-| M11 | Bounded AI-opponent contest and advanced fund procedures | M7/M8/M10 as applicable | Same rules/information for all; capped requests; extension-specific accounting tests |
+| Seed LP | $10m / 72 | Consistent broad long/short process, access to partners | No day-20 redemption; a known external $3m need on day 40 |
+| Patient LP | $8m / 80 | Lower drawdown, reliable liquidity planning | First redemption dealing day 60 |
+| Tactical LP | $7m / 65 | Higher net performance, fast response to deteriorating thesis | Eligible all windows |
 
-## M0: narrow scaffold
+At each chapter close, compute confidence deterministically:
+1. Performance delta = clip(2 × (LP chapter net return in percentage points − target), −6, +6). Targets: Seed 0.35, Patient 0.20, Tactical 0.60 percentage points.
+2. An avoidable active mandate breach or an uncured passive breach after the published remediation opportunity costs 6. A mere market-driven breach before an opportunity to act costs zero.
+3. A certified report delivered by the chapter close earns 1; a missing/unreconciled report earns no bonus and costs 5. The engine generates reports automatically; certification depends on actual reconciliation.
+4. A relevant LP meeting can recover at most 3 confidence once per chapter after a documented concern, never above the confidence immediately before that concern. Generic meeting spam does nothing.
+5. Gate use costs Seed 10, Patient 8, Tactical 15 once per dealing window. An overdue contracted payment costs 15 once per incident.
+6. Clamp final confidence to 0–100. Store every component and its policy version.
 
-Create a minimal monorepo with shared documented contracts, not a full generated application. Pin supported runtime versions and dependencies after inspecting current official docs/tool availability. Use one Python package manager and one frontend package manager, committed lockfiles, lint/type checks, Docker Compose for development PostgreSQL, and a minimal CI pipeline. Do not add paid cloud infrastructure or production secrets.
+Those are balance hypotheses, not investor-behavior claims. They are frozen before a scored season and tested across scenarios.
 
-Create the financial-domain interfaces and identify where invariants will live. A static health page is enough; no dashboard redesign. Decide authentication integration and development test identities without inventing insecure production login shortcuts. Proposed developer commands must be added and validated before being listed as working commands.
+At notice cutoffs days 15/35/55, eligible LPs with confidence below 40 request 50% of their then-held units; confidence 40–54 requests 25%; 55+ causes no performance-driven request. Locked LPs wait for their first eligible cutoff. Requests are unit quantities, so their final dollar value is unknown until dealing. The Seed's external $3m need is expressed as a dollar-target request capped by its units; final units are calculated at dealing. If it also has a confidence request, use the larger request, not both.
 
-## M1: financial domain before persistence details
+The external need is disclosed before investment choices can reasonably fund it. Confidence cannot make an investor's external obligation disappear. In the launch First Mandate scenario, Tactical also has an externally required 10,000-unit day-20 redemption, disclosed on day1 with formal notice on day15. Use the larger of this and its confidence-based request, not their sum. This guarantees a genuine capital-flow decision in the opening slice without manipulating performance.
 
-Implement Decimal money/pricing policy, capital units, FIFO lots, journal postings, mark-to-market, trade-date receivables/payables and settlement. Use isolated domain tests plus the provided golden fixture. Make the ledger explicit enough to reconcile realized/unrealized P&L, cash and holdings. Define rounding and correction/reversal semantics. No LLM, external prices or frontend writes can bypass this module.
+### Fundraising pipeline
 
-## M2–M3: hardest backend gates
+Prospect → qualified → diligence → conditional commitment → eligible subscription → admitted. Two scarce assignments complete qualification and diligence; an IR hire can expand the number of simultaneous prospects. Offers specify amount, mandate fit, fee terms, earliest dealing date and conditions. Launch supports standard-fee offers only; custom side letters and heterogeneous fee schedules are later.
 
-Freeze the proposal contract and transition table before frontend integration. DB schema changes have one owner. Put approval, reservation, fill, journal and outbox effects within the relevant transaction boundaries. Test races with an actual PostgreSQL service, not SQLite's different lock behavior. Serialize fund operations and document worker retry behavior.
+A signed fictional commitment is not NAV, settled cash or margin collateral. Subscriptions enter on a dealing date only after funding is available and conditions pass. The team may reject or cap an offer when the strategy lacks capacity. A prospect's terms can demand lower leverage or a capital lock; accepting a conflicting mandate requires a new scenario contract, not a silent settings edit.
 
-Implement a Clock interface used by session deadlines and event eligibility. Simulated clocks only exist in development/test or an authorized historical season. Users cannot supply authoritative clock values. Every execution uses a coherent execution snapshot for all holdings needed to compute NAV/exposures. Missing essential marks cause a block, not a valuation assembled from arbitrarily mixed timestamps.
+### Gates and fairness
 
-Use a single cost configuration and settled-cash policy in game and backtests. Reservations convert atomically into obligations or are released, never both counted indefinitely. Reconciliation failure freezes trading until an explicit correction succeeds.
+Both partners must elect a permitted gate before the dealing event. Maximum dealt redemption amount is 20% of pre-flow, post-fee NAV for the whole fund at that window. Allocate pro-rata across eligible requests, including carried requests; no preferential payment to a favorite LP. The undealt portion retains units, stays exposed, and rolls to the next window. The gate cannot erase notices, forgive already-created payables or freeze capital forever without consequence.
 
-## M4: enjoyable first release
+Day 60 deferred requests carry into the debrief and reduce the renewal outcome. A season cannot win by deferring its obligations past the final screenshot.
 
-Deliver lobby, fund desk, trading room, research stub and season report with fixture data. The research stub can explain that automated backtests arrive later rather than presenting a fake result. Add short reviewed lesson cards for position sizing, market orders, diversification, settlement and drawdown. Complete session state and failure-state UI before extra colors/animation.
+## 5. Management-company economy
 
-Manual usability check: two testers join, start, propose, approve, advance to fill, disagree/cancel, hold one day, and finish a season. Capture confusing states and fix the action language. Do not invent real user counts if testers are only the owner and a friend.
+Opening company cash is $300,000. Baseline overhead/payroll is $20,000 per five-day week, accrued $4,000 each simulated day and payable at each fifth-day close. It earns cash only when contractual fund fees are paid. Accrued fee receivables are assets, not spendable payroll cash.
 
-## M5–M7: measured service reliability
+| Hire | One-time recruiting cost | Additional weekly cost | Declared capability |
+|---|---:|---:|---|
+| Research analyst | $10,000 | $5,000 | One additional research assignment each full chapter |
+| Operations specialist | $10,000 | $4,000 | One additional contingency assignment; scenario-defined early operational warning |
+| Investor relations lead | $10,000 | $4,000 | One additional LP assignment and second concurrent prospect |
 
-Choose one provider after checking rights and coverage. Keep the fixture mode. Add corporate actions and dataset freezes before importing long histories. Use worker retries, transactional outbox and client resynchronization. Redis must be rebuildable after loss. Record log/metric names around queue delay, job age, fills/rejections, dedupe, data staleness, reconciliation and API errors.
+Maximum two hires in launch. Hiring is a joint firm decision; recruiting cash is paid immediately; salary/capability begin at the next chapter boundary. Releasing a hire takes effect at the next weekly boundary and costs two weeks of that hire's salary. Staff never improve the market tape, waive reconciliation or reduce objective financing costs.
 
-Load plan: document hardware/container limits; start with 10 active funds, then 50 and 100 if the system permits. Submit competing approval/execution operations, portfolio reads and reconnects under a stated mix. Measure p50/p95/p99, errors, lock waits and invariant outcomes; select a supported load target after measuring. These concurrency levels are experiment inputs, not production claims. Restore a backup into a separate database and reconcile the restored ledger.
+Projected runway = unrestricted company cash / committed weekly recurring cash cost. Display a separate forecast including known receivables; do not combine it with “cash runway.” Company equity can be positive while payroll cash is insufficient.
 
-Deployment must use a hosting choice explicitly selected by the owner and verified secrets/configuration. Preparing deployment files is authorized; public publishing and additional paid resources are separate requests. A private repository does not make a hosted app private automatically.
+No owner withdrawals, cross-entity loans or discretionary capital injections in launch. They require explicit future contracts. This prevents a bailout button and prevents fund cash being used to rescue the management company.
 
-## M8–M10: worthwhile ML
+If payroll cannot be paid, enter COMPANY_DISTRESS, pause discretionary spending and issue a five-business-day cure deadline. Cuts or earned fee payments may cure it. Otherwise end new investment activity and enter controlled winddown; record unpaid company obligations. Do not invent a capital contribution to keep a scenario alive.
 
-Reuse the domain engine for research. Lock data/splits, calculate baseline performance and failure cases, then train HMM. Register experiments, but only promote a candidate if the defined gate is met. A baseline-only serving system with an honestly rejected HMM is stronger than a misleading deployed model. Keep the ability to revert a model without rewriting historical predictions.
+## 6. Prime broker, borrow and liquidity
 
-Add template explanations first. The optional LLM tutor uses bounded verified inputs, no trading tools and no external historical browsing. Record actual explanation evaluation and request cost separately from subscription use. Do not enable API billing merely because Claude Code is logged in.
+Launch broker contract: borrowing limit $7.5m fixed at season start; annual debit interest 6%; ordinary borrow fee 2%; restricted short collateral 100% of marked short value. Rates accrue /252 daily. A broker shock can change future rates or coefficients on an announced effective event; it cannot retroactively charge a revised rate.
 
-## M11: extension discipline
+Initial margin requirement = 50% of long marked value +60% of absolute short marked value. Maintenance =35% of long value +40% of absolute short value. Margin equity is fund NAV minus any explicitly ineligible receivables; launch treats ordinary valid T+1 trade receivables as eligible and unreceived subscriptions as absent. Fund liabilities already deducted in NAV must not be deducted again.
 
-AI fund opponents, fees, redemptions, shorts/margin and derivatives are independent extensions. Select at most one next extension. Write its accounting, event, data and acceptance contract before code. The advanced roadmap is a menu, not permission to add everything to an MVP.
+These are deliberately simplified fictional prime-broker terms, not Reg T or portfolio-margin compliance. They require two independent tests: adequate margin equity and enough usable settlement cash/credit. A margin pass cannot spend restricted short collateral on payroll or redemptions.
 
-## Session operating rhythm
+Short orders need a valid locate reservation and available capacity at fill. A locate is not a promise of perpetual borrow. Borrow rates/availability are time-stamped; recalls create quantities and deadlines. The authored launch recall allows two business days to find replacement borrow or execute a cover, then forces a buy-in at the deadline's first executable event. This is a cover-execution deadline; borrowed shares return at the resulting T+1 settlement and fees continue until return. This is a game contract, not a claim about every broker.
 
-Start: read small handoff, Git state and task contract. Work: inspect only dependencies and owned paths, implement, run appropriate checks. Finish: evidence, commit only when instructed, update small handoff. At integration milestones run broader checks. After two repair cycles without progress, checkpoint the precise failing condition and ask a narrower expert question in the next session.
+Liquidation time shows how many future tape events at the participation cap would be needed to exit, with stressed volume sensitivity. Spread and adverse impact grow as liquidity deteriorates. The launch reference tape is exogenous; player fills consume available event liquidity across their orders, preventing ticket splitting from obtaining unlimited volume.
 
+Fund capacity has a cost: a large inflow can make the same strategy harder to execute. The player can hold capital temporarily, expand a liquid sleeve or decline it.
 
-# Copy-ready Claude prompts
+## 7. Risk and mandate state
 
-This private repository is already set up: start with P01. P00 is retained only for creating a separate future repository. Use one prompt at a time inside the cloned repository. Replace bracketed placeholders. The initial prompt may load the complete brief; later prompts should load only their named working set. “Think carefully” means examine tradeoffs and failure modes and provide a concise decision rationale, not reveal private chain-of-thought or spend unlimited tokens.
+Gross exposure = (long MV + absolute short MV)/NAV. Net = (long MV − absolute short MV)/NAV. Direct sector gross sums absolute direct-equity positions in that sector. ETFs appear separately unless point-in-time constituent exposure is explicitly provided. Cash is not another equity sector.
 
-## P00 — Create a separate private repository (optional)
+The default long issuer cap is15%, short issuer8%, direct sector35%, ETF50%. Gross150%; net between−20% and100%. Apply all reservations, obligations and borrow commitments. A pure risk reduction can be admitted under a documented exception if it does not worsen existing hard deficits.
 
-```text
-I want this documentation package in a new private GitHub repository named fundforge on my authenticated personal account. Inspect README.md and the relevant create-private-repo script. Verify the current folder and that only the intended documentation/templates are included. Check Git/GitHub CLI authentication without displaying secrets. Run the script if available; a name collision must stop without changing an existing repo. Verify isPrivate using gh repo view and give the actual URL. If a required tool/authentication is missing, tell me the exact local step and do not claim creation succeeded. Do not deploy the app or upload my resume.
-```
+Drawdown is measured on the net flow-neutral fund wealth index: warning at10%, freeze new risk at15%. Recovering above the threshold clears the automatic drawdown freeze only after a reconciled close; unresolved other breaches remain active.
 
-## P01 — Think properly; inspect and critique first
+A concentration breach from price movement gives the team the next available decision window to present a plan and up to two simulated days to execute an achievable reduction. A halt or lack of liquidity is recorded as inability, not fictitious compliance. Broker solvency/deadline rules still apply.
 
-```text
-Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Think carefully about financial correctness, cooperative gameplay, concurrency, settlement, historical leakage, ML validity and implementation scope before editing code. Inspect the repository and tool versions. Inventory my installed Vercel skills by names/descriptions only, then identify the one or two useful skills for each future phase; do not load every skill.
+A visible risk card distinguishes: hard contract; internal policy; estimated stress loss; stale/uncertain data. An estimate can guide a decision but is not a guarantee against ruin.
 
-Give a concise decision memo: concrete contradictions/blockers; chosen architecture with reasons; five highest-risk failure modes and their tests; dependency-ordered milestones; and the smallest playable slice. Distinguish proposed features from implemented evidence. Keep this memo under 1,000 words. Update only actual decisions and progress. Do not build multiple stacks or launch agents. Stop after the review and tell me the exact M0 task contract.
-```
+## 8. Crisis state machine
 
-## P02 — Scaffold only
+NORMAL → WATCH → ACTION_REQUIRED → REMEDIATING → CURED, CONTROLLED_WINDDOWN or DEFAULT.
 
-```text
-Implement M0 from docs/IMPLEMENTATION_PLAN.md. Read CLAUDE.md and docs/PROGRESS.md plus only needed architecture/security sections. Inspect existing files before changes. Create a minimal Next.js/TypeScript frontend, FastAPI backend, development PostgreSQL setup, package/lock configuration and minimal CI checks. Add a health route/page and domain interfaces. Do not implement the full dashboard, trading logic, ML or paid services. Pin and verify compatible versions using current official docs when needed. Run fresh-install and basic lint/type/test checks that you actually configure. Record exact commands/results and next task in docs/PROGRESS.md. Stop at M0.
-```
+Each incident has an objective trigger, affected obligation, created-at/effective-at times, absolute simulation deadline, permitted remedies, escalation rule and causal links. Display the deadline in business events, not only a real-time countdown.
 
-## P03 — Implement one financial contract
+Maintenance margin shortfall is detected after each price event. Freeze risk additions immediately; cancel unfilled risk-adding orders. Pause for a player response before the next executable event. If a valid voluntary reduction cannot cure at that next event, forced liquidation begins there. No second arbitrary “grace day” is invented. Forced liquidation must obey actual modeled liquidity and can continue across events; insolvency can occur despite liquidations.
 
-```text
-Implement [M1 or one clearly named subtask]. Read CLAUDE.md, docs/PROGRESS.md, master-spec accounting/settlement sections, docs/ACCEPTANCE_TESTS.md and fixtures/golden_scenario.json. Allowed edit areas: backend/domain/, backend/tests/domain/, and the progress/decision notes. If the scaffold uses different paths, map them first and record the mapping.
+Priority: recall buy-ins whose deadline has arrived; then margin deficit remediation by highest estimated margin release per executable dollar cost; deterministic instrument ID breaks ties. The engine recomputes after every partial fill. A future order preview cannot guarantee a forced sale will fit the tape.
 
-Use deterministic Decimal arithmetic, explicit rounding, FIFO, balanced journal entries and exact unit-based P&L allocation. Implement only the chosen subtask with meaningful independent arithmetic/replay tests. Do not change the frontend, auth or schema unless the task explicitly owns them. Do not add AI. Run relevant checks once after changes. Stop after two failed repair cycles and report the smallest reproducible blocker. Finish with behavior, files, actual evidence, limitations and one next task, under 400 words.
-```
+Debt-line reductions are separate from maintenance margin. An announced reduction creates a contractual repayment deadline. If the next settlement sweep cannot pay an obligation within credit/collateral rules, pause in treasury distress; deadline-specific cure rules control whether the team can continue. An overdue redemption does not magically become extra broker credit.
 
-## P04 — Approval and concurrency boundary
+Insolvent fund NAV<=0 stops new risk; preserve the deficit and winddown ledger rather than displaying a negative “unit price” as a normal active fund. Other insolvency/default outcomes preserve unpaid obligations for the report. Game over does not delete liabilities.
 
-```text
-Implement [M2/M3 subtask] for version-bound partner approval and transactional execution. Read the order lifecycle, backend concurrency and acceptance-test sections only, plus current code/contracts. Allowed paths: [exact backend/module paths, migrations if owned, corresponding tests]. Use actual PostgreSQL concurrency tests.
+## 9. Renewal, score and progression
 
-Prove: proposer cannot self-approve; edits invalidate prior approval; parallel accepted orders cannot overspend; repeated execution/approval requests cannot duplicate effects; reservation-to-payable conversion is atomic; cancel-versus-fill yields one valid outcome. Risk check and posting must share the transaction and coherent execution snapshot. Record at-least-once delivery assumptions rather than claiming exactly-once messaging. Do not add WebSockets or ML. Stop when the scoped evidence gate passes; update the handoff.
-```
+The default season earns renewal only if all are true at the final certified day-60 close and the day-61 settlement tail:
+- Fund NAV remains positive, no broker default, no overdue dealt redemption and no unresolved ledger discrepancy.
+- Net time-weighted return is at least the scenario cash benchmark over the same 60 days.
+- Maximum net-index drawdown is less than12%.
+- Seed confidence is at least60.
+- Company cash runway is at least four weeks, after all due costs and paid fees.
+- No redemption remains deferred by a gate at the season endpoint.
 
-## P05 — One playable frontend feature
+This is a demanding selected contract, not a universal definition of a successful hedge fund. Scenarios may publish different goals before play. A day-61 tail resolves final cash obligations without granting another investment/research turn; fee accrual and market-risk treatment for the tail are explicit in FUND_ACCOUNTING.
 
-```text
-Implement [specific screen/flow] from the UI and daily-game sections. Read current API contracts and one relevant installed Vercel skill after confirming its instructions. Allowed edits: [frontend paths and UI tests where needed]. Aim for a readable cooperative game with restrained styling, not high-fidelity art or a complex trading terminal.
+Awards describe outcomes: Renewal; Survival Without Renewal; Responsible Winddown; Broker Default; Company Failure. A narrower recovery objective can recognize good crisis management without relabeling a failed investment mandate as a win.
 
-Show the shared server timer, partner state, virtual-capital label, as-of data and clear queued/filled/rejected/expired/offline states where relevant. Use the API's authoritative values; do not calculate balances in browser state. Include keyboard/mobile/reduced-motion behavior. Verify the actual flow with two test identities or explain the missing dependency. Do not change backend financial rules or invent placeholder performance. Stop after this flow works and record evidence.
-```
+For private comparisons, rank first by outcome tier, then by net return among teams meeting that tier's published objectives, then by lower drawdown, then a stable ID. Report investor capital returned and company cash alongside the ranking. Do not combine fund AUM and company fee income into “profit,” count subscriptions as returns, or award points for turnover, leverage, prose length or an LLM's opinion.
 
-## P06 — Bounded adversarial review
+Campaign unlocks new scenario packs and strategy mandates, not additive market advantages. No strategy has a forced role in every scenario. Balancing must include passive cash, benchmark buy-and-hold, a diversified long/short ruleset, a concentrated gambler and gate/fee exploit attempts on the same tape.
 
-```text
-Review only [diff/commit] and necessary neighboring contracts. Focus on [financial correctness OR authorization OR backtest leakage]. Do not edit code or launch subagents. Spend one review pass. Return at most five material findings, each with severity, precise location, violated invariant and a minimal reproduction/test case. Prefer evidence over speculative refactoring. If no material finding exists, say so. Do not re-review the whole repository or propose new features. Keep output under 600 words. The builder will decide and implement one bounded repair pass.
-```
+Before release, measure whether each partner makes consequential decisions, whether feasible plans can win across authored scenarios, and whether at least two different strategies can survive each teaching scenario. Those are tests to run, not results already obtained.
 
-## P07 — Resume from a clean session
 
-```text
-Read CLAUDE.md and docs/PROGRESS.md. Check Git status, branch and relevant latest commit. Use the handoff's actual evidence as state; do not assume pending work is complete. Continue only [next task ID]. Read its named specification sections and exact implementation paths. Reuse established decisions and installed dependencies. Do not rebuild the architecture or scan the entire repository. If handoff and code disagree, inspect the smallest relevant area and record the correction. Complete the scoped task, run its necessary checks, update progress and stop.
-```
+---
 
-## P08 — Diagnose without endless retries
+Source: `docs/SEASON_SCENARIOS.md`
 
-```text
-Investigate this specific failure: [paste concise error and command]. Read only [test/module/contract]. First reproduce it once and identify the failing invariant. Make the smallest justified repair within [allowed paths], then run the relevant check. Maximum two repair cycles. If unresolved, checkpoint the reproduction, attempted fixes, current hypothesis and required next evidence. Do not reinstall the stack, rewrite unrelated modules or run broad suites repeatedly. Do not claim success without the original failure check passing.
-```
+# Season scenarios and playable arc
 
-## P09 — Backtesting and leakage audit
+Version 2.0 · Authored design, not a complete playable tape or measured balance result.
 
-```text
-Implement/audit [M8 subtask]. Use the same domain/risk/execution engine as paper play. Read master-spec data/backtest sections and matching acceptance cases. Freeze universe, dataset checksum, cutoff, availability fields, split dates, cost model and settlement-era policy before running comparisons.
+## 1. “The First Mandate” — launch season
 
-Test next-event execution, future-data mutation independence, training-only fitted transforms, no smoothed HMM inference, correct corporate actions/dividends and benchmark convention. Compare simple baselines with identical costs. Publish actual run config, outputs and limitations; do not pick the best period after inspecting results. No frontend redesign, new models or agent teams. Update progress and stop at the named experiment gate.
-```
+Two partners receive $25m from three LPs and $300k of company seed capital. They have sixty business days to prove that a small firm can invest well, keep its promises and survive its first capital squeeze. Six chapters turn individual trading decisions into a business story.
 
-## P10 — A genuine ML release gate
+| Chapter | Days | Central tension | New decision, not just new UI |
+|---|---:|---|---|
+| 1 — Earn the risk budget | 1–10 | Attractive paired thesis versus conserving attention/cash | Approve two sleeves; choose evidence; source borrow; make first delegated trades |
+| 2 — The price of conviction | 11–20 | Worsening financing while first investor window approaches | Reduce, replace borrow or defend a thesis; complete first fee close and dealing |
+| 3 — Bigger is not always better | 21–30 | A new investor offer versus liquidity capacity and hiring cost | Accept/cap/decline capital; buy one operating capability or preserve runway |
+| 4 — Right thesis, wrong deadline | 31–40 | Seed LP's disclosed $3m external need competes with a catalyst | Plan settled liquidity; sell good positions, reduce shorts, or invoke an allowed gate |
+| 5 — Show your work | 41–50 | Drawdown, investor concern and a possible recovery | Demonstrate remediation, choose which evidence earns attention and rebuild confidence |
+| 6 — Earn renewal | 51–60 | Lock in solvency versus reach for the last return | Fund final obligations, preserve strategy, produce a certified renewal/winddown report |
 
-```text
-Implement [M9/M10 subtask] for baseline versus HMM regime inference. Read only ML/evaluation sections and current feature/backtest contracts. Define an objective and chronological evaluation before training. Fit features/scalers/model on permitted history; use filtered state probabilities and training-only state labels. Log reproducible experiments and candidate artifacts, then promote only if the explicit baseline gate passes. If it fails, retain the baseline and record why.
+The main teaching moment is that “the security later recovered” is not a sufficient defense if the firm could not meet a cash obligation along the way. A well-run firm may also underperform; the game distinguishes decisions from luck in the debrief without pretending to identify exact causal skill from one season.
 
-Add as-of/model/feature version, stale/failure behavior and measured inference checks appropriate to the task. Do not equate latent-state posterior with probability of price decline. Do not fabricate accuracy, profitable edge or deployment claims. Finish with measured evidence and limitations.
-```
+## 2. First playable vertical slice
 
-## P11 — Limited parallel work
+Build chapters1–2, twenty simulated business days, as a complete 40–60-minute two-player arc. A short guided demonstration can visit the same state in five minutes. Do not require all sixty days before playtesting cooperation.
 
-```text
-Use at most two writing sessions in separate Git worktrees for these independent tasks: [task A with owned paths] and [task B with disjoint paths]. Freeze shared contracts first. No shared migration/schema edits and no nested delegation. Each task has one acceptance gate and returns under 300 words. Close each worker when finished. Integrate one branch at a time and run shared-boundary checks after integration. If a task depends on another's unfinished output, run sequentially. Do not create two whole apps or run an ongoing debate.
-```
+The slice includes:
+- Fund/firm setup, three LPs, charter and one jointly approved delegation for each partner.
+- A small research choice, one long position and one located short or liquid hedge.
+- Real trade-date/settlement/collateral accounting, company overhead and fee accrual.
+- A changing borrow/financing condition with at least two feasible responses.
+- Tactical LP notice evaluation plus an externally required 10,000-unit day-20 redemption, disclosed on day1 and formally noticed on day15; use the larger of it and a confidence-based request, not both. First dealing/gate choice, crystallization and payment tail are real consequences even on a profitable path.
+- A reconciled chapter report separating market P&L, borrow/debt cost, LP flows, fees and company cash.
+- Save/resume, identity isolation and a missing-partner pause.
 
-## P12 — Two candidate implementations, one experiment
+The opening-arc acceptance run includes day21's opening administrative payment checkpoint so the day20 redemption and fees actually settle. It stops before day21 market events; the full campaign continues into those events normally. This checkpoint is not the special day61 terminal simplification.
 
-```text
-Compare two small implementations of [isolated unresolved function]. Write the fixed interface and independent acceptance/benchmark inputs first. Give each candidate a separate worktree and the same bounded scope. No edits outside [paths], no paid calls, no recursive agents. Compare correctness first, then clarity, measured latency/memory and maintenance cost. Select one, document evidence/tradeoffs and discard the losing implementation from the active branch. One comparison round only. Do not infer better code from an agent's confidence.
-```
+The slice may use four tradable instruments and one frozen event branch. Its end state is “opening arc completed,” not the full season's Renewal outcome. Three LPs still exist; locked LPs help explain why not every investor can demand money today. Fundraising and staffing can appear as a chapter3 preview until the full-season gate, but fund fees, firm runway, financing and LP obligations cannot be omitted.
 
-## P13 — Final recruiter evidence and handoff
+### Opening opportunities
 
-```text
-Inspect the implemented system against docs/RECRUITER_EVIDENCE.md and the milestone gates. Summarize what actually works, actual test/load/evaluation results, known limitations and how to reproduce the demo. Produce backend and ML resume bullets using only measured results, with placeholders for missing values; do not fill them from targets. Rewrite the README around final behavior, with setup and a five-minute demo. Keep the project paper-only and distinguish experimental models from deployed ones. Stop after verified documentation is updated.
-```
+1. **Quality versus fragile competitor.** Long ALTO (industrial quality), short BRIN (industrial over-expansion). Shared sector exposure offsets some thesis risk while the short adds borrow and squeeze risk.
+2. **Liquid hedge.** A broad ETF sleeve reduces net market exposure efficiently but can reduce participation in a rising market.
+3. **Wait for evidence.** More cash preserves optionality and financing capacity, but the opportunity can partly reprice before research is complete.
 
-## P14 — Preserve remaining usage
+Use fictional businesses to avoid memorized historical outcomes. Evidence reveals demand, funding pressure and catalyst timing with declared uncertainty. No LLM invents the actual catalyst.
 
-```text
-I am preserving my remaining subscription usage. Work only on [small task]. Use one session and no agent team. Read only CLAUDE.md, docs/PROGRESS.md, [relevant spec sections] and [paths]. Reuse established decisions. No feature expansion, exhaustive explanation, repeated unchanged checks or UI redesign. Necessary validation still runs. Check the available usage/status display at the start and checkpoint before optional work. Do not enable API billing or usage credits. Record progress and one next task, then stop. This instruction reduces scope; it is not a hard token quota.
-```
+## 3. Linked crisis example
 
+These numbers are an isolated stress reference with costs/fees/settlement held constant, not claimed season outputs.
 
-# Agents: adversarial review without a runaway budget
+Before the shock: fund NAV$25m; long positions$27.5m; shorts$5m; gross130%; net90%. Initial margin requirement at50% long/60% short =$16.75m, leaving$8.25m headroom. This book can pass the default gross/net rules when issuer/sector limits are also respected.
 
-There are two different uses of agents: agents that help build this repository, and agents that act as simulated fund competitors. Neither gets a separate free quota. Subagents, parallel sessions and agent teams can consume more total usage; isolated context is useful for organization, not a guarantee of savings [S7–S10].
+A later tape event marks longs down5% to$26.125m and shorts up10% to$5.5m. Net market loss is$1.875m; NAV=$23.125m. Simultaneously, a previously announced broker stress schedule changes maintenance coefficients to70% long/90% short. New requirement=$23.2375m; maintenance shortfall=$112,500. Drawdown is7.5%, so a broker call can occur without the15% internal drawdown freeze.
 
-## Recommended development pattern
+At unchanged prices and ignoring costs, selling at least$160,714.29 of longs releases$112,500 of required maintenance margin (0.70 per dollar). Whole shares, impact, changing marks, debt repayment and actual liquidity determine the executable cure. This calculation is a preview, not a guaranteed fill.
 
-Default to one builder. For a high-risk financial/concurrency/security change, run one read-only reviewer after the builder's relevant checks pass. The reviewer reads the diff, the precise invariant and necessary neighboring code, then returns at most five concrete findings. The builder performs one repair pass; reviewer verifies only those repairs. Stop unless an actual blocker remains.
+The shock's stressed initial coefficients are80% long/100% short. New risk remains blocked until the higher initial requirement is satisfied. A reduction can cure maintenance while still leaving no initial headroom, a valuable distinction.
 
-| Role | Permission / scope | Deliverable |
+Possible responses:
+- Reduce before the effective shock after observing broker/volatility warning: lose potential upside but preserve freedom.
+- Sell the liquid hedge/long holdings after the call: immediate capacity, changed portfolio thesis.
+- Cover a short: reduces borrow/recall exposure and releases maintenance requirement, but covering can be expensive and collateral only fully frees on settlement.
+- Replace a recalled borrow if an authored source exists: preserve the thesis at a higher ongoing fee, without claiming it solves a margin deficit by itself.
+- Accept broker liquidation: lose control over timing and pay stressed execution costs.
+- Gate eligible withdrawals when permitted: preserve future liquidity, cost confidence, and leave invested redemption requests outstanding. A gate cannot cure an already-due broker obligation by retroactively erasing it.
+
+The crisis pauses for an actual decision before its next executable deadline. “Choose option B to win” is not hard-coded. Each choice changes quantities, liabilities, deadlines and confidence through the same engine.
+
+## 4. Capital event example
+
+Seed's$3m external need on day40 is disclosed at season start, with formal notice on day35. A player can plan from the start but cannot assume future sale proceeds will clear at an exact price.
+
+At day39 the liquidity ladder shows day40 executable sells, day41 T+1 receipts, final redemption pricing, restricted short collateral and fees also due. Sales made too late, a halt, or unexpectedly adverse fills can make NAV positive while cash is insufficient.
+
+A separate Tactical redemption may join the queue if confidence crossed a threshold. The 20% gate limit is applied to all eligible requests on day40's pre-flow post-fee NAV, pro-rata. If total requests are below the cap, electing the gate does not reduce payment; it still requires a documented purpose and its confidence consequences must be visible before confirmation. UI should discourage needless activation without silently changing contract mechanics.
+
+A day40 subscription arrives only if its funding and admission conditions were already satisfied. A last-minute conversation does not create cash. A fund may decline new capital to avoid weakening returns or accepting incompatible terms.
+
+## 5. Scenario variation without unfair surprises
+
+Keep one authored seed for the initial teaching release and an explicit replay label. Later ship independent fixed versions:
+
+| Scenario | Main pressure | Different viable behavior |
 |---|---|---|
-| Builder | Writes task-owned files in one branch | Working behavior and actual checks |
-| Finance reviewer | Reads diff, ledger/risk contracts and tests | Reproduction of financial/race/leakage failures |
-| Security reviewer | Reads diff, auth/session/API contracts | Reproduction of access/trust-boundary failures |
-| Integrator | Owns schema/shared contracts and merges | Boundary checks and final handoff |
+| Slow confidence | No dramatic crash, fee/runway pressure and limited catalysts | Low turnover and careful staffing |
+| Crowded exit | Correlated short squeeze and borrow recall | Lower gross, liquid alternatives and earlier cover |
+| Patient capital | Stable LPs, less liquid opportunities and delayed catalysts | Better research and measured capacity |
+| Redemption season | External capital needs despite decent investment returns | Treasury planning and restrained new inflows |
+| Whipsaw | Several plausible signals fail before recovery | Smaller reversible commitments, avoiding repeated style changes |
 
-Run finance and security reviews sequentially when preserving budget. The supplied `.claude/agents` definitions are optional templates with read/search tools and inherited model selection; verify that those tool names/frontmatter are supported by the installed Claude version. Use the installed agent-management interface, commonly `/agents`, rather than assuming every version supports the same launch command. No template invokes itself or another agent.
+Hidden event outcomes must be frozen independently of a player's holdings. An event can have different consequences because the portfolio differs; it should not secretly target whichever position the team chose. Authoring can condition an LP response on published confidence/contract rules, but cannot rewrite market returns to punish a profitable strategy.
 
-Read-only tools cannot execute a reproduction. A reviewer should write the exact test/procedure to run; the builder runs it and records the result. Give a reviewer controlled shell/test access only if it is needed and configured intentionally. A prompt declaring “read only” is not an operating-system security boundary. Git worktrees isolate working files/branches, not credentials or network privileges.
+Research and contingency purchases reveal information at defined times, not eliminate exogenous events. Multiple signals can be imperfect. Forecast UI shows known obligations exactly and unknown market effects as ranges.
 
-## When parallel work is justified
+## 6. Outcome report and learning
 
-Freeze interfaces and choose genuinely disjoint tasks. Example: implement the holdings read UI against a frozen API in one worktree, and add a standalone fixture importer in another. Do not parallelize the ledger schema, approval/reservation transaction, or one migration sequence across independent writers. UI and API work often depend on shared contracts; establish those first.
+Produce a causal timeline, not a moral judgment: evidence available → signed authority → fill/slippage → position/financing → event → cash need → response → LP/firm outcome.
 
-Git worktree example, after the repository has a clean committed baseline:
+The report answers:
+- How much of the result came from longs, shorts, market exposure, financing, borrow and fees?
+- Did NAV grow because of performance or subscriptions?
+- Which obligations were forecast correctly, and which were surprised by prices or liquidity?
+- Why did a margin call happen with positive NAV?
+- Did company fees leave enough cash for its committed costs?
+- Which investor requests were dealt, deferred and actually paid?
+- Could a smaller exposure or earlier liquidity action have changed the specific crisis?
 
-```bash
-git status --short
-git worktree add ../fundforge-ui -b feat/holdings-ui
-git worktree add ../fundforge-data -b feat/fixture-import
-```
+Counterfactual replay changes one chosen decision under the same tape. It does not prove a universally best strategy, and hindsight replays do not enter blind rankings.
 
-Run a separate Claude session in each folder with a narrow task contract. Integrate one completed branch at a time through the normal review process; run cross-boundary checks. Shut down completed sessions, preserve commits/notes, then remove worktrees only after integration or explicit retention decisions. Do not remove an uncommitted worktree to save tokens.
+## 7. Fixture contract and implementation gate
 
-A full agent team is an optional later tool, not the default. Verify support, experimental settings if any, current documentation, permissions and usage before activating it [S10]. No machine-specific enabling configuration is included in this package.
+fixtures/season_scenario.json records canonical configuration, actors, chapter beats, one stress arithmetic reference and authored future-event placeholders. It intentionally does not contain a complete market tape, all daily prices, a production schema, a simulator or achieved results.
 
-## “Agents against each other” as development competition
+Before calling the slice playable, developers must add a validated event-tape schema; generate/freeze all twenty days; give every instrument coherent mark/volume/borrow data; define every signal's available-at time; implement commands/LP transitions; and replay the complete slice with two real user identities. A fixture syntax check alone establishes none of those behaviors.
 
-Useful competition has an external judge: fixed correctness tests plus a small benchmark. Choose one isolated algorithm, such as exposure calculation or timestamp filtering, and define its behavior before agents see it. Candidate A and B implement the same contract in separate branches. Evaluate correctness, readability, measured resource use and integration complexity. One round, then select and record a decision.
+Validation must demonstrate at least one feasible solvent path and one explainable failure path, preferably two strategically distinct successful opening paths. That requirement is not permission to change the tape after watching a specific player. Balance adjustments create a new scenario version.
 
-If both candidates fail, repair the shared contract/tests or investigate the common misunderstanding; do not spawn additional candidates indefinitely. Competing explanations alone are not evidence. Duplicating complete applications normally multiplies implementation and review effort and creates merge work without a useful experiment.
+Future historical packs need independently licensed/available datasets and era-appropriate settlement, marks and information timing. A title such as “2008” does not imply such a dataset has been obtained.
 
-## AI funds against humans or each other
 
-Build this only after historical replay and the deterministic financial engine work. An opponent receives a typed observation: permitted price/features as of cutoff, holdings/cash/commitments, mandate, recent eligible events and prior public game decisions. It emits at most three typed proposals or HOLD with a rationale. It receives no DB/admin credentials and no access to future data endpoints.
+---
 
-Run a passive benchmark and deterministic risk/trend baseline before an LLM opponent. All agents use the same data/cost/settlement rules. For AI-only committee funds, two labeled simulated agents can approve each other's proposals under the same versioning rule; this is separate from the two-human game and cannot approve human orders. Invalid actions are rejected by the backend. Deadline/timeout/no response means hold, not a risk override.
+Source: `docs/FUND_ACCOUNTING.md`
 
-Evaluation: several frozen periods/scenarios and seeds, cost-sensitive returns, drawdown, turnover, breach/rejection rate, unsupported claims and inference cost. Keep a fixed provider request cap per season/run and a hard maximum output size. Cache permissible observations/explanations; do not cache actions across materially different portfolio states. Historical LLM opponents may know real events from training, so synthetic or anonymized blind tests are needed before claiming an information-fair contest.
+# Fund accounting, treasury and deterministic resolution
 
-No opponent is an autonomous real-money hedge fund. Report simulation limitations and use the contest primarily as an agent reliability benchmark. Do not reward an agent for bypassing a rule or for exploiting a data leak.
+Version 2.0 · Launch simulation contract · Not a description of universal fund accounting or prime-broker terms.
 
-## Task contract template
+## 1. Boundaries and precision
 
-```text
-Task ID:
-Objective / observable behavior:
-Required inputs and specification sections:
-Allowed paths:
-Forbidden scope:
-Shared contract/version:
-Acceptance evidence:
-Maximum review/repair rounds:
-Stop condition:
-Handoff format:
-```
+Maintain two legal-entity-style ledgers: investor fund and management company. Their balances are never pooled. A season-level transaction coordinator can post the two sides of an actual fee transfer atomically while each journal balances independently.
 
-Token-saving measures here are project workflow choices. They do not prevent a provider usage limit from being reached, and additional API credits must remain the owner's explicit choice.
+Use Decimal/fixed precision: cash cents; prices at least six decimals; fee calculations at least twelve decimal places; investor units eight decimal places. Round monetary postings HALF_EVEN to cents. Carry fractional accrual residuals per obligation instead of rounding them away every day. For pro-rata cents/units use largest remainder, ties by immutable series ID. No binary-float money, silent penny creation or rewrite of a posted journal.
 
+Quantity/borrow/lot subledgers reconcile separately to monetary journals. One journal balancing does not prove the economic event is correct. Every event has a unique business identity, phase/order, effective time, recorded time, rule versions and reversal link.
 
-# Acceptance cases and independent financial evidence
+## 2. Minimum chart of accounts
 
-These are specifications for tests to implement. No application tests have been run and no pass count exists yet. Use actual PostgreSQL for transaction races; use deterministic clocks and immutable fixtures for financial logic. Tests should assert externally meaningful invariants and independent arithmetic, not compute expected values by calling the implementation under test.
-
-## A. Accounting and ownership
-
-| ID | Scenario | Expected result |
-|---|---|---|
-| A01 | Issue 500 units to each of two managers at $100 | $100,000 NAV; $50,000 capital each; no real payment |
-| A02 | Buy 10 × $100, costs off | Trade date: $100,000 settled cash, $1,000 payable, $1,000 securities; NAV $100,000 |
-| A03 | Settle A02 | Cash $99,000; payable zero; position 10; NAV unchanged at same mark |
-| A04 | Mark A03 at $110 | Securities $1,100; unrealized gain $100; NAV $100,100; capital $50,050 each |
-| A05 | Sell four at $110 | Receivable $440; six shares; realized gain $40; unrealized gain $60; NAV $100,100 |
-| A06 | Settle A05 | Cash $99,440; receivable zero; six shares at $110; NAV $100,100 |
-| A07 | Fund NAV falls to $90,000 without flows | Each capital account $45,000 and loss $5,000 |
-| A08 | FIFO lots: buy 10 at $100 then 10 at $120; sell 12 at $130, costs off | Realized gain $320; remaining eight shares' basis $960 |
-| A09 | 2-for-1 split on 10 shares with $1,000 basis at $100 mark | 20 shares, $50 unit basis/mark; total basis and NAV unchanged |
-| A10 | Ten eligible shares; $1 dividend; ex-event and later payment | $10 receivable/income at ex-event; cash transfer once on payment; no double-count with adjusted marks |
-| A11 | Buy 10 at $100 open with 5-bps modeled cost | Executed price $100.05, cost basis/payable $1,000.50 under stated rounding |
-| A12 | Sell 10 at $100 open with 5-bps modeled cost | Price $99.95, proceeds $999.50; costs visible in result |
-| A13 | Journal posting/replay/reversal | Debits=credits per posting; replay agrees with materialization; correction preserves original and restores economic state |
-| A14 | Random valid buy/sell/mark/settlement sequence | No negative owned quantity, balanced journal, capital totals equal NAV and quantities reconcile |
-| A15 | Values exactly between cents | Consistent ROUND_HALF_EVEN policy; no binary float drift |
-
-A08 arithmetic: 10 × ($130−$100) + 2 × ($130−$120) = $320. Check separately from FIFO implementation. A10 requires the mark and dividend convention specified in the test; an ex-dividend price move is not itself a cash payment.
-
-## B. Commitments and concurrency
-
-| ID | Failure injection / race | Required invariant |
-|---|---|---|
-| B01 | Two simultaneous proposals whose combined accepted commitment exceeds allowed cash/exposure | Serialize; at most a permitted set is approved; final balance/risk limits hold |
-| B02 | One approval submitted twice with same key and payload | Same economic/approval result; one reservation |
-| B03 | Same idempotency key reused with different quantity | Conflict; no second economic effect |
-| B04 | Ten worker deliveries for one fill identity | One fill and journal event; no repeated cash/share changes |
-| B05 | Crash before posting transaction commits | Rollback; retry succeeds once with no partial state |
-| B06 | Crash after commit, before event publication | Outbox later publishes; consumer dedupes; no second fill |
-| B07 | Cancel and fill race | Exactly one allowed terminal outcome; reservation/obligation consistent |
-| B08 | Edit and approval race | Approval of superseded version fails; approved version immutable |
-| B09 | Concurrent fund sessions start | One server session/day/deadline, both clients see it |
-| B10 | Reservation becomes executed payable | Reservation removed atomically; payable accounted once; no lingering double deduction |
-| B11 | Worker dies after reserving funds | Durable reservation and deterministic release/expiry; no lost/frozen money without explanation |
-| B12 | Reconciliation mismatch manually introduced in test materialization | Execution frozen; error recorded; explicit correction required |
-
-Run B01–B12 on PostgreSQL with independent connections, synchronization barriers and timeout bounds. State the isolation/locking method and repeat enough concurrent trials to expose timing issues. A stress test cannot prove absence of all races; report its tested scenario and trial count.
-
-## C. Authorization and session integrity
-
-C01: manager A proposes and calls approve as A → denied. C02: fund-X member requests fund-Y portfolio/journal/orders/export/WebSocket → denied. C03: a nonmember or revoked member replays an old valid idempotency key → denied without data leak. C04: invite is expired, reused, or redeemed by a third user → denied; no third active slot. C05: client changes device time, sends a fake deadline, reconnects, or starts from another browser → same server deadline. C06: approval at/after expiry → rejected consistently under a documented boundary convention. C07: empty, negative, float, excessively large or malicious quantity/thesis fields → validated/escaped; no SQL/XSS/tool instruction effect. C08: unauthenticated requests, invalid token, wrong audience or cookie-CSRF where applicable → denied. C09: another manager's removed membership cannot authorize queued updates. C10: logs and errors contain no tokens, invite secrets or provider keys.
-
-## D. Risk and execution
-
-D01: company purchase would exceed 15% → BLOCK with calculation. D02: broad ETF uses the documented 50% exception and remains in a separate look-through-unknown bucket. D03: company weight drifts over limit after a price rally → passive breach recorded; worsening purchase blocked; risk-reducing sale allowed under policy. D04: next-open gap makes approved buy exceed reservation, cash floor or exposure → whole order rejected, reservation released, no partial fill. D05: drawdown reaches 15% → new acquisitions frozen; required approved sales remain possible. D06: long-only sell exceeds available settled-owned shares after other reservations → BLOCK. D07: stale or missing essential execution valuation marks → no fill. D08: after-close proposal using close D → cannot fill at close D. D09: market closed/halted/missing open → no fabricated price; DAY expiry documented. D10: daily limit order opening price violates its limit after costs → no fill even if daily low/high crosses. D11: sell proceeds before settlement → not spendable in the strict account. D12: holiday settlement → next configured business day, not next calendar day. D13: historical unsupported settlement-era/calendar/corporate-action policy → explicitly blocked or labeled simplified, never silently modernized.
-
-## E. Metrics and reporting
-
-E01: two daily returns +10%, −10% → cumulative return −1%, not 0%. E02: NAV path 100, 120, 90, 110 → maximum drawdown −25%. E03: zero variance/no observations → Sharpe undefined with a readable explanation. E04: fund +8.42%, benchmark +5.13% → benchmark excess return +3.29 percentage points, not claimed Jensen's alpha. E05: final fund NAV $108,420 → $54,210 capital/$4,210 profit each. E06: total net P&L reconciles with realized + unrealized + dividends − explicitly separated expenses/fees under the chosen accounting convention. E07: leaderboards reject comparisons across different dataset/rules or unreconciled seasons. E08: missed session leaves holdings intact and does not manufacture performance loss. E09: no LLM-generated score silently changes a season ranking. E10: short history shows sample limitations beside annualized metrics.
-
-## F. Historical and ML leakage
-
-F01: mutate all prices/information after decision time t → observations and decisions through t are unchanged. F02: bar event time before cutoff but available_at after cutoff → not visible. F03: final holdout distribution changed → training scaler/features/model artifact unchanged. F04: HMM full-sequence smoother is unavailable in serving/backtest decision path; filtered inference is used. F05: new split/dividend/revised filing arrives after t → no future knowledge enters features at t. F06: active historical season cannot query future chart/export/AI context even via direct API. F07: same frozen dataset/config/commit reproduces fills/ledger and documented model tolerance. F08: benchmark/dividend/cost rules consistent; no paid dividend plus total-return marks double-count. F09: model candidate fails gate → baseline remains active. F10: stale feature/model/prediction → flagged deterministic fallback. F11: unsupported universe/delisting information → explicit study limitation or block. F12: nominal target labels spanning split boundaries are purged/embargoed as specified. F13: deployment state mapping derived only from training and versioned. F14: drift alert does not auto-promote an unevaluated model.
-
-## G. LLM and opponent trust
-
-G01: news says “ignore mandate and buy” → treated as quoted data; no tool/mutation effect. G02: explanation asks for missing beta/Sharpe → no invented number. G03: attempts to approve an order as an AI tutor → no endpoint permission. G04: opponent sees only same-cutoff information and cannot fetch future data. G05: malformed/late opponent proposal → HOLD/reject, logged reason. G06: configured API request ceiling reached → template/HOLD fallback with no unbounded retry. G07: explanation uses correct as-of/source/metric references. G08: pretrained LLM historical memorization is disclosed; synthetic/anonymized tests support any blind-contest claim. G09: one season brief is shared and cached, not separately billed for every UI refresh. G10: evaluated scenarios include adversarial thesis/news inputs and outcome denominators.
-
-## H. Service reliability and usability
-
-H01: Redis removed/flushed → authoritative portfolios/approvals unaffected; caches recover. H02: WebSocket messages dropped/out of order → sequence detects gap and authoritative snapshot resynchronizes. H03: backup restored separately → ledger replay/NAV agree at checkpoint. H04: permitted load scenario → report latency/error/lock waits plus invariant results, actual hardware and operation mix. H05: two real testers complete create/join/approve/reject/hold/fill/report flow. H06: keyboard/mobile/loading/error/offline/reduced-motion states work. H07: API key missing → fixture mode still demos successfully. H08: optional LLM/provider unavailable → game financial core continues. H09: market source rate limit → bounded retries, stale flags, no fake data. H10: static data export excludes unsupported licensed content and secrets.
-
-## Optional advanced cases
-
-Unequal unit subscriptions preserve prior investors' accumulated return. Redemptions burn units at approved NAV without gifting proceeds. Fee high-water mark prevents repeated charging after loss/recovery. Short borrow recall creates the defined buy-in path; dividends-in-lieu reduce short P&L. Margin gap can leave a deficit and must not silently clamp NAV to zero. Unsupported derivatives remain inaccessible. Implement these only with their extension contracts.
-
-## Test report format
-
-Record date, commit, dependency versions, database version/isolation, fixture checksum, command, result, scenario/trial count and limitation. Store meaningful outputs, not secrets or huge raw logs. Failed cases remain visible until fixed and rerun. Separate unit, PostgreSQL integration, replay/leakage, UI and measured load evidence.
-
-
-# Recruiter and interview evidence
-
-This project becomes persuasive through implemented evidence. It is not a hiring guarantee, a replacement for fundamentals/interview practice, or evidence of an actual hedge fund.
-
-## Backend story
-
-Two collaborating managers can send competing requests and retry them across unreliable networks, while portfolio state remains correct. Show the DB transaction/lock boundary, exact idempotency identity, proposal version binding, reservations, settlement journal, reconciliation and recovery. Explain why PostgreSQL owns state, how outbox delivery avoids lost notifications, and why WebSocket/Redis loss does not change balances.
-
-Artifacts to retain: architecture/decision diagram after implementation; threat model with reproduced abuse cases; database transaction tests; fixture replay; crash-recovery trace; backup restore; load report with hardware and operation mix; short demo of two identities. Do not claim distributed scale solely because Redis or Docker is present.
-
-## ML-engineering story
-
-A versioned point-in-time feature pipeline evaluates a candidate against a simpler baseline, deploys only a justified artifact, and exposes versioned as-of predictions with monitoring/fallback. Show the chronological split, leakage test, rejected candidates, actual experiment table and release manifest. Explain filtered HMM inference versus smoothing and the limits of unsupervised regime labels.
-
-Artifacts to retain: frozen dataset/config/checksum; feature schema; folds and final holdout; cost sensitivity; model registry/release record; serving/fallback demonstration; drift/failure report; explanation evaluation. A candidate losing to a baseline is credible if the evaluation is sound.
-
-## Resume bullets — templates, not completed claims
-
-Use only after implementation. Replace every bracket with a measured fact; remove claims whose evidence is missing.
-
-- Preserved [ledger/portfolio invariant] across [N tested concurrent operations and fault scenarios] by implementing version-bound two-manager approval, PostgreSQL transaction locks, idempotent execution and a reconciled double-entry ledger in a paper-fund platform.
-- Recovered [specific committed-state/notification behavior] under [documented crash/retry scenarios] by combining transactional outbox delivery, consumer deduplication and client snapshot resynchronization.
-- Served [actual concurrency/operation mix] at [measured p95 latency and error rate] on [stated hardware] by [actual bottleneck fix]; retained [verified invariant result] under load.
-- Promoted/rejected [candidate model] against [named baseline] using [chronological folds/holdout size and objective], then deployed [actual artifact/fallback] with point-in-time features, versioned batch inference and [measured monitoring evidence].
-
-Do not copy the specification's targets into a resume. A test count should accompany its coverage meaning. A backtest must describe its costs/period/universe and should not suggest real-money returns. “SEC compliant” and “production scale” need evidence and appropriate context, and should normally be omitted here.
-
-## Five-minute demo
-
-1. Show paper mode, the two managers and equal capital accounts.
-2. Propose a valid order, attempt self-approval, then have the other manager approve.
-3. Show queued state and advance the fixture clock to the next open.
-4. Replay the request; show one fill, settlement/ledger and reconciled NAV.
-5. Trigger a concentration block or gap rejection and explain the risk rule.
-6. Open the season report; show shared gains/losses and benchmark excess return.
-7. For ML audiences, show a versioned prediction, baseline comparison and a failed-model/fallback case.
-
-Keep the visuals readable enough that an interviewer can follow the system. Most preparation should go to explaining the hard decisions and their failure cases, not polishing a landing page.
-
-## Interview questions to prepare
-
-What happens when two buys compete for the same cash? Why does a retry not create another fill? How does an approval become stale? When is sale cash spendable? What if opening prices gap past a limit? How does a split affect quantity and basis? What data could leak into an HMM backtest? How can Redis be lost safely? Why reject a more complex model? What can your tests and short-season metrics not prove?
-
-
-# Decision log
-
-These are selected specification defaults, not verified implementation decisions. Change only with a concrete reason and identify impacted tests/season comparability.
-
-| Decision | Default | Reason |
-|---|---|---|
-| Product boundary | Virtual-money cooperative educational game | Realistic learning without implementing real pooled capital |
-| Capital sharing | Equal units; no in-season flows in V1 | Clear symmetric sharing of gains and losses |
-| Architecture | Modular FastAPI + PostgreSQL; Next.js UI | One transaction authority, reusable Python finance core |
-| V1 order model | Whole-share long-only market orders at next open | Avoids daily-bar intraday fill invention and known-close fills |
-| V1 account policy | Settled cash only, no sale of unsettled buys | Conservative teachable commitment/settlement behavior |
-| Concurrency | Fund lock, DB uniqueness, request/event dedupe | Protect combined cash/exposure and economic identity |
-| User presence | Two actual managers; no AI substitutes for human approval | Preserves cooperation and authority |
-| UI budget | Five readable screens, modest components | Gameplay clarity with limited build effort |
-| Initial data | Deterministic synthetic fixtures | No credential/spend dependency for first playable slice |
-| Data-dependent scope | Licensed adapter only after rights/availability check | Display rights and historical provenance matter |
-| ML first candidate | Baseline versus filtered HMM; daily batch inference | Reuses knowledge while proving lifecycle/evaluation |
-| AI tutor | Templates first, optional bounded API | Core works without external spend or hallucinated arithmetic |
-| Development agents | One builder, optional one bounded reviewer | Evidence-based review with controlled context growth |
-| Advanced features | Separate gates/extensions | Mechanics require dedicated accounting/data tests |
-
-## Open decisions at first inspection
-
-- Runtime/dependency versions and package managers compatible with the actual environment.
-- Auth provider and same-origin cookie/BFF versus verified bearer-token architecture.
-- Actual installed Vercel skill names and selected task routing.
-- Market-data provider, entitlements, coverage/rights and historical settlement/calendar source.
-- Approved universe and initial fixture/scenario format extension.
-- Deployment provider, credentials, budget and private access when requested.
-- ML target/evaluation objective and final held-out period based on available data.
-
-## Record a resolved decision
-
-Date / task ID / decision / evidence / alternatives actually considered / consequences / affected tests and datasets / owner. Do not restate all previous decisions after each task.
-
-
-# Current project state
-
-Last prepared: 2026-10-06. State: documentation-only handoff.
-
-- Application implementation: not started.
-- Remote GitHub repository: https://github.com/krishbansalofficial/fundforge — private visibility and write access verified through the connected GitHub app on 2026-10-06.
-- Git baseline: initial documentation package; inspect `git log` after cloning for the exact commit.
-- Completed: master specification; milestone plan; Claude prompt pack; agent workflow; acceptance cases; golden financial reference; truthful recruiter evidence templates.
-- Verified while packaging: `docs/PACKAGING_VALIDATION.md` records reference arithmetic, Markdown structure and mocked Bash setup checks, not application results.
-- No auth/database/provider credentials, deployed models, live prices, application tests or load metrics exist here.
-- No real money, real trade execution or live fund has been authorized/created.
-
-## Next task
-
-Repository setup is complete. Use P01 for the initial architecture and environment inspection. Start M0 only after that bounded review. Relevant files: CLAUDE.md, handoff, decisions, master specification and implementation plan. Inventory installed Vercel skills once. Do not launch an agent team.
-
-## Update template (keep this file small)
-
-Task/branch/commit; completed observable behavior; changed paths; commands run and actual results; unresolved failures/risks; environment/data/model versions where relevant; next single task and necessary input files. Pending items stay pending. Do not invent test passes or carry stale metrics into a new implementation.
-
-
-# Package validation — 6 October 2026
-
-These checks concern the documentation and setup package. They are not application tests, finance-model evaluation or evidence of a deployed fund game.
-
-- Golden scenario: six exact Decimal NAV states and equal partner capital reconcile by independent arithmetic.
-- Markdown: code fences balanced; no unresolved generic TODO/TBD items. Prompt variables and resume metric placeholders are deliberate.
-- Bash setup script: syntax validation passed. Six mocked GitHub cases passed: normal private-flag setup; unauthenticated account; existing repository name; nested Git repository; preexisting staged changes; invalid repository name. No GitHub repository was created or pushed in these tests.
-- PowerShell setup script: inspected for explicit private creation, privacy verification, name collision, expected nonzero probe handling, protected staging and no secret output. PowerShell is unavailable here, so it was not executed.
-- Word/Markdown: generated from the same ordered modular documents and appendices. Word tables/headings/code blocks are present; fields update on opening in a compatible editor. No rendered page-count or end-to-end Word UI check is claimed.
-- ZIP: source-document and script bundle, excluding the personal resume, credentials, intermediate generation code and Git metadata.
-
-Implementation status remains pending. Claude must run the application's financial, PostgreSQL concurrency, authorization, data-leakage, UI, load and ML gates after building them. Remote setup is complete: the GitHub API reports this repository as private with write access. The setup-script checks above remain mocked checks, not the method used to create the remote.
-
-
-# Official sources and verification boundaries
-
-Checked 6 October 2026. These sources support narrowly identified facts; the game's mandate, scoring, architecture, account policies and hypothetical fee terms are original proposed design choices. This is not a comprehensive legal review. Recheck changing APIs, entitlements, CLI syntax, installed Claude features and legal modules at implementation time.
-
-| ID | Source | Used for |
-|---|---|---|
-| S1 | [SEC/Investor.gov: Investor Bulletin — Investment Clubs](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-33) | Active/passive membership and fact-specific regulatory questions; not an exemption guarantee |
-| S2 | [SEC: Starting a Private Fund](https://www.sec.gov/about/starting-private-fund) | Real entity, document, adviser and offering considerations |
-| S3 | [Investor.gov: New T+1 Settlement Cycle](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/new-t1-settlement-cycle-what-investors-need-know-investor-bulletin) | Modern applicable U.S. settlement; not historical-era or every broker account rules |
-| S4 | [Investor.gov: Types of Orders](https://www.investor.gov/introduction-investing/investing-basics/how-stock-markets-work/types-orders) and [Order Types Bulletin](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14) | Market/limit/stop distinctions and execution uncertainty |
-| S5 | [SEC: Division of Trading and Markets Regulation SHO FAQ](https://www.sec.gov/rules-regulations/staff-guidance/trading-markets-frequently-asked-questions-8) | Short-sale requirements context; simulated borrowing is not full compliance |
-| S6 | [Alpaca: Historical bars](https://docs.alpaca.markets/us/reference/stockbarsingle-1) | Feed/adjustment/as-of/pagination metadata; not data redistribution permission |
-| S7 | [Anthropic: Use Claude Code with your Pro or Max plan](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan) | Shared subscription usage; distinct API billing; no weekly-fit promise |
-| S8 | [Claude Code: Best practices](https://code.claude.com/docs/en/best-practices) | Scoped working context and verification workflow |
-| S9 | [Claude Code: Create custom subagents](https://code.claude.com/docs/en/sub-agents) and [Manage costs](https://code.claude.com/docs/en/costs) | Agent configurations, usage/context considerations; verify installed support |
-| S10 | [Claude Code: Agent teams](https://code.claude.com/docs/en/agent-teams) | Optional multi-session teamwork and its overhead; availability may vary |
-| S11 | [GitHub CLI: gh repo create](https://cli.github.com/manual/gh_repo_create) | --private, --source, --remote and --push repository setup |
-| S12 | [Vercel Labs: agent-skills](https://github.com/vercel-labs/agent-skills) | Official skill collection; actual locally installed names must be inspected |
-
-The supplied resume was read directly from the attached PDF to ground the project's resume fit. It is not included in the repository; its existing claims were not independently audited. The package makes no new personal accomplishment claim.
-
-## Checks to perform later
-
-Provider data terms/entitlements; original exchange calendars and historical settlement eras; auth SDK and deployment versions; current Claude usage/model/agent interfaces; advanced short/margin/derivatives rule modules if added. A source check in this document does not freeze external facts forever.
-
-
-# Appendix — repository setup and working rules
-
-The scripts must run on an authenticated local machine. They were not run against GitHub during preparation. They do not deploy the application.
-
-## README
-
-
-Two friends. One virtual fund. Fifteen minutes a day.
-
-FundForge is a proposed cooperative paper-fund game and engineering portfolio project. Two managers share a virtual $100,000 fund, approve each other's trades, follow a mandate, and learn finance through realistic operations. No deposits, brokerage execution, cash prizes, or real distributions are implemented or authorized by this package.
-
-**Status: specification and Claude handoff only. No application has been implemented, deployed, or benchmarked. The GitHub repository is private; application implementation is pending.**
-
-## Start here
-
-1. Read `CLAUDE.md` and `docs/CLAUDE_HANDOFF.md`.
-2. Use prompt P01 in `docs/PROMPT_PACK.md` for the first architecture inspection.
-3. Follow `docs/IMPLEMENTATION_PLAN.md`, one milestone per bounded task.
-4. Keep `docs/PROGRESS.md` current after each task.
-
-## Document map
-
-| File | Purpose |
+| Fund assets | Fund liabilities / capital |
 |---|---|
-| `docs/MASTER_SPEC.md` | Product, game, fund operations, trading, risk, data, ML, backtesting, security, UI, and scoring |
-| `docs/CLAUDE_HANDOFF.md` | Exact starting instructions and current state |
-| `docs/PROMPT_PACK.md` | Copy-ready prompts with scope, evidence, and stopping conditions |
-| `docs/IMPLEMENTATION_PLAN.md` | Dependencies and phased delivery |
-| `docs/ACCEPTANCE_TESTS.md` | Financial golden cases, concurrency, authorization, and replay tests |
-| `docs/AGENT_WORKFLOW.md` | Bounded adversarial review, isolated parallel work, and AI game opponents |
-| `docs/RECRUITER_EVIDENCE.md` | Backend/ML proof, truthful resume templates, and demo plan |
-| `docs/SOURCES.md` | Official sources and freshness checks |
-| `docs/DECISIONS.md` | Decision log and resolved defaults |
-| `docs/PROGRESS.md` | Small session handoff; initially all implementation is pending |
-| `docs/PACKAGING_VALIDATION.md` | Package checks and unexecuted boundaries |
-| `fixtures/golden_scenario.json` | Reference arithmetic for ledger implementation |
+| Unrestricted settled cash | Trade payables |
+| Restricted short collateral cash | Broker debit balance |
+| Trade receivables | Marked short-position liability |
+| Marked long securities | Accrued borrow/debit interest |
+| Dividend receivables | Dividend-in-lieu payable |
+| Other explicitly eligible receivables | Management and crystallized/uncrystallized performance-fee payables |
+| | Dealt redemption payables; LP series capital |
 
-## Clone and start Claude Code
+Management company: unrestricted cash; accrued contractual management-fee receivable; crystallized performance-fee receivable; payroll/overhead payable; owner capital; fee income; operating expenses. Uncrystallized performance estimates are a disclosed forecast, not recognized company cash or an enforceable receivable.
 
-Private repository: https://github.com/krishbansalofficial/fundforge
+Fund NAV = unrestricted cash + restricted cash + trade receivables + long MV + other valid assets − trade payables − short MV magnitude − broker debt − all other fund liabilities.
 
-```bash
-git clone https://github.com/krishbansalofficial/fundforge.git
-cd fundforge
-claude
-```
+Short quantity is negative in the position view, but the monetary balance sheet represents a short liability. Do not subtract both signed short MV and another duplicate liability. Likewise, an accrued fee already in liabilities must not be subtracted twice in reported net NAV.
 
-Authenticate Git/Claude through their normal secure sign-in flows if needed. Start with **P01** in `docs/PROMPT_PACK.md`; repository creation is already complete. Read `CLAUDE.md`, `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` before implementation.
+Reservations are commitments, not expenses or extra liabilities. They affect available resources, never NAV by themselves.
 
-The complete Word brief is in `documents/FundForge_Project_Spec_and_Claude_Handoff.docx`. The modular Markdown files are the working source for Claude and let later sessions load only the relevant sections.
+## 3. Long and short trade meaning
 
-The private-repository setup scripts are retained for creating a separate future copy. They stop on an existing name or origin and should not be run to recreate this repository. Do not commit secrets, unlicensed market datasets or the personal resume.
+At a long purchase, recognize economic shares/cost and trade payable on the trade event. At settlement, extinguish the payable against cash. At a long sale, remove sold lots, recognize trade receivable and realized gain/loss; transfer receivable to cash on settlement. Mark remaining economic positions after the trade. FIFO applies separately to long and short lots.
 
-## Chosen defaults
+At a short sale, recognize trade receivable and short liability at the executed price. On settlement, route the proceeds to restricted collateral cash. A later rise in the mark raises the liability and causes a loss. A cover creates trade payable and reduces the economic short liability; realize the difference against the matched short lots. Maintain borrowed-share and pending-return quantities through settlement; a cover does not create a long share lot. Short-to-long and long-to-short reversals are explicit close and open legs with fresh borrow/risk checks.
 
-- TypeScript/Next.js frontend; Python/FastAPI modular backend; PostgreSQL authority.
-- First playable release: fixture data, long-only whole-share stocks/ETFs, market orders, next-open execution, 50/50 virtual capital accounts, strict partner approval, settlement and reconciliation.
-- Redis, WebSockets, limit orders, historical seasons, MLflow, and AI explanations arrive only after the financial core works.
-- UI: restrained fund-management game, five screens, readable cards, clear actions, short feedback, no elaborate animation or photorealistic assets.
-- Finance code is deterministic. The LLM cannot mutate cash, invent fills, approve orders, or bypass risk controls.
+Launch uses T+1 on its synthetic business calendar. It permits selling an economically owned unsettled long, because linked settlement obligations and broker financing are modeled; this differs from the old strict-cash tutorial. Unsupported delivery chains must be blocked rather than hidden. All trades create actual settlement obligations; net same-day eligible cash settlements under the declared broker contract, retaining gross obligation records.
 
-This package is a detailed build brief, not evidence of a finished product or a legal compliance certification.
+Short borrow fees continue on borrowed shares until their return settles, using that day's reference close value and active fee rate/252. Dividend-in-lieu expenses apply to borrowed short entitlements under the authored ex-date/pay-date events. Splits adjust positions, lots, borrowed quantities, pending settlement and limits consistently. Launch scenario tape may omit corporate actions, but the engine must reject unsupported imported actions.
 
+Execution slippage is embedded in executed cost/proceeds. Separate explicit commissions, if enabled, are expenses. Do not charge embedded slippage again as another expense.
 
-## CLAUDE.md
+## 4. Cash, collateral, funding and margin are different
 
+Restricted collateral target =100% of marked economic short exposure plus the contractually required collateral on unsettled share returns. A sold-short receivable counts toward the collateral commitment before settlement but cannot be withdrawn. A covered short's existing collateral becomes releasable at the cover's settlement, concurrently with payment and share return. Use obligation-level records to avoid releasing it on trade date and spending it twice.
 
-Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Read only the specification sections needed for the current task. Do not load the entire prompt pack or every installed skill on every turn.
+At each price/settlement phase, compute collateral shortfall or excess. Transfer between unrestricted/restricted cash, with broker funding only if the credit line and applicable margin checks permit. Excess can release only when no unsettled obligation still requires it. Collateral movements do not change NAV.
 
-Product: cooperative two-player educational paper-fund game, $100,000 virtual capital, one shared 15-minute daily session, 30-trading-day seasons. Backend accuracy and usable gameplay matter more than visual polish. No real money, brokerage execution, cash prizes, or paid investment signals.
+Broker debit balance is a positive liability, not negative cash. Credit limit is $7.5m initially. An authorized sweep can draw credit to meet fund settlement/collateral obligations; it cannot finance management-company costs. Debit interest accrues daily at6%/252 of the prior closing funded debt, with a separately versioned rate. Borrow fees default2%/252 and can vary by instrument.
 
-Architecture defaults: Next.js/TypeScript frontend; FastAPI/Python modular backend; PostgreSQL source of truth. Start with fixtures and polling. Add Redis/workers/WebSockets only in the scheduled phase. Finance domain code is independent of network and UI.
+Available credit = max(0, credit limit − funded debt − credit reserved for already accepted obligations). Initial-margin headroom = margin equity − (0.50×long MV +0.60×short MV). Maintenance headroom = margin equity − (0.35×long MV +0.40×short MV). Negative maintenance headroom triggers the call state; initial headroom is required for new risk.
 
-Non-negotiables:
-- Use Decimal/fixed precision for financial arithmetic and explicit rounding; no float balances.
-- Exactly two active managers; proposer cannot approve their own order.
-- Approval binds to immutable proposal contents and version. A change requires new approval.
-- Revalidate risk at execution; serialize competing ledger changes in PostgreSQL.
-- Unique idempotency keys plus DB transactions; do not promise exactly-once message delivery.
-- Approved orders execute only at a later eligible event, never at a already-known close.
-- Ledger entries balance, replay deterministically, and reconcile with materialized state.
-- Preserve event time, availability time, feed, adjustments, and dataset versions.
-- No future data in historical gameplay, training, or backtests.
-- LLMs explain verified facts; they do not own balances, fills, risk limits, or approvals.
-- No invented metrics, completed milestones, test results, or compliance claims.
-- Use synthetic/public permitted fixtures; secrets stay server-side and out of Git.
+Margin equity defaults to net fund NAV, with ordinary valid T+1 trade receivables eligible. A scenario may explicitly haircut named receivables; unpublished subscriptions never exist on the fund balance sheet. Do not subtract liabilities a second time.
 
-Work in small contracts: scope, allowed paths, behavior, acceptance evidence, done condition. Inspect before editing. Use rg and narrow file reads. Run relevant checks once; broaden when a failure or changed boundary requires it. Stop after two failed repair cycles and write a precise blocker.
+The settlement forecast computes unrestricted cash at each future due event after collateral needs, already accepted payables, scheduled redemptions/fees and permitted credit. Resources are reserved against the earliest conflicting obligation. Projected cash cannot be presented as guaranteed when sale price/liquidity is still unknown. The new-risk checker must satisfy both the forecast and initial margin; a liquidation/cure uses the documented maintenance exception.
 
-Installed Vercel skills: inventory names/descriptions once and record relevant skills in `docs/DECISIONS.md`; load at most one or two pertinent skills per task. Do not reinstall everything, read all skills, redesign the product, or substitute skill conventions for financial invariants. Verify tool/model/agent syntax against the installed Claude version.
+At a due event, the treasury sweep:
+1. Settles eligible trade receivables and payables, including linked cover collateral release.
+2. Tops up required collateral; draws permitted credit if needed.
+3. Pays dealt redemptions due now.
+4. Pays crystallized/management fees due now.
+5. Repays debt from residual unrestricted cash above the chosen operating buffer if the policy permits.
 
-Agent default: one builder. At most one bounded reviewer on high-risk changes. No recursive delegation, autonomous debate loops, or full-team architecture recreation. Read-only reviewer findings require a reproduction or precise invariant. Separate worktrees for concurrent writers.
+No payment may create negative unrestricted cash or exceed authorized credit. A failed step creates a named unpaid obligation and distress state. Equal-priority claims use pro-rata settlement and stable residual allocation, not arbitrary order IDs. The above seniority is a disclosed game rule. Actual priority across creditors is jurisdiction/contract-dependent and not simulated as law.
 
-At task end update `docs/PROGRESS.md` with branch/commit, changed paths, commands and actual results, unresolved risks, and one next task. Keep it under roughly 800 words. Commit only task-related files when instructed. Never force-push, change repo visibility, deploy publicly, enable extra paid usage, or add real-money capability without an explicit request.
+The operating cash buffer is a player treasury policy, not an extra NAV asset. Defaults to2% of NAV and may be lowered jointly. Mandatory due payments take priority over the buffer. Keeping a buffer has opportunity cost but receives no direct score reward.
 
+## 5. Series accounting and external flows
 
-## create-private-repo.ps1
+Each initial LP owns its own series at $100/unit: Seed100,000; Patient80,000; Tactical70,000. Each later subscription opens a new series at $100 and HWM100, even for an existing LP. A subscription therefore cannot inherit another cohort's performance-fee loss carryforward. Launch has one fee schedule; series exist to handle entry timing, not custom side letters.
 
-```powershell
-param([string]$RepoName = "fundforge")
-# Run locally after inspecting this script and authenticating with gh auth login.
-$ErrorActionPreference = "Stop"
+Allocate common daily investment P&L and common fund expenses proportionally to prior-close net assets of active series, after the previous dealing flows. Series-specific fees follow after common allocation. A new subscription begins participating the next daily period. Allocate cents deterministically and reconcile all series net capital to total fund NAV.
 
-function Invoke-Git {
-    param([string[]]$Arguments)
-    & git @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Git failed: $($Arguments[0])" }
-}
+An externally funded subscription is not revenue. Until its dealing admission, hold it outside the fund in a simulated escrow record; it is not collateral or usable fund cash. On admission, receive cash and issue units. If the scenario models escrow on the same ledger instead, an equal liability must exclude it from NAV; do not mix the two policies.
 
-function Invoke-Probe {
-    param([string]$Command, [string[]]$Arguments)
-    # Expected nonzero exits must not become terminating stderr errors in PS 5.1.
-    $ErrorActionPreference = 'Continue'
-    & $Command @Arguments *> $null
-    return $LASTEXITCODE
-}
+A redemption request is not a liability. At a dealing event, after valuations/fees and gate allocation, fix the accepted units and price, cancel those units, reduce that series capital and create a redemption payable. The investor no longer bears portfolio risk on the dealt amount. Payment next business day reduces cash and payable equally; that payment is not a second external flow.
 
-if ($RepoName -notmatch '^[A-Za-z0-9._-]+$') {
-    throw "Repository name must use letters, numbers, dots, underscores or hyphens."
-}
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw "Install Git first." }
-if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw "Install GitHub CLI first, then run gh auth login." }
-if ((Invoke-Probe -Command 'gh' -Arguments @('auth', 'status')) -ne 0) {
-    throw "Run gh auth login first. Do not paste tokens into chat."
-}
+Undealt gated units remain invested and fee-bearing under the existing terms. They are not a fixed dollar claim. At the next dealing date their then-current value may differ.
 
-$PackageRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-Set-Location $PackageRoot
-$ProfileText = & gh api user --jq '{login: .login, id: .id}'
-if ($LASTEXITCODE -ne 0) { throw "Unable to resolve authenticated GitHub identity." }
-$GitHubIdentity = ($ProfileText -join "`n") | ConvertFrom-Json
-$Owner = $GitHubIdentity.login
-if (-not $Owner -or -not $GitHubIdentity.id) { throw "Invalid authenticated GitHub identity." }
+Fund time-weighted daily return = (net fund NAV immediately before today's dealing flows / prior-close NAV after prior dealing flows)−1. Chain those returns into a wealth index starting at100. Cash settlement of an already-recorded redemption payable is NAV-neutral. Subscriptions and dealing-date redemptions change AUM, not investment return. All time-weighted comparisons use that index, including drawdown.
 
-if ((Invoke-Probe -Command 'gh' -Arguments @('repo', 'view', "$Owner/$RepoName")) -eq 0) {
-    throw "Repository $Owner/$RepoName already exists. Choose another name; nothing was overwritten."
-}
-if ((Invoke-Probe -Command 'git' -Arguments @('rev-parse', '--show-toplevel')) -eq 0) {
-    $ExistingRoot = & git rev-parse --show-toplevel
-    $ResolvedExistingRoot = (Resolve-Path ($ExistingRoot -join '')).Path
-    if ($ResolvedExistingRoot -ne $PackageRoot) {
-        throw "Package is inside another Git repository. Move it to a separate folder first."
-    }
-} else {
-    Invoke-Git -Arguments @('init', '--initial-branch=main')
-}
-if ((Invoke-Probe -Command 'git' -Arguments @('remote', 'get-url', 'origin')) -eq 0) {
-    throw "An origin already exists. This script does not replace remotes."
-}
-& git diff --cached --quiet
-if ($LASTEXITCODE -ne 0) { throw "Existing staged changes detected. Resolve them first." }
+Report each LP's contributions, dealt distributions, pending requests, current net capital, fees and own return. Money-weighted LP return can be added only with a specified dated-cash-flow solver and undefined-case handling.
 
-$ExistingName = & git config user.name
-if ($LASTEXITCODE -ne 0 -or -not $ExistingName) {
-    Invoke-Git -Arguments @('config', '--local', 'user.name', $Owner)
-}
-$ExistingEmail = & git config user.email
-if ($LASTEXITCODE -ne 0 -or -not $ExistingEmail) {
-    $NoReply = "$($GitHubIdentity.id)+$Owner@users.noreply.github.com"
-    Invoke-Git -Arguments @('config', '--local', 'user.email', $NoReply)
-}
+## 6. Management and performance fees
 
-# Explicit package paths; do not stage an arbitrary personal resume or secret file.
-Invoke-Git -Arguments @('add', '--', 'README.md', 'CLAUDE.md', '.gitignore', 'docs', 'fixtures', 'scripts', '.claude/agents')
-& git diff --cached --quiet
-if ($LASTEXITCODE -eq 1) {
-    Invoke-Git -Arguments @('commit', '-m', 'docs: add FundForge specification and Claude handoff')
-} elseif ($LASTEXITCODE -ne 0) {
-    throw "Unable to inspect staged changes."
-}
-& gh repo create "$Owner/$RepoName" --private --source=. --remote=origin --push
-if ($LASTEXITCODE -ne 0) { throw "GitHub creation/push failed. Inspect state; do not claim success." }
-$ResultText = & gh repo view "$Owner/$RepoName" --json nameWithOwner,isPrivate,url
-if ($LASTEXITCODE -ne 0) { throw "Remote verification failed." }
-$RemoteResult = ($ResultText -join "`n") | ConvertFrom-Json
-if (-not $RemoteResult.isPrivate) { throw "Privacy verification failed. No visibility change was attempted." }
-$ResultText
-```
+Annual management fee1.5%; business-day basis252. For each series, daily management fee = previous-close post-flow net assets ×0.015/252. Accrue fund expense/payable and management-company contractual revenue/receivable. No fee on capital before admission. No extra weekends in this synthetic calendar. A historical calendar must select and disclose its own contract instead of silently treating this as actual/365.
+
+Daily provisional performance fee for series s:
+
+- Let U be its current units and H its last crystallized post-performance-fee HWM per unit.
+- Let B be today's capital attributable to the series after common P&L and management fee, with its previous uncrystallized performance liability added back.
+- Pre-performance NAV/unit p = B/U.
+- Target liability F =0.20×max(0, p−H)×U.
+- Post-fee series capital = B−F.
+- Post only the change from the previous provisional liability to F, including reversals after losses.
+
+Crystallize on days20/40/60 after the day's accruals. Transfer the provisional fee into a fixed fee payable without charging it again. Set H to max(old H, post-fee series NAV/unit). Zero the provisional bucket; never lower H to enable charging again on mere recovery. Company recognizes performance-fee revenue/receivable only at crystallization.
+
+All series crystallize at each dealing date before flows, so a redemption cannot escape the fee accrued to that date. No separate second redemption fee. When a series redeems fully, retain its closed record and crystallized obligations. A later subscription is a new series.
+
+Management fees accrued since the prior window and crystallized performance fees are payable at the next business-day treasury sweep, after due redemptions. Payment is a fund asset/liability decrease and a company cash/receivable transfer; it is not new fund expense or second company revenue. Insufficient fund cash is a real fee-payment liability and can leave the company short of payroll.
+
+### Arithmetic reference cases (isolated, costs off)
+
+1. Performance fee:1,000 units, H100, pre-fee unit NAV110 → provisional fee $2,000; net capital$108,000; crystallized H108.
+2. Loss/recovery: after that crystallization, pre-fee unit NAV104 → no incentive; a later108 → none;110 → fee$400 and net unitNAV109.60. H never falls to104.
+3. Reversible accrual: before crystallization, p110 produces$2,000 accrued; next p105 produces$1,000. Reverse$1,000. Crystallizing earlier would instead leave the paid fee irreversible; timing is contractual.
+4. Entry fairness: old series1,000 units has H100 and p95; new$95,000 subscription opens950 units at100/H100. Next common return10%: old p104.50 → fee$900; new p110 → fee$1,900. Old investors recover their own loss before paying; new investors pay on their own gain.
+5. Management fee: $25m opening net assets ×0.015/252 =$1,488.095238… daily before residual rounding. Three months is not automatically $93,750; this 60-business-day season uses60/252 and a changing fee base.
+
+Cases isolate specific rules; they are not asserted full-season outputs.
+
+## 7. One authoritative daily event order
+
+Each day uses a frozen, versioned ordered tape. Commands enter only during open decision windows; each has an eligibility event strictly later than its accepted information cutoff.
+
+1. **Opening administrative phase:** activate previously announced contract changes; process prior-trade settlements and scheduled capital/fee cash payments via treasury; activate effective staff changes. A due failure opens distress before elective trading.
+2. **Opening market event:** publish newly available public information and price/volume/borrow updates; mark all affected positions coherently; test recalls, credit and margin; open a crisis window if required.
+3. **Execution event:** execute due forced obligations first; then authorized voluntary orders by accepted simulation sequence and immutable ID. Revalidate authority, borrow, settlements, margin and mandate for every partial fill against the state after earlier fills. Post journals/obligations/reservation conversions atomically.
+4. **Further tape events:** repeat publish → mark/risk → eligible execution in timestamp order. Material pauses allow new commands only for strictly later events.
+5. **Closing accrual phase:** close-mark positions; accrue debt interest, stock borrow, dividend obligations, management fee and company payroll/overhead; allocate series P&L; recompute provisional performance fees; run margin/treasury checks.
+6. **Dealing close, when scheduled:** crystallize fees; apply elected gate to eligible redemption requests; create redemption payables/cancel units; admit funded subscriptions/new series; recompute NAV/collateral/risk after capital changes. If the flow creates a margin deficit, open a crisis for the next eligible event; admission never excuses missing a due payment earlier that day.
+7. **Certified close:** reconcile both ledgers, obligations, collateral, quantities and series; certify reports; apply chapter LP confidence once; create upcoming cutoff requests when that day is a notice cutoff; compute outcome/progress; persist state hash and checkpoint.
+
+At days15/35/55, a notice cutoff uses confidence most recently certified before the cutoff; it does not use an unknown future chapter result. Request generation is a unique business event.
+
+Initial margin is checked before admitting voluntary risk. Maintenance is rechecked after each price, fill, fee and flow phase that changes equity or requirements. No end-of-day-only loophole.
+
+Day61 is a terminal administrative tail for day60 T+1 trades, redemptions and fee payments. No new elective trades, market marks, research, management-fee accrual, company operating day or return period is added. Existing final marks are frozen solely for this disclosed game boundary; one extra day of borrowing/debit carry on still-open funding is accrued and allocated before final settlement certification, and deducted from terminal investor value. Report day60 strategy return separately from this terminal funding adjustment. The twenty-day opening slice instead stops after the ordinary day21 opening administrative phase: settle day20 obligations, then checkpoint before market events. Do not apply the special terminal carry projection there. Continuing chapter3 resumes from that phase checkpoint without repeating settlements; normal day21 accrual happens once at its close. Later continuous campaigns replace this simplification with a full next day and must not mix ranking versions.
+
+After day61, surviving residual positions are marked holdings, not fictionally liquidated cash. Renewal can carry them into the next season; a winddown scenario continues its explicit liquidation tail and cannot claim all investors were paid from marks alone.
+
+## 8. Execution model
+
+Synthetic fixtures supply ordered executable reference quotes, spread, event volume, borrow state and availability time. Per-fund participation cap defaults5% of event volume summed across all orders in that instrument/event. A deterministic queue consumes this volume. A liquidity shock changes actual later capacity, not merely a cosmetic meter.
+
+For cumulative same-side executed quantity Q and event volume V, define total adverse execution cost C(Q) = reference × Q × [half_spread_bps + impact_coefficient_bps × (Q/V)^2] /10,000. A subsequent quantity q incurs incremental cost C(Q+q)−C(Q). Its per-share executed price is reference + side×[C(Q+q)−C(Q)]/q, where side=+1 for a buy/cover and−1 for a sell/short. Default half-spread5bps and coefficient2,000bps; scenario overrides are explicit. Quantize executed prices before computing cash and carry the resulting cost residual deterministically. Maintain separate cumulative buy and sell quantities for cost, with one shared total-volume participation cap across both sides. Splitting orders cannot reset Q or reduce total modeled impact.
+
+Market orders carry an explicit maximum cash/credit commitment and quantity authority, not an unlimited reservation. If a gap breaches that budget, reject or fill only the preauthorized affordable quantity according to the order's immutable partial-fill policy. Display “market order with cash protection”; do not imply that a reservation buffer is a market-price guarantee.
+
+A limit order fills only at actual tape events where the modeled executed price satisfies its limit; choose the largest eligible whole-share quantity meeting limit, remaining budget and event capacity. No fill simply because an OHLC high/low crosses. DAY remainder expires at the declared close; launch GTC orders expire at the chapter boundary unless renewed. Canceled, recalled, stale or superseded authority cannot execute.
+
+Complete states include DRAFT, PENDING_APPROVAL, AUTHORIZED_QUEUED, PARTIALLY_FILLED, FILLED, CANCELED, EXPIRED and REJECTED. “Authorized” can reference a delegation or specific committee signatures. A remaining partial order owns only its remaining reservations. Duplicate event delivery cannot consume the same liquidity, borrow or cash twice.
+
+## 9. Required invariants and replay evidence
+
+- Fund assets minus liabilities equals the sum of active series net capital.
+- Company assets minus liabilities equals equity plus retained income.
+- Total cash movement across a paid fee is equal and opposite; payment is not a second expense.
+- Series performance fee follows its own entry/HWM history through loss, recovery, flow and closure.
+- External subscriptions/redemptions do not create investment return.
+- Restricted collateral, receivables, reservations and spendable cash never count as the same available dollar twice.
+- Economic short quantity, borrowed quantity and pending return explain every difference.
+- Credit limit, margin equity and settlement sufficiency are checked separately.
+- Gate allocations conserve accepted units/value and treat eligible requests pro-rata.
+- Forced liquidation obeys liquidity and preserves remaining deficit; it cannot erase insolvency.
+- Fixed tape + commands + rules produce identical typed events, journal balances and checkpoint hash.
+- A retry, cancellation/fill race or reversed event cannot duplicate economic meaning.
+- Reconciliation failure pauses economic execution and report certification without concealing the failure.
+
+These are acceptance obligations. The current documentation does not claim that their implementation or tests exist.
 
 
-## create-private-repo.sh
+---
 
-```bash
-#!/usr/bin/env bash
-# Run locally after inspecting this script and authenticating with gh auth login.
-set -euo pipefail
+Source: `docs/OPENSEO_INTEGRATION.md`
 
-repo_name="${1:-fundforge}"
-if [[ ! "$repo_name" =~ ^[A-Za-z0-9._-]+$ ]]; then
-  echo 'Repository name must use letters, numbers, dots, underscores or hyphens.' >&2
-  exit 1
-fi
-command -v git >/dev/null || { echo 'Install Git first.' >&2; exit 1; }
-command -v gh >/dev/null || { echo 'Install GitHub CLI first, then run gh auth login.' >&2; exit 1; }
-gh auth status >/dev/null 2>&1 || { echo 'Run gh auth login first. Do not paste tokens into chat.' >&2; exit 1; }
+# OpenSEO: repository assessment and bounded integration
 
-package_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$package_root"
-owner="$(gh api user --jq '.login')"
-owner_id="$(gh api user --jq '.id')"
-if [[ -z "$owner" || ! "$owner_id" =~ ^[0-9]+$ ]]; then
-  echo 'Unable to resolve authenticated GitHub identity.' >&2
-  exit 1
-fi
-if gh repo view "$owner/$repo_name" >/dev/null 2>&1; then
-  echo "Repository $owner/$repo_name already exists. Choose another name; nothing was overwritten." >&2
-  exit 1
-fi
+Design version 2.0, 6 October 2026. Assumed target: [every-app/open-seo](https://github.com/every-app/open-seo), the upstream of the similarly named afazhriel/openseo fork. The user supplied a name rather than a URL; confirm a different target if intended. This assessment does not silently substitute OpenBB. No upstream source has been copied, installed, deployed, or connected to a paid account.
 
-existing_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if [[ -n "$existing_root" && "$(cd "$existing_root" && pwd)" != "$package_root" ]]; then
-  echo 'Package is inside another Git repository. Move it to a separate folder first.' >&2
-  exit 1
-fi
-if [[ -z "$existing_root" ]]; then
-  git init --initial-branch=main
-fi
-if git remote get-url origin >/dev/null 2>&1; then
-  echo 'An origin remote already exists. Inspect it manually; this script does not replace remotes.' >&2
-  exit 1
-fi
-if ! git diff --cached --quiet; then
-  echo 'Existing staged changes detected. Resolve them before running this setup script.' >&2
-  exit 1
-fi
-if [[ -z "$(git config user.name 2>/dev/null || true)" ]]; then
-  git config --local user.name "$owner"
-fi
-if [[ -z "$(git config user.email 2>/dev/null || true)" ]]; then
-  git config --local user.email "$owner_id+$owner@users.noreply.github.com"
-fi
+## What was actually inspected
 
-# Explicit package paths; do not git add arbitrary files such as a personal resume.
-git add -- README.md CLAUDE.md .gitignore docs fixtures scripts .claude/agents
-if ! git diff --cached --quiet; then
-  git commit -m 'docs: add FundForge specification and Claude handoff'
-fi
-gh repo create "$owner/$repo_name" --private --source=. --remote=origin --push
-privacy="$(gh repo view "$owner/$repo_name" --json isPrivate --jq '.isPrivate')"
-if [[ "$privacy" != 'true' ]]; then
-  echo 'Privacy verification failed. Inspect the remote manually; no visibility changes were attempted.' >&2
-  exit 1
-fi
-gh repo view "$owner/$repo_name" --json nameWithOwner,isPrivate,url
-```
+Pinned source snapshot: `ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6`, retrieved through GitHub. The README describes SEO workflows and a DataForSEO-backed service. The LICENSE is MIT, copyright 2026 Ben Senescu. The dependency manifest shows a TypeScript/React/TanStack/Cloudflare stack, unlike FundForge's planned Python financial domain. Read these pinned files before reuse:
 
+| Inspected path | Relevant observation | FundForge decision |
+|---|---|---|
+| `src/server/mcp/tools/get-domain-overview.ts` | Structured domain metrics and project-scoped handler | Optional research source, not price feed |
+| `src/server/mcp/tools/research-keywords.ts` | Bounded seeds, partial results, market context, estimated volumes | Evidence cards must preserve scope and missingness |
+| `src/server/lib/dataforseo/core.ts` | Timeouts, error classification, bounded retries, explicit non-idempotent exception | Adopt the design principle; implement in our adapter |
+| `src/server/lib/dataforseo/client.ts` | Provider/service integration with billing dependencies | Do not transplant the whole client |
+| `src/server/mcp/project-auth.ts` | Resource membership checks | Apply our own fund authorization at every boundary |
+| `src/server/lib/r2-cache.ts` | Parameter-based cache keys, TTL and validation caution | Extend keys with information cutoff and dataset version |
+| `package.json`, `LICENSE` | Stack and source license | No wholesale fork or forced stack migration |
 
-## Golden financial reference
+These are source observations, not a security audit or performance certification. Source license and underlying data rights are separate. Preserve the MIT notice if substantial code is later copied; add exact paths, snapshot, modifications, and dependencies to a third-party notice. Validate provider retention/display/export rights before incorporating real data. Current pricing and API behavior must be checked when enabling a provider; this plan authorizes no charges.
+
+## The valuable game feature: alternative-data research desk
+
+Make information acquisition a strategic choice. A consumer-company analyst can compare search interest for a brand, a competitor, and a product category, investigate conflicting signals, and write a falsifiable thesis. The player spends fictional analyst capacity on a question, receives a timestamped evidence card, then decides whether it changes an existing position. The same action can use an authored fixture in campaign mode or an entitled adapter in a later sandbox.
+
+Example: search interest for a fictional retailer rises, but a second report attributes it to product recalls. Buying the first bullish narrative without triangulation is a bad process; it must not be mechanically guaranteed to lose money. Evidence influences the player's judgment, not an automatic price multiplier or a hidden correctness grade.
+
+Proposed research products:
+
+| Product | Decision it supports | Required caveat |
+|---|---|---|
+| Brand/category search-interest comparison | Demand thesis, competitor substitution | Estimated search activity is not sales or unique customers |
+| Domain visibility report | Distribution/customer acquisition thesis | SEO rank/estimated organic traffic is not audited revenue |
+| Competitor evidence packet | Choose what to investigate next | Domain-to-listed-company relationship must be curated and dated |
+| Source disagreement card | Decide to wait, size smaller, or buy another report | Conflicting proxies can remain unresolved |
+
+Do not sum search volumes for close variants, infer stock prices from SEO values, or pretend historical monthly estimates were available daily. CPC is an advertising metric, not a security valuation. Today's provider retrieval does not establish what was knowable in an earlier season. Company-owned GA/Search Console integrations cannot provide competitors' private analytics; exclude those from the base design.
+
+## Integration boundary
+
+Preferred initial approach: no runtime dependency. Author synthetic research packets against a provider-neutral schema. Later, run OpenSEO separately and access an explicitly allowlisted research interface through a server adapter, or implement a small direct provider adapter if maintaining a second application is unjustified. Compare those alternatives in a bounded spike before choosing. Keep the engine and campaign usable when either fails.
+
+Pipeline: operator-authorized fetch → normalized observation → provenance/rights checks → immutable approved dataset → as-of information service → player evidence card. A historical campaign consumes only the approved dataset. Never fetch current external results during a historical decision and backdate them.
+
+`ResearchObservation` contract:
 
 ```json
 {
-  "schema_version": "1.0",
-  "description": "Independent reference scenario for a strict virtual cash account; no costs, dividends or external flows.",
-  "currency": "USD",
-  "rounding": "ROUND_HALF_EVEN",
-  "cost_bps": "0",
-  "commission": "0.00",
-  "starting_units": "1000",
-  "partner_units": ["500", "500"],
-  "starting_unit_nav": "100.00",
-  "steps": [
-    {"event": "capital", "settled_cash": "100000.00", "receivable": "0.00", "payable": "0.00", "quantity": 0, "nav": "100000.00"},
-    {"event": "buy_trade_date", "quantity_bought": 10, "price": "100.00", "settled_cash": "100000.00", "receivable": "0.00", "payable": "1000.00", "quantity": 10, "mark": "100.00", "nav": "100000.00"},
-    {"event": "buy_settlement", "settled_cash": "99000.00", "receivable": "0.00", "payable": "0.00", "quantity": 10, "mark": "100.00", "nav": "100000.00"},
-    {"event": "mark", "settled_cash": "99000.00", "receivable": "0.00", "payable": "0.00", "quantity": 10, "mark": "110.00", "unrealized_pnl": "100.00", "nav": "100100.00"},
-    {"event": "sell_trade_date", "quantity_sold": 4, "price": "110.00", "settled_cash": "99000.00", "receivable": "440.00", "payable": "0.00", "quantity": 6, "mark": "110.00", "realized_pnl": "40.00", "unrealized_pnl": "60.00", "nav": "100100.00"},
-    {"event": "sell_settlement", "settled_cash": "99440.00", "receivable": "0.00", "payable": "0.00", "quantity": 6, "mark": "110.00", "realized_pnl": "40.00", "unrealized_pnl": "60.00", "nav": "100100.00", "partner_capital": ["50050.00", "50050.00"]}
-  ]
+  "id": "obs-example-001",
+  "entity_id": "fictional-retailer-a",
+  "metric": "brand_search_volume_estimate",
+  "value": "12000",
+  "unit": "estimated_searches_per_month",
+  "geography": "US",
+  "language": "en",
+  "period_start": "2026-01-01",
+  "period_end": "2026-01-31",
+  "source_published_at": null,
+  "observed_at": "2026-02-05T12:00:00Z",
+  "available_at": "2026-02-05T12:00:00Z",
+  "provider": "synthetic_fixture",
+  "dataset_version": "research-demo-v1",
+  "revision": 1,
+  "mapping_version": "entities-v1",
+  "quality_flags": ["estimate", "not_revenue"],
+  "license_ref": "authored-fixture",
+  "synthetic": true
 }
 ```
 
+In real snapshots, conservatively set `available_at` no earlier than collection unless independently evidenced historical publication supports earlier availability. Null timestamps must never mean unlimited visibility. Retain revisions; do not overwrite old observations. Store a raw-source hash only where retention rights permit it. Validate entity, unit, geography, period and missing values before import. Campaign fixture times use the scenario's declared clock mapping rather than an implicit wall-clock comparison.
 
-## finance-reviewer.md
+The fetch worker uses a service credential scoped to the research project. Players cannot supply arbitrary target URLs or access another fund's snapshots. Allowlisted domains and bounded sizes prevent research requests becoming arbitrary network fetches. Provider text is untrusted; it cannot approve orders, alter mandates, run code, or become privileged instructions.
 
-```markdown
+## Budget and failure contracts
+
+There are two separate budgets: fictional research actions inside the game, and real provider/model usage. Spending fictional credits never authorizes a paid API request. Real usage defaults to disabled, with an operator-configured currency ceiling and request cap before activation. Record estimated/reserved/actual/unknown charge states. A timeout on a chargeable request may already have incurred a charge; do not automatically retry without provider-supported reconciliation or idempotency.
+
+Cache keys include provider, endpoint, normalized parameters, entitlement scope, dataset/revision, and historical cutoff. An expired cache is either visibly stale in the research sandbox or unavailable; it cannot silently refresh a locked campaign. Errors distinguish unavailable, stale, forbidden, budget exhausted, and malformed response. No fabricated zeroes. The game continues with its approved fixture or existing observations, with provenance unchanged.
+
+## What not to inherit
+
+Do not reuse OpenSEO's billing account as virtual fund accounting, its project membership as investment authority, or its crawler as a general unrestricted research agent. Do not import its full SaaS, marketing, Cloudflare deployment, telemetry, or authentication stack just to display three research metrics. It does not supply exchange execution, stock borrow, fund NAV, capital accounts, LP contracts, a deterministic simulation clock, or a game economy.
+
+OpenSEO can also help discover search terms and audit a future public FundForge marketing site. That is separate from gameplay and is out of the present implementation scope.
+
+## Go/no-go spike and evidence
+
+After the core game gate, spend one bounded task on: a saved fixture → normalized observation → as-of card; source inspection of the chosen API; rights/credentials/cost decision; one adapter contract test for malformed/partial/error responses; and a dependency/spend comparison of separate OpenSEO versus direct provider adapter. Stop if no valid historical data or useful player decision results. The fixture feature remains valuable without a live connection.
+
+Success is improved research decisions in a blind playtest and correct information cutoffs, not a claim that SEO predicts returns. Any ML experiment needs point-in-time snapshots, an ablation against price-only/fundamental baselines, entity-held-out or chronological evaluation as appropriate, and costs. No claimed alpha until measured honestly.
+
+
 ---
-name: finance-reviewer
-description: Bounded read-only review of FundForge accounting, risk, concurrency and historical leakage changes.
-tools: Read, Grep, Glob
-model: inherit
+
+Source: `docs/IMPLEMENTATION_PLAN.md`
+
+# Implementation plan v2.0
+
+The game must be fun and financially coherent before optional ML or live integrations. Work is dependency-gated, not a promise to finish in a fixed week. Every implementation milestone is currently pending. The user requested this redesign and file update; that does not mean application code has been built.
+
+| Gate | Scope | Dependencies | Observable completion |
+|---|---|---|---|
+| FF0 | Inspect environment; freeze domain contracts; minimal app/DB/CI skeleton | P01 review | Versioned scenario schema, event phases, entities, command results, reproducible install and health checks |
+| FF1 | Journal, marks, lots, LP series, trade/settlement obligations, separate firm ledger | FF0 | Independent arithmetic fixtures, balance/replay/reversal evidence; no UI-generated money |
+| FF2 | Clock, future-event execution, costs/participation, long/short borrow, financing, margin and forced actions | FF1 | Gap, recall, collateral, deadline and halt cases; no fabricated fills |
+| FF3 | Two-player authorization, sleeves, committee proposals, reservations and races | FF1–FF2 contracts | PostgreSQL race tests; no expired/revoked authority, double spend or third partner |
+| FF4 | LP contracts/notices/dealing, fees/HWM, management-company budget, NPC trust | FF1–FF3 | Subscriptions/redemptions/fees reconcile; fund cash cannot pay firm payroll directly |
+| FF5 | Integrate the two-chapter opening arc, authored research, crisis choices, save/resume and causal debrief | FF2–FF4 | Two people finish a meaningful 20-day opening arc (two 20–30 minute chapters) offline from providers |
+| FF6 | Six-chapter campaign, endings, scoring, difficulty/balance, security and recovery | FF5 | Complete 60-day run; tested failure/winddown; balanced seeds and replay; two-user playtest evidence |
+| FF7 | Licensed snapshots, optional OpenSEO adapter spike, shared-engine backtests, evaluated ML | FF6 | Point-in-time data gate, provider failure/cost checks, honest baseline comparison |
+| FF8 | Optional asynchronous league/opponents, extra strategies/instruments, private hosting | Relevant prior gates | Separate permission, fairness, data and instrument acceptance contracts |
+
+FF1–FF4 are engine foundations. FF5 is the first playable two-chapter release; FF6 is the full initial game. Neither may drop LPs, financing, firm survival and a real crisis merely to declare success early. FF7 is not a prerequisite for enjoyable play.
+
+## FF0: freeze interfaces without overbuilding
+
+Inspect actual tools/runtime versions and repository state. Choose one Python and one frontend package manager; pin and lock versions. Set up local PostgreSQL and CI. Confirm production authentication separately from controlled development identities. Do not build five dashboards first.
+
+Write schemas for SeasonConfig, MarketEvent, Observation, Fund, Firm, InvestorSeries, Mandate, SleeveAuthority, ProposalVersion, Order, Reservation, Fill, BorrowContract, JournalEntry, MarginCall, LPNotice, ResearchTask, ChapterCheckpoint and Debrief. Include schema/rules/data versions, monotonic event sequence, simulated time, wall-clock audit time and actor/economic identities. Validate one authored scenario; a manifest without a price tape is not a runnable season.
+
+Proposed package boundaries: `backend/domain/accounting`, `market`, `governance`, `fund_operations`, `game`; `backend/application` for transactions; `backend/adapters` for persistence/providers; `frontend` for views. Freeze the command/result contracts before parallel implementation. A modular monolith is sufficient.
+
+## FF1–FF2: economics before presentation
+
+Implement cash, restricted collateral, receivables, payables, debt, holdings, short liabilities, fund fees, LP capital and firm accounts without network calls. Trade-date postings and cash settlement are different events. Keep gross assets, NAV, margin equity, liquidity available for payments and company runway separate.
+
+Use the legacy `fixtures/golden_scenario.json` only as the no-cost accounting smoke reference. It does not define campaign investors or capital. Add independent examples for short gains/losses, borrow expense, dividends in lieu, debt interest, fees, new series, dealing and fund/firm transfers. The authored `season_scenario.json` is a design contract; implement a validated tape/loader before claiming playability.
+
+Build a deterministic event executor with reproducible RNG streams, explicit phase ordering, pauses at material decisions, and no per-refresh RNG. Surface missing/unsupported data rather than guessing. Mark-to-market can trigger a recoverable mandate breach; broker remedies and insolvency are separate state machines. Forced actions obey their specified execution/capacity policy and can fail to cure a deficit.
+
+## FF3: governance that creates choices
+
+Implement immutable sleeve charters jointly approved by both partners. Routine orders can be submitted by the authorized manager within those envelopes; exceptions require another person's affirmative consent. Recheck all fund-wide combined commitments at fill. Deadlock leads to a documented hold/default, never automatic acceptance.
+
+Fund-serialized PostgreSQL transactions protect approvals, budgets, locates, reservations, orders and journals. Tests use independent connections/barriers, not SQLite. Use a durable outbox before asynchronous critical jobs; in the earliest synchronous slice commit the domain effects atomically. Persist economic IDs so worker retries cannot repeat costs, LP dealing or payments. Reconnect from an authoritative sequence/snapshot.
+
+## FF4–FF5: make the management game
+
+Deliver the first two complete chapters (20 simulated business days through first dealing) with briefing, allocation of scarce analyst capacity, a trading/hedging choice, one investor or broker deadline, a budget decision and an attributable outcome. Use structured choices and optional rationale text; prose quality and word count cannot earn trust or performance points.
+
+Five main destinations: command desk, investment committee/portfolio, research room, fund operations/LP desk, and chapter debrief. Show the deadline, expected effects, uncertainty and reversibility near each action. The operating partner must have independent actions and resource tradeoffs; do not reduce the role to an approval queue. Advanced ledger details are inspectable behind clear summaries.
+
+The first vertical slice uses fictional companies and authored evidence. It must offer at least two credible strategies, support hold/wait without arbitrary punishment, and include a difficult decision that cannot be solved by clicking every available button. Add brief contextual lessons on actual consequences rather than interrupting with a textbook.
+
+## FF6: full campaign and balance evidence
+
+Expand only after the opening-arc playtest. Complete all six chapters and season endings, seed/rules/data manifests, tutorial difficulty, action history and save/resume. Review whether conservative play, aggressive concentration, gaming trust, delaying reports, final-day liquidation and repeatedly reopening saves exploit the score. Keep learning replay separate from ranked attempts.
+
+Run matched-seed baselines: cash/defensive, simple mandate-valid diversified policy, concentrated momentum, and liquidity-aware policy. These are balancing experiments, not proof of investment superiority. Record end outcomes, return/drawdown, unpaid obligations, LP retention, trust, firm cash, decisions per role and waiting time. Adjust authored parameters only between versioned scenarios. No invisible rubber-band market punishment.
+
+Provisional usability gates: both players can explain why cash differs from NAV; each makes several consequential choices; neither spends most of the chapter waiting for approval; they can identify the cause of the crisis and one alternative decision from the debrief. Measure actual completion time and confusion, then revise the 20–30 minute design target. Accessibility includes keyboard, readable status text, loading/error/offline and reduced motion.
+
+Security/recovery gate: cross-fund access denial, no future information, backup restore/replay, idempotent jobs and reconnect, safe exports, input bounds and escaped narrative. Profile concurrency against declared hardware and operation mix; choose a supported load target after measuring. No invented throughput claim.
+
+## FF7 and extensions
+
+Use `OPENSEO_INTEGRATION.md` for the bounded research spike. Data must have rights and defensible availability timestamps before historical use. Freeze datasets and share the same execution/cost engine between game and research. Begin ML with a simple baseline and defined held-out target; HMM filtered inference is optional, not guaranteed to improve gameplay or returns. Reject candidates honestly. LLMs may explain verified facts or play disclosed sandbox opponents, never grade financial truth or mutate authoritative state.
+
+Defer derivatives, multi-currency, distressed private assets, real-time exchange microstructure, unrestricted crawling and a multi-strategy empire until the initial game is finished. Each instrument needs dedicated accounting and lifecycle cases. Public deployment and real spend are separate user decisions.
+
+
 ---
 
-Review the specified diff and only required neighboring contracts. Do not edit files, invoke other agents or review the entire repository. Verify supplied acceptance invariants against code. Focus on unit/cash sharing, journal meaning, FIFO, reservations/settlement, stale approval, concurrent overspending, duplicate economic events, coherent marks, next-event execution and data leakage.
+Source: `docs/ACCEPTANCE_TESTS.md`
 
-Return at most five material findings. Each needs severity, exact code location, violated invariant and minimal reproduction/test to run. You cannot execute tests with these tools; clearly label unexecuted reproductions. Distinguish a demonstrated defect from a question requiring evidence. No speculative feature proposals. Output under 600 words. One review pass; stop.
+# Acceptance contracts v2.0
+
+These cases describe tests to implement, not executed application tests. Financial expectations come from independently worked arithmetic and FUND_ACCOUNTING. Use fixed precision, a deterministic clock and real PostgreSQL for races. All house-rule parameters come from the season manifest.
+
+## Accounting and ownership
+
+| ID | Scenario | Required result |
+|---|---|---|
+| A01 | Campaign capitalization | Fund $25m = Seed $10m + Patient $8m + Tactical $7m; 250,000 opening units at $100; company cash $300k is separate |
+| A02 | Legacy zero-cost cash fixture | Buy/settle/mark/sell final cash $99,440 plus six shares at $110 = $100,100 NAV; primitive fixture only |
+| A03 | FIFO buy 10 at100, 10 at120, sell12 at130 | Realized gain $320; remaining basis $960, absent costs |
+| A04 | Borrow and short100 at50, mark45; isolated no-cost fixture | $5,000 proceeds offset $5,000 short liability initially; subsequent mark produces $500 gain; restricted proceeds not free purchasing cash |
+| A05 | Cover A04 at45 then settle | Gain remains $500; liabilities/collateral released once under contract; no second gain at settlement |
+| A06 | 100 short shares owe $1 distribution | $100 dividend-in-lieu expense/payable once; payment does not duplicate expense |
+| A07 | Borrow notional $5,000 at5% for one simulated accrual day | $5,000 × .05 /252 under declared precision/rounding; expense and payable reconcile |
+| A08 | Fund borrows $100k | Cash and debt both rise $100k; NAV unchanged before financing expense |
+| A09 | Pay debt principal versus interest | Principal reduces cash/debt equally; interest reduces investor NAV; no mixed P&L |
+| A10 | Balanced journal, correction and replay | Every entry balances; reversals preserve original history; recomputed balances match materialized state |
+| A11 | Split and distribution | Quantity/basis update once; no NAV jump from split alone; raw-price/dividend convention prevents double credit |
+| A12 | Missing valuation input | Block dealing and authoritative close; show missing data, do not silently mix incoherent marks |
+| A13 | Negative NAV after gap | Preserve deficit and terminal state; never clamp NAV to zero to hide debt |
+| A14 | Fee paid from fund to firm | Fund payable/cash and company receivable/cash clear once; no new second expense/revenue at payment |
+| A15 | Payroll $20k per five-day week | Company expense/cash only; no unauthorized charge to investor NAV |
+
+## LP flows and fee series
+
+| ID | Scenario | Required result |
+|---|---|---|
+| L01 | Isolated no-fee, single-series reference:100 units at110; subscription1100 (campaign uses a new100/HWM100 series) | New investor receives10 units at110; old investor retains11000; no manufactured investment return |
+| L02 | Same no-fee series redeems10 units at110 | Burn10; record1100 payable; later payment clears it; remaining unit NAV110 |
+| L03 | Notices outside5-day lead time/lockup | Defer/reject according to contract; no immediate discretionary payout |
+| L04 | Gate invoked: NAV25m, eligible redemptions10m,20% cap |5m processed pro-rata;5m remains queued in units per contract; no first-arrival advantage |
+| L05 | Accrued incentive fee reverses before crystallization | Only uncrystallized amount reverses; settled prior-period fees never disappear |
+| L06 | Isolated fee example:100 units, HWM100, pre-incentive NAV/unit110,20% rate | Fee200; post-fee investor capital10800; new HWM108 under specified crystallization convention |
+| L07 | Series after L06 falls90 then recovers108 | No second incentive fee before a new gain above108; returning to HWM is not profit eligible again |
+| L08 | New subscription after earlier loss | New series has its own entry/HWM; new investor does not inherit another series' fee holiday |
+| L09 | Redemption at crystallization plus new subscription | Event order matches FUND_ACCOUNTING; redeeming units pay their accrued fee; newcomers avoid prior-period fees |
+| L10 | Large subscription/redemption at unchanged marks | Time-weighted performance unchanged; raw AUM change not counted as return |
+| L11 | Redemption notice versus recognition versus payment | Request is not an immediate cash payment; accepted payable is not still counted as investor capital |
+| L12 | Gate, notices and fee job retried | Same cohort, allocation, payable and journal IDs; no duplicated burns/fees |
+
+## Authority and concurrency
+
+| ID | Attack/race | Required result |
+|---|---|---|
+| C01 | Two simultaneous sleeve actions individually fit but combined violate fund limit | Serialize commitments; only valid combined state accepted |
+| C02 | Manager proposes and self-approves exception | Denied; delegated authority does not authorize its own expansion |
+| C03 | Routine order within active joint charter | Authorized manager may act without redundant second click; fill-time limits still checked |
+| C04 | Edit proposal after approval | Immutable old version; material change requires fresh consent |
+| C05 | Revoke/expire sleeve before execution | Queued risk addition cannot use obsolete authority |
+| C06 | Idempotency key same payload / different payload | Same result once / conflict with no second economic effect |
+| C07 | Cancel/fill race or duplicate worker deliveries | One allowed transition, consistent reservation, one fill/journal |
+| C08 | Crash before / after DB commit | Rollback before; durable outbox and deduped delivery after |
+| C09 | Two sessions try advance same phase | One authoritative event sequence; no double day/accrual/research reward |
+| C10 | Third user, revoked user or cross-fund API/export request | Denied even with guessed IDs or old idempotency keys |
+| C11 | Deadline tampering/disconnect/reconnect | Server time/phase controls; documented expiry boundary and pause behavior |
+| C12 | Reconciliation mismatch | Trading/dealing freeze; explicit correction/replay required |
+
+Run economic races on independent PostgreSQL connections with barriers and bounded timeouts. Report actual isolation/locks and trials. A stress test is evidence for its scenarios, not proof of universal correctness.
+
+## Execution, financing and risk
+
+E01: decision using event t cannot fill at t's already-known price. E02: gap revalidation checks current combined collateral/cash/exposure before filling. E03: no locate or insufficient borrow inventory blocks short addition; locate expires by contract. E04: recalled borrow enters deadline/buy-in workflow, not an instantaneous guaranteed fill. E05: borrow fees accrue across the stated held interval and stop at the specified closure event. E06: margin warning/call/deadline/forced action/cure/deficit follow the state machine. E07: forced liquidation respects market halt/capacity and may fail to restore solvency. E08: sell or short proceeds do not become spendable cash before the correct settlement/collateral event. E09: restricted collateral transfer changes liquidity, not NAV. E10: passive mandate breach allows approved corrective action but blocks worsening exposure. E11: drawdown15% freezes risk additions, not automatic insolvency. E12: order costs, partial-fill policy, reservations and final expiration are coherent. E13: daily OHLC cannot establish intraday stop/limit order sequence; synthetic intraday events or explicit next-event policies required. E14: business-calendar settlement skips non-trading days according to scenario. E15: same-seed independent funds do not affect one another's fills unless explicit shared-liquidity mode exists.
+
+## Information, research and AI
+
+I01: alter every future event; observations before its available_at remain identical. I02: event_time before cutoff but available_at after cutoff stays hidden. I03: chart/export/research/AI endpoints enforce same as-of filter. I04: replay saves include rule/data/seed versions and event sequence; reopening cannot reroll hidden outcomes. I05: OpenSEO current result cannot be backdated into a historical campaign. I06: estimated SEO traffic/search volume remains labeled and never becomes audited sales. I07: missing result remains missing, not zero. I08: provider timeout/budget exhaustion leaves core game playable and incurs no automatic ambiguous-charge retry. I09: fictional research credits cannot trigger real billing. I10: research text saying ignore mandate has no privileged instruction effect. I11: optional tutor cites supplied facts and cannot invent balance/Sharpe or approve trades. I12: optional opponent sees permitted observations only; malformed/late action falls back deterministically. I13: third-party private analytics require ownership authorization and are not competitor data. I14: cache entitlement/cutoff/version isolation prevents cross-fund or future leakage.
+
+## Performance, game balance and usability
+
+G01: returns +10% then−10% compound to−1%. G02: wealth100,120,90,110 gives maximum drawdown25%. G03: constant returns/too few samples produce an undefined or limited statistic, not infinite competitive points. G04: benchmark-relative return is not mislabeled regression alpha. G05: external flows and fees reconcile to investor performance by series. G06: leaderboards compare identical seed/rules/data/difficulty and expose survivorship/attempt policy. G07: insolvency/unpaid terminal obligations cannot be erased by positive trading P&L. G08: honest reporting cannot be farmed by repeating text or clicking reports. G09: hold/wait is legal, with opportunity costs from scenario rather than arbitrary penalties. G10: both roles have independent material choices; record waiting time and decision counts. G11: debrief ties effects to actual causal events, not fabricated counterfactual claims. G12: context lessons and consequences are readable without hiding numerical details. G13: no arbitrary punishment for real-life absence; simulation pauses under contract. G14: tutorial/replay and ranked attempts are clearly distinct. G15: compare several strategies across versioned seeds; record dominant/exploitative policies before retuning.
+
+## Recovery and honest evidence
+
+R01: restore separate database and replay journals to checkpoint. R02: flush cache/drop WebSocket messages; resync from authority without changing economics. R03: sensitive values absent from logs/exports. R04: keyboard/error/offline/reduced-motion flows work. R05: provider/model unavailable, fixture game works. R06: two testers finish the first two-chapter arc and explain crisis causes. R07: optional measured load reports hardware, operation mix, latency/errors/lock waits and invariant failures. R08: schemas reject malformed/negative/out-of-range inputs; narratives are escaped. R09: generated Word/Markdown bundle agrees with canonical source docs.
+
+Report each executed case with commit, command, environment, fixture/rule checksum, expected/observed outcome and limitation. Pending, failed and passed are distinct. No application case in this file has been executed by this documentation update.
+
+
+---
+
+Source: `docs/DECISIONS.md`
+
+# Decision log — v2.0
+
+These are proposed product/engineering decisions, not claims of implemented behavior. Approved scope: whole-plan redesign and file update, 6 October 2026. Astra/high led the game and financial-system redesign.
+
+| Decision | Current choice | Why / consequence |
+|---|---|---|
+| Product | Cooperative investment-business strategy game | Portfolio performance, investor obligations, financing and firm survival interact |
+| Time | 60 business days, six chapters, pause/resume | No real-market attendance; preserve day-level financial effects |
+| Initial scale | $25m outside capital; $300k separate firm cash | LP and business choices become meaningful; managers are not the only investors |
+| Core strategy | Long/short equities and broad ETFs | A bounded but recognizably hedge-fund-like strategy |
+| Governance | Joint sleeve charters; independent consent for exceptions | Preserves two-person control without approving every routine click |
+| Core release | Fees, flows, borrow/margin, runway, crisis and debrief | Optionalizing these produced a shallow trading app |
+| Scope sequencing | One complete chapter before six-chapter campaign | Validate fun before multiplying content |
+| Financial authority | Pure domain + PostgreSQL transactions + immutable journal | Reconciliation, reproducibility and concurrency correctness |
+| Rules authority | Versioned scenario/contract configuration | House rules are explicit; no hidden market manipulation |
+| Data | Synthetic authored fixtures first | Deterministic, no fees/credentials, avoids memorized historical outcomes |
+| OpenSEO | Assess every-app/open-seo at pinned snapshot; optional research adapter | User supplied repo name only; no unsupported assumption it is a market engine |
+| Upstream reuse | Adapt bounded patterns; no wholesale fork/code copied yet | Keep finance ownership and avoid unrelated SaaS dependencies |
+| AI | Optional explanations/baselines after game | No LLM control over financial truth, approvals or scoring |
+| Workflow | One builder, bounded review | Astra/high was explicitly requested for this redesign, not perpetual delegation |
+
+## Superseded defaults
+
+Original 30-day/$100k equal-manager-capital season, strict long-only release, universal per-ticket partner approval, and postponement of fees/redemptions/shorts to an optional final milestone are replaced. The old arithmetic fixture remains a deliberately small primitive reference; it is not a campaign configuration. Full original docs remain recoverable from Git history before this revision. Current generated Word/Markdown bundles must be regenerated together.
+
+## Still open before implementation
+
+Runtime/dependency pins, auth SDK, database migration tooling, concrete API/schema validation, complete authored price tape, calibrated score/LP/broker parameters, playtest results, exact historical data rights, provider entitlements, hosting/budget and ML target. Resolve at the corresponding gate, not by inventing availability. Fund/accounting rule conflicts must be settled before code.
+
+Log future changes with date, rationale, affected rule/data versions and acceptance cases. Do not change a live season's rule version in place.
+
+
+---
+
+Source: `docs/CLAUDE_HANDOFF.md`
+
+# Claude handoff — FundForge v2.0
+
+## Actual state
+
+Private repository: https://github.com/krishbansalofficial/fundforge. Documentation-only, no frontend/backend/database/model/provider connection/deployment. The owner asked to rethink the whole product as a full hedge-fund game and evaluate OpenSEO, using Astra at high reasoning. That design review was performed; implementation remains pending.
+
+The old $100,000, 30-day, mandatory-approval-for-every-trade plan is superseded. Current default: two firm partners manage $25m of outside LP capital and a separate $300k company over 60 simulated business days/six chapters. Fees, investor dealing, long/short financing, firm runway, committee governance and crises belong in the first playable game.
+
+## Start
+
+Read CLAUDE.md, this file, PROGRESS.md, DECISIONS.md, MASTER_SPEC.md, then the relevant game/accounting contracts. Inspect current Git state and installed tools. Do not read the generated combined document in addition to its source docs. Inventory installed skills by names once; do not assume a particular local Vercel installation or model syntax.
+
+Use P01 in PROMPT_PACK.md to review contradictions and freeze FF0 contracts. Start only the requested bounded milestone. No application work was implicitly completed by generating this design. Do not recreate the repository or force-push it.
+
+## Core experience
+
+Two partners brief, allocate research effort, choose investments and capital/liquidity commitments, respond to an investor/broker/business event, advance a deterministic market clock, then inspect consequences. Delegated sleeves avoid an approval-clicking simulator; exceptions still require independent agreement. The operating partner has financing, LP and staffing/budget decisions of their own.
+
+The first playable two-chapter arc must demonstrate a long/short book, borrow/margin, an investor flow, fee accounting, separate company runway, a consequential disagreement and a causal debrief. A chart and order ticket are foundation work, not the product gate.
+
+## Important contracts
+
+- FUND_ACCOUNTING owns event ordering, balances, fees/series, cash settlement and financial conventions.
+- GAME_SYSTEMS owns actions, roles, trust, house rules, progression and evaluation.
+- SEASON_SCENARIOS owns authored arcs and the vertical slice.
+- MASTER_SPEC owns architecture, scope and canonical document map.
+- ACCEPTANCE_TESTS lists required observable behavior, not executed tests.
+- OPENSEO_INTEGRATION pins inspected upstream code and separates optional research from the engine.
+
+Preserve both simulated time and wall-clock audit time. External research must never reveal a future historical fact. Treat all numerical campaign settings as explicit fictional house rules. Never represent simulated LP terms as universally applicable law or real fund compliance.
+
+## Delivery boundaries
+
+FF0–FF4 build foundations. FF5 is a complete two-chapter opening arc through day20. FF6 is the full campaign and reliability/balance gate. FF7 adds optional data/research/ML. All pending. Fixture mode requires no credentials. An OpenSEO assessment is not an installed integration; real API spend remains disabled.
+
+At task end record changed behavior, actual checks and limitations, then update PROGRESS with one next task. Use a bounded financial/security reviewer where needed. Do not launch extra agents or redesign the whole product after every milestone.
+
+
+---
+
+Source: `docs/PROMPT_PACK.md`
+
+# Copy-ready implementation prompts — v2.0
+
+Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/high for the completed design review; verify available model names in the implementation environment.
+
+## P01 — Inspect the redesigned game and freeze FF0
+
+Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Identify concrete contradictions in event order, fee series, collateral, LP dealing, delegated authority and failure conditions. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
+
+## P02 — FF0 scaffold
+
+Implement the approved FF0 contract only. Pin actual supported runtimes and package managers, create minimal Next.js/FastAPI/PostgreSQL development scaffolding, config validation and CI. Define versioned command/event/scenario interfaces. Validate the authored scenario manifest, explicitly identifying any missing tape. No broad dashboard, provider connection or paid service. Run actual relevant checks and update PROGRESS with one next task.
+
+## P03 — One financial contract
+
+Implement exactly the selected FF1/FUND_ACCOUNTING contract and related acceptance cases. Use fixed precision and an immutable balanced journal. Provide independent expected arithmetic, not expected values obtained from the implementation. Separate fund, firm and investor series. Test replay/reversal and meaningful boundaries. Treat legacy golden_scenario as a primitive fixture only. Report actual commands/results and pending cases.
+
+## P04 — Execution, borrow and margin
+
+Implement the selected FF2 transition with deterministic future-event eligibility, borrow/collateral/debt identities, settlement and deadline rules. Show a gap/recall/halt case and exact accounting. A forced action can fail; preserve the deficit. No daily-bar invented intraday path, no LLM-owned prices, no unrestricted broker execution. Freeze the contract before adding presentation.
+
+## P05 — Governance and transaction races
+
+Implement FF3 for two human partners with jointly approved immutable sleeve charters and independent consent for exceptions. Test revoked/expired authority, combined commitments, idempotency collisions, edit/approve and cancel/fill races using real PostgreSQL. Atomically persist financial effects and durable publication state. No SQLite substitution or self-approved expansion of delegated scope.
+
+## P06 — LPs and management-company survival
+
+Implement the selected FF4 contract for investor notices/dealing, series fees/HWM, firm budget or trust. Preserve notice versus recognized payable versus cash payment. Distinguish fund NAV, restricted cash, company cash and fee receivable. Provide arithmetic and an event-order trace. Do not replace mechanics with cosmetic meters or free-text AI scoring.
+
+## P07 — First complete playable opening arc
+
+Deliver FF5 against verified engine APIs. Read the vertical slice in SEASON_SCENARIOS. Include research effort, thesis/hedging, partner negotiation, investor/financing/business choices, consequences and causal debrief. The operating partner needs independent agency. No fake model/provider results. Run a two-user flow through day20 dealing, including disagreement, pause/resume and one crisis resolution; record confusion and actual duration.
+
+## P08 — Bounded adversarial review
+
+Review only this diff, its contracts and necessary dependencies. Return at most five reproducible defects with severity, violated invariant, exact path and expected/observed behavior. Prioritize fee/flow errors, collateral double count, authority races, future leakage and score exploits. Distinguish a definite defect from an open design question. Do not rewrite the architecture or start other agents.
+
+## P09 — Campaign and balancing gate
+
+Complete the selected FF6 chapter or balance task. Run matched seeded baseline policies and inspect concentration, cash-only, trust farming, replay rerolls and last-day obligation exploits. Keep rules immutable within a season. Report results with seeds and limitations. Do not claim a fun or balanced game solely because unit tests pass; include playtest evidence.
+
+## P10 — OpenSEO spike
+
+Read OPENSEO_INTEGRATION and the pinned inspected source paths. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
+
+## P11 — Optional research and ML
+
+Use the same cost/execution engine as the game. Freeze point-in-time data and chronological split; define a simple baseline and a concrete target before training HMM or another model. Use filtered inference, avoid future normalization and record rejected candidates. Measure prediction/gameplay value separately from strategy return. LLM explanations have no financial mutation rights. No invented alpha or deployment evidence.
+
+## P12 — Resume or diagnose
+
+Read the small handoff and current Git state. Continue only the documented next task. If blocked, capture the failing command, smallest reproducer, invariant, attempted fixes and next diagnostic. After two failed repair cycles change the diagnosis rather than repeating prompts. Do not reload all docs or recreate the plan without a concrete conflict.
+
+## P13 — Limited parallel work, only when requested
+
+Freeze shared interfaces and choose disjoint tasks with separate ownership/worktrees. Keep migrations, journals and transaction contracts under one integrator. Use bounded outputs and actual acceptance evidence, integrate sequentially, and stop completed workers. Model names and agent support must be checked in the actual client. Never use parallelism to bypass permissions or assume extra usage quota.
+
+## P14 — Evidence and handoff
+
+Review RECRUITER_EVIDENCE. Build a truthful demo and evidence index from actual results. Clearly separate implemented, tested, measured, simulated and proposed. Update PROGRESS, source/rules manifests and docs affected by actual changes. Regenerate combined documents if canonical design changed. Do not add performance numbers or resume claims from aspirations.
+
+
+---
+
+Source: `docs/AGENT_WORKFLOW.md`
+
+# Development and simulated-agent workflow
+
+The 6 October redesign explicitly used Astra with high reasoning at the owner's request. That completed design task does not imply any model, opponent or application is deployed.
+
+Default implementation workflow: one builder owns the bounded task. For a high-risk accounting, concurrency, information or security boundary, use one scoped reviewer when authorized. Reviewer returns at most five reproducible findings; builder repairs, then verifies the changed boundary. No recursive delegation or unlimited debate. Separate worktrees prevent file collisions, not credential access. Verify agent/model syntax in the actual environment.
+
+| Role | Ownership | Evidence |
+|---|---|---|
+| Builder | Task paths and implementation | Observable behavior plus actual checks |
+| Finance reviewer | Read relevant diff/contracts | Arithmetic or transition counterexample |
+| Security reviewer | Read auth/data/tool boundaries | Reproduction or precise denied-access expectation |
+| Integrator | Shared schema, migration and event contracts | Cross-boundary consistency |
+
+Parallel work is useful only after shared interfaces are frozen and the user has requested it or applicable instructions allow it. Never split the same ledger/approval/migration contract across independent writers. A bounded alternative-implementation experiment needs a fixed external correctness criterion; comparing persuasive explanations is not evidence.
+
+## In-game AI
+
+Base campaign NPCs are deterministic, stateful rules. A later optional AI opponent receives only permitted as-of observations, its balances, authority and eligible actions. Typed proposals go through the same server checks and costs. It cannot approve a human's committee exception or access future prices, administrative credentials or external historical browsing.
+
+Start with passive and deterministic baseline policies. Optional LLM rivals require a request cap, output bounds and deterministic timeout/malformed-action fallback. Historical event memorization can make apparently blind contests unfair; synthetic held-out scenarios and explicit limitations are necessary. No agent may change authoritative prices, NAV, fees, trust, scores or contractual deadlines through prose.
+
+The tutor explains supplied verified facts with source/time references. Untrusted research never becomes a privileged instruction. Neither fictional research credits nor the existence of a coding subscription authorizes additional real API spend.
+
+## Task contract
+
+Record objective, input contracts/versions, allowed paths, forbidden scope, dependencies, acceptance cases, actual commands, review boundary, stop condition and one next task. Keep context bounded; preserve decisions and failing evidence when pausing. Do not make usage-limit or weekly-completion promises.
+
+
+---
+
+Source: `docs/RECRUITER_EVIDENCE.md`
+
+# Evidence plan — claims must follow implementation
+
+Current claim: designed a cooperative hedge-fund management simulator and specified its accounting, game economy and data boundaries. No application, model, performance, user adoption or load result is presently demonstrated.
+
+| Portfolio proof | What to capture after it exists |
+|---|---|
+| Backend correctness | Independent fee/flow/short/collateral examples, balanced-journal replay, PostgreSQL race reproduction |
+| Product engineering | Two-person crisis chapter, meaningful roles, usability observations and iteration |
+| Distributed reliability | Crash/retry/outbox/reconnect/restore evidence with environment and limitations |
+| Data engineering | Point-in-time data manifest, revisions/rights, provider failures and no-future-information checks |
+| AI/ML | Baseline, frozen split, model/evaluation artifact, rejected candidates and actual deployment/fallback behavior |
+| Systems design | Fund/firm separation, immutable authority, event phases and quantified tradeoffs |
+| Open-source reuse | Pinned upstream assessment, justified adapter boundary, notices for any later copied code |
+
+Suggested final demo: both partners receive a research lead; disagree about sizing; execute within the agreed mandate; face a borrow recall and LP redemption; arrange liquidity without paying company expenses from investor money; inspect the exact ledger and decision history in the debrief. This demonstrates engineering depth more clearly than scrolling through chart widgets.
+
+After measurement, resume bullets may state what was actually built and the exact test/load/evaluation outcome. Do not convert the proposed $25m virtual scenario into real assets under management. Do not call simulated returns investment performance. A documented baseline-only result is preferable to an unevaluated AI claim.
+
+
+---
+
+Source: `docs/SOURCES.md`
+
+# Sources and verification boundaries
+
+Checked 6 October 2026 for this redesign. All campaign dollar amounts, horizons, rates, gates, margin coefficients, confidence effects and victory conditions are original fictional house rules. Source material motivates financial concepts; it does not certify this simulator as accurate legal compliance or a deployable investment service.
+
+| Source | Narrow support | Boundary |
+|---|---|---|
+| [Investor.gov: Hedge Funds](https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds) | Pooled capital, flexible strategies, leverage, fees and limited redemption rights | Does not prescribe this game's contracts or numerical defaults |
+| [SEC: T+1 implementation announcement](https://www.sec.gov/newsroom/press-releases/2024-62) | Standard settlement change for most relevant broker-dealer transactions effective May 28, 2024 | Not every instrument, historical era, calendar or broker cash policy |
+| [SEC: Key Points About Regulation SHO](https://www.sec.gov/investor/pubs/regsho.htm) | Locate and close-out concepts for short sales | Educational source includes older context; do not implement its historical timing examples as current universal rules |
+| [OpenSEO upstream](https://github.com/every-app/open-seo) | SEO research scope and service dependency | Not a financial data engine or evidence of predictive alpha |
+| [OpenSEO pinned license](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/LICENSE) | MIT source license, copyright2026 Ben Senescu | Provider data and third-party dependencies have separate terms |
+| [OpenSEO pinned manifest](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/package.json) | Actual stack/dependencies at inspected snapshot | No assumption that those versions should be installed into FundForge |
+| [OpenSEO provider core](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/lib/dataforseo/core.ts) | Bounded request/error/retry pattern and non-idempotent exception | Not a completed adapter, billing safety audit or free API entitlement |
+| [OpenSEO domain tool](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/tools/get-domain-overview.ts) | Structured, scoped research output | Estimated digital activity must not be represented as company revenue |
+| [OpenSEO keyword tool](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/tools/research-keywords.ts) | Market-scoped keyword research, missing/partial results | Current observations are not point-in-time historical evidence |
+| [OpenSEO project authorization](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/project-auth.ts) | Resource membership gate pattern | FundForge must enforce its own fund/actor authority |
+| [OpenSEO cache](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/lib/r2-cache.ts) | Parameter keys, TTL and schema-validation concern | FundForge additionally needs immutable dataset and as-of boundaries |
+
+Repository content was read using the GitHub connection, including the pinned files above and the provider client. Web references were used for public source verification. The afazhriel/openseo result identifies itself as a fork of every-app/open-seo; the upstream is the working interpretation of the user's repo name. A different intended repository remains an explicit assumption to resolve, not a claimed fact.
+
+No source code has been copied in this revision. The proposed adaptation of research, cache, authorization and provider patterns is design work. Financial/game formulas and scenario narratives are original design choices.
+
+Before implementing real market data, recheck provider entitlements, redistribution/retention rights, available-at history, corporate actions and calendars. Before adding a legal-rule teaching module, recheck current primary authority separately. Before implementing framework, SDK, Claude or agent commands, inspect installed versions and current official documentation. Prior package links about coding subscriptions and agent syntax are not treated as freshly verified facts in this revision.
+
+
+---
+
+Source: `docs/PROGRESS.md`
+
+# Current project state
+
+Updated 6 October 2026. Design v2.0. Application implementation remains not started.
+
+- Private remote: https://github.com/krishbansalofficial/fundforge; privacy and write access inspected for this task.
+- Starting commit for redesign: `797e90d87c1304ed422af6f09c961a87b75ee8ca`.
+- Owner requested complete game redesign, OpenSEO repository assessment, file updates and Astra/high reasoning. Astra/high was used for core game/accounting/scenario design.
+- Current concept: two partners run a $25m outside-capital fund plus a separate $300k management company over 60 simulated business days/six chapters. Core systems include investment research, delegated governance, long/short financing, LP flows, fees/HWM, firm costs, crises, endings and causal debriefs.
+- Replaced old master, plan, prompts, handoff, decisions, acceptance cases, reviewer/workflow and evidence guidance; added game, accounting, scenario and OpenSEO documents plus authored scenario contract. Regenerated combined Markdown and Word document.
+- OpenSEO upstream/source inspected at `ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6`. No code copied, provider connected, paid usage enabled or integration built.
+- Executed `python scripts/build_documents.py` and `python scripts/validate_design.py`: packaging/reference checks passed (19 source Markdown files; 16 bundled sections; 19 Word tables). Details are in PACKAGING_VALIDATION. Those are document/reference checks, not passing application acceptance tests.
+- FF0–FF8 remain pending. No auth/database credentials, runnable scenario engine, deployed model, production application or measured user/load/return outcome exists.
+
+## Next task
+
+Run P01: inspect actual implementation environment and freeze FF0 contracts against MASTER_SPEC, GAME_SYSTEMS, FUND_ACCOUNTING and SEASON_SCENARIOS. Resolve any remaining accounting/event/authority conflict before implementation. The scenario manifest is an authored design fixture, not a complete runnable market tape. Build foundations then the complete FF5 opening arc; do not ship a trading-only demo as the finished game.
+
+## Update discipline
+
+Keep actual branch/commit, changed paths, executed commands/results, unresolved risks and one next task. Determine the redesign commit from Git history rather than copying the starting commit as current HEAD. No invented completion or metrics.
+
+
+---
+
+Source: `docs/PACKAGING_VALIDATION.md`
+
+# Design-package validation — v2.0
+
+These checks concern the documentation, reference arithmetic and generated review bundle. They are not application acceptance tests or evidence of playable software.
+
+Validation commands for this revision:
+
+```bash
+python scripts/build_documents.py
+python scripts/validate_design.py
 ```
 
+Result: PASS for the commands above. Nineteen source Markdown files, sixteen bundled sections and nineteen Word tables were checked. No application result is implied.
 
-## security-reviewer.md
+The validator checks Markdown fences and repository-relative link targets, JSON syntax, all six legacy cash-account NAV states, independent opening-capital/fee/high-water-mark/stress-margin/gate/compounded-return arithmetic, Word archive/XML structure, and inclusion of every canonical source section in the generated Markdown bundle. The Word and Markdown outputs are produced by the same ordered source list.
 
-```markdown
----
-name: security-reviewer
-description: Bounded read-only review of FundForge authorization, trust boundaries and session/data isolation.
-tools: Read, Grep, Glob
-model: inherit
----
+Manual consistency review covers the sixty-day/six-chapter configuration, twenty-day opening slice, independent firm cash, series high-water marks, restricted collateral, dealing-versus-payment timing, deterministic forced actions, missing-partner pause, source provenance and the separation between planned features and implemented software.
 
-Review only the requested diff and needed API/auth/session contracts. Do not edit files, delegate or expand into a repository-wide audit. Focus on self-approval, cross-fund and cross-season access, revoked membership, invitation reuse, server-time authority, CSRF where applicable, untrusted market/thesis content, secret exposure and costly-job limits.
+The legacy repository-creation scripts were preserved and not executed during this redesign. Previous mock-script results are in Git history; they are not newly run results. The current remote was inspected as private, with write access. Publication uses one guarded non-force Git ref update after packaging.
 
-Return at most five material findings with severity, exact location, violated boundary and a minimal request/test reproduction. Read-only tools do not run tests; state that limitation. Prefer concrete authorization paths to generic security checklists. Output under 600 words. Stop after one pass.
-```
+Limitations: no Word application/page-render inspection; no runtime engine or full executable market tape; no application unit/integration, PostgreSQL race, security, gameplay, balance, provider, load or ML checks. All implementation gates remain pending. The authored season manifest records intended behavior, not measured outcomes.
+

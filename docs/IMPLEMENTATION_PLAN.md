@@ -1,64 +1,63 @@
-# Implementation plan
+# Implementation plan v2.0
 
-Build one vertical slice and expand it through correctness gates. Timing depends on the owner's experience, subscription capacity and debugging; the complete backend + ML + advanced simulator is not a one-week promise. M0–M4 form a realistic first-release objective across multiple focused sessions. Later stages can take several additional weeks.
+The game must be fun and financially coherent before optional ML or live integrations. Work is dependency-gated, not a promise to finish in a fixed week. Every implementation milestone is currently pending. The user requested this redesign and file update; that does not mean application code has been built.
 
-| ID | Task / owned areas | Depends on | Observable completion |
+| Gate | Scope | Dependencies | Observable completion |
 |---|---|---|---|
-| M0 | Repo/tool skeleton; `frontend/`, `backend/`, CI, fixture contract | Initial review | Clean install, basic health route/page, minimal checks from a fresh checkout |
-| M1 | Domain money, units, FIFO lots, double-entry ledger, settlement; `backend/domain/`, domain tests | M0 | Golden arithmetic and replay/reversal tests pass |
-| M2 | PostgreSQL migrations/repositories, proposals/versions/approval/reservations, membership auth | M1 | Two manager identities; no self-approval, stale approval, duplicate fill or overspend |
-| M3 | Fixture clock/calendar, next-open execution, risk gates, snapshot/reconciliation jobs | M2 | One full simulated daily close/open cycle; safe failures on gaps and passive breaches |
-| M4 | Five-screen playable UI and session timer, initial lessons/report; polling | M3 | Two people can complete a 30-day fixture season; mobile/keyboard/error states work |
-| M5 | Data-provider adapter, rights checklist, source/availability metadata, split/dividend events | M4 | Licensed or permitted frozen dataset; action accounting verified; no synthetic/live confusion |
-| M6 | Transactional outbox, robust worker, Redis cache/rate limiter, optional WebSockets | M3/M5 | Crash/retry/reconnect evidence; PostgreSQL still authoritative |
-| M7 | Security/load/recovery/observability and deployment documentation | M4/M6 | Cross-fund tests, backup restore, measured load and two-user demo in intended environment |
-| M8 | Shared-engine research backtesting and historical as-of APIs | M3/M5 | Deterministic replay, leakage tests, cost sensitivity and baseline report |
-| M9 | Regime baseline/HMM features, chronological evaluation, MLflow and release manifest | M8 | Reproducible evaluation; justified gate promotes or rejects candidate |
-| M10 | Batch inference, model monitoring/fallback, tutor templates and optional API | M9 | Model version/as-of visible; failure and explanation evaluation documented |
-| M11 | Bounded AI-opponent contest and advanced fund procedures | M7/M8/M10 as applicable | Same rules/information for all; capped requests; extension-specific accounting tests |
+| FF0 | Inspect environment; freeze domain contracts; minimal app/DB/CI skeleton | P01 review | Versioned scenario schema, event phases, entities, command results, reproducible install and health checks |
+| FF1 | Journal, marks, lots, LP series, trade/settlement obligations, separate firm ledger | FF0 | Independent arithmetic fixtures, balance/replay/reversal evidence; no UI-generated money |
+| FF2 | Clock, future-event execution, costs/participation, long/short borrow, financing, margin and forced actions | FF1 | Gap, recall, collateral, deadline and halt cases; no fabricated fills |
+| FF3 | Two-player authorization, sleeves, committee proposals, reservations and races | FF1–FF2 contracts | PostgreSQL race tests; no expired/revoked authority, double spend or third partner |
+| FF4 | LP contracts/notices/dealing, fees/HWM, management-company budget, NPC trust | FF1–FF3 | Subscriptions/redemptions/fees reconcile; fund cash cannot pay firm payroll directly |
+| FF5 | Integrate the two-chapter opening arc, authored research, crisis choices, save/resume and causal debrief | FF2–FF4 | Two people finish a meaningful 20-day opening arc (two 20–30 minute chapters) offline from providers |
+| FF6 | Six-chapter campaign, endings, scoring, difficulty/balance, security and recovery | FF5 | Complete 60-day run; tested failure/winddown; balanced seeds and replay; two-user playtest evidence |
+| FF7 | Licensed snapshots, optional OpenSEO adapter spike, shared-engine backtests, evaluated ML | FF6 | Point-in-time data gate, provider failure/cost checks, honest baseline comparison |
+| FF8 | Optional asynchronous league/opponents, extra strategies/instruments, private hosting | Relevant prior gates | Separate permission, fairness, data and instrument acceptance contracts |
 
-## M0: narrow scaffold
+FF1–FF4 are engine foundations. FF5 is the first playable two-chapter release; FF6 is the full initial game. Neither may drop LPs, financing, firm survival and a real crisis merely to declare success early. FF7 is not a prerequisite for enjoyable play.
 
-Create a minimal monorepo with shared documented contracts, not a full generated application. Pin supported runtime versions and dependencies after inspecting current official docs/tool availability. Use one Python package manager and one frontend package manager, committed lockfiles, lint/type checks, Docker Compose for development PostgreSQL, and a minimal CI pipeline. Do not add paid cloud infrastructure or production secrets.
+## FF0: freeze interfaces without overbuilding
 
-Create the financial-domain interfaces and identify where invariants will live. A static health page is enough; no dashboard redesign. Decide authentication integration and development test identities without inventing insecure production login shortcuts. Proposed developer commands must be added and validated before being listed as working commands.
+Inspect actual tools/runtime versions and repository state. Choose one Python and one frontend package manager; pin and lock versions. Set up local PostgreSQL and CI. Confirm production authentication separately from controlled development identities. Do not build five dashboards first.
 
-## M1: financial domain before persistence details
+Write schemas for SeasonConfig, MarketEvent, Observation, Fund, Firm, InvestorSeries, Mandate, SleeveAuthority, ProposalVersion, Order, Reservation, Fill, BorrowContract, JournalEntry, MarginCall, LPNotice, ResearchTask, ChapterCheckpoint and Debrief. Include schema/rules/data versions, monotonic event sequence, simulated time, wall-clock audit time and actor/economic identities. Validate one authored scenario; a manifest without a price tape is not a runnable season.
 
-Implement Decimal money/pricing policy, capital units, FIFO lots, journal postings, mark-to-market, trade-date receivables/payables and settlement. Use isolated domain tests plus the provided golden fixture. Make the ledger explicit enough to reconcile realized/unrealized P&L, cash and holdings. Define rounding and correction/reversal semantics. No LLM, external prices or frontend writes can bypass this module.
+Proposed package boundaries: `backend/domain/accounting`, `market`, `governance`, `fund_operations`, `game`; `backend/application` for transactions; `backend/adapters` for persistence/providers; `frontend` for views. Freeze the command/result contracts before parallel implementation. A modular monolith is sufficient.
 
-## M2–M3: hardest backend gates
+## FF1–FF2: economics before presentation
 
-Freeze the proposal contract and transition table before frontend integration. DB schema changes have one owner. Put approval, reservation, fill, journal and outbox effects within the relevant transaction boundaries. Test races with an actual PostgreSQL service, not SQLite's different lock behavior. Serialize fund operations and document worker retry behavior.
+Implement cash, restricted collateral, receivables, payables, debt, holdings, short liabilities, fund fees, LP capital and firm accounts without network calls. Trade-date postings and cash settlement are different events. Keep gross assets, NAV, margin equity, liquidity available for payments and company runway separate.
 
-Implement a Clock interface used by session deadlines and event eligibility. Simulated clocks only exist in development/test or an authorized historical season. Users cannot supply authoritative clock values. Every execution uses a coherent execution snapshot for all holdings needed to compute NAV/exposures. Missing essential marks cause a block, not a valuation assembled from arbitrarily mixed timestamps.
+Use the legacy `fixtures/golden_scenario.json` only as the no-cost accounting smoke reference. It does not define campaign investors or capital. Add independent examples for short gains/losses, borrow expense, dividends in lieu, debt interest, fees, new series, dealing and fund/firm transfers. The authored `season_scenario.json` is a design contract; implement a validated tape/loader before claiming playability.
 
-Use a single cost configuration and settled-cash policy in game and backtests. Reservations convert atomically into obligations or are released, never both counted indefinitely. Reconciliation failure freezes trading until an explicit correction succeeds.
+Build a deterministic event executor with reproducible RNG streams, explicit phase ordering, pauses at material decisions, and no per-refresh RNG. Surface missing/unsupported data rather than guessing. Mark-to-market can trigger a recoverable mandate breach; broker remedies and insolvency are separate state machines. Forced actions obey their specified execution/capacity policy and can fail to cure a deficit.
 
-## M4: enjoyable first release
+## FF3: governance that creates choices
 
-Deliver lobby, fund desk, trading room, research stub and season report with fixture data. The research stub can explain that automated backtests arrive later rather than presenting a fake result. Add short reviewed lesson cards for position sizing, market orders, diversification, settlement and drawdown. Complete session state and failure-state UI before extra colors/animation.
+Implement immutable sleeve charters jointly approved by both partners. Routine orders can be submitted by the authorized manager within those envelopes; exceptions require another person's affirmative consent. Recheck all fund-wide combined commitments at fill. Deadlock leads to a documented hold/default, never automatic acceptance.
 
-Manual usability check: two testers join, start, propose, approve, advance to fill, disagree/cancel, hold one day, and finish a season. Capture confusing states and fix the action language. Do not invent real user counts if testers are only the owner and a friend.
+Fund-serialized PostgreSQL transactions protect approvals, budgets, locates, reservations, orders and journals. Tests use independent connections/barriers, not SQLite. Use a durable outbox before asynchronous critical jobs; in the earliest synchronous slice commit the domain effects atomically. Persist economic IDs so worker retries cannot repeat costs, LP dealing or payments. Reconnect from an authoritative sequence/snapshot.
 
-## M5–M7: measured service reliability
+## FF4–FF5: make the management game
 
-Choose one provider after checking rights and coverage. Keep the fixture mode. Add corporate actions and dataset freezes before importing long histories. Use worker retries, transactional outbox and client resynchronization. Redis must be rebuildable after loss. Record log/metric names around queue delay, job age, fills/rejections, dedupe, data staleness, reconciliation and API errors.
+Deliver the first two complete chapters (20 simulated business days through first dealing) with briefing, allocation of scarce analyst capacity, a trading/hedging choice, one investor or broker deadline, a budget decision and an attributable outcome. Use structured choices and optional rationale text; prose quality and word count cannot earn trust or performance points.
 
-Load plan: document hardware/container limits; start with 10 active funds, then 50 and 100 if the system permits. Submit competing approval/execution operations, portfolio reads and reconnects under a stated mix. Measure p50/p95/p99, errors, lock waits and invariant outcomes; select a supported load target after measuring. These concurrency levels are experiment inputs, not production claims. Restore a backup into a separate database and reconcile the restored ledger.
+Five main destinations: command desk, investment committee/portfolio, research room, fund operations/LP desk, and chapter debrief. Show the deadline, expected effects, uncertainty and reversibility near each action. The operating partner must have independent actions and resource tradeoffs; do not reduce the role to an approval queue. Advanced ledger details are inspectable behind clear summaries.
 
-Deployment must use a hosting choice explicitly selected by the owner and verified secrets/configuration. Preparing deployment files is authorized; public publishing and additional paid resources are separate requests. A private repository does not make a hosted app private automatically.
+The first vertical slice uses fictional companies and authored evidence. It must offer at least two credible strategies, support hold/wait without arbitrary punishment, and include a difficult decision that cannot be solved by clicking every available button. Add brief contextual lessons on actual consequences rather than interrupting with a textbook.
 
-## M8–M10: worthwhile ML
+## FF6: full campaign and balance evidence
 
-Reuse the domain engine for research. Lock data/splits, calculate baseline performance and failure cases, then train HMM. Register experiments, but only promote a candidate if the defined gate is met. A baseline-only serving system with an honestly rejected HMM is stronger than a misleading deployed model. Keep the ability to revert a model without rewriting historical predictions.
+Expand only after the opening-arc playtest. Complete all six chapters and season endings, seed/rules/data manifests, tutorial difficulty, action history and save/resume. Review whether conservative play, aggressive concentration, gaming trust, delaying reports, final-day liquidation and repeatedly reopening saves exploit the score. Keep learning replay separate from ranked attempts.
 
-Add template explanations first. The optional LLM tutor uses bounded verified inputs, no trading tools and no external historical browsing. Record actual explanation evaluation and request cost separately from subscription use. Do not enable API billing merely because Claude Code is logged in.
+Run matched-seed baselines: cash/defensive, simple mandate-valid diversified policy, concentrated momentum, and liquidity-aware policy. These are balancing experiments, not proof of investment superiority. Record end outcomes, return/drawdown, unpaid obligations, LP retention, trust, firm cash, decisions per role and waiting time. Adjust authored parameters only between versioned scenarios. No invisible rubber-band market punishment.
 
-## M11: extension discipline
+Provisional usability gates: both players can explain why cash differs from NAV; each makes several consequential choices; neither spends most of the chapter waiting for approval; they can identify the cause of the crisis and one alternative decision from the debrief. Measure actual completion time and confusion, then revise the 20–30 minute design target. Accessibility includes keyboard, readable status text, loading/error/offline and reduced motion.
 
-AI fund opponents, fees, redemptions, shorts/margin and derivatives are independent extensions. Select at most one next extension. Write its accounting, event, data and acceptance contract before code. The advanced roadmap is a menu, not permission to add everything to an MVP.
+Security/recovery gate: cross-fund access denial, no future information, backup restore/replay, idempotent jobs and reconnect, safe exports, input bounds and escaped narrative. Profile concurrency against declared hardware and operation mix; choose a supported load target after measuring. No invented throughput claim.
 
-## Session operating rhythm
+## FF7 and extensions
 
-Start: read small handoff, Git state and task contract. Work: inspect only dependencies and owned paths, implement, run appropriate checks. Finish: evidence, commit only when instructed, update small handoff. At integration milestones run broader checks. After two repair cycles without progress, checkpoint the precise failing condition and ask a narrower expert question in the next session.
+Use `OPENSEO_INTEGRATION.md` for the bounded research spike. Data must have rights and defensible availability timestamps before historical use. Freeze datasets and share the same execution/cost engine between game and research. Begin ML with a simple baseline and defined held-out target; HMM filtered inference is optional, not guaranteed to improve gameplay or returns. Reject candidates honestly. LLMs may explain verified facts or play disclosed sandbox opponents, never grade financial truth or mutate authoritative state.
+
+Defer derivatives, multi-currency, distressed private assets, real-time exchange microstructure, unrestricted crawling and a multi-strategy empire until the initial game is finished. Each instrument needs dedicated accounting and lifecycle cases. Public deployment and real spend are separate user decisions.

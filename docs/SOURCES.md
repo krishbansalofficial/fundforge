@@ -1,24 +1,23 @@
-# Official sources and verification boundaries
+# Sources and verification boundaries
 
-Checked 6 October 2026. These sources support narrowly identified facts; the game's mandate, scoring, architecture, account policies and hypothetical fee terms are original proposed design choices. This is not a comprehensive legal review. Recheck changing APIs, entitlements, CLI syntax, installed Claude features and legal modules at implementation time.
+Checked 6 October 2026 for this redesign. All campaign dollar amounts, horizons, rates, gates, margin coefficients, confidence effects and victory conditions are original fictional house rules. Source material motivates financial concepts; it does not certify this simulator as accurate legal compliance or a deployable investment service.
 
-| ID | Source | Used for |
+| Source | Narrow support | Boundary |
 |---|---|---|
-| S1 | [SEC/Investor.gov: Investor Bulletin — Investment Clubs](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-33) | Active/passive membership and fact-specific regulatory questions; not an exemption guarantee |
-| S2 | [SEC: Starting a Private Fund](https://www.sec.gov/about/starting-private-fund) | Real entity, document, adviser and offering considerations |
-| S3 | [Investor.gov: New T+1 Settlement Cycle](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/new-t1-settlement-cycle-what-investors-need-know-investor-bulletin) | Modern applicable U.S. settlement; not historical-era or every broker account rules |
-| S4 | [Investor.gov: Types of Orders](https://www.investor.gov/introduction-investing/investing-basics/how-stock-markets-work/types-orders) and [Order Types Bulletin](https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-14) | Market/limit/stop distinctions and execution uncertainty |
-| S5 | [SEC: Division of Trading and Markets Regulation SHO FAQ](https://www.sec.gov/rules-regulations/staff-guidance/trading-markets-frequently-asked-questions-8) | Short-sale requirements context; simulated borrowing is not full compliance |
-| S6 | [Alpaca: Historical bars](https://docs.alpaca.markets/us/reference/stockbarsingle-1) | Feed/adjustment/as-of/pagination metadata; not data redistribution permission |
-| S7 | [Anthropic: Use Claude Code with your Pro or Max plan](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan) | Shared subscription usage; distinct API billing; no weekly-fit promise |
-| S8 | [Claude Code: Best practices](https://code.claude.com/docs/en/best-practices) | Scoped working context and verification workflow |
-| S9 | [Claude Code: Create custom subagents](https://code.claude.com/docs/en/sub-agents) and [Manage costs](https://code.claude.com/docs/en/costs) | Agent configurations, usage/context considerations; verify installed support |
-| S10 | [Claude Code: Agent teams](https://code.claude.com/docs/en/agent-teams) | Optional multi-session teamwork and its overhead; availability may vary |
-| S11 | [GitHub CLI: gh repo create](https://cli.github.com/manual/gh_repo_create) | --private, --source, --remote and --push repository setup |
-| S12 | [Vercel Labs: agent-skills](https://github.com/vercel-labs/agent-skills) | Official skill collection; actual locally installed names must be inspected |
+| [Investor.gov: Hedge Funds](https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds) | Pooled capital, flexible strategies, leverage, fees and limited redemption rights | Does not prescribe this game's contracts or numerical defaults |
+| [SEC: T+1 implementation announcement](https://www.sec.gov/newsroom/press-releases/2024-62) | Standard settlement change for most relevant broker-dealer transactions effective May 28, 2024 | Not every instrument, historical era, calendar or broker cash policy |
+| [SEC: Key Points About Regulation SHO](https://www.sec.gov/investor/pubs/regsho.htm) | Locate and close-out concepts for short sales | Educational source includes older context; do not implement its historical timing examples as current universal rules |
+| [OpenSEO upstream](https://github.com/every-app/open-seo) | SEO research scope and service dependency | Not a financial data engine or evidence of predictive alpha |
+| [OpenSEO pinned license](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/LICENSE) | MIT source license, copyright2026 Ben Senescu | Provider data and third-party dependencies have separate terms |
+| [OpenSEO pinned manifest](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/package.json) | Actual stack/dependencies at inspected snapshot | No assumption that those versions should be installed into FundForge |
+| [OpenSEO provider core](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/lib/dataforseo/core.ts) | Bounded request/error/retry pattern and non-idempotent exception | Not a completed adapter, billing safety audit or free API entitlement |
+| [OpenSEO domain tool](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/tools/get-domain-overview.ts) | Structured, scoped research output | Estimated digital activity must not be represented as company revenue |
+| [OpenSEO keyword tool](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/tools/research-keywords.ts) | Market-scoped keyword research, missing/partial results | Current observations are not point-in-time historical evidence |
+| [OpenSEO project authorization](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/mcp/project-auth.ts) | Resource membership gate pattern | FundForge must enforce its own fund/actor authority |
+| [OpenSEO cache](https://github.com/every-app/open-seo/blob/ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6/src/server/lib/r2-cache.ts) | Parameter keys, TTL and schema-validation concern | FundForge additionally needs immutable dataset and as-of boundaries |
 
-The supplied resume was read directly from the attached PDF to ground the project's resume fit. It is not included in the repository; its existing claims were not independently audited. The package makes no new personal accomplishment claim.
+Repository content was read using the GitHub connection, including the pinned files above and the provider client. Web references were used for public source verification. The afazhriel/openseo result identifies itself as a fork of every-app/open-seo; the upstream is the working interpretation of the user's repo name. A different intended repository remains an explicit assumption to resolve, not a claimed fact.
 
-## Checks to perform later
+No source code has been copied in this revision. The proposed adaptation of research, cache, authorization and provider patterns is design work. Financial/game formulas and scenario narratives are original design choices.
 
-Provider data terms/entitlements; original exchange calendars and historical settlement eras; auth SDK and deployment versions; current Claude usage/model/agent interfaces; advanced short/margin/derivatives rule modules if added. A source check in this document does not freeze external facts forever.
+Before implementing real market data, recheck provider entitlements, redistribution/retention rights, available-at history, corporate actions and calendars. Before adding a legal-rule teaching module, recheck current primary authority separately. Before implementing framework, SDK, Claude or agent commands, inspect installed versions and current official documentation. Prior package links about coding subscriptions and agent syntax are not treated as freshly verified facts in this revision.

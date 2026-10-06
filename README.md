@@ -1,57 +1,36 @@
 # FundForge
 
-Two friends. One virtual fund. Fifteen minutes a day.
+A cooperative hedge-fund management strategy game. Two partners build an investment business, manage outside investors' capital, and survive the consequences of their decisions.
 
-FundForge is a proposed cooperative paper-fund game and engineering portfolio project. Two managers share a virtual $100,000 fund, approve each other's trades, follow a mandate, and learn finance through realistic operations. No deposits, brokerage execution, cash prizes, or real distributions are implemented or authorized by this package.
+**Status: design package v2.0, 6 October 2026. No application has been implemented.** This revision replaces the original paper-trading-first plan. The previous version remains in Git history.
 
-**Status: specification and Claude handoff only. No application has been implemented, deployed, or benchmarked. The GitHub repository is private; application implementation is pending.**
+## The game
 
-## Start here
+Run a fictional $25 million long/short equity fund over 60 simulated business days, organized into six chapters. Choose research priorities, negotiate investment authority, allocate capital, manage financing, handle investor withdrawals, pay the firm's bills, and explain what happened. Sessions advance simulated time; players do not need to attend at real market hours.
 
-1. Read `CLAUDE.md` and `docs/CLAUDE_HANDOFF.md`.
-2. Use prompt P01 in `docs/PROMPT_PACK.md` for the first architecture inspection.
-3. Follow `docs/IMPLEMENTATION_PLAN.md`, one milestone per bounded task.
-4. Keep `docs/PROGRESS.md` current after each task.
+The investment partner leads theses and portfolio construction. The operating/risk partner leads liquidity, financing, investor relationships and the business budget. Both can research and challenge decisions. Agreed strategy sleeves let routine actions proceed inside a jointly approved envelope; material exceptions require committee agreement. Every partner has consequential work beyond approving the other's tickets.
 
-## Document map
+The objective is durable, mandate-consistent investor outcomes and a viable firm. A lucky leveraged bet does not erase unpaid obligations, broken promises, or insolvency. A disciplined winddown is a distinct outcome. All money, entities, contracts and obligations in the campaign are fictional.
 
-| File | Purpose |
-|---|---|
-| `docs/MASTER_SPEC.md` | Product, game, fund operations, trading, risk, data, ML, backtesting, security, UI, and scoring |
-| `docs/CLAUDE_HANDOFF.md` | Exact starting instructions and current state |
-| `docs/PROMPT_PACK.md` | Copy-ready prompts with scope, evidence, and stopping conditions |
-| `docs/IMPLEMENTATION_PLAN.md` | Dependencies and phased delivery |
-| `docs/ACCEPTANCE_TESTS.md` | Financial golden cases, concurrency, authorization, and replay tests |
-| `docs/AGENT_WORKFLOW.md` | Bounded adversarial review, isolated parallel work, and AI game opponents |
-| `docs/RECRUITER_EVIDENCE.md` | Backend/ML proof, truthful resume templates, and demo plan |
-| `docs/SOURCES.md` | Official sources and freshness checks |
-| `docs/DECISIONS.md` | Decision log and resolved defaults |
-| `docs/PROGRESS.md` | Small session handoff; initially all implementation is pending |
-| `docs/PACKAGING_VALIDATION.md` | Package checks and unexecuted boundaries |
-| `fixtures/golden_scenario.json` | Reference arithmetic for ledger implementation |
+## Read in this order
 
-## Clone and start Claude Code
+1. [Master specification](docs/MASTER_SPEC.md): product, boundaries and architecture.
+2. [Game systems](docs/GAME_SYSTEMS.md): actions, roles, capital, progression and scoring.
+3. [Season scenarios](docs/SEASON_SCENARIOS.md): actual decisions and crisis arcs.
+4. [Fund accounting](docs/FUND_ACCOUNTING.md): authoritative financial contracts.
+5. [Implementation plan](docs/IMPLEMENTATION_PLAN.md) and [acceptance cases](docs/ACCEPTANCE_TESTS.md).
+6. [OpenSEO assessment](docs/OPENSEO_INTEGRATION.md): inspected code, reuse choices and research boundary.
 
-Private repository: https://github.com/krishbansalofficial/fundforge
+For coding, start with [Claude handoff](docs/CLAUDE_HANDOFF.md), [progress](docs/PROGRESS.md), then P01 in [prompt pack](docs/PROMPT_PACK.md). The [combined Word document](documents/FundForge_Project_Spec_and_Claude_Handoff.docx) is generated from the current Markdown documents.
 
-```bash
-git clone https://github.com/krishbansalofficial/fundforge.git
-cd fundforge
-claude
-```
+## First playable release
 
-Authenticate Git/Claude through their normal secure sign-in flows if needed. Start with **P01** in `docs/PROMPT_PACK.md`; repository creation is already complete. Read `CLAUDE.md`, `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` before implementation.
+A crisis-rich two-chapter opening arc (20 simulated business days) with two users, a reconciled long/short portfolio, borrow and margin, an investor redemption, fee accounting, separate firm runway, a committee decision, and a causal debrief. A buy/approve/chart demo is only an engineering foundation. The complete initial campaign expands that slice into all six chapters with reproducible seeds, save/resume, failure endings and balancing evidence.
 
-The complete Word brief is in `documents/FundForge_Project_Spec_and_Claude_Handoff.docx`. The modular Markdown files are the working source for Claude and let later sessions load only the relevant sections.
+## Engineering direction
 
-The private-repository setup scripts are retained for creating a separate future copy. They stop on an existing name or origin and should not be run to recreate this repository. Do not commit secrets, unlicensed market datasets or the personal resume.
+Next.js/TypeScript, FastAPI/Python, PostgreSQL; pure deterministic financial domain; fixed precision; immutable events and journal; as-of information access; versioned rules and fixtures. Begin with synthetic data and polling. Add workers, live providers, ML and optional read-only AI after the core game is sound. No external API is required to play the base campaign.
 
-## Chosen defaults
+OpenSEO is assessed as an optional source for alternative-data research and integration patterns. It is not the fund engine. No source has been copied, paid service activated, or deployment created in this revision.
 
-- TypeScript/Next.js frontend; Python/FastAPI modular backend; PostgreSQL authority.
-- First playable release: fixture data, long-only whole-share stocks/ETFs, market orders, next-open execution, 50/50 virtual capital accounts, strict partner approval, settlement and reconciliation.
-- Redis, WebSockets, limit orders, historical seasons, MLflow, and AI explanations arrive only after the financial core works.
-- UI: restrained fund-management game, five screens, readable cards, clear actions, short feedback, no elaborate animation or photorealistic assets.
-- Finance code is deterministic. The LLM cannot mutate cash, invent fills, approve orders, or bypass risk controls.
-
-This package is a detailed build brief, not evidence of a finished product or a legal compliance certification.
+The private repository is already set up. Do not rerun the legacy repository-creation scripts here. Nothing in this package represents a live fund, brokerage service, legal compliance certification, measured model result or completed software feature.

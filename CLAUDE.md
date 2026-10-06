@@ -1,29 +1,27 @@
 # FundForge working rules
 
-Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Read only the specification sections needed for the current task. Do not load the entire prompt pack or every installed skill on every turn.
+Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.0. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
 
-Product: cooperative two-player educational paper-fund game, $100,000 virtual capital, one shared 15-minute daily session, 30-trading-day seasons. Backend accuracy and usable gameplay matter more than visual polish. No real money, brokerage execution, cash prizes, or paid investment signals.
+Product: two-player cooperative hedge-fund management game. Default fictional campaign: $25m outside capital, separate $300k management company, 60 simulated business days, six chapters. LPs, long/short financing, fund versus firm accounting, fees, investor flows, governance and crises are core release mechanics. A trading-only demo is not a completed game. No real money, brokerage execution, cash prizes or paid investment signals.
 
-Architecture defaults: Next.js/TypeScript frontend; FastAPI/Python modular backend; PostgreSQL source of truth. Start with fixtures and polling. Add Redis/workers/WebSockets only in the scheduled phase. Finance domain code is independent of network and UI.
+Architecture: Next.js/TypeScript; FastAPI/Python modular backend; PostgreSQL authority; pure finance/game domain. Fixtures and polling first. Add queue/cache/WebSockets only for a demonstrated boundary.
 
 Non-negotiables:
-- Use Decimal/fixed precision for financial arithmetic and explicit rounding; no float balances.
-- Exactly two active managers; proposer cannot approve their own order.
-- Approval binds to immutable proposal contents and version. A change requires new approval.
-- Revalidate risk at execution; serialize competing ledger changes in PostgreSQL.
-- Unique idempotency keys plus DB transactions; do not promise exactly-once message delivery.
-- Approved orders execute only at a later eligible event, never at a already-known close.
-- Ledger entries balance, replay deterministically, and reconcile with materialized state.
-- Preserve event time, availability time, feed, adjustments, and dataset versions.
-- No future data in historical gameplay, training, or backtests.
-- LLMs explain verified facts; they do not own balances, fills, risk limits, or approvals.
-- No invented metrics, completed milestones, test results, or compliance claims.
-- Use synthetic/public permitted fixtures; secrets stay server-side and out of Git.
+- Decimal/fixed precision with explicit rounding; immutable balanced journal and deterministic replay.
+- Exactly two human partners. Delegated sleeve actions require a valid jointly approved mandate; material exceptions require distinct human consent. No self-approval of exceptions or hidden AI substitutes.
+- Approvals bind to immutable contents, policy version, expiry and scope. Revalidate current risk and authority at execution.
+- Fund, LP series and management-company capital are separate. AUM, fees receivable and restricted short proceeds are not spendable firm cash.
+- Unique economic identities, idempotency keys, serialized fund transactions and atomic journal/state/outbox effects.
+- Execute only at a later eligible market event; never at a known historical close. Daily bars do not prove intraday order paths.
+- Preserve event time, available_at, data/rules versions and all revisions. No future information in player APIs, exports, research, AI or backtests.
+- Financial, deadline and NPC state is computed by versioned rules; LLMs cannot own fills, balances, fees, risk, approvals or rankings.
+- No invented completed milestones, metrics, tests, security/compliance claims or source provenance.
+- Synthetic fixtures remain usable without external services. Secrets stay server-side; paid provider use requires prior authorization and caps.
 
-Work in small contracts: scope, allowed paths, behavior, acceptance evidence, done condition. Inspect before editing. Use rg and narrow file reads. Run relevant checks once; broaden when a failure or changed boundary requires it. Stop after two failed repair cycles and write a precise blocker.
+`docs/FUND_ACCOUNTING.md` owns financial conventions; `docs/GAME_SYSTEMS.md` owns game rules; `docs/MASTER_SPEC.md` owns architecture/boundaries. If they conflict, resolve and document before implementation. House rules are not universal industry conventions.
 
-Installed Vercel skills: inventory names/descriptions once and record relevant skills in `docs/DECISIONS.md`; load at most one or two pertinent skills per task. Do not reinstall everything, read all skills, redesign the product, or substitute skill conventions for financial invariants. Verify tool/model/agent syntax against the installed Claude version.
+Work by explicit objective, owned paths, contracts and acceptance evidence. Inspect before editing; use rg. Run meaningful checks for changed risks. After two unsuccessful repair cycles, preserve the exact failure and choose a narrower diagnosis rather than repeat the same attempts. Do not invent a CLI command or supported model name.
 
-Agent default: one builder. At most one bounded reviewer on high-risk changes. No recursive delegation, autonomous debate loops, or full-team architecture recreation. Read-only reviewer findings require a reproduction or precise invariant. Separate worktrees for concurrent writers.
+Default one builder, one bounded reviewer only for high-risk boundaries or explicit authorization. No recursive delegation. The owner explicitly requested an Astra/high design review for this revision; that is not standing authorization for unlimited agent teams. Inventory installed relevant skills once, load only applicable guidance.
 
-At task end update `docs/PROGRESS.md` with branch/commit, changed paths, commands and actual results, unresolved risks, and one next task. Keep it under roughly 800 words. Commit only task-related files when instructed. Never force-push, change repo visibility, deploy publicly, enable extra paid usage, or add real-money capability without an explicit request.
+At task end update `docs/PROGRESS.md` with actual state, paths, checks, limitations and one next task. Commit only task-related files when authorized. No force-push, visibility change, public deployment, paid usage or real-money capability without explicit authorization.

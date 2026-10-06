@@ -1,105 +1,59 @@
-# Copy-ready Claude prompts
+# Copy-ready implementation prompts — v2.0
 
-This private repository is already set up: start with P01. P00 is retained only for creating a separate future repository. Use one prompt at a time inside the cloned repository. Replace bracketed placeholders. The initial prompt may load the complete brief; later prompts should load only their named working set. “Think carefully” means examine tradeoffs and failure modes and provide a concise decision rationale, not reveal private chain-of-thought or spend unlimited tokens.
+Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/high for the completed design review; verify available model names in the implementation environment.
 
-## P00 — Create a separate private repository (optional)
+## P01 — Inspect the redesigned game and freeze FF0
 
-```text
-I want this documentation package in a new private GitHub repository named fundforge on my authenticated personal account. Inspect README.md and the relevant create-private-repo script. Verify the current folder and that only the intended documentation/templates are included. Check Git/GitHub CLI authentication without displaying secrets. Run the script if available; a name collision must stop without changing an existing repo. Verify isPrivate using gh repo view and give the actual URL. If a required tool/authentication is missing, tell me the exact local step and do not claim creation succeeded. Do not deploy the app or upload my resume.
-```
+Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Identify concrete contradictions in event order, fee series, collateral, LP dealing, delegated authority and failure conditions. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
 
-## P01 — Think properly; inspect and critique first
+## P02 — FF0 scaffold
 
-```text
-Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Think carefully about financial correctness, cooperative gameplay, concurrency, settlement, historical leakage, ML validity and implementation scope before editing code. Inspect the repository and tool versions. Inventory my installed Vercel skills by names/descriptions only, then identify the one or two useful skills for each future phase; do not load every skill.
+Implement the approved FF0 contract only. Pin actual supported runtimes and package managers, create minimal Next.js/FastAPI/PostgreSQL development scaffolding, config validation and CI. Define versioned command/event/scenario interfaces. Validate the authored scenario manifest, explicitly identifying any missing tape. No broad dashboard, provider connection or paid service. Run actual relevant checks and update PROGRESS with one next task.
 
-Give a concise decision memo: concrete contradictions/blockers; chosen architecture with reasons; five highest-risk failure modes and their tests; dependency-ordered milestones; and the smallest playable slice. Distinguish proposed features from implemented evidence. Keep this memo under 1,000 words. Update only actual decisions and progress. Do not build multiple stacks or launch agents. Stop after the review and tell me the exact M0 task contract.
-```
+## P03 — One financial contract
 
-## P02 — Scaffold only
+Implement exactly the selected FF1/FUND_ACCOUNTING contract and related acceptance cases. Use fixed precision and an immutable balanced journal. Provide independent expected arithmetic, not expected values obtained from the implementation. Separate fund, firm and investor series. Test replay/reversal and meaningful boundaries. Treat legacy golden_scenario as a primitive fixture only. Report actual commands/results and pending cases.
 
-```text
-Implement M0 from docs/IMPLEMENTATION_PLAN.md. Read CLAUDE.md and docs/PROGRESS.md plus only needed architecture/security sections. Inspect existing files before changes. Create a minimal Next.js/TypeScript frontend, FastAPI backend, development PostgreSQL setup, package/lock configuration and minimal CI checks. Add a health route/page and domain interfaces. Do not implement the full dashboard, trading logic, ML or paid services. Pin and verify compatible versions using current official docs when needed. Run fresh-install and basic lint/type/test checks that you actually configure. Record exact commands/results and next task in docs/PROGRESS.md. Stop at M0.
-```
+## P04 — Execution, borrow and margin
 
-## P03 — Implement one financial contract
+Implement the selected FF2 transition with deterministic future-event eligibility, borrow/collateral/debt identities, settlement and deadline rules. Show a gap/recall/halt case and exact accounting. A forced action can fail; preserve the deficit. No daily-bar invented intraday path, no LLM-owned prices, no unrestricted broker execution. Freeze the contract before adding presentation.
 
-```text
-Implement [M1 or one clearly named subtask]. Read CLAUDE.md, docs/PROGRESS.md, master-spec accounting/settlement sections, docs/ACCEPTANCE_TESTS.md and fixtures/golden_scenario.json. Allowed edit areas: backend/domain/, backend/tests/domain/, and the progress/decision notes. If the scaffold uses different paths, map them first and record the mapping.
+## P05 — Governance and transaction races
 
-Use deterministic Decimal arithmetic, explicit rounding, FIFO, balanced journal entries and exact unit-based P&L allocation. Implement only the chosen subtask with meaningful independent arithmetic/replay tests. Do not change the frontend, auth or schema unless the task explicitly owns them. Do not add AI. Run relevant checks once after changes. Stop after two failed repair cycles and report the smallest reproducible blocker. Finish with behavior, files, actual evidence, limitations and one next task, under 400 words.
-```
+Implement FF3 for two human partners with jointly approved immutable sleeve charters and independent consent for exceptions. Test revoked/expired authority, combined commitments, idempotency collisions, edit/approve and cancel/fill races using real PostgreSQL. Atomically persist financial effects and durable publication state. No SQLite substitution or self-approved expansion of delegated scope.
 
-## P04 — Approval and concurrency boundary
+## P06 — LPs and management-company survival
 
-```text
-Implement [M2/M3 subtask] for version-bound partner approval and transactional execution. Read the order lifecycle, backend concurrency and acceptance-test sections only, plus current code/contracts. Allowed paths: [exact backend/module paths, migrations if owned, corresponding tests]. Use actual PostgreSQL concurrency tests.
+Implement the selected FF4 contract for investor notices/dealing, series fees/HWM, firm budget or trust. Preserve notice versus recognized payable versus cash payment. Distinguish fund NAV, restricted cash, company cash and fee receivable. Provide arithmetic and an event-order trace. Do not replace mechanics with cosmetic meters or free-text AI scoring.
 
-Prove: proposer cannot self-approve; edits invalidate prior approval; parallel accepted orders cannot overspend; repeated execution/approval requests cannot duplicate effects; reservation-to-payable conversion is atomic; cancel-versus-fill yields one valid outcome. Risk check and posting must share the transaction and coherent execution snapshot. Record at-least-once delivery assumptions rather than claiming exactly-once messaging. Do not add WebSockets or ML. Stop when the scoped evidence gate passes; update the handoff.
-```
+## P07 — First complete playable opening arc
 
-## P05 — One playable frontend feature
+Deliver FF5 against verified engine APIs. Read the vertical slice in SEASON_SCENARIOS. Include research effort, thesis/hedging, partner negotiation, investor/financing/business choices, consequences and causal debrief. The operating partner needs independent agency. No fake model/provider results. Run a two-user flow through day20 dealing, including disagreement, pause/resume and one crisis resolution; record confusion and actual duration.
 
-```text
-Implement [specific screen/flow] from the UI and daily-game sections. Read current API contracts and one relevant installed Vercel skill after confirming its instructions. Allowed edits: [frontend paths and UI tests where needed]. Aim for a readable cooperative game with restrained styling, not high-fidelity art or a complex trading terminal.
+## P08 — Bounded adversarial review
 
-Show the shared server timer, partner state, virtual-capital label, as-of data and clear queued/filled/rejected/expired/offline states where relevant. Use the API's authoritative values; do not calculate balances in browser state. Include keyboard/mobile/reduced-motion behavior. Verify the actual flow with two test identities or explain the missing dependency. Do not change backend financial rules or invent placeholder performance. Stop after this flow works and record evidence.
-```
+Review only this diff, its contracts and necessary dependencies. Return at most five reproducible defects with severity, violated invariant, exact path and expected/observed behavior. Prioritize fee/flow errors, collateral double count, authority races, future leakage and score exploits. Distinguish a definite defect from an open design question. Do not rewrite the architecture or start other agents.
 
-## P06 — Bounded adversarial review
+## P09 — Campaign and balancing gate
 
-```text
-Review only [diff/commit] and necessary neighboring contracts. Focus on [financial correctness OR authorization OR backtest leakage]. Do not edit code or launch subagents. Spend one review pass. Return at most five material findings, each with severity, precise location, violated invariant and a minimal reproduction/test case. Prefer evidence over speculative refactoring. If no material finding exists, say so. Do not re-review the whole repository or propose new features. Keep output under 600 words. The builder will decide and implement one bounded repair pass.
-```
+Complete the selected FF6 chapter or balance task. Run matched seeded baseline policies and inspect concentration, cash-only, trust farming, replay rerolls and last-day obligation exploits. Keep rules immutable within a season. Report results with seeds and limitations. Do not claim a fun or balanced game solely because unit tests pass; include playtest evidence.
 
-## P07 — Resume from a clean session
+## P10 — OpenSEO spike
 
-```text
-Read CLAUDE.md and docs/PROGRESS.md. Check Git status, branch and relevant latest commit. Use the handoff's actual evidence as state; do not assume pending work is complete. Continue only [next task ID]. Read its named specification sections and exact implementation paths. Reuse established decisions and installed dependencies. Do not rebuild the architecture or scan the entire repository. If handoff and code disagree, inspect the smallest relevant area and record the correction. Complete the scoped task, run its necessary checks, update progress and stop.
-```
+Read OPENSEO_INTEGRATION and the pinned inspected source paths. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
 
-## P08 — Diagnose without endless retries
+## P11 — Optional research and ML
 
-```text
-Investigate this specific failure: [paste concise error and command]. Read only [test/module/contract]. First reproduce it once and identify the failing invariant. Make the smallest justified repair within [allowed paths], then run the relevant check. Maximum two repair cycles. If unresolved, checkpoint the reproduction, attempted fixes, current hypothesis and required next evidence. Do not reinstall the stack, rewrite unrelated modules or run broad suites repeatedly. Do not claim success without the original failure check passing.
-```
+Use the same cost/execution engine as the game. Freeze point-in-time data and chronological split; define a simple baseline and a concrete target before training HMM or another model. Use filtered inference, avoid future normalization and record rejected candidates. Measure prediction/gameplay value separately from strategy return. LLM explanations have no financial mutation rights. No invented alpha or deployment evidence.
 
-## P09 — Backtesting and leakage audit
+## P12 — Resume or diagnose
 
-```text
-Implement/audit [M8 subtask]. Use the same domain/risk/execution engine as paper play. Read master-spec data/backtest sections and matching acceptance cases. Freeze universe, dataset checksum, cutoff, availability fields, split dates, cost model and settlement-era policy before running comparisons.
+Read the small handoff and current Git state. Continue only the documented next task. If blocked, capture the failing command, smallest reproducer, invariant, attempted fixes and next diagnostic. After two failed repair cycles change the diagnosis rather than repeating prompts. Do not reload all docs or recreate the plan without a concrete conflict.
 
-Test next-event execution, future-data mutation independence, training-only fitted transforms, no smoothed HMM inference, correct corporate actions/dividends and benchmark convention. Compare simple baselines with identical costs. Publish actual run config, outputs and limitations; do not pick the best period after inspecting results. No frontend redesign, new models or agent teams. Update progress and stop at the named experiment gate.
-```
+## P13 — Limited parallel work, only when requested
 
-## P10 — A genuine ML release gate
+Freeze shared interfaces and choose disjoint tasks with separate ownership/worktrees. Keep migrations, journals and transaction contracts under one integrator. Use bounded outputs and actual acceptance evidence, integrate sequentially, and stop completed workers. Model names and agent support must be checked in the actual client. Never use parallelism to bypass permissions or assume extra usage quota.
 
-```text
-Implement [M9/M10 subtask] for baseline versus HMM regime inference. Read only ML/evaluation sections and current feature/backtest contracts. Define an objective and chronological evaluation before training. Fit features/scalers/model on permitted history; use filtered state probabilities and training-only state labels. Log reproducible experiments and candidate artifacts, then promote only if the explicit baseline gate passes. If it fails, retain the baseline and record why.
+## P14 — Evidence and handoff
 
-Add as-of/model/feature version, stale/failure behavior and measured inference checks appropriate to the task. Do not equate latent-state posterior with probability of price decline. Do not fabricate accuracy, profitable edge or deployment claims. Finish with measured evidence and limitations.
-```
-
-## P11 — Limited parallel work
-
-```text
-Use at most two writing sessions in separate Git worktrees for these independent tasks: [task A with owned paths] and [task B with disjoint paths]. Freeze shared contracts first. No shared migration/schema edits and no nested delegation. Each task has one acceptance gate and returns under 300 words. Close each worker when finished. Integrate one branch at a time and run shared-boundary checks after integration. If a task depends on another's unfinished output, run sequentially. Do not create two whole apps or run an ongoing debate.
-```
-
-## P12 — Two candidate implementations, one experiment
-
-```text
-Compare two small implementations of [isolated unresolved function]. Write the fixed interface and independent acceptance/benchmark inputs first. Give each candidate a separate worktree and the same bounded scope. No edits outside [paths], no paid calls, no recursive agents. Compare correctness first, then clarity, measured latency/memory and maintenance cost. Select one, document evidence/tradeoffs and discard the losing implementation from the active branch. One comparison round only. Do not infer better code from an agent's confidence.
-```
-
-## P13 — Final recruiter evidence and handoff
-
-```text
-Inspect the implemented system against docs/RECRUITER_EVIDENCE.md and the milestone gates. Summarize what actually works, actual test/load/evaluation results, known limitations and how to reproduce the demo. Produce backend and ML resume bullets using only measured results, with placeholders for missing values; do not fill them from targets. Rewrite the README around final behavior, with setup and a five-minute demo. Keep the project paper-only and distinguish experimental models from deployed ones. Stop after verified documentation is updated.
-```
-
-## P14 — Preserve remaining usage
-
-```text
-I am preserving my remaining subscription usage. Work only on [small task]. Use one session and no agent team. Read only CLAUDE.md, docs/PROGRESS.md, [relevant spec sections] and [paths]. Reuse established decisions. No feature expansion, exhaustive explanation, repeated unchanged checks or UI redesign. Necessary validation still runs. Check the available usage/status display at the start and checkpoint before optional work. Do not enable API billing or usage credits. Record progress and one next task, then stop. This instruction reduces scope; it is not a hard token quota.
-```
+Review RECRUITER_EVIDENCE. Build a truthful demo and evidence index from actual results. Clearly separate implemented, tested, measured, simulated and proposed. Update PROGRESS, source/rules manifests and docs affected by actual changes. Regenerate combined documents if canonical design changed. Do not add performance numbers or resume claims from aspirations.

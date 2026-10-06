@@ -1,19 +1,82 @@
 {
   "schema_version": "1.0",
-  "description": "Independent reference scenario for a strict virtual cash account; no costs, dividends or external flows.",
+  "description": "Legacy primitive accounting reference only, not the v2 campaign: strict virtual cash account, two equal test holders, no costs, dividends or flows.",
   "currency": "USD",
   "rounding": "ROUND_HALF_EVEN",
   "cost_bps": "0",
   "commission": "0.00",
   "starting_units": "1000",
-  "partner_units": ["500", "500"],
+  "partner_units": [
+    "500",
+    "500"
+  ],
   "starting_unit_nav": "100.00",
   "steps": [
-    {"event": "capital", "settled_cash": "100000.00", "receivable": "0.00", "payable": "0.00", "quantity": 0, "nav": "100000.00"},
-    {"event": "buy_trade_date", "quantity_bought": 10, "price": "100.00", "settled_cash": "100000.00", "receivable": "0.00", "payable": "1000.00", "quantity": 10, "mark": "100.00", "nav": "100000.00"},
-    {"event": "buy_settlement", "settled_cash": "99000.00", "receivable": "0.00", "payable": "0.00", "quantity": 10, "mark": "100.00", "nav": "100000.00"},
-    {"event": "mark", "settled_cash": "99000.00", "receivable": "0.00", "payable": "0.00", "quantity": 10, "mark": "110.00", "unrealized_pnl": "100.00", "nav": "100100.00"},
-    {"event": "sell_trade_date", "quantity_sold": 4, "price": "110.00", "settled_cash": "99000.00", "receivable": "440.00", "payable": "0.00", "quantity": 6, "mark": "110.00", "realized_pnl": "40.00", "unrealized_pnl": "60.00", "nav": "100100.00"},
-    {"event": "sell_settlement", "settled_cash": "99440.00", "receivable": "0.00", "payable": "0.00", "quantity": 6, "mark": "110.00", "realized_pnl": "40.00", "unrealized_pnl": "60.00", "nav": "100100.00", "partner_capital": ["50050.00", "50050.00"]}
+    {
+      "event": "capital",
+      "settled_cash": "100000.00",
+      "receivable": "0.00",
+      "payable": "0.00",
+      "quantity": 0,
+      "nav": "100000.00"
+    },
+    {
+      "event": "buy_trade_date",
+      "quantity_bought": 10,
+      "price": "100.00",
+      "settled_cash": "100000.00",
+      "receivable": "0.00",
+      "payable": "1000.00",
+      "quantity": 10,
+      "mark": "100.00",
+      "nav": "100000.00"
+    },
+    {
+      "event": "buy_settlement",
+      "settled_cash": "99000.00",
+      "receivable": "0.00",
+      "payable": "0.00",
+      "quantity": 10,
+      "mark": "100.00",
+      "nav": "100000.00"
+    },
+    {
+      "event": "mark",
+      "settled_cash": "99000.00",
+      "receivable": "0.00",
+      "payable": "0.00",
+      "quantity": 10,
+      "mark": "110.00",
+      "unrealized_pnl": "100.00",
+      "nav": "100100.00"
+    },
+    {
+      "event": "sell_trade_date",
+      "quantity_sold": 4,
+      "price": "110.00",
+      "settled_cash": "99000.00",
+      "receivable": "440.00",
+      "payable": "0.00",
+      "quantity": 6,
+      "mark": "110.00",
+      "realized_pnl": "40.00",
+      "unrealized_pnl": "60.00",
+      "nav": "100100.00"
+    },
+    {
+      "event": "sell_settlement",
+      "settled_cash": "99440.00",
+      "receivable": "0.00",
+      "payable": "0.00",
+      "quantity": 6,
+      "mark": "110.00",
+      "realized_pnl": "40.00",
+      "unrealized_pnl": "60.00",
+      "nav": "100100.00",
+      "partner_capital": [
+        "50050.00",
+        "50050.00"
+      ]
+    }
   ]
 }
