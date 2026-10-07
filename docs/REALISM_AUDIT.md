@@ -6,6 +6,8 @@ The product should teach two partners to preserve the ability to invest: portfol
 
 This review applies six professional lenses—portfolio manager, chief risk officer, chief operating officer, fund accountant, quant researcher and cooperative-game designer. These are review perspectives, not claims of professional appointment or regulatory certification. Primary sources were checked on 6 October 2026; exact URLs and limits are below. Calculations and game prescriptions are our analysis, not rules imposed by those sources.
 
+v2.2 supplement (7 October 2026): [DESIGN_REVIEW_V2_2](DESIGN_REVIEW_V2_2.md) adds the three independent reviews and disposition, including post-flow issuer error, settled replacement, retained collateral and termination policy. [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md) owns complete bounded authoring schedules. Retain the22 useful v2.1 findings below; current roadmap and handoff supersede the old next-task description. No economic implementation exists.
+
 ## 1. Prioritized audit and disposition
 
 Priority **P0** blocks reliable financial implementation; **P1** blocks a credible playable release; **P2** is a controlled extension or measurement need. **Practice** means a sourced real-world concept; **Contract** means a selected fictional term; **House** means a deliberate game abstraction.

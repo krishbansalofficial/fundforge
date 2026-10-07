@@ -2,7 +2,7 @@
 
 A cooperative hedge-fund management strategy game. Two partners build an investment business, manage outside investors' capital, and survive the consequences of their decisions.
 
-**Status: design package v2.1, 6 October 2026. No application has been implemented.** This revision critically audits v2.0 using Astra with extra-high reasoning and primary-source research. Earlier versions remain in Git history.
+**Status: design package v2.2, 7 October 2026. No application has been implemented.** Three bounded independent reviews strengthened the existing v2.1 plan. The reported Python/Pydantic foundation and26 tests are absent from this checkout. Earlier research remains preserved.
 
 ## The game
 
@@ -20,7 +20,10 @@ The objective is durable, mandate-consistent investor outcomes and a viable firm
 4. [Fund accounting](docs/FUND_ACCOUNTING.md): authoritative financial contracts.
 5. [Implementation plan](docs/IMPLEMENTATION_PLAN.md) and [acceptance cases](docs/ACCEPTANCE_TESTS.md).
 6. [Simulation architecture](docs/SIMULATION_ARCHITECTURE.md): ownership, interfaces, replay, precision, concurrency and information safety.
-7. [Library research](docs/LIBRARY_RESEARCH.md) and [OpenSEO assessment](docs/OPENSEO_INTEGRATION.md): 17 pinned repository reviews, reuse decisions and data-rights boundaries.
+7. [Library research](docs/LIBRARY_RESEARCH.md): retained pinned financial-library reviews; SEO/marketing excluded.
+8. [v2.2 review](docs/DESIGN_REVIEW_V2_2.md), [complete challenge authoring contracts](docs/SCENARIO_CONTRACTS.md), and [exact next milestone](docs/IMPLEMENTATION_HANDOFF.md).
+
+9. [Full milestone work packages](docs/MILESTONE_PLANS.md): all 20 milestones through final FF8, with ordered tasks, owned files, deliverables, validation and stop gates. [Decision register](docs/PLAN_REVIEW_AND_DECISIONS.md) assigns unresolved choices/evidence to the phase that needs them. All application milestones remain pending.
 
 For coding, start with [Claude handoff](docs/CLAUDE_HANDOFF.md), [progress](docs/PROGRESS.md), then P01 in [prompt pack](docs/PROMPT_PACK.md). The [combined Word document](documents/FundForge_Project_Spec_and_Claude_Handoff.docx) is generated from the current Markdown documents.
 
@@ -32,6 +35,6 @@ A crisis-rich two-chapter opening arc (20 simulated business days, through ordin
 
 Next.js/TypeScript, FastAPI/Python, PostgreSQL; pure deterministic financial domain; fixed precision; immutable events and journal; as-of information access; versioned rules and fixtures. Begin with synthetic data and polling. Add workers, live providers, ML and optional read-only AI after the core game is sound. No external API is required to play the base campaign.
 
-No trading framework is required for the initial game. Later research can use pandas, exchange_calendars and optional DuckDB; CVXPY/statsmodels need a specific evaluated advisory feature. OpenSEO is a separate optional alternative-data source. No upstream code was copied, paid service activated, or deployment created in this revision.
+No trading framework is required for the initial game. Later research can use pandas, exchange_calendars and optional DuckDB; CVXPY/statsmodels need a specific evaluated advisory feature. SEO/marketing integrations are excluded from the current plan. No upstream code was copied, paid service activated, or deployment created in this revision.
 
 The private repository is already set up. Do not rerun the legacy repository-creation scripts here. Nothing in this package represents a live fund, brokerage service, legal compliance certification, measured model result or completed software feature.

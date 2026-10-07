@@ -1,14 +1,18 @@
-# Copy-ready implementation prompts — v2.1
+# Copy-ready implementation prompts — v2.2
 
 Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/extra-high for this completed v2.1 critical review; verify available model names in the implementation environment.
 
-## P01 — Inspect the redesigned game and freeze FF0
+Planning revision 2.2-M1: all 20 milestone packages through FF8 are in MILESTONE_PLANS. A prompt selects one package; it does not supersede its prerequisites, owned files, due decisions or stop gate. PLAN_REVIEW_AND_DECISIONS owns unresolved choices/evidence deadlines. Current planning turn permits documents plus requested commit/push, not application features or dependency installation.
 
-Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read REALISM_AUDIT, SIMULATION_ARCHITECTURE, GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Consult LIBRARY_RESEARCH before choosing dependencies. Check the dated calendar, per-date accrual, pre-provision participation, annual versus partial-redemption crystallization, post-flow risk and independent reconciliation. Identify concrete unresolved contradictions, not a new feature wishlist. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
+## P01 — Verify and challenge the v2.2 plan
 
-## P02 — FF0 scaffold
+Read CLAUDE.md, both handoffs, PROGRESS and DESIGN_REVIEW_V2_2. Verify Git/files/tools; do not assume the reported foundation/26 tests exists. Use bounded independent financial/gameplay/engineering reviewers for concrete contradictions (no recursive agents/edits). Reconcile findings and weak acceptance before implementation. Preserve useful existing research and uncommitted planning work. Next agreed task is FF0a, not a full scaffold.
 
-Implement the approved FF0 contract only. Pin actual supported runtimes and package managers, create minimal Next.js/FastAPI/PostgreSQL development scaffolding, config validation and CI. Define versioned command/event/scenario interfaces. Validate the authored scenario manifest, explicitly identifying any missing tape. No broad dashboard, provider connection or paid service. Run actual relevant checks and update PROGRESS with one next task.
+## P02 — FF0a complete one authored package
+
+Implement only IMPLEMENTATION_HANDOFF's FF0a/X01–X07. Materialize Case1 defaults/overrides, actor-tagged command scripts and independently calculated dated oracle. Add schema/loader/rejection checks; no financial reducer, UI/API/DB/provider. Freeze covered-share collateral, replacement transfer, costs, fees/series/residuals and complete12–21 coverage. Report schema validity separately from engine/playability. Update handoff, stop before FF0b.
+
+Use the full FF0a work package in MILESTONE_PLANS and standard-library validation. Complete independent full-date financial cells before calling success paths feasible; report missing evidence explicitly. Do not create an application foundation in this authoring package.
 
 ## P03 — One financial contract
 
@@ -20,7 +24,7 @@ Implement the selected FF2 transition with deterministic future-event eligibilit
 
 ## P05 — Governance and transaction races
 
-Implement FF3 for two human partners with jointly approved immutable sleeve charters and independent consent for exceptions. Test revoked/expired authority, combined commitments, idempotency collisions, edit/approve and cancel/fill races using real PostgreSQL. Atomically persist financial effects and durable publication state. No SQLite substitution or self-approved expansion of delegated scope.
+Implement FF3a pure authority or FF4a persisted race safety, whichever is the agreed bounded task. Two human partners need jointly approved immutable sleeves and distinct consent. Test revoked authority, commitments, idempotency/edit/cancel/fill; use real PostgreSQL only for FF4a race claims. Atomically persist effects/publication there. No SQLite substitution or self-approved delegation expansion.
 
 ## P06 — LPs and management-company survival
 
@@ -38,9 +42,9 @@ Review only this diff, its contracts and necessary dependencies. Return at most 
 
 Complete the selected FF6 chapter or balance task. Run matched seeded baseline policies and inspect concentration, cash-only, trust farming, replay rerolls and last-day obligation exploits. Keep rules immutable within a season. Report results with seeds and limitations. Do not claim a fun or balanced game solely because unit tests pass; include playtest evidence.
 
-## P10 — OpenSEO spike
+## P10 — Excluded scope
 
-Read OPENSEO_INTEGRATION, LIBRARY_RESEARCH and the pinned inspected source paths. Verify every-app/open-seo remains the intended upstream; do not substitute OpenBB. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
+SEO and marketing integrations are outside the current planning/implementation roadmap. Do not run the archived OpenSEO spike.
 
 ## P11 — Optional research and ML
 
@@ -65,3 +69,13 @@ Read SEASON_SCENARIOS, fixtures/season_scenario.json, fixtures/scenario_cases.js
 ## P16 — Dependency or data-source decision
 
 Read LIBRARY_RESEARCH, its 17 pinned evidence records and the proposed feature's acceptance contract. Recheck the exact release/license/module/API using current primary sources, including transitive/solver obligations. Separate software reuse from dataset display/retention/redistribution rights, credentials and real costs. Compare a small original implementation or existing dependency against the candidate. Return adopt/adapt/reference/defer/reject with one concrete integration boundary and actual evidence. Install only if the current task authorizes the implementation and no paid activation is needed; otherwise retain a fixture-based deliverable. Do not equate an API key with redistribution permission.
+
+## P17 — Execute one fully specified milestone
+
+Read CLAUDE_HANDOFF/IMPLEMENTATION_HANDOFF/current Git state, then IMPLEMENTATION_PLAN, selected MILESTONE_PLANS package and its due decision-register entries. Verify prerequisite evidence exists; resolve only concrete blockers for this package. Execute its ordered tasks within owned paths, run the defined independent acceptance, record actual commands/hashes/results/limitations, update handoff with one next gate and stop. Proposed CLIs/tests do not exist until implemented; don't claim them run. Do not auto-start later milestones or optional FF7/FF8.
+
+## P18 — Final-phase extension decision
+
+Execute FF8's design gate only after selecting one real requested extension. Produce bounded SPEC/PLAN/ACCEPTANCE with user value, lifecycle/authority, dependency/rights/cost and independent failure/recovery cases. No unknown feature wishlist or automatic deployment/live feed/league/derivatives build. A concrete defer/reject is valid if required evidence is absent. Initial-game completion remains FF6c.
+
+Claude continuation: Read this handoff and verify the current repository state before editing. Critically review the revised plan using bounded financial, gameplay, and engineering reviewers. Resolve concrete contradictions and improve weak acceptance criteria before implementation. Then implement only the next agreed milestone, validate it against the documented acceptance cases, and update this handoff with evidence and the next task.

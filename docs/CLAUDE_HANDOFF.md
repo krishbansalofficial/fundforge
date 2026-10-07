@@ -1,48 +1,27 @@
-# Claude handoff — FundForge v2.1
+# Claude handoff: FundForge v2.2
 
-## Actual state
+7 October2026. Planning only. Original v2.2 review entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f` was clean; this continuation entered its preserved planning diff. The user requested publication of the completed plans; see PROGRESS for actual publication evidence and inspect current Git state before editing. Repository visibility was not freshly verified. Local tree has audit/docs/fixtures and document scripts, **no application, Python/Pydantic foundation or26-test suite**. Do not assume work in another session transferred.
 
-Private repository: https://github.com/krishbansalofficial/fundforge. Documentation-only, no frontend/backend/database/model/provider connection/deployment. The owner asked to rethink the whole product as a full hedge-fund game and evaluate OpenSEO, using Astra. The v2.1 critical review used Astra with extra-high reasoning, researched 17 pinned repositories and corrected the contracts; implementation remains pending.
+Full-milestone continuation, planning revision 2.2-M1: this follow-up started with the previous planning diff already present, not a clean tree. All 20 phases through final FF8 now have full work packages in [MILESTONE_PLANS](MILESTONE_PLANS.md), with task order/ownership/deliverables/acceptance/failure/stop. [PLAN_REVIEW_AND_DECISIONS](PLAN_REVIEW_AND_DECISIONS.md) assigns 13 unresolved or selected decisions to their due milestone. The user explicitly requested commit/push; application implementation and dependencies remain forbidden in this planning turn. Inspect Git history/status for actual publication state rather than infer it from an earlier clean-entry snapshot.
 
-The old $100,000, 30-day, mandatory-approval-for-every-trade plan is superseded. Current default: two firm partners manage $25m of outside LP capital and a separate $300k company over 60 simulated business days/six chapters. Fees, investor dealing, long/short financing, firm runway, committee governance and crises belong in the first playable game.
+Read CLAUDE.md, this handoff, IMPLEMENTATION_HANDOFF, PROGRESS and DESIGN_REVIEW_V2_2; then only the current task's contracts. Source docs are canonical, generated combined Word/Markdown are projections. FUND_ACCOUNTING owns economics, GAME_SYSTEMS player rules, MASTER_SPEC release scope, SIMULATION_ARCHITECTURE interfaces, SCENARIO_CONTRACTS the tightened three challenge authoring schedules. Old JSON branch dollars remain isolated arithmetic, not full dated runs.
 
-## Start
+For implementation also read IMPLEMENTATION_PLAN plus the selected MILESTONE_PLANS section and due decisions; do not reload all later phase details or treat optional FF7/FF8 as base-game requirements. This pass explicitly adds the pure session/independent arbitrary-path control prerequisite before the early human prototype, recovery-tail coverage, actual control/restriction mechanics in6a, end-to-end historical replay in7a and a bounded final extension-planning gate.
 
-Read CLAUDE.md, this file, PROGRESS.md, DECISIONS.md, MASTER_SPEC.md, then the relevant game/accounting contracts. Inspect current Git state and installed tools. Do not read the generated combined document in addition to its source docs. Inventory installed skills by names once; do not assume a particular local Vercel installation or model syntax.
+## What changed and why
 
-Use P01 in PROMPT_PACK.md to review contradictions and freeze FF0 contracts. Start only the requested bounded milestone. No application work was implicitly completed by generating this design. Do not recreate the repository or force-push it.
+Three independent read-only financial, gameplay and engineering reviewers were requested and completed; all findings/dispositions are recorded in DESIGN_REVIEW_V2_2. Accepted Case2 post-flow issuer correction, settled replacement timing, frozen pending-return collateral, bounded termination, extended gate horizon, useful operating actions, exact precision/hash/retry/readiness, smaller milestones and earlier human test. Removed dominated active Case3 hiring; kept forecast arithmetic. Rejected artificial capability rewards, additional finance frameworks and SEO/marketing integrations. Useful prior financial-library/source research retained; only uncertain material choices rechecked.
 
-## Core experience
+The full initial game remains two human partners,25m investor fund and300k separate firm,60 synthetic weekdays/six chapters, LP terms, equity long/short financing, fees, firm survival and crises. First releasable game remains a complete day1–21 opening arc, not a chart/ticket demo. New FF3b is an explicitly internal short challenge to test role agency before building the full UI/campaign. Optional providers/AI/ML remain deferred; no real-money/paid activity.
 
-Two partners brief, allocate research effort, choose investments and capital/liquidity commitments, respond to an investor/broker/business event, advance a deterministic market clock, then inspect consequences. Delegated sleeves avoid an approval-clicking simulator; exceptions still require independent agreement. The operating partner has financing, LP and staffing/budget decisions of their own.
+## Next agreed task and stop condition
 
-The first playable two-chapter arc must demonstrate a long/short book, borrow/margin, an investor flow, fee accounting, separate company runway, a consequential disagreement and a causal debrief. A chart and order ticket are foundation work, not the product gate.
+**FF0a only:** materialize Case1's complete authored12–21 schedule, schema/loader, three actor-tagged scripts and independent daily financial oracle/coverage/hashes. Exact paths and X01–X07 are in IMPLEMENTATION_HANDOFF. No economic reducer, full frontend/backend scaffold, DB, provider, feature expansion or deployment. A validated authored fixture is not a working game. After evidence/review update handoff and stop before FF0b.
 
-## Important contracts
+Unresolved: full-path dated oracle totals/feasibility, compiled challenge tapes, ordinary zero-position opening/full campaign tape, release/DB/auth/migration choices, staffing payoff in full game, balance and enjoyment. The record-complete authoring schedules still need materialization and independent calculations; don't turn100k safety bounds or omitted weekend charges into actual postings. Case2 no-sale leverage breach does not necessarily mean payment default if allowed credit suffices. Case3 seeded47k firm cash oracle excludes later newly collected fees. Termination cannot cash provisional incentive merely because season scoring ends.
 
-- FUND_ACCOUNTING owns event ordering, balances, fees/series, cash settlement and financial conventions.
-- GAME_SYSTEMS owns actions, roles, trust, house rules, progression and evaluation.
-- SEASON_SCENARIOS owns authored arcs and the vertical slice.
-- MASTER_SPEC owns product scope and the canonical document map; SIMULATION_ARCHITECTURE owns software interfaces.
-- REALISM_AUDIT lists prioritized gaps and industry-versus-contract-versus-game distinctions.
-- LIBRARY_RESEARCH and fixtures/library_review.json record17 actual source/license reviews. No dependency was installed.
-- ACCEPTANCE_TESTS lists required observable behavior, not executed tests.
-- OPENSEO_INTEGRATION pins inspected upstream code and separates optional research from the engine.
+## Commands and actual evidence
 
-Preserve both simulated time and wall-clock audit time. External research must never reveal a future historical fact. Treat all numerical campaign settings as explicit fictional house rules. Never represent simulated LP terms as universally applicable law or real fund compliance.
+State: `git status --short`, `git log -5 --oneline`, `rg --files`. Docs: `python scripts/build_documents.py`, `python scripts/validate_design.py`. PACKAGING_VALIDATION records final executed results. Original validator failed Windows cp1252; UTF-8 retry exposed missing python-docx. Scripts now have explicit UTF-8 and standard-library Word fallback; no package installed. Python3.14.3 observed, node/npm on PATH; psql/soffice not found on PATH. No application/race/security/playtest/provider/ML checks ran. Word structure/content checked, pages not rendered. Future loader/test commands are proposed, clearly labeled in IMPLEMENTATION_HANDOFF.
 
-## Delivery boundaries
-
-FF0–FF4 build foundations. FF5 is a complete two-chapter opening arc through ordinary day21 opening administration. FF6 is the full campaign through ordinary day61 opening administration and reliability/balance gate. FF7 adds optional data/research/ML. All pending. Fixture mode requires no credentials. An OpenSEO assessment is not an installed integration; real API spend remains disabled.
-
-At task end record changed behavior, actual checks and limitations, then update PROGRESS with one next task. Use a bounded financial/security reviewer when authorized. Do not launch extra agents or redesign the whole product after every milestone.
-
-## Critical v2.1 contracts
-
-Opening series participation is net capital plus reversible incentive provision. Management fee1.5% ACT/365 and settled borrow/debit ACT/360 accrue on calendar dates, including weekends; statistical252 annualization is a different calculation. Performance crystallizes annually on Dec31 and pro rata on dealt redemptions. A partial redemption does not ratchet surviving HWM. The Jan–Mar campaign does not pay an annual incentive merely because it ends.
-
-Check all constraints on reductions: a short cover can increase net exposure, and a dealt redemption shrinks equity before payment. Borrow persists until settled return. Independently authored broker/admin controls can reveal a balanced but wrong journal. Corporate actions cover cash distributions and integer splits only. The synthetic calendar deliberately ignores real exchange holidays.
-
-The minimal first-playable stack is the planned app/database plus our own deterministic domain. pandas/exchange_calendars, optional DuckDB, then optional CVXPY/statsmodels belong to justified FF7 tasks. OpenBB/OpenSEO are possible data adapters; LEAN/Nautilus are references; rateslib default rights and vectorbt Commons Clause prevent treating them as unrestricted dependencies. Recheck exact versions before reuse.
-
-A Renewal ending is conditional continuation, not proof of a sustainable firm. At constant25m,1.5% annual management fees are375k against1.04m annualized20k/week overhead:665k structural gap before incentive income/capital/cost changes. The300k opening company balance is15 weeks at base cost; four weeks of remaining runway does not finance another12-week season. Display this gap and require an explicit continuation budget/recapitalization contract; do not award sustainability from AUM or provisional incentive alone.
+Claude continuation: Read this handoff and verify the current repository state before editing. Critically review the revised plan using bounded financial, gameplay, and engineering reviewers. Resolve concrete contradictions and improve weak acceptance criteria before implementation. Then implement only the next agreed milestone, validate it against the documented acceptance cases, and update this handoff with evidence and the next task.

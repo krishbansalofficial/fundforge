@@ -1,4 +1,8 @@
-# Acceptance contracts v2.1
+# Acceptance contracts v2.2
+
+v2.2 supplements below supersede ambiguous ordering/scenario-success assumptions. All application cases remain pending. See IMPLEMENTATION_HANDOFF for X01–X07 authoring/loader cases; none is a working test here.
+
+Planning revision 2.2-M1: MILESTONE_PLANS maps these cases to all 20 full work packages. Required acceptance of an unavailable later subsystem is not claimed early: fee transformations atFF1b are primitives, actual Case1 dealing/payment/run composition atFF2c, pure authority atFF3a, real DB races atFF4a, authenticated two-user UI atFF5b and human release evaluation atFF5c/FF6c. Independent narrow Case1 controls precede arbitrary human action; fixed expected script records alone cannot certify another path. Winddown V31–V32 requires authored tail coverage and actual liquidation. Historical replay atFF7a requires a full shared-engine case, not schema-valid import.
 
 These cases describe tests to implement, not executed application tests. Financial expectations come from independently worked arithmetic and FUND_ACCOUNTING. Use fixed precision, a deterministic clock and real PostgreSQL for races. All house-rule parameters come from the season manifest.
 
@@ -106,3 +110,37 @@ All cases remain **pending application implementation**. The packaging validator
 Scenario branch prerequisites and exact reference arithmetic are in SEASON_SCENARIOS and its fixtures. Do not claim all branches pass by checking only their expected-output JSON. Implement an independent loader/engine, test actual outputs and retain failure/default branches.
 
 V21: equity issuer limits apply to individual equities; each approved diversified ETF uses its separate absolute50% cap in either direction. Case3's short BEAM remains subject to gross/net/factor/borrow/financing tests. Neither applying an unintended8% ETF cap nor treating ETF exposure as unlimited is valid.
+
+## v2.2 precise independent acceptance cases
+
+| ID | Given / action | Independent required observation |
+|---|---|---|
+| A22 | Case2 normalized pay-all/gate branches with corrected six2.5m equities plus2.5m BOND/8m BEAM | All issuer/sector/ETF/gross/net/margin/credit/cash constraints independently checked; largest equity2.5m /18,995,800 <15%, with dated carry rechecked. Old five3m basket must fail even though gross/net pass |
+| V22 | Decimal serialization/DB round-trip | Fixed declared scales, positive zero, no exponent/float/nonfinite/overflow, HALF_EVEN ties1.005→1.00/1.015→1.02; field bounds rejected before commit |
+| V23 | Fee thirds/residual checkpoint mid-accrual then restore | Three $1m×2%/360 dates total166.67 after residual; uninterrupted and restored balances/residuals/canonical hashes identical |
+| V24 | Same typed state with reordered object keys, array event order, audit timestamps | Key order/audit time do not change economic hash; changed event order/residual/next phase does. FF0b pins independent bytes/SHA256 test vectors |
+| V25 | Sell100 shares at50 unsettled, mark55, later cover40 at56.056 (reference56), return next business date after mark60 | Initial receivable5000 earmarked; mark55 needs500 top-up, not5500 extra. At cover frozen pending target2240; remaining60 active re-mark. Return releases2240 against2242.24 cover, needs2.24 extra; pending borrow fees use actual marks until return. Failed return keeps loan/cash; split preserves aggregate retained cash |
+| V26 | Case1 accept1,250 replacement before14 EXEC_B versus after cutoff | Timely transfer15 cancels matching recall/no economic short change; loan total unchanged;40% starts15,2% ceased for subset. Late rejected/no signature or locate can cure; deadline buy-in still possible |
+| V27 | Margin shock16, valid voluntary sale queued before next event, no overdue recall | Execute valid voluntary cure first at eligible event; zero residual call means no forced fill. Partial insufficient cure uses remaining capacity for forced action; no fabricated fill on halt. Due recall remains first |
+| V28 | Case2 gate and pay-all dated scripts through61 | All dealt claims paid; deferred units reprice at60 and fully paid61; no phantom fixed deferred dollars; initial195,800/197,976.96 cash is isolated, not accrued output. No-sale branch can breach leverage without necessarily defaulting if permitted credit suffices |
+| V29 | Case3 balanced wrong opening + independently truthful broker/admin record |200k expense/payable,40k reversal,26.84m corrected opening NAV; old report retained, correction once. New dated fees/ALTO gain alter later NAV; certificate cannot copy opening26.84m indefinitely |
+| V30 | Case3 diligence/admit versus public-research/decline | Both can meet honest-report/solvency goal; admission issues new series and zero company cash. Missed35 certification loses prospect even if later corrected. Dominated hire not counted as independent strategy |
+| V31 | Joint winddown, executable capacity and solvent fully settled closing assets | Actual liquidation/cost/carry, final certified participation termination, surviving provision fixed once, units burned/final claims paid; scored endpoint alone does none of this |
+| V32 | Winddown halt/unreturned borrow or NAV<=0 at ten-day horizon | Preserve residual assets/claims/fees/collateral, UNRESOLVED_WINDDOWN/default classification; no stale terminal fill or invented payable forgiveness |
+
+Concurrency case initial states and permitted pairs (real PostgreSQL at FF4a):
+
+- C13: version10, two distinct new commands both expecting10 and competing for the same finite reserve. Barrier releases two connections. Exactly one commits version11; other VERSION_CONFLICT, zero loser journal/reservation/outbox economic effect. Rebase with a new key may still be rejected for resources. Repeat100 trials per declared environment; trial count is scenario evidence, not formal universal proof.
+- C14: same actor/key/payload expected10 repeated after original committed11 and current state advanced12. Both current authorized retries return the original committed result; no fresh risk test/fee/fill or version increase. Changed payload yields IDEMPOTENCY_CONFLICT. Revoked/cross-season actor denied without revealing original result; original economics unchanged.
+- C15: cancel versus fill share same order/version and event. Allowed pairs: cancellation accepted then fill no-op, or fill committed then cancellation affects remainder only. Filled quantity/capacity/journal identity exactly once, released reservation equals actual unfilled quantity; no negative remainder. Crash precommit leaves no effect; postcommit retry returns stored result/outbox can deliver twice without economic duplication.
+- C16: two ready partners against digestD/version10, then material order/reserve mutation to11. Old-ready advance rejected. Both ready on new digest, duplicate advance one phase only; accepted log fixes sequence. Metadata chat neither changes economics nor authorizes advance.
+
+## Planned gameplay/evaluation protocol (no results yet)
+
+FF3b recruits at least three two-person pairs for internal challenge; FF5c at least six pairs (three novice-finance pairs and three with finance familiarity), consented observation without collecting financial/personal data. These are practical pilot sample sizes, not statistical-power claims. Counterbalance role assignment; independent observation tracks timestamps, command IDs, role, available evidence, rejected actions, facilitator help and causal effects. Target chapter duration20–30min, opening40–60min is a hypothesis; publish median/range rather than claim tested target.
+
+Predeclared provisional release criteria: each partner makes at least two consequential choices changing exposure/resources/information/capital outcomes over opening arc; no partner spends >25% of decision-window time waiting solely for the other's required approval; both explain cash versus NAV, next binding deadline and one immediate/delayed consequence; after failure both identify one available recovery or honest winddown without financial coaching. Ask separately whether each wants another chapter (1–5) and why; target median>=4 while retain dissent and confused cases. Automated scripts cannot satisfy human gates. Unresolved repeated role starvation or misunderstood mandatory obligations blocks release; revise options/info/order, not add dashboards to distract.
+
+Evaluate research usefulness with matched authored cards/public-only/wait scripts and observations of changed ex-ante choices; no bonus for hindsight correctness. Evaluate dominant strategies with versioned cash, diversified, liquidity-aware, concentrated gambler, trust spam, repeat gate and last-day exploit policies on identical tapes, then held-out versions. Report all outcomes, unpaid claims, fee/firm/LP effects and worst paths; no single-seed balance claim. Counterfactual replay changes one command under same tape and availability; it establishes mechanical model effect, not empirical causal skill.
+
+Evidence file per run records commit/runtime/command/schema/rules/tape/control hashes, expected/observed totals, source of oracle, pass/fail/pending, and limitations. Correctness/replay/race/information/scenario/human evidence are separate gates. No experiment in this section ran during planning.

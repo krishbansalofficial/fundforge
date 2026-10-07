@@ -1,10 +1,11 @@
 {
   "schema_version": "fundforge.scenario-cases.design.v2.1",
-  "prepared_on": "2026-10-06",
+  "prepared_on": "2026-10-07",
   "status": "AUTHORED_DESIGN_AND_ARITHMETIC_ORACLES_NOT_RUNNABLE_ENGINE_OR_PLAYTEST",
   "authoritative_docs": [
     "docs/FUND_ACCOUNTING.md",
-    "docs/SEASON_SCENARIOS.md"
+    "docs/SEASON_SCENARIOS.md",
+    "docs/SCENARIO_CONTRACTS.md"
   ],
   "money": "FICTIONAL_USD",
   "rounding": {
@@ -337,6 +338,13 @@
         "post_redemption_nav_lower_bound": "22101983.93",
         "maintenance_headroom_lower_bound": "334532.93",
         "scope": "BOUND_ONLY_USE_ACTUAL_DATED_ENGINE_ACCRUALS"
+      },
+      "replacement_contract_v2_2": {
+        "accept_before": "DAY14_EXEC_B",
+        "transfer": "DAY15_OPEN_ADMIN",
+        "quantity": "1250",
+        "rate": "0.40",
+        "late_acceptance": "REJECT"
       }
     },
     {
@@ -412,6 +420,84 @@
         "request_to_units_rounding",
         "calendar_accrual_nav_bridge",
         "halt_variant_as_separate_fixed_version"
+      ],
+      "opening_positions": [
+        {
+          "instrument": "ALTO",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "COVE",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "ELAN",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "GALA",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "IONA",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "JUNO",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "BOND",
+          "side": "LONG",
+          "quantity": "25000",
+          "reference": "100"
+        },
+        {
+          "instrument": "BEAM",
+          "side": "LONG",
+          "quantity": "80000",
+          "reference": "100"
+        },
+        {
+          "instrument": "BRIN",
+          "side": "SHORT",
+          "quantity": "12500",
+          "reference": "100"
+        },
+        {
+          "instrument": "DART",
+          "side": "SHORT",
+          "quantity": "12500",
+          "reference": "100"
+        },
+        {
+          "instrument": "FENN",
+          "side": "SHORT",
+          "quantity": "12500",
+          "reference": "100"
+        },
+        {
+          "instrument": "HELI",
+          "side": "SHORT",
+          "quantity": "12500",
+          "reference": "100"
+        }
+      ],
+      "evaluation_horizon_v2_2": [
+        39,
+        61
       ]
     },
     {
@@ -477,7 +563,9 @@
           "day41_arrears_paid": "6000",
           "day41_cash": "29000",
           "weekly_cost": "24000",
-          "runway_weeks_12dp": "1.208333333333"
+          "runway_weeks_12dp": "1.208333333333",
+          "active_gameplay_choice": false,
+          "scope": "DOMINATED_FORECAST_TEACHING_EXAMPLE_ONLY"
         }
       ],
       "objectives": [
@@ -511,5 +599,7 @@
     "two_human_role_balance_playtest",
     "deterministic_replay_and_control_reconciliation"
   ],
-  "executed_application_tests": false
+  "executed_application_tests": false,
+  "design_revision": "2.2.0",
+  "v2_2_scope": "OLD_EXPECTED_VALUES_ARE_ISOLATED_CHECKPOINTS_NOT_FULL_DATED_RUNS"
 }

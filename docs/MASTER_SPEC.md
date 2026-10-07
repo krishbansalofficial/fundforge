@@ -1,6 +1,8 @@
 # FundForge — hedge fund management game
 
-Version 2.1 · Realism and implementation review · 6 October 2026 · Specification, not implemented software
+Version 2.2 · Bounded plan strengthening · 7 October 2026 · Specification, not implemented software
+
+Planning revision 2.2-M1 adds full task-level packages for every phase through FF8 in [MILESTONE_PLANS](MILESTONE_PLANS.md), indexed by IMPLEMENTATION_PLAN. [PLAN_REVIEW_AND_DECISIONS](PLAN_REVIEW_AND_DECISIONS.md) records due decisions and corrections. Release boundaries unchanged: internal prototype FF3b, first playable FF5c, full initial game FF6c, optional research FF7 and selected-extension planning FF8. No feature implementation is claimed.
 
 ## 1. The game we are building
 
@@ -143,7 +145,7 @@ Do not remove LPs, firm cash or financing from the integrated slice to hit an ar
 
 Launch exclusions: options, futures, swaps, OTC, multi-currency, multi-prime optimization, tax, side pockets, real fund documents, filings, live order routing, real investor outreach, public competitive matchmaking and a freely acting LLM fund manager. Staff, gates and corporate events use the few declared rules needed by launch; deeper variants are later.
 
-OpenSEO is a potentially useful external SEO/website-intelligence component, not a finance engine or a mandatory market-data source. Follow the separately verified integration document; do not replace it with OpenBB or imply that an untested integration already exists.
+SEO and marketing integrations are excluded from the active plan. The previous OpenSEO assessment is archived research, not a dependency, acceptance gate or future task.
 
 ## 11. Engineering, research and evidence
 
@@ -157,7 +159,7 @@ One later ML candidate is filtered HMM regime inference compared with a simple t
 
 Tutorials attach to decisions: borrow recall, leverage, liquidity, unit issuance, fee recovery and conflicting stakeholder incentives. Template explanations work without AI. Optional LLM narration consumes verified event facts and cannot invent metrics or determine grades.
 
-Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result. The three numerical cases in SEASON_SCENARIOS are authored playable specifications with explicit paths, not implemented or balance-tested episodes.
+Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result. The three cases have detailed bounded authoring schedules in SCENARIO_CONTRACTS. Compiled tapes, independently completed daily path totals, engine outputs and balance/playtest results remain pending. DESIGN_REVIEW_V2_2 records accepted/rejected recommendations; IMPLEMENTATION_HANDOFF limits the next task to FF0a.
 
 ## 12. Source discipline
 

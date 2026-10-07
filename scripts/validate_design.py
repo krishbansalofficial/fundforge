@@ -22,7 +22,7 @@ def rounded(value, scale='0.01'):
     return value.quantize(D(scale), rounding=ROUND_HALF_EVEN)
 
 def load(name):
-    return json.loads((ROOT/'fixtures'/name).read_text())
+    return json.loads((ROOT/'fixtures'/name).read_text(encoding='utf-8'))
 
 def dates(start, end):
     a, b = date.fromisoformat(start), date.fromisoformat(end)
@@ -30,13 +30,13 @@ def dates(start, end):
 
 mds = [p for p in ROOT.rglob('*.md') if 'documents' not in p.parts]
 for p in mds:
-    s = p.read_text()
+    s = p.read_text(encoding='utf-8')
     check(sum(line.startswith('```') for line in s.splitlines()) % 2, 0, f'{p.name}: fences')
     for target in re.findall(r'\[[^\]]+\]\(([^)]+)\)', s):
         if '://' not in target and not target.startswith(('#', 'mailto:')):
             check((p.parent/target.split('#')[0]).exists(), True, f'{p.name}: link {target}')
 for p in (ROOT/'fixtures').glob('*.json'):
-    json.loads(p.read_text())
+    json.loads(p.read_text(encoding='utf-8'))
 season = load('season_scenario.json')
 check(season['scenario_version'], '2.1.0', 'scenario version')
 dec_equal(sum(D(x['capital']) for x in season['investors']), season['opening']['fund_nav'], 'LP capitalization')
@@ -132,6 +132,9 @@ with localcontext() as ctx:
         req=required-q*ref*coef
         dec_equal(nav,b['nav'],'case1 post-fill NAV');dec_equal(req,b['maintenance_required'],'case1 post-fill maintenance');dec_equal(nav-req,b['maintenance_headroom'],'case1 headroom')
     two=episodes['case_2_profitable_illiquid_redeeming'];a=two['opening_comparison'];qte=two['quote']
+    basket=two['opening_positions']
+    check(sum(D(p['quantity'])*D(p['reference']) for p in basket if p['side']=='LONG'),D(a['long_mv']),'case2 complete long basket')
+    check(sum(D(p['quantity'])*D(p['reference']) for p in basket if p['side']=='SHORT'),D(a['short_mv']),'case2 complete short basket')
     dec_equal(D(a['cash'])+D(a['restricted_cash'])+D(a['long_mv'])-D(a['short_mv'])-D(a['broker_debt'])-D(a['fixed_invoice']),a['nav'],'case2 balance')
     for b in two['expected_branches']:
         q=D(b['sell_quantity']);ref=D(qte['reference']);vol=D(qte['volume'])
@@ -143,6 +146,19 @@ with localcontext() as ctx:
         for k,v in values.items():dec_equal(v,b[k],f'case2 {b["id"]} {k}')
         check((values['post_long_mv']+values['post_short_mv'])/values['post_flow_nav']<=D(season['mandate']['gross_max']),True,'case2 gross')
         check((values['post_long_mv']-values['post_short_mv'])/values['post_flow_nav']<=D(season['mandate']['net_max']),True,'case2 net')
+        for p in basket:
+            if p['instrument'] not in ('BEAM','BOND'):
+                cap=D('.15') if p['side']=='LONG' else D('.08')
+                check(D(p['quantity'])*D(p['reference'])/values['post_flow_nav']<=cap,True,f'case2 issuer {p["instrument"]}/{b["id"]}')
+        sectors=[('ALTO','BRIN'),('COVE','DART'),('ELAN','FENN'),('GALA','HELI'),('IONA','JUNO')]
+        for ids in sectors:
+            gross=sum(D(p['quantity'])*D(p['reference']) for p in basket if p['instrument'] in ids)
+            check(gross/values['post_flow_nav']<=D('.35'),True,f'case2 sector {ids}/{b["id"]}')
+        check(D('3000000')/values['post_flow_nav']>D('.15'),True,'old inherited issuer basket fails')
+        check(values['post_long_mv']*D('.5')+values['post_short_mv']*D('.6')<=values['post_flow_nav'],True,'case2 initial margin')
+        check(values['payment_cash']>=0,True,'case2 normalized cash solvent')
+        check((D('8000000')-q*ref)/values['post_flow_nav']<=D('.5'),True,'case2 BEAM cap')
+        check(D('2500000')/values['post_flow_nav']<=D('.5'),True,'case2 BOND cap')
     three=episodes['case_3_balanced_but_wrong_nav'];a=three['company'];start=D(a['opening_cash']);weekly=D(a['baseline_weekly_cost']);receipt=D(a['management_fee_receivable_due_day41'])
     f=three['fund_opening']
     dec_equal(D(f['cash'])+D(f['restricted_cash'])+D(f['long_mv'])-D(f['short_mv'])-D(f['fixed_management_fee_payable'])-D(f['provisional_performance_fee']), f['net_nav'], 'case3 fund balance includes fixed fee')
@@ -154,6 +170,18 @@ with localcontext() as ctx:
         for k,v in {'day30_cash':d30,'day35_cash':d35,'day40_cash':max(D(0),d40),'day41_cash':d41,'weekly_cost':burn}.items():dec_equal(v,b[k],f'case3 {b["id"]} {k}')
         key='runway_weeks_12dp' if hire else 'runway_weeks';dec_equal(rounded(d41/burn,'0.000000000001'),b[key],'case3 runway')
         if hire:dec_equal(arrears,b['day40_unpaid_payroll'],'company arrears')
+    check(three['expected_company_branches'][1]['active_gameplay_choice'],False,'dominated hire excluded')
+    check(two['evaluation_horizon_v2_2'],[39,61],'gate evaluation continues through payment')
+    residual=D(0);posted=D(0)
+    expected_residuals=['-0.004444444444444444444444','0.001111111111111111111112','-0.003333333333333333333332']
+    for expected in expected_residuals:
+        accrual=D('1000000')*D('.02')/360
+        today=rounded(residual+accrual)
+        residual=rounded(residual+accrual-today,'0.000000000000000000000001')
+        posted+=today
+        dec_equal(residual,expected,'v2.2 residual recurrence')
+    dec_equal(posted,'166.67','v2.2 carried three-date total')
+    dec_equal(rounded(D('0.0000000000000000000000005'),'0.000000000000000000000001'),'0','residual HALF_EVEN tie')
 
     route=one['continuation_feasibility']
     before=D(one['expected_response_branches'][0]['nav'])-D('1900')
@@ -173,10 +201,41 @@ for c in candidates:
         check(c[key].startswith('https://github.com/'+c['repository']+'/blob/'+c['snapshot']+'/'),True,f'{c["id"]} pinned {key}')
     check(c['recommendation']!='',True,f'{c["id"]} recommendation')
 
+# Validate planning coverage only; this is not milestone execution evidence.
+roadmap=(ROOT/'docs/IMPLEMENTATION_PLAN.md').read_text(encoding='utf-8')
+packages=(ROOT/'docs/MILESTONE_PLANS.md').read_text(encoding='utf-8')
+roadmap_rows=[line.split('|')[1:5] for line in roadmap.splitlines() if re.match(r'^\| FF\d[a-z]?:',line)]
+roadmap_ids=[re.match(r'\s*(FF\d[a-z]?):',row[0]).group(1) for row in roadmap_rows]
+headers=list(re.finditer(r'^## (FF\d[a-z]?)\s+—',packages,re.M))
+package_ids=[match.group(1) for match in headers]
+check(len(roadmap_ids),20,'twenty roadmap milestones')
+check(len(set(roadmap_ids)),20,'unique roadmap milestones')
+check(package_ids,roadmap_ids,'detailed plans cover all roadmap milestones in order')
+for index,header in enumerate(headers):
+    section=packages[header.start():headers[index+1].start() if index+1<len(headers) else len(packages)]
+    for field in ['**Purpose and value.**','**Entry / inputs.**','**Ownership / outputs.**','**Ordered tasks','**Acceptance / verification.**','**Failure and stop.**']:
+        check(field in section,True,f'{header.group(1)} full work-package field {field}')
+    check(bool(re.search(r'^1\. ',section,re.M)),True,f'{header.group(1)} ordered execution tasks')
+dependencies={identifier:re.findall(r'FF\d[a-z]?',row[1]) for identifier,row in zip(roadmap_ids,roadmap_rows)}
+visited=set(); active=set()
+def visit(identifier):
+    if identifier in active:
+        raise ValueError(f'Milestone dependency cycle at {identifier}')
+    if identifier in visited: return
+    active.add(identifier)
+    for dependency in dependencies[identifier]:
+        if dependency not in dependencies:
+            raise ValueError(f'Unknown dependency {dependency} for {identifier}')
+        visit(dependency)
+    active.remove(identifier); visited.add(identifier)
+for identifier in roadmap_ids: visit(identifier)
+check(len(visited),20,'milestone dependency graph acyclic and complete')
+# Conditional historical-data prerequisite is checked conservatively for cycles.
+
 from build_documents import SOURCES, markdown_links
-combined=(ROOT/'documents/FundForge_Project_Spec_and_Claude_Handoff.md').read_text()
+combined=(ROOT/'documents/FundForge_Project_Spec_and_Claude_Handoff.md').read_text(encoding='utf-8')
 for p in SOURCES:
-    check(markdown_links((ROOT/p).read_text(),p) in combined,True,f'bundle current: {p}')
+    check(markdown_links((ROOT/p).read_text(encoding='utf-8'),p) in combined,True,f'bundle current: {p}')
 word=ROOT/'documents/FundForge_Project_Spec_and_Claude_Handoff.docx'
 with zipfile.ZipFile(word) as z:
     check(z.testzip(),None,'Word archive')
@@ -187,6 +246,22 @@ with zipfile.ZipFile(word) as z:
     for path in SOURCES:
         check(path in word_text,True,f'Word source: {path}')
     check(tables>=10 and paras>=100,True,'Word nonempty structure')
+    if 'source_manifest.json' in z.namelist():
+        import hashlib
+        manifest=json.loads(z.read('source_manifest.json'))
+        check(manifest,{p:hashlib.sha256((ROOT/p).read_text(encoding='utf-8').encode('utf-8')).hexdigest() for p in SOURCES},'Word exact source hashes')
+        for name in z.namelist():
+            if name.endswith(('.xml','.rels')):
+                ElementTree.fromstring(z.read(name))
+        # Check visible text, not only a manifest that could accompany stale content.
+        actual_paras=[''.join(p.itertext()) for p in xml.findall('.//w:p',ns)]
+        for path in SOURCES:
+            for line in (ROOT/path).read_text(encoding='utf-8').splitlines():
+                if not line.strip() or line.startswith('```') or line=='---' or re.fullmatch(r'\|[ :|\-]+\|',line): continue
+                values=[x.strip() for x in line.strip('|').split('|')] if line.startswith('|') else [re.sub(r'^#{1,6}\s+','',line)]
+                for value in values:
+                    visible=re.sub(r'\[([^\]]+)\]\(([^)]+)\)',r'\1',value.replace('**','').replace('`',''))
+                    check(visible in actual_paras,True,f'Word visible source text: {path}')
 if errors:
     raise SystemExit('\n'.join(errors))
 print(f'PASS: {checks} packaging/reference checks; {len(mds)} source Markdown files; {len(SOURCES)} bundled sections; {tables} Word tables/{paras} paragraphs; 9 arithmetic oracles, 3 episode checkpoint contracts, 17 pinned repository records.')

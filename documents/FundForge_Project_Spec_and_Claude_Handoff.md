@@ -1,6 +1,6 @@
 # FundForge — complete design and implementation handoff
 
-Version 2.1 · 6 October 2026 · Design package; application unimplemented.
+Version 2.2 · 7 October 2026 · Design package; application unimplemented.
 
 Generated from canonical repository documents. Edit the sources and rerun scripts/build_documents.py.
 
@@ -13,7 +13,7 @@ Source: `README.md`
 
 A cooperative hedge-fund management strategy game. Two partners build an investment business, manage outside investors' capital, and survive the consequences of their decisions.
 
-**Status: design package v2.1, 6 October 2026. No application has been implemented.** This revision critically audits v2.0 using Astra with extra-high reasoning and primary-source research. Earlier versions remain in Git history.
+**Status: design package v2.2, 7 October 2026. No application has been implemented.** Three bounded independent reviews strengthened the existing v2.1 plan. The reported Python/Pydantic foundation and26 tests are absent from this checkout. Earlier research remains preserved.
 
 ## The game
 
@@ -25,15 +25,18 @@ The objective is durable, mandate-consistent investor outcomes and a viable firm
 
 ## Read in this order
 
-1. [Realism audit](https://github.com/krishbansalofficial/fundforge/blob/main/docs/REALISM_AUDIT.md), then [master specification](https://github.com/krishbansalofficial/fundforge/blob/main/docs/MASTER_SPEC.md): critical findings, priorities and product boundaries.
-2. [Game systems](https://github.com/krishbansalofficial/fundforge/blob/main/docs/GAME_SYSTEMS.md): actions, roles, capital, progression and scoring.
-3. [Season scenarios](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SEASON_SCENARIOS.md): actual decisions and crisis arcs.
-4. [Fund accounting](https://github.com/krishbansalofficial/fundforge/blob/main/docs/FUND_ACCOUNTING.md): authoritative financial contracts.
-5. [Implementation plan](https://github.com/krishbansalofficial/fundforge/blob/main/docs/IMPLEMENTATION_PLAN.md) and [acceptance cases](https://github.com/krishbansalofficial/fundforge/blob/main/docs/ACCEPTANCE_TESTS.md).
-6. [Simulation architecture](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SIMULATION_ARCHITECTURE.md): ownership, interfaces, replay, precision, concurrency and information safety.
-7. [Library research](https://github.com/krishbansalofficial/fundforge/blob/main/docs/LIBRARY_RESEARCH.md) and [OpenSEO assessment](https://github.com/krishbansalofficial/fundforge/blob/main/docs/OPENSEO_INTEGRATION.md): 17 pinned repository reviews, reuse decisions and data-rights boundaries.
+1. [Realism audit](https://github.com/krishbansalofficial/fundforge/blob/main/docs\REALISM_AUDIT.md), then [master specification](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MASTER_SPEC.md): critical findings, priorities and product boundaries.
+2. [Game systems](https://github.com/krishbansalofficial/fundforge/blob/main/docs\GAME_SYSTEMS.md): actions, roles, capital, progression and scoring.
+3. [Season scenarios](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SEASON_SCENARIOS.md): actual decisions and crisis arcs.
+4. [Fund accounting](https://github.com/krishbansalofficial/fundforge/blob/main/docs\FUND_ACCOUNTING.md): authoritative financial contracts.
+5. [Implementation plan](https://github.com/krishbansalofficial/fundforge/blob/main/docs\IMPLEMENTATION_PLAN.md) and [acceptance cases](https://github.com/krishbansalofficial/fundforge/blob/main/docs\ACCEPTANCE_TESTS.md).
+6. [Simulation architecture](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SIMULATION_ARCHITECTURE.md): ownership, interfaces, replay, precision, concurrency and information safety.
+7. [Library research](https://github.com/krishbansalofficial/fundforge/blob/main/docs\LIBRARY_RESEARCH.md): retained pinned financial-library reviews; SEO/marketing excluded.
+8. [v2.2 review](https://github.com/krishbansalofficial/fundforge/blob/main/docs\DESIGN_REVIEW_V2_2.md), [complete challenge authoring contracts](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SCENARIO_CONTRACTS.md), and [exact next milestone](https://github.com/krishbansalofficial/fundforge/blob/main/docs\IMPLEMENTATION_HANDOFF.md).
 
-For coding, start with [Claude handoff](https://github.com/krishbansalofficial/fundforge/blob/main/docs/CLAUDE_HANDOFF.md), [progress](https://github.com/krishbansalofficial/fundforge/blob/main/docs/PROGRESS.md), then P01 in [prompt pack](https://github.com/krishbansalofficial/fundforge/blob/main/docs/PROMPT_PACK.md). The [combined Word document](https://github.com/krishbansalofficial/fundforge/blob/main/documents/FundForge_Project_Spec_and_Claude_Handoff.docx) is generated from the current Markdown documents.
+9. [Full milestone work packages](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MILESTONE_PLANS.md): all 20 milestones through final FF8, with ordered tasks, owned files, deliverables, validation and stop gates. [Decision register](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md) assigns unresolved choices/evidence to the phase that needs them. All application milestones remain pending.
+
+For coding, start with [Claude handoff](https://github.com/krishbansalofficial/fundforge/blob/main/docs\CLAUDE_HANDOFF.md), [progress](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PROGRESS.md), then P01 in [prompt pack](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PROMPT_PACK.md). The [combined Word document](https://github.com/krishbansalofficial/fundforge/blob/main/documents\FundForge_Project_Spec_and_Claude_Handoff.docx) is generated from the current Markdown documents.
 
 ## First playable release
 
@@ -43,7 +46,7 @@ A crisis-rich two-chapter opening arc (20 simulated business days, through ordin
 
 Next.js/TypeScript, FastAPI/Python, PostgreSQL; pure deterministic financial domain; fixed precision; immutable events and journal; as-of information access; versioned rules and fixtures. Begin with synthetic data and polling. Add workers, live providers, ML and optional read-only AI after the core game is sound. No external API is required to play the base campaign.
 
-No trading framework is required for the initial game. Later research can use pandas, exchange_calendars and optional DuckDB; CVXPY/statsmodels need a specific evaluated advisory feature. OpenSEO is a separate optional alternative-data source. No upstream code was copied, paid service activated, or deployment created in this revision.
+No trading framework is required for the initial game. Later research can use pandas, exchange_calendars and optional DuckDB; CVXPY/statsmodels need a specific evaluated advisory feature. SEO/marketing integrations are excluded from the current plan. No upstream code was copied, paid service activated, or deployment created in this revision.
 
 The private repository is already set up. Do not rerun the legacy repository-creation scripts here. Nothing in this package represents a live fund, brokerage service, legal compliance certification, measured model result or completed software feature.
 
@@ -59,6 +62,8 @@ Source: `docs/REALISM_AUDIT.md`
 The product should teach two partners to preserve the ability to invest: portfolio conviction, investor obligations, financing and the management company's survival interact. v2.0 already had the right scope: outside LP capital, a separate company, long/short finance, delegated authority, fixed information cutoffs and deterministic records. Replacing that foundation with a larger trading terminal or many libraries would weaken the product. The highest-value changes are economic consistency, a few independent controls and scenarios whose choices actually alter claims, cash and risk.
 
 This review applies six professional lenses—portfolio manager, chief risk officer, chief operating officer, fund accountant, quant researcher and cooperative-game designer. These are review perspectives, not claims of professional appointment or regulatory certification. Primary sources were checked on 6 October 2026; exact URLs and limits are below. Calculations and game prescriptions are our analysis, not rules imposed by those sources.
+
+v2.2 supplement (7 October 2026): [DESIGN_REVIEW_V2_2](https://github.com/krishbansalofficial/fundforge/blob/main/docs\DESIGN_REVIEW_V2_2.md) adds the three independent reviews and disposition, including post-flow issuer error, settled replacement, retained collateral and termination policy. [SCENARIO_CONTRACTS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SCENARIO_CONTRACTS.md) owns complete bounded authoring schedules. Retain the22 useful v2.1 findings below; current roadmap and handoff supersede the old next-task description. No economic implementation exists.
 
 ## 1. Prioritized audit and disposition
 
@@ -166,7 +171,9 @@ Source: `docs/MASTER_SPEC.md`
 
 # FundForge — hedge fund management game
 
-Version 2.1 · Realism and implementation review · 6 October 2026 · Specification, not implemented software
+Version 2.2 · Bounded plan strengthening · 7 October 2026 · Specification, not implemented software
+
+Planning revision 2.2-M1 adds full task-level packages for every phase through FF8 in [MILESTONE_PLANS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MILESTONE_PLANS.md), indexed by IMPLEMENTATION_PLAN. [PLAN_REVIEW_AND_DECISIONS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md) records due decisions and corrections. Release boundaries unchanged: internal prototype FF3b, first playable FF5c, full initial game FF6c, optional research FF7 and selected-extension planning FF8. No feature implementation is claimed.
 
 ## 1. The game we are building
 
@@ -209,7 +216,7 @@ All capital, entities, counterparties, salaries, investor communications and rew
 
 The initial $100 unit price applies to each original LP series. Later subscriptions create separate fee series; a single aggregate “NAV per unit” is then misleading. Show fund AUM, a flow-neutral performance index, and each investor's series value. Managers own the management company 50/50 in narrative terms; this does not give them ownership of all investor assets.
 
-Full rules live in [GAME_SYSTEMS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/GAME_SYSTEMS.md), [FUND_ACCOUNTING.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/FUND_ACCOUNTING.md) and [SEASON_SCENARIOS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SEASON_SCENARIOS.md). Those contracts take precedence over old tutorial defaults. The legacy $100k accounting fixture remains a deliberately isolated arithmetic exercise.
+Full rules live in [GAME_SYSTEMS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs\GAME_SYSTEMS.md), [FUND_ACCOUNTING.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs\FUND_ACCOUNTING.md) and [SEASON_SCENARIOS.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SEASON_SCENARIOS.md). Those contracts take precedence over old tutorial defaults. The legacy $100k accounting fixture remains a deliberately isolated arithmetic exercise.
 
 ## 3. The playable loop
 
@@ -309,7 +316,7 @@ Do not remove LPs, firm cash or financing from the integrated slice to hit an ar
 
 Launch exclusions: options, futures, swaps, OTC, multi-currency, multi-prime optimization, tax, side pockets, real fund documents, filings, live order routing, real investor outreach, public competitive matchmaking and a freely acting LLM fund manager. Staff, gates and corporate events use the few declared rules needed by launch; deeper variants are later.
 
-OpenSEO is a potentially useful external SEO/website-intelligence component, not a finance engine or a mandatory market-data source. Follow the separately verified integration document; do not replace it with OpenBB or imply that an untested integration already exists.
+SEO and marketing integrations are excluded from the active plan. The previous OpenSEO assessment is archived research, not a dependency, acceptance gate or future task.
 
 ## 11. Engineering, research and evidence
 
@@ -323,7 +330,7 @@ One later ML candidate is filtered HMM regime inference compared with a simple t
 
 Tutorials attach to decisions: borrow recall, leverage, liquidity, unit issuance, fee recovery and conflicting stakeholder incentives. Template explanations work without AI. Optional LLM narration consumes verified event facts and cannot invent metrics or determine grades.
 
-Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result. The three numerical cases in SEASON_SCENARIOS are authored playable specifications with explicit paths, not implemented or balance-tested episodes.
+Follow IMPLEMENTATION_PLAN and ACCEPTANCE_TESTS for the actual build sequence. The current repository remains documentation-only. No authored fixture, architectural diagram or validation of document arithmetic constitutes a working application, tested database, paid-provider entitlement, deployed model or measured load result. The three cases have detailed bounded authoring schedules in SCENARIO_CONTRACTS. Compiled tapes, independently completed daily path totals, engine outputs and balance/playtest results remain pending. DESIGN_REVIEW_V2_2 records accepted/rejected recommendations; IMPLEMENTATION_HANDOFF limits the next task to FF0a.
 
 ## 12. Source discipline
 
@@ -333,7 +340,7 @@ Primary reference links and verification notes belong in SOURCES. Any future edu
 
 ## 13. v2.1 realism boundaries and build decisions
 
-[REALISM_AUDIT.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs/REALISM_AUDIT.md) records the source-backed review across portfolio management, risk, operations, accounting, research and game design. Real concepts, specific counterparty terms and deliberate game rules are labeled separately. The first release remains one fund, one broker, one currency and twelve instruments; it does not need derivatives, a complete compliance department or a large optimizer to feel like a fund.
+[REALISM_AUDIT.md](https://github.com/krishbansalofficial/fundforge/blob/main/docs\REALISM_AUDIT.md) records the source-backed review across portfolio management, risk, operations, accounting, research and game design. Real concepts, specific counterparty terms and deliberate game rules are labeled separately. The first release remains one fund, one broker, one currency and twelve instruments; it does not need derivatives, a complete compliance department or a large optimizer to feel like a fund.
 
 Required small additions fix material errors: calendar accrual, annual/redemption fee timing, fair fee-series participation, post-redemption risk, signed hedge direction, one independent reconciliation exception, simple dividends/splits and a deterministic restricted-instrument state. The Managing Partner resolves funding/reporting/capital decisions; the Investment Partner resolves sizing, hedging and liquidation choices. Neither partner acts as a fictional independent administrator. Admin/broker NPCs are authored control records with separate responsibilities.
 
@@ -345,7 +352,7 @@ Use the updated accounting and scenario cases before implementation. Optional re
 
 Renewal is displayed as **Renewal — conditional continuation**, with remaining company cash runway, a13-week forecast and any unfunded next-season gap. It is not a claim of durable business viability or a guarantee that another12-week campaign is financed. Preserve cash, liabilities and fee history into continuation; no automatic company recapitalization.
 
-Canonical software boundary: [SIMULATION_ARCHITECTURE](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SIMULATION_ARCHITECTURE.md). Dependency evidence: [LIBRARY_RESEARCH](https://github.com/krishbansalofficial/fundforge/blob/main/docs/LIBRARY_RESEARCH.md). Detailed player decision contracts are in GAME_SYSTEMS section11; the acceptance/implementation documents define pending evidence gates.
+Canonical software boundary: [SIMULATION_ARCHITECTURE](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SIMULATION_ARCHITECTURE.md). Dependency evidence: [LIBRARY_RESEARCH](https://github.com/krishbansalofficial/fundforge/blob/main/docs\LIBRARY_RESEARCH.md). Detailed player decision contracts are in GAME_SYSTEMS section11; the acceptance/implementation documents define pending evidence gates.
 
 
 ---
@@ -357,6 +364,8 @@ Source: `docs/GAME_SYSTEMS.md`
 Version 2.1 · Proposed, unimplemented defaults · Read with MASTER_SPEC and FUND_ACCOUNTING.
 
 ## 1. Time, attention and cooperation
+
+v2.2 clarification (7 October 2026): SCENARIO_CONTRACTS specifies bounded challenge overrides; the base campaign retains rules below. IMPLEMENTATION_PLAN is now split into small milestones. The old isolated checkpoint fixtures remain arithmetic references, not complete tapes.
 
 A season has six chapters, each ten simulated business days. Planned windows occur before days 1/6, 11/16, 21/26, 31/36, 41/46 and 51/56, plus each chapter close. A close can also serve as the next opening committee without repeating the recap. Material margin, recall, redemption or solvency events insert a decision window before their deadline. A pause changes real waiting time, never which historical information is visible.
 
@@ -547,6 +556,21 @@ These summarize existing rules; they do not introduce extra currencies or approv
 
 **Chapter review, recovery and continuation.** Both see an event-linked return/cost/claims bridge and the next obligations. The Investment Partner revises thesis/risk; the Managing Partner revises liquidity, LP and company plans. Remaining resources and obligations carry forward. Success is the published scenario outcome with honest outstanding claims; a conditional Renewal is not a financed next quarter. Responsible winddown and survival after a mistake remain meaningful results. Paired replay teaches model-conditional alternatives without changing the ranked attempt or implying real-world alpha.
 
+## 12. Concrete operating actions and session contract v2.2
+
+Both partners see the same brief, deadlines, cash ladder, constraints and evidence available at the current barrier. At opening the PM chooses a thesis/sizing/research alternative; the Managing Partner chooses contingency/borrow terms and a binding treasury reserve. At reassessment they independently execute within charters, update feasible plans and propose only material exceptions jointly. Each marks ready against the same state/plan digest; a changed material plan clears readiness. Advance resolves deterministic events and auto-admin until next authored barrier/material incident. Response offers alternative sacrifices with cost/cash/deadline previews, then advance resolves later fills. Close explains real results and remaining obligations. No sixty-day checklist. Opening-arc target40–60minutes and challenge target20–30minutes are unmeasured design hypotheses.
+
+| Command / authority | Available information / alternatives | Immediate effect / delayed consequence | Success, failure, recovery / automation |
+|---|---|---|---|
+| TreasuryReserve: operating partner may raise within joint policy; jointly approve lowering below known signed obligations | Settled cash/credit, dated claims, conditional sales; reserve payment capacity versus finance more exposure | Earmark current resources/credit against named dated obligations; reserve is not NAV liability or cash receipt. Elective orders cannot consume it; mandatory payments consume it | Obligations fundable; opportunity cost lower investable capital. Insufficient current resources produces a conditional forecast, not fictional reserved cash. Revise exposures/borrow jointly; sweeps automatic |
+| SelectReplacementBorrow: operating partner independently inside pre-approved rate/quantity ceiling | Time-stamped offer/transfer/cutoff and recall; replace versus cover/allow buy-in | Reserves offered inventory now, actual transferred loan cancels recall later and switches carry rate | Transfer by deadline succeeds; expired offer rejected; locate alone fails. PM chooses cover exposure; operating partner compares cost/cash. Borrow accrual automated |
+| AssignResearch/Contingency: either owns assigned task | Public evidence/release times, reliability, remaining assignments; thesis versus counterparty versus wait | Consumes1 assignment once; authored reveal arrives later, not guaranteed return | Useful uncertainty reduction without future price. Spent attention cannot block free mandatory response; use public evidence/hold. No meeting spam or report clicks |
+| Capital/report choices: operating partner proposes; admission/gate jointly signed | True certified NAV, unit/dollar requests, diligence/funding, post-flow capacity; pay/gate/decline/cap | Gate only before dealing; optional admission only after funding/certification; routine true report auto-generated | Investor obligations honored/deferrals visible, fee base changes later. Correct a real break, cannot choose a NAV or spend new fund capital on company payroll |
+
+Risk reservations use the earliest due obligation first, with explicit resource/economic IDs and expiration. Reserve total cannot exceed currently allocable cash+permitted free credit after collateral and higher-priority claims; show a shortfall as forecast. Do not double reserve the same signed payable and its tagged treasury earmark. Reservations survive save/load and release only on cancellation/reallocation/settlement; claim payment outranks discretionary debt sweep. No command can create liquidity by promising a future sale.
+
+The two-role test must log actions and subsequent feasible-set changes, not just click counts. Opening window: operating partner's attention on replacement inventory competes with thesis evidence; crisis: its reserve can prevent a new order spending payment cash; PM chooses which exposure/return potential to sacrifice. Routine report generation/free controls are automated. A hire in the full campaign must buy a specified future task opportunity; Case3's currently dominated hire is only a teaching forecast. Failure remains understandable: explain missed event, resource or constraint and a feasible recovery/controlled winddown under FUND_ACCOUNTING §10.
+
 
 ---
 
@@ -555,6 +579,8 @@ Source: `docs/SEASON_SCENARIOS.md`
 # Season scenarios and playable arc
 
 Version 2.1 · Authored design, not a complete playable tape or measured balance result.
+
+v2.2 authority: [SCENARIO_CONTRACTS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SCENARIO_CONTRACTS.md) supplies complete bounded authoring schedules and supersedes conflicting challenge text below. These designs still have no compiled tape, full dated numerical path oracle or simulator. The ordinary day1–21 opening campaign remains separately to be authored. The old checkpoint values deliberately hold additional daily charges fixed.
 
 ## 1. “The First Mandate” — launch season
 
@@ -681,13 +707,13 @@ The numerical branches below isolate the decisive event and hold other daily acc
 
 **Opening balance sheet, costs already included:** long assets $27.5m, restricted cash $5m, economic shorts $5m, broker debt $2.5m, unrestricted cash zero; NAV $25m. Gross130%, net90%, ordinary initial requirement $16.75m. Six equity longs: ALTO/COVE/ELAN/GALA/IONA $3m each, JUNO $2.5m; BEAM broad ETF long $10m. BRIN/DART/FENN/HELI shorts $1.25m each. Paired sectors are ALTO/BRIN industrial, COVE/DART consumer, ELAN/FENN technology, GALA/HELI health, IONA/JUNO finance. All opening marks100, whole-share quantities follow from notional/100. No issuer, sector or ETF cap is breached.
 
-**Information available at day12 opening.** BRIN's financing weakens but its near-term customer survey remains positive. Harbor Prime announces stressed coefficients effective day16: initial80% long/100% short, maintenance70%/90%. The players know the rule change and must forecast it; they do not know the day16 prices. Tactical's already-disclosed10,000-unit redemption will price day20 and pay day21. LP withdrawal dollars are not yet fixed. Research reveals either a dated public debt maturity schedule or a noisy customer survey; neither predicts the squeeze with certainty. One contingency assignment reveals a replacement borrow offer at40% annual, available for the recalled quantity only until day15 close.
+**Information available at day12 opening.** BRIN's financing weakens but its near-term customer survey remains positive. Harbor Prime announces stressed coefficients effective day16: initial80% long/100% short, maintenance70%/90%. The players know the rule change and must forecast it; they do not know the day16 prices. Tactical's already-disclosed10,000-unit redemption will price day20 and pay day21. LP withdrawal dollars are not yet fixed. Research reveals either a dated public debt maturity schedule or a noisy customer survey; neither predicts the squeeze with certainty. One contingency assignment reveals a replacement borrow offer at40% annual, available for the recalled quantity only; acceptance cutoff day14 before EXEC_B, settled transfer day15 opening.
 
 | Time | Observable event and decision | Frozen author outcome / mechanical consequence |
 |---|---|---|
 | Day12 window | PM proposes earlier long reduction or holds conviction; operating partner reserves payment liquidity and investigates borrow | Partners can jointly authorize a reduction package beyond delegated ticket/turnover limits; hard limits still apply |
 | Day13 opening | Broker recalls1,250 BRIN shares, cover-execution deadline day15 final executable event; settled replacement can cancel that recall | Replacement costs40% ACT/360 on replaced shares, not on unrelated borrows; locate alone cannot satisfy recall |
-| Day15 final event | Replacement or cover must be committed to an eligible future event before the deadline | Otherwise contractual buy-in follows the published priority; event tape has sufficient capacity for1,250 shares at this deadline |
+| Day15 final event | Replacement must already have transferred at day15 opening; cover must be queued before the final executable event | Otherwise contractual buy-in follows the published priority; event tape has sufficient capacity for1,250 shares at this deadline |
 | Day16 opening | All remaining long marks95; all short marks110; stressed coefficients activate | On the unreduced reference book NAV23.125m; maintenance23.2375m; shortfall112,500. No15% drawdown freeze is needed for a broker call |
 | Day16 response event | BEAM ref95/volume42,120; BRIN ref110/volume25,000; spread5bps/impact coefficient2,000;5% participation | Up to2,106 BEAM shares or1,250 BRIN shares fit the respective event. Exactly filling5% incurs10bps average adverse cost |
 | Day17 opening | Day16 sales/covers settle; collateral return releases only at the linked cover settlement | Margin can improve on trade date, while spendable cash waits for settlement |
@@ -712,11 +738,11 @@ The recall resolution on day15 changes subsequent holdings, so the unreduced day
 
 ### Case2 — Profitable, illiquid, and redeeming
 
-**Situation and goal.** Day39, the fund has performed adequately but two LPs each require a $3m dollar-target redemption at day40. This standalone challenge expressly adds Tactical's external dollar target; the base campaign's10,000-unit day20 request remains a different contract. Both requests were disclosed day30 and properly noticed day35. Neither disappears with a good meeting. The partners must meet day41 payments, keep the post-flow book within its mandate, and explain any permitted gate fairly. The goal allows a gate with a funded next-window plan; full-season Renewal still disallows a terminal deferred request.
+**Situation and goal.** Day39, the fund has performed adequately but two LPs each require a $3m dollar-target redemption at day40. This standalone challenge expressly adds Tactical's external dollar target; the base campaign's10,000-unit day20 request remains a different contract. Both requests were disclosed day30 and properly noticed day35. Neither disappears with a good meeting. The partners must meet day41 payments, keep the post-flow book within its mandate, and explain any permitted gate fairly. The v2.2 challenge extends through day61 administration so deferred units actually reprice and pay. A day58 BEAM sale/reserve plan is specified in SCENARIO_CONTRACTS; full-season Renewal still disallows a terminal deferred request.
 
-**Decision-comparison balance**, normalized after ordinary day40 charges common to both branches: NAV $25m; longs $25.5m, shorts $5m, restricted cash $5m, unrestricted cash $2.1m, debt $2.5m, fixed fees/financing payable $100,000 due day41. Check:2.1+5+25.5−5−2.5−0.1=25m. Performance is below the relevant series HWMs in this case, so no provisional incentive liability. BEAM is $8m of longs at100; the remaining17.5m long/specified short basket follows Case1's issuer/sector distribution. Ordinary initial/maintenance coefficients apply; credit remains capped at7.5m.
+**Decision-comparison balance**, normalized after ordinary day40 charges common to both branches: NAV $25m; longs $25.5m, shorts $5m, restricted cash $5m, unrestricted cash $2.1m, debt $2.5m, fixed fees/financing payable $100,000 due day41. Check:2.1+5+25.5−5−2.5−0.1=25m. Performance is below the relevant series HWMs in this case, so no provisional incentive liability. BEAM is $8m of longs at100; the remaining17.5m is six2.5m equity longs (ALTO/COVE/ELAN/GALA/IONA/JUNO) plus2.5m BOND, all at100. Shorts BRIN/DART/FENN/HELI1.25m each. This v2.2 correction prevents post-flow issuer breaches. Ordinary initial/maintenance coefficients apply; credit remains capped at7.5m.
 
-**What players know.** A thin equity's catalyst is due day43, after redemption payment. BEAM has an executable day40 event but sale price remains uncertain until then. The prime broker confirms only eligible same-date cash netting; short collateral is unavailable for withdrawals. A new LP offers$5m, but diligence completes after day40 and funding earliest day60. The offer cannot cure this window. PM can request an extra liquidity estimate; the Managing Partner can negotiate a next-window plan, neither of which changes the binding current request.
+**What players know.** The public broad-equity earnings survey is unresolved; preserving BEAM retains broad market exposure, not a named thin-stock catalyst. The author-only fixed day43 BEAM104 realization is specified in SCENARIO_CONTRACTS and is not available to players at day39. BEAM has an executable day40 event but sale price remains uncertain until then. The prime broker confirms only eligible same-date cash netting; short collateral is unavailable for withdrawals. A new LP offers$5m, but diligence completes after day40 and funding earliest day60. The offer cannot cure this window. PM can request an extra liquidity estimate; the Managing Partner can negotiate a next-window plan, neither of which changes the binding current request.
 
 | Time | Choices and event rules | Consequence |
 |---|---|---|
@@ -762,11 +788,13 @@ For illustration the reported195,800/197,976.96 cash excludes only subsequent ne
 
 **Corrected valuation logic.** The$200,000 short price gain on ex-date was offset by the omitted$200,000 distribution expense. Correcting a false profit reverses$40,000 of the20% provisional fee. It does not reclaim a fee already crystallized on past redemptions. The independent record identifies a true economic event; neither partner chooses its amount. Pay-date movement reduces cash and payable together. The report retains original/corrected versions and event identities.
 
-**Choices with consequences.** The PM can insist on a clean public research path, choose smaller unrelated exposures, or spend an assignment on explaining the real source of the apparently strong return. The Managing Partner can keep staffing lean, hire knowing a temporary cash shortfall is forecast, or decline/cap capital to match liquidity. Both must approve a hire and investor admission. No action unlocks spending the fund's5m subscription on payroll or banking the460,000 surviving performance provision. At constant new capital,5m creates only205.479… of management-fee accrual per calendar date; its first28 dates would yield at most5,753.42 before fee-base erosion, paid at a later window. That does not rescue day40 payroll.
+**v2.2 active-choice correction.** Hiring here is removed from the playable action set: its warning arrives after the known break and no useful extra task was defined. Hiring cash numbers below remain a dominated forecast teaching example, not a second strategic success path. Active alternatives are independent diligence/public-research attention and cap/admit/decline capital; exact histories/reveals are in SCENARIO_CONTRACTS.
 
-**Success branches.** Correct the report promptly, retain lean staffing and admit/cap the compatible LP; or correct promptly and hire with the disclosed35,000 day41 receivable sufficient to cure the6,000 shortfall, accepting much shorter runway. A solvent decline-capital path also succeeds if it meets the report and cash objectives. Case outcome reports47,000/20,000=2.35 weeks versus29,000/24,000=1.2083 weeks of company cash runway, not the full-season four-week Renewal result.
+**Choices with consequences.** The PM can insist on a clean public research path, choose smaller unrelated exposures, or spend an assignment on explaining the real source of the apparently strong return. The Managing Partner can keep staffing lean, hire knowing a temporary cash shortfall is forecast, or decline/cap capital to match liquidity. Investor admission remains jointly approved; the archived hire arithmetic is not an active choice in this challenge. No action unlocks spending the fund's5m subscription on payroll or banking the460,000 surviving performance provision. At constant new capital,5m creates only205.479… of management-fee accrual per calendar date; its first28 dates would yield at most5,753.42 before fee-base erosion, paid at a later window. That does not rescue day40 payroll.
 
-**Failure and recovery.** Ignoring the break leaves official reporting/dealing uncertified and loses the conditional offer. Trying to certify a known wrong report or bypass the restriction is blocked and logged, not rewarded as a clever strategy. If the fund cannot pay its35,000 fee at day41, the hire branch's6,000 unpaid payroll remains; a prospective subscription does not itself pay the company. Apply the ordinary five-business-day cure deadline and then controlled winddown if no earned/collectible fee or permitted cost reduction can cure it. Correcting an error later can restore reporting but does not fabricate the missed offer or erase arrears.
+**Success branches.** Correct promptly, allocate an assignment to diligence and admit/cap the compatible LP; or correct promptly, allocate attention to public portfolio evidence and decline capital. The hire/cure path is an arithmetic forecast example only, excluded from active gameplay and success-path counts. A solvent decline-capital path also succeeds if it meets the report and cash objectives. Case outcome reports47,000/20,000=2.35 weeks versus29,000/24,000=1.2083 weeks of company cash runway, not the full-season four-week Renewal result.
+
+**Failure and recovery.** Ignoring the break leaves official reporting/dealing uncertified and loses the conditional offer. Trying to certify a known wrong report or bypass the restriction is blocked and logged, not rewarded as a clever strategy. If the fund cannot pay its35,000 fee at day41, the archived hire forecast's6,000 unpaid payroll would remain; a prospective subscription does not itself pay the company. Apply the ordinary five-business-day cure deadline and then controlled winddown if no earned/collectible fee or permitted cost reduction can cure it. Correcting an error later can restore reporting but does not fabricate the missed offer or erase arrears.
 
 **Debrief.** Contrast internal accounting balance with external reconciliation, economic return with dividend mechanics, provisional incentive fees with recognized cash, and larger fund assets with business runway. The corrected report and source cutoff matter even if the next stock movement would have made the prohibited trade profitable.
 
@@ -927,6 +955,24 @@ Complete states include DRAFT, PENDING_APPROVAL, AUTHORIZED_QUEUED, PARTIALLY_FI
 
 These are required future acceptance behaviors. Document arithmetic and fixture syntax checks do not establish an implemented engine or independent financial certification.
 
+## 10. v2.2 collateral, recall and termination contracts
+
+These fictional broker/termination choices supersede ambiguous v2.1 wording, not universal industry practice. Rationale: DESIGN_REVIEW_V2_2; schedules: SCENARIO_CONTRACTS.
+
+**Collateral mapping.** Track settled loan lots, unsettled deliveries, pending returns and linked cash. For economic shorts not covered, target = shares × current reference mark. An unsettled sale earmarks its collectible proceeds; only excess target above earmarked proceeds requires usable cash/credit. Never add proceeds commitment to a second full target. A failed receipt is not cash. Settled collateral is cash held by broker. At cover execution, covered shares move from active marked target to a pending-return target frozen at that event's **reference** price, not cost-inclusive fill. Retained collateral does not re-mark; pending-share borrow fees still use daily current marks until actual return. This is a selected simplification, not a real broker guarantee.
+
+If allocated cash differs from the frozen target, top up/transfer only the difference once; never release frozen cash on trade date. At linked settlement release retained target atomically to cover payable, source shortfall from usable cash/credit, return shares and release remainder; otherwise record failed settlement/retained borrow/collateral. Partial return releases proportional collateral; event identity dedupes. Split changes quantities/reference prices, not retained aggregate cash. Case1 frozen137,500 pays137,637.50 with137.50 extra funding; a later mark changes borrow expense, not frozen cash. Remaining active shorts re-mark normally.
+
+**Replacement borrow.** Locate/reservation is not settled borrow. Terms name cutoff, inventory, transfer event, old/new loan identities and rate. Case1 cutoff day14 before EXEC_B; transfer day15 OPEN_ADMIN. Atomically replace1,250 shares/cancel matching recall, changing no economic short/collateral/NAV.40% starts day15 accrual; old2% ends before that date. Late selection rejected; absent transfer means no timely cure.
+
+**Margin response order.** Shock creates deficit/freeze/pause. At next execution: due recall buy-ins first; then valid authorized voluntary margin remedies in accepted order; recompute each fill; then forced margin liquidation on remaining deficit using residual capacity. Pending escalation is not a due mandatory fill that outranks the promised voluntary window. A new deficit at execution pauses before next event; an overdue recall receives no extra grace. Mandatory fills may cause a recorded mandate breach. Never assume atomic baskets.
+
+**Controlled termination.** Season ending is not termination/crystallization. Joint winddown consent cancels elective additions and starts WINDDOWN; existing liabilities, participation, fees, borrow/collateral and company costs continue. Liquidate under actual tape/cost/capacity; restricted holdings await clearance except contractual mandatory dispositions. Declaring termination earns no bonus or spendable fee.
+
+Recovery horizon is ten further business days plus intervening calendar dates. Author those events before claiming completed winddown; missing tape means UNRESOLVED_WINDDOWN. At a certified solvent final close with securities/returns settled and other claims reserved/fixed, crystallize surviving provision once under this termination contract, burn remaining units, fix investor distributions and pay next business admin in fictional treasury priority. Management fees end on final dealing date because participation ceases; unpaid fees/claims persist. Company overhead ends next weekly boundary on termination of activities; accrued obligations persist. No admission in winddown.
+
+If NAV<=0 or claims cannot be paid, record cash/unpaid claims/positions/pending returns/uncertified estimates, not fabricated investor proceeds. The game's treasury priority is not a legal insolvency waterfall. Halt/unsettled assets at horizon give unresolved residual claims, not COMPLETED_LIQUIDATION. Technical integrity faults require repair/restore, never erase deadlines/liabilities. Statutory/tax/real administrator termination remains excluded.
+
 
 ---
 
@@ -934,9 +980,15 @@ Source: `docs/LIBRARY_RESEARCH.md`
 
 # Library research and dependency decisions — v2.1
 
-Reviewed 6 October 2026 against actual repository files and official APIs. This is a source review, **not an installation, compatibility test, security audit or benchmark**. Exact commits, source blobs and license blobs appear in [library_review.json](https://github.com/krishbansalofficial/fundforge/blob/main/fixtures/library_review.json). Default-branch timestamps are narrow maintenance signals, not release pins or support guarantees. At implementation, select supported releases, lock transitive dependencies and review their licenses.
+Reviewed 6 October 2026 against actual repository files and official APIs. This is a source review, **not an installation, compatibility test, security audit or benchmark**. Exact commits, source blobs and license blobs appear in [library_review.json](https://github.com/krishbansalofficial/fundforge/blob/main/fixtures\library_review.json). Default-branch timestamps are narrow maintenance signals, not release pins or support guarantees. At implementation, select supported releases, lock transitive dependencies and review their licenses.
 
 ## Recommended small stack
+
+v2.2 decision,7 October2026: retain the17 pinned reviews as6 October evidence rather than redo completed research. SEO/marketing is excluded; the every-app/open-seo entry below is archived research, not an approved candidate or future milestone. No finance-library decision changed. pandas/calendars remain deferred until licensed historical work; DuckDB only if measured snapshot queries justify it. All initial economic systems are original domain code.
+
+The immediate FF0a schema/loader can use Python standard-library types. Pydantic is an adopt-at-API/schema-boundary option, not mandatory economics infrastructure. Fresh official [models](https://docs.pydantic.dev/latest/concepts/models/) and [strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/) docs show BaseModel/model_validate and strict validation; strict mode alone does not establish our decimal-string/timestamp/unknown-field rules. [Repository](https://github.com/pydantic/pydantic), [MIT license](https://github.com/pydantic/pydantic/blob/main/LICENSE); retain notices for covered copies and review pydantic-core/transitives when pinning. Current docs/source accessed7 October; no release pin, installed compatibility or performance claim. Low integration effort for bounded typed DTOs; local no credentials/data/API charges; reject using type coercion as financial validation. Use independent financial invariants regardless of schema library.
+
+Retain planned FastAPI ([body models/API](https://fastapi.tiangolo.com/tutorial/body/), [repository/license](https://github.com/fastapi/fastapi/blob/master/LICENSE), MIT) at FF4a, Next.js ([App Router docs](https://nextjs.org/docs/app/getting-started), [repository/license](https://github.com/vercel/next.js/blob/canary/license.md), MIT) at FF5b, PostgreSQL ([row-lock interface](https://www.postgresql.org/docs/current/explicit-locking.html), [license](https://www.postgresql.org/about/licence/)) at persistence. Official current docs/license pages checked7 October, maintenance evidence limited to active docs/source; supported releases/node/python wheels/auth/migration tooling still need milestone validation. Medium app integration, no account required for local operation; DB/dev-server hardware costs and future hosting separate. These frameworks provide transport/UI/transactions, not financial contracts. No cloud, broker, market data or AI credentials required. Document builder has a standard-library fallback; python-docx is optional presentation tooling and not a game dependency.
 
 Keep the proposed Python/FastAPI/Pydantic application, PostgreSQL transaction authority and Next.js interface. These scaffold choices still require FF0 environment/version validation. Build the economic kernel in original Python with standard-library Decimal, typed contracts and an immutable journal. **No trading/backtesting framework is required for FF5 or FF6.**
 
@@ -1201,115 +1253,11 @@ No source implementation was copied. Recommendations are architectural judgments
 
 ---
 
-Source: `docs/OPENSEO_INTEGRATION.md`
-
-# OpenSEO: repository assessment and bounded integration
-
-Design version 2.1, 6 October 2026. Assumed target: [every-app/open-seo](https://github.com/every-app/open-seo), the upstream of the similarly named afazhriel/openseo fork. The user supplied a name rather than a URL; confirm a different target if intended. This assessment does not silently substitute OpenBB. No upstream source has been copied, installed, deployed, or connected to a paid account.
-
-## What was actually inspected
-
-Pinned source snapshot: `ccd2077d47c3ff76fe8787280f2a16c61f1dc2a6`, retrieved through GitHub. The README describes SEO workflows and a DataForSEO-backed service. The LICENSE is MIT, copyright 2026 Ben Senescu. The dependency manifest shows a TypeScript/React/TanStack/Cloudflare stack, unlike FundForge's planned Python financial domain. Read these pinned files before reuse:
-
-| Inspected path | Relevant observation | FundForge decision |
-|---|---|---|
-| `src/server/mcp/tools/get-domain-overview.ts` | Structured domain metrics and project-scoped handler | Optional research source, not price feed |
-| `src/server/mcp/tools/research-keywords.ts` | Bounded seeds, partial results, market context, estimated volumes | Evidence cards must preserve scope and missingness |
-| `src/server/lib/dataforseo/core.ts` | Timeouts, error classification, bounded retries, explicit non-idempotent exception | Adopt the design principle; implement in our adapter |
-| `src/server/lib/dataforseo/client.ts` | Provider/service integration with billing dependencies | Do not transplant the whole client |
-| `src/server/mcp/project-auth.ts` | Resource membership checks | Apply our own fund authorization at every boundary |
-| `src/server/lib/r2-cache.ts` | Parameter-based cache keys, TTL and validation caution | Extend keys with information cutoff and dataset version |
-| `package.json`, `LICENSE` | Stack and source license | No wholesale fork or forced stack migration |
-
-These are source observations, not a security audit or performance certification. Source license and underlying data rights are separate. Preserve the MIT notice if substantial code is later copied; add exact paths, snapshot, modifications, and dependencies to a third-party notice. Validate provider retention/display/export rights before incorporating real data. Current pricing and API behavior must be checked when enabling a provider; this plan authorizes no charges.
-
-## The valuable game feature: alternative-data research desk
-
-Make information acquisition a strategic choice. A consumer-company analyst can compare search interest for a brand, a competitor, and a product category, investigate conflicting signals, and write a falsifiable thesis. The player spends fictional analyst capacity on a question, receives a timestamped evidence card, then decides whether it changes an existing position. The same action can use an authored fixture in campaign mode or an entitled adapter in a later sandbox.
-
-Example: search interest for a fictional retailer rises, but a second report attributes it to product recalls. Buying the first bullish narrative without triangulation is a bad process; it must not be mechanically guaranteed to lose money. Evidence influences the player's judgment, not an automatic price multiplier or a hidden correctness grade.
-
-Proposed research products:
-
-| Product | Decision it supports | Required caveat |
-|---|---|---|
-| Brand/category search-interest comparison | Demand thesis, competitor substitution | Estimated search activity is not sales or unique customers |
-| Domain visibility report | Distribution/customer acquisition thesis | SEO rank/estimated organic traffic is not audited revenue |
-| Competitor evidence packet | Choose what to investigate next | Domain-to-listed-company relationship must be curated and dated |
-| Source disagreement card | Decide to wait, size smaller, or buy another report | Conflicting proxies can remain unresolved |
-
-Do not sum search volumes for close variants, infer stock prices from SEO values, or pretend historical monthly estimates were available daily. CPC is an advertising metric, not a security valuation. Today's provider retrieval does not establish what was knowable in an earlier season. Company-owned GA/Search Console integrations cannot provide competitors' private analytics; exclude those from the base design.
-
-## Integration boundary
-
-Preferred initial approach: no runtime dependency. Author synthetic research packets against a provider-neutral schema. Later, run OpenSEO separately and access an explicitly allowlisted research interface through a server adapter, or implement a small direct provider adapter if maintaining a second application is unjustified. Compare those alternatives in a bounded spike before choosing. Keep the engine and campaign usable when either fails.
-
-Pipeline: operator-authorized fetch → normalized observation → provenance/rights checks → immutable approved dataset → as-of information service → player evidence card. A historical campaign consumes only the approved dataset. Never fetch current external results during a historical decision and backdate them.
-
-`ResearchObservation` contract:
-
-```json
-{
-  "id": "obs-example-001",
-  "entity_id": "fictional-retailer-a",
-  "metric": "brand_search_volume_estimate",
-  "value": "12000",
-  "unit": "estimated_searches_per_month",
-  "geography": "US",
-  "language": "en",
-  "period_start": "2026-01-01",
-  "period_end": "2026-01-31",
-  "source_published_at": null,
-  "observed_at": "2026-02-05T12:00:00Z",
-  "available_at": "2026-02-05T12:00:00Z",
-  "provider": "synthetic_fixture",
-  "dataset_version": "research-demo-v1",
-  "revision": 1,
-  "mapping_version": "entities-v1",
-  "quality_flags": ["estimate", "not_revenue"],
-  "license_ref": "authored-fixture",
-  "synthetic": true
-}
-```
-
-In real snapshots, conservatively set `available_at` no earlier than collection unless independently evidenced historical publication supports earlier availability. Null timestamps must never mean unlimited visibility. Retain revisions; do not overwrite old observations. Store a raw-source hash only where retention rights permit it. Validate entity, unit, geography, period and missing values before import. Campaign fixture times use the scenario's declared clock mapping rather than an implicit wall-clock comparison.
-
-The fetch worker uses a service credential scoped to the research project. Players cannot supply arbitrary target URLs or access another fund's snapshots. Allowlisted domains and bounded sizes prevent research requests becoming arbitrary network fetches. Provider text is untrusted; it cannot approve orders, alter mandates, run code, or become privileged instructions.
-
-## Budget and failure contracts
-
-There are two separate budgets: fictional research actions inside the game, and real provider/model usage. Spending fictional credits never authorizes a paid API request. Real usage defaults to disabled, with an operator-configured currency ceiling and request cap before activation. Record estimated/reserved/actual/unknown charge states. A timeout on a chargeable request may already have incurred a charge; do not automatically retry without provider-supported reconciliation or idempotency.
-
-Cache keys include provider, endpoint, normalized parameters, entitlement scope, dataset/revision, and historical cutoff. An expired cache is either visibly stale in the research sandbox or unavailable; it cannot silently refresh a locked campaign. Errors distinguish unavailable, stale, forbidden, budget exhausted, and malformed response. No fabricated zeroes. The game continues with its approved fixture or existing observations, with provenance unchanged.
-
-## What not to inherit
-
-Do not reuse OpenSEO's billing account as virtual fund accounting, its project membership as investment authority, or its crawler as a general unrestricted research agent. Do not import its full SaaS, marketing, Cloudflare deployment, telemetry, or authentication stack just to display three research metrics. It does not supply exchange execution, stock borrow, fund NAV, capital accounts, LP contracts, a deterministic simulation clock, or a game economy.
-
-OpenSEO can also help discover search terms and audit a future public FundForge marketing site. That is separate from gameplay and is out of the present implementation scope.
-
-## Go/no-go spike and evidence
-
-After the core game gate, spend one bounded task on: a saved fixture → normalized observation → as-of card; source inspection of the chosen API; rights/credentials/cost decision; one adapter contract test for malformed/partial/error responses; and a dependency/spend comparison of separate OpenSEO versus direct provider adapter. Stop if no valid historical data or useful player decision results. The fixture feature remains valuable without a live connection.
-
-Success is improved research decisions in a blind playtest and correct information cutoffs, not a claim that SEO predicts returns. Any ML experiment needs point-in-time snapshots, an ablation against price-only/fundamental baselines, entity-held-out or chronological evaluation as appropriate, and costs. No claimed alpha until measured honestly.
-
-## v2.1 cross-review
-
-The same upstream snapshot and domain-overview module were rechecked on 6 October 2026; no new integration was implemented. See [LIBRARY_RESEARCH](https://github.com/krishbansalofficial/fundforge/blob/main/docs/LIBRARY_RESEARCH.md) and [library_review.json](https://github.com/krishbansalofficial/fundforge/blob/main/fixtures/library_review.json) for the 17-candidate comparison, exact repository/commit/license evidence and recommendation. OpenBB's provider framework is a separate candidate and is not OpenSEO.
-
-Alternative-data relevance depends on the issuer's business, domain mapping and a falsifiable question; an industrial company with little direct consumer search exposure may gain no useful evidence from these tools. A real provider cannot be attached just to make the research room look sophisticated. Fixture evidence and its uncertainty already support the game's decision. Marketing-site SEO remains a separate deferred use.
-
-At FF7, choose separate OpenSEO service versus direct provider adapter using one fixture task, operational burden, measured useful decisions and entitlements. Persist observation revisions and charge-resolution states independently of the economic journal. Server outages may block a new research purchase but never change a frozen campaign, execute an order or silently spend real currency. No current-data refresh can repair a missing historical vintage.
-
-
----
-
 Source: `docs/SIMULATION_ARCHITECTURE.md`
 
-# Simulation architecture — v2.1
+# Simulation architecture — v2.2
 
-Proposed interfaces and ownership, not implemented services. The architecture is a **modular monolith with one economic authority**, not a network of trading platforms. [FUND_ACCOUNTING](https://github.com/krishbansalofficial/fundforge/blob/main/docs/FUND_ACCOUNTING.md) owns exact financial/event conventions; [GAME_SYSTEMS](https://github.com/krishbansalofficial/fundforge/blob/main/docs/GAME_SYSTEMS.md) owns player permissions and gameplay; this document owns software boundaries. Resolve conflicts explicitly before FF0 freezes schemas.
+Proposed interfaces and ownership, not implemented services. The architecture is a **modular monolith with one economic authority**, not a network of trading platforms. [FUND_ACCOUNTING](https://github.com/krishbansalofficial/fundforge/blob/main/docs\FUND_ACCOUNTING.md) owns exact financial/event conventions; [GAME_SYSTEMS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\GAME_SYSTEMS.md) owns player permissions and gameplay; this document owns software boundaries. Resolve conflicts explicitly before FF0 freezes schemas.
 
 ## Ownership and interfaces
 
@@ -1389,7 +1337,7 @@ Filter by information availability at every query/export/chart/AI boundary, not 
 
 Preserve delisted instruments, dated classifications, symbol changes, universe membership and vintage fundamentals before making historical claims. Screen benchmark/factor series for publication lags and revisions too. Forward/nearest time joins are dangerous when they can select future observations. Entity mappings and alternatives such as SEO estimates need their own dated evidence.
 
-Provider imports happen outside a locked campaign. Validate schema, units, timestamps, entitlements and bounds, then approve an immutable dataset. Real secrets stay server-side. Define failure classes (unavailable, forbidden, stale, malformed, partial, rate-limited, budget-exhausted, ambiguous charge). No silent zero filling, hidden current-data replacement or automatic retry of an uncertain charge. A provider failure cannot change existing campaign economics; an entitled live sandbox can pause affected research/quotes with visible quality state. OpenSEO's separate contract covers charge reservation and capped requests.
+Provider imports happen outside a locked campaign. Validate schema, units, timestamps, entitlements and bounds, then approve an immutable dataset. Real secrets stay server-side. Define failure classes (unavailable, forbidden, stale, malformed, partial, rate-limited, budget-exhausted, ambiguous charge). No silent zero filling, hidden current-data replacement or automatic retry of an uncertain charge. A provider failure cannot change existing campaign economics; an entitled live sandbox can pause affected research/quotes with visible quality state. SEO/marketing integration is excluded from the current plan.
 
 ## Scenario interface and bounded AI
 
@@ -1401,97 +1349,102 @@ An optional LLM tutor receives only sanitized permitted facts and may explain th
 
 ## Implementation and evidence gates
 
+Planning revision 2.2-M1: FF2c explicitly owns the in-process session runner, atomic reducer composition, narrow LP/firm closure and independent Case1 controls for arbitrary allowed human paths; FF3a connects human command authority before FF3b. FF4a persists the same semantics. FF6a generalizes independent controls/restrictions/restatements. FF7a must prove one actual shared-engine historical scenario, not only ingestion. Exact work packages and recovery-tail coverage gates are in MILESTONE_PLANS; no additional distributed services are proposed.
+
+v2.2 sequencing supersedes the broad gates below: IMPLEMENTATION_PLAN splits FF0a–FF6c and inserts FF3b internal human challenge. This section's evidence remains required; no engine exists.
+
 Freeze schema and one hand-authored event trace at FF0. At FF1–FF4, prove ledger/series, execution/treasury, authority races and LP/firm contracts before building rich views. FF5 must connect these through the complete first two chapters. FF6 proves campaign endings, recovery, versioned balance experiments and actual two-person play. FF7 earns each optional library/provider/model independently.
 
 Required evidence includes independent Decimal oracles, same-input replay hashes, future-data mutation tests, shuffled retry/race tests, fault injection before/after transaction commit, independent reconciliation breaks and successful checkpoint resume. Scenario manifests and prose do not satisfy these engine tests. The current repository still contains no implemented simulation runtime.
+
+## v2.2 exact implementable contracts
+
+Module calls remain in-process. Clock selects `(calendar_date,phase,event_index)`; scenario returns immutable inputs for that position; information returns only authorized observations; execution proposes fills/obligations; risk evaluates candidate prefixes; accounting returns balanced batches; investor service produces series/flow claims; company returns earned-fee/payroll events. The coordinator applies all effects once or none. Each module accepts immutable typed values and returns `events, state_delta, explanations`; no module commits a DB transaction. Reporting is a projection. Calendar/authority/accounting are dependency roots; scenario/market/OMS depend on their types, not on UI/provider modules. Clock advances only with current ready digest; game rule failures return reason codes; invariant faults stop transitions.
+
+**Exact numeric protocol.** Local Decimal context precision40, ROUND_HALF_EVEN; trap InvalidOperation/DivisionByZero/Overflow/FloatOperation; never construct money from float. Money posts scale2; reference/fill prices scale6; investor units scale8; HWM/unit valuation scale12; rates scale12. Intermediate calculations retain context40 until specified posting boundary. Persist accrual residuals scale24 by entity/series/obligation/currency/rate-version, using `previous_residual + today_unrounded_charge − today_posting`; scale24 quantization is explicit HALF_EVEN and bounded error <=0.5e−24 per calculation. Carry the old rate bucket's residual explicitly to its successor on a rate change, never discard it. Quantize price first, multiply quantity, quantize cash once, derive cost from reference notional minus cash; never post slippage twice. Unit conversion truncates toward zero before stable largest-remainder pro-rata assignment without exceeding held/requested units; one-cent leftovers follow series-ID order and conservation, never make negative units. All independent oracles use this exact ordering.
+
+DB fields: money NUMERIC(24,2), price(24,6), units(24,8), HWM(28,12), rate(18,12), residual(38,24). Validate field bounds and quantize in domain before DB write; DB coercion is not the rounding policy. Fail numeric overflow with no commit. Arithmetic maximums are checked before operations. No claimed economic certification from a type validator.
+
+**Canonical bytes.** UTF-8 JSON, sorted object keys, compact separators, no BOM, no NaN/Infinity, no escaped non-ASCII requirement (`ensure_ascii=False`). Every decimal is a string with its field's fixed scale; normalize negative zero to positive zero, no exponent form. Integers are JSON integers. Event arrays retain sequence order; identity sets sorted by immutable ID; distinguish null from missing. Dates YYYY-MM-DD; simulated timestamp includes date/phase/event index; wall-clock audit timestamps normalized UTC with six fractional digits but excluded from economic hash. SHA-256 of canonical bytes; separate state/event/tape/rules/commands/control hashes. Exclude caches, delivery notifications and wall-clock timing; include residuals, settled/pending obligations, loan lots, order/resource state, next phase and certified-status/history references. Any excluded field must not affect future economics. FF0b freezes test-vector bytes and hashes, including1.0 represented as the declared scale and residual restore midway through accrual.
+
+**Coordinator ordering.** Authenticate current season membership first (even old retries). Under READ COMMITTED acquire one season row `FOR UPDATE`, spanning its fund and firm. Look up `(season_id,actor_id,idempotency_key)` with normalized immutable payload hash including command type/expected version/policy references. Identical committed retry returns original result even if expected version now stale or market changed; current access denial conceals result without undoing prior economics. Different payload is IDEMPOTENCY_CONFLICT. For a new key check expected version, current authority/restrictions/resources, then apply effects/journal/result/outbox and increment version atomically. Accepted commands and domain rejections are stored consistently; infrastructure failures roll back and are retryable. Stale-version rejection is final for that key; rebase uses new key. Unique economic-ID constraints protect fills/accruals/dealing/payment. Bounded DB deadlock retries preserve payload/key; exhausted retries report unavailable, never partially commit.
+
+**Readiness.** Ready binds to window ID, state version, proposal/resource-plan digest and actor. A material mutation revokes both readiness marks; metadata-only chat does not. Advance requires distinct ready partners on the same digest and records accepted sequence. No silent liquidation from wall-clock absence. An expired simulated deadline arises only from advance; missing partner holds at a safe barrier. Retry of successful advance returns same next phase, not an extra day.
+
+Financial/plan mutations increment economic `state_version`; readiness/chat/rejected-command bookkeeping increments only `administrative_revision`. Expected versions and ready digests reference economic version. Two sequential Ready commands can endorse the same plan and advance once; an intervening economic mutation invalidates both marks.
+
+Residual example, $1m×2%/360: date1 posting55.56/residual−0.004444444444444444444444; date2 posting55.55/residual0.001111111111111111111112; date3 posting55.56/residual−0.003333333333333333333332, using scale24 recurrence. Halfway0.0000000000000000000000005 rounds0 at scale24; error equals0.5e−24. These are reference values for FF0b, not engine outputs.
+
+**Failure/recovery surfaces.** Provider import never occurs inside this transaction; approved immutable snapshots only. Missing/unsupported tape record is SCENARIO_INVALID; no guessed price. External controls block certification/new risk while verified obligations/reductions continue; internal ledger integrity fault halts economics until repair. Shared scenario tapes stay branch-independent; path-specific control ledgers are independently authored, not copied from the reducer. Synthetic launch, licensed historical replay and observational live sandbox remain distinct modes; no economic network/LLM calls. Optional tutor evaluation uses20 curated permitted fact packets, fact-source accuracy, zero forbidden mutation, leakage prompts, comprehension versus deterministic templates and cost; adoption requires improvement, not fluent prose. AI remains deferred and is unnecessary for initial game.
 
 
 ---
 
 Source: `docs/IMPLEMENTATION_PLAN.md`
 
-# Implementation plan v2.1
+# Dependency-aware implementation plan v2.2
 
-The game must be fun and financially coherent before optional ML or live integrations. Work is dependency-gated, not a promise to finish in a fixed week. Every implementation milestone is currently pending. The user requested this redesign and file update; that does not mean application code has been built.
+7 October 2026. All application milestones pending. The local checkout has documentation tooling, not the reportedly completed foundation/26 tests. DESIGN_REVIEW_V2_2 records reconciliation; SCENARIO_CONTRACTS freezes challenge schedules; IMPLEMENTATION_HANDOFF owns the exact next task. The old roadmap remains in Git history, not authoritative.
 
-Read REALISM_AUDIT for priorities, SIMULATION_ARCHITECTURE for ownership/interfaces, and LIBRARY_RESEARCH before adding a dependency. v2.1 corrects fee participation, day counts, annual versus redemption crystallization, cover-direction risk, post-redemption leverage and independent control evidence. Implement those contracts before adding presentation.
+Planning revision 2.2-M1 expands **all 20 milestones through final FF8** in [MILESTONE_PLANS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MILESTONE_PLANS.md). Each package defines purpose, input evidence, module/file ownership, ordered tasks, deliverables, independent acceptance, proposed verification, failure behavior and completion/stop gate. [PLAN_REVIEW_AND_DECISIONS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md) records this pass's corrections and unresolved decisions with their due milestone. This table remains the navigation/dependency summary, not the complete task instructions.
 
-| Gate | Scope | Dependencies | Observable completion |
+## Release definitions and sequencing
+
+The smallest internal end-to-end experiment is Case1's warm-start crisis: two roles, research/borrow choice, signed/delegated reduction, settlement, Tactical dealing, separate firm cash and causal report through day21 administration. A simple local two-role interface follows pure economics. Label it **internal challenge prototype**, not first release or evidence of secure multi-user hosting. It can invalidate tedious or one-sided gameplay before broad content work.
+
+**First playable release (FF5)** is the ordinary zero-position day1 launch through day21 opening administration: two authenticated human identities, three LPs, four tradable instruments, two chapters, scarce evidence/contingency, long/short/financing, investor payment, separate firm bills, disagreement/pause/resume and debrief. Require two defensible successful policies, an explainable recovery path, independent accounting/replay/concurrency evidence and actual two-human playtests. Warm starts cannot replace that opening campaign. Staffing/fundraising previews may wait.
+
+**Full initial game (FF6)** is six chapters/60 business days through day61 administration, up to twelve instruments, standard fundraising and useful staffing tradeoffs, all three challenges, restrictions/control incidents, conditional Renewal/Survival/Winddown/Default/Company Failure, security/restore/balance/human-study evidence. No provider, ML or finance framework is required. Release labels need evidence, not estimated dates.
+
+Ledger and dated obligations come first because each interesting choice changes claims, cash or authority; fake UI balances hide affordability. Authoring comes before economics so builders do not invent outcomes. The first human experiment follows only necessary Case1 mechanics; catalog breadth follows evidence of agency.
+
+## Small verifiable milestones
+
+Each row requires a bounded diff, assumptions, actual commands/results with runtime/rule/tape/command/control hashes, updated handoff and no unreported failures. Paths under backend/frontend/tests are proposed. Row acceptance plus this evidence record is its definition of done. Dependencies mean demonstrated output, not a checked box.
+
+| ID / purpose | Inputs / prerequisites | Outputs / affected modules | Acceptance / definition of done |
 |---|---|---|---|
-| FF0 | Inspect environment; freeze domain contracts; minimal app/DB/CI skeleton | P01 review | Versioned scenario schema, event phases, entities, command results, reproducible install and health checks |
-| FF1 | Journal, marks, lots, LP series, dated calendar accrual, trade/settlement obligations, separate firm ledger | FF0 | Independent cohort/HWM/day-count/corporate-action arithmetic, balance/replay/reversal and external-control discrepancy evidence |
-| FF2 | Clock, future-event execution, costs/participation, long/short borrow, financing, margin and forced actions | FF1 | Gap, recall, collateral, deadline and halt cases; no fabricated fills |
-| FF3 | Two-player authorization, sleeves, committee proposals, reservations and races | FF1–FF2 contracts | PostgreSQL race tests; no expired/revoked authority, double spend or third partner |
-| FF4 | LP contracts/notices/dealing, fees/HWM, management-company budget, NPC trust | FF1–FF3 | Subscriptions/redemptions/fees reconcile; fund cash cannot pay firm payroll directly |
-| FF5 | Integrate the two-chapter opening arc, authored research, crisis choices, save/resume and causal debrief | FF2–FF4 | Two people finish 20 business days through ordinary day21 opening administration, offline from providers; target two 20–30 minute chapters, duration unmeasured |
-| FF6 | Six-chapter campaign, all three scenario contracts, endings, scoring, difficulty/balance, security and recovery | FF5 | Complete 60-day run through ordinary day61 opening administration; tested failure/winddown; versioned balance/replay and two-user playtest evidence |
-| FF7 | Licensed snapshots, optional OpenSEO adapter spike, shared-engine backtests, evaluated ML | FF6 | Point-in-time data gate, provider failure/cost checks, honest baseline comparison |
-| FF8 | Optional asynchronous league/opponents, extra strategies/instruments, private hosting | Relevant prior gates | Separate permission, fairness, data and instrument acceptance contracts |
+| FF0a: compile one challenge, no engine | Current rules, Case1 complete authoring schedule, old isolated oracles | compiled Case1 fixture, three actor-tagged scripts, independent daily oracle, coverage/hash report; contracts/loader and rejection checks | X01–X07 in handoff: complete12–21 tape/openings/series/authority/residuals, specific missing/invalid rejection, full-path independently calculated balances. Schema validity is not playability |
+| FF0b: exact wire/replay values | FF0a, numerical conventions | frozen schemas/canonical vectors; contracts/serialization | V22–V24 string decimals, finite bounds, negative zero, HALF_EVEN, residual round-trip, expected canonical bytes/hash; no implicit DB rounding |
+| FF1a: balanced immutable journal/lots | FF0a, FF0b | accounting, fund/firm openings, obligations/lots/reversal | A01–A06,A08–A11,A14–A15; Case1 opening balances; deliberately wrong balanced event not called reconciled; separate entity journals balance |
+| FF1b: dated series fees/carry | FF1a + dated oracle worksheet | accounting/series/calendar, residual persistence and HWM | V01–V05,V08–V11,V20; every date once, Friday/Monday borrow endpoints; reversible provision never company receivable; partial redemption conserves claims |
+| FF2a: future-event execution/settlement | FF1b + Case1 tape | market/OMS/borrow/treasury, whole-share budgeted partial fills | E01–E05,E08–E09,E12,V25; exact costs/cumulative impact, unsettled top-up, retained collateral, failed settlement; no duplicate borrow/cash |
+| FF2b: risk/financing/deadlines | FF2a | deficit vector, replacement transfer, voluntary/forced queues | A22,V26,V27; all constraint prefixes; timely transfer/late rejection; voluntary cure before forced margin, real shortfall after costs; forced fills can leave deficits |
+| FF2c: narrow Case1 payment/firm lifecycle | FF1b, FF2b | pure session runner/checkpoint, Tactical dealing/payment, baseline payroll/cure and independent Case1 controls | V02,V06,V08,V09,V16,V18 and dated full oracle; actual claims/payment21 and allowed non-scripted controls, not scripted balance edits. General gates/subscriptions deferred to FF4b |
+| FF3a: two-role command authority | FF2b + frozen commands | governance/reducer, ready digest, immutable signatures/idempotency | C02–C07,C09,C13–C16 pure tests; distinct consent, edits reset readiness, no double resource spend. No PostgreSQL safety claim yet |
+| FF3b: early human crisis experiment | FF3a, FF2c + economic scripts meet independent oracles | minimal local CLI/one-page desk, causal report/checkpoint; controlled two-role identities | Two humans resolve recall/payment and failure recovery; role choices/wait/confusion recorded. Exact save/replay. Not production auth or first releasable game |
+| FF4a: persisted authority/API skeleton | FF3b + transaction contracts | PostgreSQL adapters/coordinator/uniqueness/outbox/migrations; minimal FastAPI | Real separate-connection C01,C07–C10,C13–C16 races and crash rollback/outbox; allowed result pairs/journal counts; versions pinned when needed |
+| FF4b: standard dealing/firm obligations | FF1b, FF4a | notices/gate/escrow, payroll/receivables/distress, cross-entity transfer | L01–L12,V06,V13,V15–V16; units/cents reconcile; redemption cannot be refused for leverage; no provisional-fee payroll; payment NAV-neutral |
+| FF5a: author zero-position opening | FF3b observations + FF4b | complete1–21 four-instrument tape/evidence/controls, two success + failure scripts | Authority permits actual initial trades; each role has two consequential choices; no130%-warm-start shortcut; independent daily outcomes and coverage; retuning creates new version |
+| FF5b: first playable UI/identity | FF5a, FF4a, FF4b | Next.js desk/committee/portfolio/operations/debrief; two-human rooms, polling |20-day arc/payment bridge with users; cross-fund/revoked identity denied, partner absence pauses, no future chart/export, keyboard/error/reduced-motion checks |
+| FF5c: certify first release | FF5b | financial/replay/race evidence and human observations | Independent totals, replay/restore hashes, playtest gates; unresolved major agency/comprehension defects block release.40–60min target measured, never assumed |
+| FF6a: compile Cases2/3 and operations | FF5c + authored schedules | compiled tapes/oracles, independent arbitrary-path controls, restrictions/correction/restatement and offer predicates | A22,V12,V14,V28–V30: all issuer limits, gated units paid61, balanced wrong report detected, deadline loss retained, dominated hire excluded |
+| FF6b: full campaign/endings | FF6a | complete1–61 campaign, prospects, useful staffing, termination | Two feasible survivor policies; five ending labels preserve liabilities; funded continuation forecast; hire trades concrete task capacity for cash, not alpha |
+| FF6c: full release evidence | FF6b | held-out balance study, human study, restore/security/load evidence | Baseline/exploit policies; no save reroll/trust spam/terminal gate escape; V31–V32 winddown; hardware/load measured before claims; failed/undefined cases published |
+| FF7a: optional historical replay | FF6c + specific licensed dataset requirement | immutable/as-of read-only adapter, one historical scenario using shared economic engine, independent oracle, justified dataframe/calendar tool | Rights/retention/export, vintage/calendar/actions/era settlement, resolution-safe fills and actual one-case replay; failures preserve campaigns, no invented historic borrow; reject nonreproducible data |
+| FF7b: optional advisory/AI | FF6c; FF7a additionally if historical data needed; measurable use | one diagnostic/optimizer/tutor and protocol | Baseline/holdout/calibration/errors/cost evidence; no mutation authority; remove if no utility. No SEO/marketing |
+| FF8: selected-extension planning gate | FF6c + explicit one new user story and relevant evidence | concrete extension SPEC/PLAN/ACCEPTANCE and dependency/rights/cost decision; no automatic build | Complete lifecycle/permissions/failure/independent acceptance and bounded implementation steps; unknown future products are deferred, not initial-release criteria |
 
-FF1–FF4 are engine foundations. FF5 is the first playable two-chapter release; FF6 is the full initial game. Neither may drop LPs, financing, firm survival and a real crisis merely to declare success early. FF7 is not a prerequisite for enjoyable play.
+FF1/2 are pure in-process work. PostgreSQL arrives at the multi-user persistence boundary, not as authoring prerequisite. FF0a has one scenario and no financial reducer, UI/API/database. Subsequent work locks supported dependencies when needed; no mass installation.
 
-## FF0: freeze interfaces without overbuilding
+## Experiments and evaluation
 
-Inspect actual tools/runtime versions and repository state. Choose one Python and one frontend package manager; pin and lock versions. Set up local PostgreSQL and CI. Confirm production authentication separately from controlled development identities. Do not build five dashboards first.
+Use independent Decimal worksheets and claim identities, not expected values copied from tested functions. Replay records commit/runtime/rules/tape/commands/control hashes and canonical state/economic-event hashes. Races record immutable requests, permitted result pairs, journal/reservation counts and failure boundary. Mutate hidden prices/revisions without changing past observations.
 
-Write schemas for SeasonConfig, MarketEvent, Observation, Fund, Firm, InvestorSeries, Mandate, SleeveAuthority, ProposalVersion, Order, Reservation, Fill, BorrowContract, JournalEntry, MarginCall, LPNotice, ResearchTask, ChapterCheckpoint, independent ControlRecord and Debrief. Include schema/rules/data versions, monotonic event sequence, calendar dates/business-day indexes, simulated phases, wall-clock audit time and actor/economic identities. Freeze unsupported-action rejection, version conflicts and stale-mark behavior. Validate one authored scenario; a manifest without a complete tape/control records is not a runnable season.
+Enjoyment is a separate planned study in ACCEPTANCE_TESTS: novice and financially literate pairs, role agency/comprehension, facilitator intervention distinguished, raw anonymous observations, versioned iteration. No study has run. A challenge can disprove the premise; more staffing/instruments cannot substitute for repair.
 
-Proposed package boundaries: `backend/domain/accounting`, `market`, `governance`, `fund_operations`, `game`; `backend/application` for transactions; `backend/adapters` for persistence/providers; `frontend` for views. Freeze the command/result contracts before parallel implementation. A modular monolith is sufficient.
-
-## FF1–FF2: economics before presentation
-
-Implement cash, restricted collateral, receivables, payables, debt, holdings, short liabilities, fund fees, LP capital and firm accounts without network calls. Trade-date postings and cash settlement are different events. Keep gross assets, NAV, margin equity, liquidity available for payments and company runway separate.
-
-Use the legacy `fixtures/golden_scenario.json` only as the no-cost accounting smoke reference. It does not define campaign investors or capital. Add independent examples for short gains/losses, borrow expense, dividends in lieu, debt interest, fees, new series, dealing and fund/firm transfers. The authored `season_scenario.json` is a design contract; implement a validated tape/loader before claiming playability.
-
-Build a deterministic event executor with reproducible RNG streams, explicit phase ordering, pauses at material decisions, and no per-refresh RNG. Surface missing/unsupported data rather than guessing. Mark-to-market can trigger a recoverable mandate breach; broker remedies and insolvency are separate state machines. Forced actions obey their specified execution/capacity policy and can fail to cure a deficit.
-
-## FF3: governance that creates choices
-
-Implement immutable sleeve charters jointly approved by both partners. Routine orders can be submitted by the authorized manager within those envelopes; exceptions require another person's affirmative consent. Recheck all fund-wide combined commitments at fill. Deadlock leads to a documented hold/default, never automatic acceptance.
-
-Season-serialized PostgreSQL transactions covering the fund and its separate company protect approvals, budgets, locates, reservations, orders and journals. Tests use independent connections/barriers, not SQLite. Use a durable outbox before asynchronous critical jobs; in the earliest synchronous slice commit the domain effects atomically. Persist economic IDs so worker retries cannot repeat costs, LP dealing or payments. Reconnect from an authoritative sequence/snapshot.
-
-## FF4–FF5: make the management game
-
-Deliver the first two complete chapters (20 simulated business days through first dealing and ordinary day21 opening administration) with briefing, allocation of scarce analyst capacity, a trading/hedging choice, one investor or broker deadline, a budget decision and an attributable outcome. Use structured choices and optional rationale text; prose quality and word count cannot earn trust or performance points.
-
-Five main destinations: command desk, investment committee/portfolio, research room, fund operations/LP desk, and chapter debrief. Show the deadline, expected effects, uncertainty and reversibility near each action. The operating partner must have independent actions and resource tradeoffs; do not reduce the role to an approval queue. Advanced ledger details are inspectable behind clear summaries.
-
-The first vertical slice uses fictional companies and authored evidence. It must offer at least two credible strategies, support hold/wait without arbitrary punishment, and include a difficult decision that cannot be solved by clicking every available button. Add brief contextual lessons on actual consequences rather than interrupting with a textbook.
-
-## FF6: full campaign and balance evidence
-
-Expand only after the opening-arc playtest. Complete all six chapters and season endings, seed/rules/data manifests, tutorial difficulty, action history and save/resume. Review whether conservative play, aggressive concentration, gaming trust, delaying reports, final-day liquidation and repeatedly reopening saves exploit the score. Keep learning replay separate from ranked attempts.
-
-Run matched-seed baselines: cash/defensive, simple mandate-valid diversified policy, concentrated momentum, and liquidity-aware policy. These are balancing experiments, not proof of investment superiority. Record end outcomes, return/drawdown, unpaid obligations, LP retention, trust, firm cash, decisions per role and waiting time. Adjust authored parameters only between versioned scenarios. No invisible rubber-band market punishment.
-
-Provisional usability gates: both players can explain why cash differs from NAV; each makes several consequential choices; neither spends most of the chapter waiting for approval; they can identify the cause of the crisis and one alternative decision from the debrief. Measure actual completion time and confusion, then revise the 20–30 minute design target. Accessibility includes keyboard, readable status text, loading/error/offline and reduced motion.
-
-Security/recovery gate: cross-fund access denial, no future information, backup restore/replay, idempotent jobs and reconnect, safe exports, input bounds and escaped narrative. Profile concurrency against declared hardware and operation mix; choose a supported load target after measuring. No invented throughput claim.
-
-## FF7 and extensions
-
-Use `OPENSEO_INTEGRATION.md` for the bounded research spike. Data must have rights and defensible availability timestamps before historical use. Freeze datasets and share the same execution/cost engine between game and research. Begin ML with a simple baseline and defined held-out target; HMM filtered inference is optional, not guaranteed to improve gameplay or returns. Reject candidates honestly. LLMs may explain verified facts or play disclosed sandbox opponents, never grade financial truth or mutate authoritative state.
-
-Defer derivatives, multi-currency, distressed private assets, real-time exchange microstructure, unrestricted crawling and a multi-strategy empire until the initial game is finished. Each instrument needs dedicated accounting and lifecycle cases. Public deployment and real spend are separate user decisions.
-
-## FF7 dependency gates and exclusions
-
-FF7a imports immutable licensed snapshots only after as-of, rights, corporate-action and calendar checks. Add pandas and exchange_calendars here; add DuckDB only for demonstrated snapshot-query needs. FF7b may evaluate CVXPY allocation suggestions or statsmodels diagnostics against a simple baseline after FF7a supplies adequate data. FF7c is an independent optional OpenSEO fixture/adapter spike; a synthetic evidence card does not depend on a real provider. FF7d trains a model only after its target, lag-safe dataset and baseline are frozen. A failed experiment closes that feature instead of expanding the stack.
-
-FF5/FF6 exclude live feeds, real broker routes, derivatives, multi-currency, multi-fund allocation, full statutory tax/accounting, prime-broker contract negotiation engines, unrestricted scraping and LLM-controlled economics. First implement one fund, one currency, one simplified prime-broker agreement, limited corporate actions, standardized investor terms and automatic routine administration. Additional realism needs a new meaningful decision, an owned lifecycle and independent acceptance cases.
-
-The scenario manifest, scenario cases and research manifest are design evidence. FF0 must produce a loader plus complete tape/control records before claiming a runnable scenario. Manual playtesting at FF5 and FF6 is mandatory evidence for enjoyment and role balance; document checks cannot substitute for it.
-
-A Renewal ending is conditional continuation, not proof of a sustainable firm. At constant25m,1.5% annual management fees are375k against1.04m annualized20k/week overhead:665k structural gap before incentive income/capital/cost changes. The300k opening company balance is15 weeks at base cost; four weeks of remaining runway does not finance another12-week season. Display this gap and require an explicit continuation budget/recapitalization contract; do not award sustainability from AUM or provisional incentive alone.
+Compare cash/defensive, simple diversified, liquidity-aware and concentration/gate/trust exploit policies on identical tapes, then a held-out version. Report completion/unpaid claims/return/drawdown/company cash/role decisions; do not optimize one seed or call game returns empirical alpha. Complexity earns no credit without independent evidence.
 
 
 ---
 
 Source: `docs/ACCEPTANCE_TESTS.md`
 
-# Acceptance contracts v2.1
+# Acceptance contracts v2.2
+
+v2.2 supplements below supersede ambiguous ordering/scenario-success assumptions. All application cases remain pending. See IMPLEMENTATION_HANDOFF for X01–X07 authoring/loader cases; none is a working test here.
+
+Planning revision 2.2-M1: MILESTONE_PLANS maps these cases to all 20 full work packages. Required acceptance of an unavailable later subsystem is not claimed early: fee transformations atFF1b are primitives, actual Case1 dealing/payment/run composition atFF2c, pure authority atFF3a, real DB races atFF4a, authenticated two-user UI atFF5b and human release evaluation atFF5c/FF6c. Independent narrow Case1 controls precede arbitrary human action; fixed expected script records alone cannot certify another path. Winddown V31–V32 requires authored tail coverage and actual liquidation. Historical replay atFF7a requires a full shared-engine case, not schema-valid import.
 
 These cases describe tests to implement, not executed application tests. Financial expectations come from independently worked arithmetic and FUND_ACCOUNTING. Use fixed precision, a deterministic clock and real PostgreSQL for races. All house-rule parameters come from the season manifest.
 
@@ -1600,6 +1553,40 @@ Scenario branch prerequisites and exact reference arithmetic are in SEASON_SCENA
 
 V21: equity issuer limits apply to individual equities; each approved diversified ETF uses its separate absolute50% cap in either direction. Case3's short BEAM remains subject to gross/net/factor/borrow/financing tests. Neither applying an unintended8% ETF cap nor treating ETF exposure as unlimited is valid.
 
+## v2.2 precise independent acceptance cases
+
+| ID | Given / action | Independent required observation |
+|---|---|---|
+| A22 | Case2 normalized pay-all/gate branches with corrected six2.5m equities plus2.5m BOND/8m BEAM | All issuer/sector/ETF/gross/net/margin/credit/cash constraints independently checked; largest equity2.5m /18,995,800 <15%, with dated carry rechecked. Old five3m basket must fail even though gross/net pass |
+| V22 | Decimal serialization/DB round-trip | Fixed declared scales, positive zero, no exponent/float/nonfinite/overflow, HALF_EVEN ties1.005→1.00/1.015→1.02; field bounds rejected before commit |
+| V23 | Fee thirds/residual checkpoint mid-accrual then restore | Three $1m×2%/360 dates total166.67 after residual; uninterrupted and restored balances/residuals/canonical hashes identical |
+| V24 | Same typed state with reordered object keys, array event order, audit timestamps | Key order/audit time do not change economic hash; changed event order/residual/next phase does. FF0b pins independent bytes/SHA256 test vectors |
+| V25 | Sell100 shares at50 unsettled, mark55, later cover40 at56.056 (reference56), return next business date after mark60 | Initial receivable5000 earmarked; mark55 needs500 top-up, not5500 extra. At cover frozen pending target2240; remaining60 active re-mark. Return releases2240 against2242.24 cover, needs2.24 extra; pending borrow fees use actual marks until return. Failed return keeps loan/cash; split preserves aggregate retained cash |
+| V26 | Case1 accept1,250 replacement before14 EXEC_B versus after cutoff | Timely transfer15 cancels matching recall/no economic short change; loan total unchanged;40% starts15,2% ceased for subset. Late rejected/no signature or locate can cure; deadline buy-in still possible |
+| V27 | Margin shock16, valid voluntary sale queued before next event, no overdue recall | Execute valid voluntary cure first at eligible event; zero residual call means no forced fill. Partial insufficient cure uses remaining capacity for forced action; no fabricated fill on halt. Due recall remains first |
+| V28 | Case2 gate and pay-all dated scripts through61 | All dealt claims paid; deferred units reprice at60 and fully paid61; no phantom fixed deferred dollars; initial195,800/197,976.96 cash is isolated, not accrued output. No-sale branch can breach leverage without necessarily defaulting if permitted credit suffices |
+| V29 | Case3 balanced wrong opening + independently truthful broker/admin record |200k expense/payable,40k reversal,26.84m corrected opening NAV; old report retained, correction once. New dated fees/ALTO gain alter later NAV; certificate cannot copy opening26.84m indefinitely |
+| V30 | Case3 diligence/admit versus public-research/decline | Both can meet honest-report/solvency goal; admission issues new series and zero company cash. Missed35 certification loses prospect even if later corrected. Dominated hire not counted as independent strategy |
+| V31 | Joint winddown, executable capacity and solvent fully settled closing assets | Actual liquidation/cost/carry, final certified participation termination, surviving provision fixed once, units burned/final claims paid; scored endpoint alone does none of this |
+| V32 | Winddown halt/unreturned borrow or NAV<=0 at ten-day horizon | Preserve residual assets/claims/fees/collateral, UNRESOLVED_WINDDOWN/default classification; no stale terminal fill or invented payable forgiveness |
+
+Concurrency case initial states and permitted pairs (real PostgreSQL at FF4a):
+
+- C13: version10, two distinct new commands both expecting10 and competing for the same finite reserve. Barrier releases two connections. Exactly one commits version11; other VERSION_CONFLICT, zero loser journal/reservation/outbox economic effect. Rebase with a new key may still be rejected for resources. Repeat100 trials per declared environment; trial count is scenario evidence, not formal universal proof.
+- C14: same actor/key/payload expected10 repeated after original committed11 and current state advanced12. Both current authorized retries return the original committed result; no fresh risk test/fee/fill or version increase. Changed payload yields IDEMPOTENCY_CONFLICT. Revoked/cross-season actor denied without revealing original result; original economics unchanged.
+- C15: cancel versus fill share same order/version and event. Allowed pairs: cancellation accepted then fill no-op, or fill committed then cancellation affects remainder only. Filled quantity/capacity/journal identity exactly once, released reservation equals actual unfilled quantity; no negative remainder. Crash precommit leaves no effect; postcommit retry returns stored result/outbox can deliver twice without economic duplication.
+- C16: two ready partners against digestD/version10, then material order/reserve mutation to11. Old-ready advance rejected. Both ready on new digest, duplicate advance one phase only; accepted log fixes sequence. Metadata chat neither changes economics nor authorizes advance.
+
+## Planned gameplay/evaluation protocol (no results yet)
+
+FF3b recruits at least three two-person pairs for internal challenge; FF5c at least six pairs (three novice-finance pairs and three with finance familiarity), consented observation without collecting financial/personal data. These are practical pilot sample sizes, not statistical-power claims. Counterbalance role assignment; independent observation tracks timestamps, command IDs, role, available evidence, rejected actions, facilitator help and causal effects. Target chapter duration20–30min, opening40–60min is a hypothesis; publish median/range rather than claim tested target.
+
+Predeclared provisional release criteria: each partner makes at least two consequential choices changing exposure/resources/information/capital outcomes over opening arc; no partner spends >25% of decision-window time waiting solely for the other's required approval; both explain cash versus NAV, next binding deadline and one immediate/delayed consequence; after failure both identify one available recovery or honest winddown without financial coaching. Ask separately whether each wants another chapter (1–5) and why; target median>=4 while retain dissent and confused cases. Automated scripts cannot satisfy human gates. Unresolved repeated role starvation or misunderstood mandatory obligations blocks release; revise options/info/order, not add dashboards to distract.
+
+Evaluate research usefulness with matched authored cards/public-only/wait scripts and observations of changed ex-ante choices; no bonus for hindsight correctness. Evaluate dominant strategies with versioned cash, diversified, liquidity-aware, concentrated gambler, trust spam, repeat gate and last-day exploit policies on identical tapes, then held-out versions. Report all outcomes, unpaid claims, fee/firm/LP effects and worst paths; no single-seed balance claim. Counterfactual replay changes one command under same tape and availability; it establishes mechanical model effect, not empirical causal skill.
+
+Evidence file per run records commit/runtime/command/schema/rules/tape/control hashes, expected/observed totals, source of oracle, pass/fail/pending, and limitations. Correctness/replay/race/information/scenario/human evidence are separate gates. No experiment in this section ran during planning.
+
 
 ---
 
@@ -1625,6 +1612,12 @@ These are proposed product/engineering decisions, not claims of implemented beha
 | Upstream reuse | Adapt bounded patterns; no wholesale fork/code copied yet | Keep finance ownership and avoid unrelated SaaS dependencies |
 | AI | Optional explanations/baselines after game | No LLM control over financial truth, approvals or scoring |
 | Workflow | One builder, bounded review | Astra/extra-high was explicitly requested for this redesign, not perpetual delegation |
+
+## v2.2 accepted decisions,7 October2026
+
+Planning revision 2.2-M1: accepted all 20 detailed work packages through FF8, explicit pure integration/independent Case1 controls before human experiment, winddown-tail authoring gates, generalized6a controls/restrictions, end-to-end7a historical replay and a bounded8 extension-selection gate. PLAN_REVIEW_AND_DECISIONS is the current due-decision register; no new dependency or application feature implemented. Standard-library validation selected forFF0a. Prior planning diff preserved; commit/push explicitly authorized by the latest user instruction.
+
+DESIGN_REVIEW_V2_2 records every independent financial/gameplay/engineering finding and rationale. Retain the connected economics and modular monolith. Correct Case2 issuer basket; extend gated payment horizon61; fix replacement cutoff/transfer, retained pending-return collateral and voluntary-before-forced margin ordering. Remove active dominated Case3 hire; retain its arithmetic as teaching forecast. Add useful operating commands, exact precision/hash/retry/readiness, bounded termination, early human prototype and small milestone gates. Next is FF0a authoring/schema-loader only, not full app scaffold. SEO/marketing excluded; old row/assessment below is historical evidence, not active authorization. Release/balance/fun remain unproven.
 
 ## Superseded defaults
 
@@ -1658,71 +1651,54 @@ The changed contracts supersede corresponding v2.0 descriptions, not Git history
 
 Source: `docs/CLAUDE_HANDOFF.md`
 
-# Claude handoff — FundForge v2.1
+# Claude handoff: FundForge v2.2
 
-## Actual state
+7 October2026. Planning only. Original v2.2 review entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f` was clean; this continuation entered its preserved planning diff. The user requested publication of the completed plans; see PROGRESS for actual publication evidence and inspect current Git state before editing. Repository visibility was not freshly verified. Local tree has audit/docs/fixtures and document scripts, **no application, Python/Pydantic foundation or26-test suite**. Do not assume work in another session transferred.
 
-Private repository: https://github.com/krishbansalofficial/fundforge. Documentation-only, no frontend/backend/database/model/provider connection/deployment. The owner asked to rethink the whole product as a full hedge-fund game and evaluate OpenSEO, using Astra. The v2.1 critical review used Astra with extra-high reasoning, researched 17 pinned repositories and corrected the contracts; implementation remains pending.
+Full-milestone continuation, planning revision 2.2-M1: this follow-up started with the previous planning diff already present, not a clean tree. All 20 phases through final FF8 now have full work packages in [MILESTONE_PLANS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MILESTONE_PLANS.md), with task order/ownership/deliverables/acceptance/failure/stop. [PLAN_REVIEW_AND_DECISIONS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md) assigns 13 unresolved or selected decisions to their due milestone. The user explicitly requested commit/push; application implementation and dependencies remain forbidden in this planning turn. Inspect Git history/status for actual publication state rather than infer it from an earlier clean-entry snapshot.
 
-The old $100,000, 30-day, mandatory-approval-for-every-trade plan is superseded. Current default: two firm partners manage $25m of outside LP capital and a separate $300k company over 60 simulated business days/six chapters. Fees, investor dealing, long/short financing, firm runway, committee governance and crises belong in the first playable game.
+Read CLAUDE.md, this handoff, IMPLEMENTATION_HANDOFF, PROGRESS and DESIGN_REVIEW_V2_2; then only the current task's contracts. Source docs are canonical, generated combined Word/Markdown are projections. FUND_ACCOUNTING owns economics, GAME_SYSTEMS player rules, MASTER_SPEC release scope, SIMULATION_ARCHITECTURE interfaces, SCENARIO_CONTRACTS the tightened three challenge authoring schedules. Old JSON branch dollars remain isolated arithmetic, not full dated runs.
 
-## Start
+For implementation also read IMPLEMENTATION_PLAN plus the selected MILESTONE_PLANS section and due decisions; do not reload all later phase details or treat optional FF7/FF8 as base-game requirements. This pass explicitly adds the pure session/independent arbitrary-path control prerequisite before the early human prototype, recovery-tail coverage, actual control/restriction mechanics in6a, end-to-end historical replay in7a and a bounded final extension-planning gate.
 
-Read CLAUDE.md, this file, PROGRESS.md, DECISIONS.md, MASTER_SPEC.md, then the relevant game/accounting contracts. Inspect current Git state and installed tools. Do not read the generated combined document in addition to its source docs. Inventory installed skills by names once; do not assume a particular local Vercel installation or model syntax.
+## What changed and why
 
-Use P01 in PROMPT_PACK.md to review contradictions and freeze FF0 contracts. Start only the requested bounded milestone. No application work was implicitly completed by generating this design. Do not recreate the repository or force-push it.
+Three independent read-only financial, gameplay and engineering reviewers were requested and completed; all findings/dispositions are recorded in DESIGN_REVIEW_V2_2. Accepted Case2 post-flow issuer correction, settled replacement timing, frozen pending-return collateral, bounded termination, extended gate horizon, useful operating actions, exact precision/hash/retry/readiness, smaller milestones and earlier human test. Removed dominated active Case3 hiring; kept forecast arithmetic. Rejected artificial capability rewards, additional finance frameworks and SEO/marketing integrations. Useful prior financial-library/source research retained; only uncertain material choices rechecked.
 
-## Core experience
+The full initial game remains two human partners,25m investor fund and300k separate firm,60 synthetic weekdays/six chapters, LP terms, equity long/short financing, fees, firm survival and crises. First releasable game remains a complete day1–21 opening arc, not a chart/ticket demo. New FF3b is an explicitly internal short challenge to test role agency before building the full UI/campaign. Optional providers/AI/ML remain deferred; no real-money/paid activity.
 
-Two partners brief, allocate research effort, choose investments and capital/liquidity commitments, respond to an investor/broker/business event, advance a deterministic market clock, then inspect consequences. Delegated sleeves avoid an approval-clicking simulator; exceptions still require independent agreement. The operating partner has financing, LP and staffing/budget decisions of their own.
+## Next agreed task and stop condition
 
-The first playable two-chapter arc must demonstrate a long/short book, borrow/margin, an investor flow, fee accounting, separate company runway, a consequential disagreement and a causal debrief. A chart and order ticket are foundation work, not the product gate.
+**FF0a only:** materialize Case1's complete authored12–21 schedule, schema/loader, three actor-tagged scripts and independent daily financial oracle/coverage/hashes. Exact paths and X01–X07 are in IMPLEMENTATION_HANDOFF. No economic reducer, full frontend/backend scaffold, DB, provider, feature expansion or deployment. A validated authored fixture is not a working game. After evidence/review update handoff and stop before FF0b.
 
-## Important contracts
+Unresolved: full-path dated oracle totals/feasibility, compiled challenge tapes, ordinary zero-position opening/full campaign tape, release/DB/auth/migration choices, staffing payoff in full game, balance and enjoyment. The record-complete authoring schedules still need materialization and independent calculations; don't turn100k safety bounds or omitted weekend charges into actual postings. Case2 no-sale leverage breach does not necessarily mean payment default if allowed credit suffices. Case3 seeded47k firm cash oracle excludes later newly collected fees. Termination cannot cash provisional incentive merely because season scoring ends.
 
-- FUND_ACCOUNTING owns event ordering, balances, fees/series, cash settlement and financial conventions.
-- GAME_SYSTEMS owns actions, roles, trust, house rules, progression and evaluation.
-- SEASON_SCENARIOS owns authored arcs and the vertical slice.
-- MASTER_SPEC owns product scope and the canonical document map; SIMULATION_ARCHITECTURE owns software interfaces.
-- REALISM_AUDIT lists prioritized gaps and industry-versus-contract-versus-game distinctions.
-- LIBRARY_RESEARCH and fixtures/library_review.json record17 actual source/license reviews. No dependency was installed.
-- ACCEPTANCE_TESTS lists required observable behavior, not executed tests.
-- OPENSEO_INTEGRATION pins inspected upstream code and separates optional research from the engine.
+## Commands and actual evidence
 
-Preserve both simulated time and wall-clock audit time. External research must never reveal a future historical fact. Treat all numerical campaign settings as explicit fictional house rules. Never represent simulated LP terms as universally applicable law or real fund compliance.
+State: `git status --short`, `git log -5 --oneline`, `rg --files`. Docs: `python scripts/build_documents.py`, `python scripts/validate_design.py`. PACKAGING_VALIDATION records final executed results. Original validator failed Windows cp1252; UTF-8 retry exposed missing python-docx. Scripts now have explicit UTF-8 and standard-library Word fallback; no package installed. Python3.14.3 observed, node/npm on PATH; psql/soffice not found on PATH. No application/race/security/playtest/provider/ML checks ran. Word structure/content checked, pages not rendered. Future loader/test commands are proposed, clearly labeled in IMPLEMENTATION_HANDOFF.
 
-## Delivery boundaries
-
-FF0–FF4 build foundations. FF5 is a complete two-chapter opening arc through ordinary day21 opening administration. FF6 is the full campaign through ordinary day61 opening administration and reliability/balance gate. FF7 adds optional data/research/ML. All pending. Fixture mode requires no credentials. An OpenSEO assessment is not an installed integration; real API spend remains disabled.
-
-At task end record changed behavior, actual checks and limitations, then update PROGRESS with one next task. Use a bounded financial/security reviewer when authorized. Do not launch extra agents or redesign the whole product after every milestone.
-
-## Critical v2.1 contracts
-
-Opening series participation is net capital plus reversible incentive provision. Management fee1.5% ACT/365 and settled borrow/debit ACT/360 accrue on calendar dates, including weekends; statistical252 annualization is a different calculation. Performance crystallizes annually on Dec31 and pro rata on dealt redemptions. A partial redemption does not ratchet surviving HWM. The Jan–Mar campaign does not pay an annual incentive merely because it ends.
-
-Check all constraints on reductions: a short cover can increase net exposure, and a dealt redemption shrinks equity before payment. Borrow persists until settled return. Independently authored broker/admin controls can reveal a balanced but wrong journal. Corporate actions cover cash distributions and integer splits only. The synthetic calendar deliberately ignores real exchange holidays.
-
-The minimal first-playable stack is the planned app/database plus our own deterministic domain. pandas/exchange_calendars, optional DuckDB, then optional CVXPY/statsmodels belong to justified FF7 tasks. OpenBB/OpenSEO are possible data adapters; LEAN/Nautilus are references; rateslib default rights and vectorbt Commons Clause prevent treating them as unrestricted dependencies. Recheck exact versions before reuse.
-
-A Renewal ending is conditional continuation, not proof of a sustainable firm. At constant25m,1.5% annual management fees are375k against1.04m annualized20k/week overhead:665k structural gap before incentive income/capital/cost changes. The300k opening company balance is15 weeks at base cost; four weeks of remaining runway does not finance another12-week season. Display this gap and require an explicit continuation budget/recapitalization contract; do not award sustainability from AUM or provisional incentive alone.
+Claude continuation: Read this handoff and verify the current repository state before editing. Critically review the revised plan using bounded financial, gameplay, and engineering reviewers. Resolve concrete contradictions and improve weak acceptance criteria before implementation. Then implement only the next agreed milestone, validate it against the documented acceptance cases, and update this handoff with evidence and the next task.
 
 
 ---
 
 Source: `docs/PROMPT_PACK.md`
 
-# Copy-ready implementation prompts — v2.1
+# Copy-ready implementation prompts — v2.2
 
 Use one prompt for one bounded task. The repository already exists. All application gates are pending. Model selection is performed in the actual client, not by claiming a prompt can switch its underlying model. The owner requested Astra/extra-high for this completed v2.1 critical review; verify available model names in the implementation environment.
 
-## P01 — Inspect the redesigned game and freeze FF0
+Planning revision 2.2-M1: all 20 milestone packages through FF8 are in MILESTONE_PLANS. A prompt selects one package; it does not supersede its prerequisites, owned files, due decisions or stop gate. PLAN_REVIEW_AND_DECISIONS owns unresolved choices/evidence deadlines. Current planning turn permits documents plus requested commit/push, not application features or dependency installation.
 
-Read CLAUDE.md, docs/CLAUDE_HANDOFF.md, docs/PROGRESS.md, docs/DECISIONS.md and docs/MASTER_SPEC.md. Inspect repository and tools. Read REALISM_AUDIT, SIMULATION_ARCHITECTURE, GAME_SYSTEMS, FUND_ACCOUNTING and the first SEASON_SCENARIOS slice. Consult LIBRARY_RESEARCH before choosing dependencies. Check the dated calendar, per-date accrual, pre-provision participation, annual versus partial-redemption crystallization, post-flow risk and independent reconciliation. Identify concrete unresolved contradictions, not a new feature wishlist. Resolve routine choices; list any unresolved contract that blocks safe code. Produce a bounded FF0 task contract with schemas, owned paths and observable checks. Do not revert to the old paper-trading MVP. Do not generate the whole app or claim implementation results.
+## P01 — Verify and challenge the v2.2 plan
 
-## P02 — FF0 scaffold
+Read CLAUDE.md, both handoffs, PROGRESS and DESIGN_REVIEW_V2_2. Verify Git/files/tools; do not assume the reported foundation/26 tests exists. Use bounded independent financial/gameplay/engineering reviewers for concrete contradictions (no recursive agents/edits). Reconcile findings and weak acceptance before implementation. Preserve useful existing research and uncommitted planning work. Next agreed task is FF0a, not a full scaffold.
 
-Implement the approved FF0 contract only. Pin actual supported runtimes and package managers, create minimal Next.js/FastAPI/PostgreSQL development scaffolding, config validation and CI. Define versioned command/event/scenario interfaces. Validate the authored scenario manifest, explicitly identifying any missing tape. No broad dashboard, provider connection or paid service. Run actual relevant checks and update PROGRESS with one next task.
+## P02 — FF0a complete one authored package
+
+Implement only IMPLEMENTATION_HANDOFF's FF0a/X01–X07. Materialize Case1 defaults/overrides, actor-tagged command scripts and independently calculated dated oracle. Add schema/loader/rejection checks; no financial reducer, UI/API/DB/provider. Freeze covered-share collateral, replacement transfer, costs, fees/series/residuals and complete12–21 coverage. Report schema validity separately from engine/playability. Update handoff, stop before FF0b.
+
+Use the full FF0a work package in MILESTONE_PLANS and standard-library validation. Complete independent full-date financial cells before calling success paths feasible; report missing evidence explicitly. Do not create an application foundation in this authoring package.
 
 ## P03 — One financial contract
 
@@ -1734,7 +1710,7 @@ Implement the selected FF2 transition with deterministic future-event eligibilit
 
 ## P05 — Governance and transaction races
 
-Implement FF3 for two human partners with jointly approved immutable sleeve charters and independent consent for exceptions. Test revoked/expired authority, combined commitments, idempotency collisions, edit/approve and cancel/fill races using real PostgreSQL. Atomically persist financial effects and durable publication state. No SQLite substitution or self-approved expansion of delegated scope.
+Implement FF3a pure authority or FF4a persisted race safety, whichever is the agreed bounded task. Two human partners need jointly approved immutable sleeves and distinct consent. Test revoked authority, commitments, idempotency/edit/cancel/fill; use real PostgreSQL only for FF4a race claims. Atomically persist effects/publication there. No SQLite substitution or self-approved delegation expansion.
 
 ## P06 — LPs and management-company survival
 
@@ -1752,9 +1728,9 @@ Review only this diff, its contracts and necessary dependencies. Return at most 
 
 Complete the selected FF6 chapter or balance task. Run matched seeded baseline policies and inspect concentration, cash-only, trust farming, replay rerolls and last-day obligation exploits. Keep rules immutable within a season. Report results with seeds and limitations. Do not claim a fun or balanced game solely because unit tests pass; include playtest evidence.
 
-## P10 — OpenSEO spike
+## P10 — Excluded scope
 
-Read OPENSEO_INTEGRATION, LIBRARY_RESEARCH and the pinned inspected source paths. Verify every-app/open-seo remains the intended upstream; do not substitute OpenBB. Start with fixture observation → normalized as-of evidence card. Evaluate separate OpenSEO service versus small direct adapter without migrating the financial stack. Record exact data rights, credentials and real request/currency caps before any paid activation. Cover stale/missing/partial results, ambiguous-charge timeout and historical leakage. No live connection is required to complete the fixture spike. No copied code without license/notice records.
+SEO and marketing integrations are outside the current planning/implementation roadmap. Do not run the archived OpenSEO spike.
 
 ## P11 — Optional research and ML
 
@@ -1779,6 +1755,16 @@ Read SEASON_SCENARIOS, fixtures/season_scenario.json, fixtures/scenario_cases.js
 ## P16 — Dependency or data-source decision
 
 Read LIBRARY_RESEARCH, its 17 pinned evidence records and the proposed feature's acceptance contract. Recheck the exact release/license/module/API using current primary sources, including transitive/solver obligations. Separate software reuse from dataset display/retention/redistribution rights, credentials and real costs. Compare a small original implementation or existing dependency against the candidate. Return adopt/adapt/reference/defer/reject with one concrete integration boundary and actual evidence. Install only if the current task authorizes the implementation and no paid activation is needed; otherwise retain a fixture-based deliverable. Do not equate an API key with redistribution permission.
+
+## P17 — Execute one fully specified milestone
+
+Read CLAUDE_HANDOFF/IMPLEMENTATION_HANDOFF/current Git state, then IMPLEMENTATION_PLAN, selected MILESTONE_PLANS package and its due decision-register entries. Verify prerequisite evidence exists; resolve only concrete blockers for this package. Execute its ordered tasks within owned paths, run the defined independent acceptance, record actual commands/hashes/results/limitations, update handoff with one next gate and stop. Proposed CLIs/tests do not exist until implemented; don't claim them run. Do not auto-start later milestones or optional FF7/FF8.
+
+## P18 — Final-phase extension decision
+
+Execute FF8's design gate only after selecting one real requested extension. Produce bounded SPEC/PLAN/ACCEPTANCE with user value, lifecycle/authority, dependency/rights/cost and independent failure/recovery cases. No unknown feature wishlist or automatic deployment/live feed/league/derivatives build. A concrete defer/reject is valid if required evidence is absent. Initial-game completion remains FF6c.
+
+Claude continuation: Read this handoff and verify the current repository state before editing. Critically review the revised plan using bounded financial, gameplay, and engineering reviewers. Resolve concrete contradictions and improve weak acceptance criteria before implementation. Then implement only the next agreed milestone, validate it against the documented acceptance cases, and update this handoff with evidence and the next task.
 
 
 ---
@@ -1844,6 +1830,23 @@ Source: `docs/SOURCES.md`
 
 # Sources and verification boundaries
 
+## Fresh bounded verification,7 October2026
+
+Prior research remains dated6 October; it was not all repeated. The following primary sources were opened for material current financial/engineering distinctions. Old publication dates remain old; fictional numbers and corrections are design judgments, not source prescriptions.
+
+| Exact source | Freshly checked narrow evidence | Design judgment / limitation |
+|---|---|---|
+| [SEC T+1 release,21 May2024](https://www.sec.gov/newsroom/press-releases/2024-62) | Applicable most broker-dealer transactions moved to T+1 effective28 May2024 | FundForge deliberately uses a holiday-free synthetic calendar; not an exchange/era universal rule |
+| [Investor.gov Hedge Funds](https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds) | Fund terms, leverage, valuation, fees and withdrawal limits/incentive conflicts need attention | Our1.5/20 fee terms, gates, lockups, redemption payment and investor behavior are authored contracts |
+| [IBKR short-sale cost](https://www.interactivebrokers.com/en/pricing/short-sale-cost.php) | One broker distinguishes borrow fees and short-proceeds interest; availability/rates depend on security | Our zero rebate,40% replacement, frozen pending-return collateral and deadlines are fictional choices, not IBKR promises |
+| [ESMA performance-fee guidelines PDF](https://www.esma.europa.eu/sites/default/files/library/esma34-39-992_guidelines_on_performance_fees_en.pdf) | Scoped UCITS/certain-AIF guidance distinguishes performance-fee methodology/crystallization | Does not govern every equity hedge fund; our annual/redemption/termination dates and series methodology are explicit contract design |
+| [FINRA Margin Calls](https://www.finra.org/investors/insights/margin-calls) | Retail margin-risk context includes changed house requirements/liquidation risk | Not institutional prime-broker contract authority; no legal grace period inferred. Two other guessed FINRA URLs failed and are not evidence |
+| [Python Decimal](https://docs.python.org/3/library/decimal.html) | Exact decimal contexts/rounding/traps | Our precision40/scales/residual policy must be independently tested; no implementation claim |
+| [PostgreSQL explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html) | Row FOR UPDATE locking semantics, concurrency/deadlock considerations | Season-wide lock is our architecture choice; requires real race/fault evidence |
+| [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/) and [strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/) | Typed model validation API and strict behavior | Optional boundary tooling; cannot replace independent financial oracles. License/purpose/fit details in LIBRARY_RESEARCH |
+
+No real fund/legal compliance claim is made. Portfolio factor sensitivities/stress outcomes, counterparty timings and NPC confidence are authored abstractions. Historical strategy/jurisdiction/broker variation and omitted AML/tax/illiquid valuation remain explicitly scoped in REALISM_AUDIT. SEO entries below preserve earlier research provenance only and are excluded from the active plan and generated package's standalone sections.
+
 Checked 6 October 2026 for this redesign. All campaign dollar amounts, horizons, rates, gates, margin coefficients, confidence effects and victory conditions are original fictional house rules. Source material motivates financial concepts; it does not certify this simulator as accurate legal compliance or a deployable investment service.
 
 | Source | Narrow support | Boundary |
@@ -1868,9 +1871,9 @@ Before implementing real market data, recheck provider entitlements, redistribut
 
 ## v2.1 expanded research register
 
-The critical financial audit's primary-source register and claim boundaries are in [REALISM_AUDIT](https://github.com/krishbansalofficial/fundforge/blob/main/docs/REALISM_AUDIT.md), references S1–S11. It adds SEC investor/ethics material, explicitly scoped ESMA performance-fee guidance, AIMA institutional operating preferences, the FSB's IOSCO valuation entry, IBKR settled-borrow examples, GIPS return methodology and FINRA house-margin guidance. Historic publication dates are retained; accessing an older source in 2026 does not turn it into a new rule. Inaccessible IOSCO text is not claimed as inspected.
+The critical financial audit's primary-source register and claim boundaries are in [REALISM_AUDIT](https://github.com/krishbansalofficial/fundforge/blob/main/docs\REALISM_AUDIT.md), references S1–S11. It adds SEC investor/ethics material, explicitly scoped ESMA performance-fee guidance, AIMA institutional operating preferences, the FSB's IOSCO valuation entry, IBKR settled-borrow examples, GIPS return methodology and FINRA house-margin guidance. Historic publication dates are retained; accessing an older source in 2026 does not turn it into a new rule. Inaccessible IOSCO text is not claimed as inspected.
 
-The software review is in [LIBRARY_RESEARCH](https://github.com/krishbansalofficial/fundforge/blob/main/docs/LIBRARY_RESEARCH.md), with17 exact repository/commit/source/license records in [library_review.json](https://github.com/krishbansalofficial/fundforge/blob/main/fixtures/library_review.json). It distinguishes current resolved repository owners from old aliases, development snapshots from release pins, and restricted licensing from permissive licensing. No candidate was installed or benchmarked and no upstream implementation was copied. The ledger/concurrency choices also cite Python Decimal and PostgreSQL official documentation in [SIMULATION_ARCHITECTURE](https://github.com/krishbansalofficial/fundforge/blob/main/docs/SIMULATION_ARCHITECTURE.md).
+The software review is in [LIBRARY_RESEARCH](https://github.com/krishbansalofficial/fundforge/blob/main/docs\LIBRARY_RESEARCH.md), with17 exact repository/commit/source/license records in [library_review.json](https://github.com/krishbansalofficial/fundforge/blob/main/fixtures\library_review.json). It distinguishes current resolved repository owners from old aliases, development snapshots from release pins, and restricted licensing from permissive licensing. No candidate was installed or benchmarked and no upstream implementation was copied. The ledger/concurrency choices also cite Python Decimal and PostgreSQL official documentation in [SIMULATION_ARCHITECTURE](https://github.com/krishbansalofficial/fundforge/blob/main/docs\SIMULATION_ARCHITECTURE.md).
 
 Source categories are intentionally separate: industry concepts, a particular provider's practice, a fund's negotiated contract, and our game simplifications. The synthetic calendar, fees, LP windows, leverage, costs and outcome thresholds are authored settings. Historical/live mode needs its own venue/jurisdiction/era/entitlement review; the initial fictional US-style cash-equity mechanics do not establish real regulatory compliance.
 
@@ -1881,51 +1884,767 @@ Source: `docs/PROGRESS.md`
 
 # Current project state
 
-Updated 6 October 2026. Design v2.1. Application implementation remains not started.
+Updated7 October2026. Design v2.2; application implementation not started locally.
 
-- Private remote: https://github.com/krishbansalofficial/fundforge. Existing Git history is preserved; this revision starts from `5ae8a5a4f04e339eeb6697ff8a264989fada7106`.
-- The owner requested a critical realism audit and repository update using Astra with extra-high reasoning. Astra/extra-high reviewed the financial/game contracts; current primary sources and actual source/license snapshots were inspected.
-- Added REALISM_AUDIT, LIBRARY_RESEARCH and SIMULATION_ARCHITECTURE. The audit prioritizes 22 realism gaps; the library review covers 17 repositories and records exact commit/blob evidence. The architecture assigns one deterministic economic authority.
-- Revised master, game, accounting and season documents. Corrected cohort participation, calendar accrual, annual versus redemption incentive timing, survivor HWM, borrow settlement/return, signed reductions, post-flow leverage, independent controls, corporate actions and checkpoint semantics. Exposed the management company's structural annual cost gap.
-- Added three detailed authored challenge designs with two-player decisions, numerical branches, failure/recovery and explicit compilation gates. Updated season_scenario and added scenario_cases with 9 independent arithmetic oracles. A complete executable tape/engine is still pending.
-- Synchronized acceptance cases, dependency-aware roadmap, decisions, Claude rules/handoff/prompts, workflow, source register, evidence guidance and OpenSEO review. Regenerated combined Markdown and Word documents from 19 canonical sections.
-- Ran `python scripts/build_documents.py` and `python scripts/validate_design.py`: document/package and reference-arithmetic checks passed. The validator checks source links/fences, JSON, dated calendar, series/fees, risk, episode checkpoint calculations,17 pinned repository records and Word archive/source inclusion. See PACKAGING_VALIDATION for scope and limitations.
-- No third-party implementation was copied, library candidate installed, paid account activated, visibility changed, public deployment created or real-money trading capability added. OpenSEO remains an optional fixture/adapter proposal; its intended upstream is a documented assumption.
-- FF0–FF8 remain pending. No frontend/backend/database, runnable scenario engine, deployed model, actual user/load/security/provider result or measured investment outcome exists.
+Continuation revision 2.2-M1: the entry tree contained the earlier uncommitted planning work at51eda0c, which was preserved. All 20 milestones through FF8 now have full packages in MILESTONE_PLANS; PLAN_REVIEW_AND_DECISIONS records current corrections,13 due decisions and pending evidence. Added pure session/arbitrary-path Case1 controls before human prototype, explicit recovery tails, controls/restriction mechanics and actual historical-replay delivery. The user subsequently authorized commit/push of the completed documentation. Remote fetch confirmed main/origin/main both51eda0c before publication; final publication result must be recorded after it occurs.
 
-## Next task
+Original review entry HEAD51eda0c was clean; this follow-up preserved its planning changes. Recent commits confirm v2.1 audit, prior redesign and original document package. No backend/frontend/dependency manifest/test directory, Pydantic foundation or26 tests found. Existing source paths/Claude instructions/fixtures/scripts inspected. No work assumed transferred from other checkouts. The first planning pass did not commit/push; this continuation publishes its combined documentation under the user's explicit request. No deployment/installation/application implementation occurred.
 
-Run P01: inspect the implementation environment and freeze FF0 against MASTER_SPEC, SIMULATION_ARCHITECTURE, GAME_SYSTEMS, FUND_ACCOUNTING and SEASON_SCENARIOS. Use REALISM_AUDIT's P0 findings and the independent oracle fixtures. Resolve remaining API/schema and full-tape/control-record details before declaring a runnable scenario. Build FF0–FF4 foundations, then the complete FF5 opening arc through ordinary day21 opening administration. Do not substitute a trading-only demo or a broad dependency installation for that goal.
+Planning changes: three bounded read-only independent reviews; evidence/consequences/dispositions in DESIGN_REVIEW_V2_2. Corrected Case2 issuer concentration, explicit replacement cutoff/transfer, frozen covered collateral, voluntary margin priority and termination; removed dominated active Case3 hire; extended gated-unit horizon; authored complete bounded schedules; concrete operating commands, precise numeric/hash/retry/readiness and measured playtest plan. Split large gates and added early internal human experiment. SEO/marketing excluded. Prior financial research retained with narrowly updated sources/dependency choices.
 
-## Update discipline
+Changed canonical master/game/accounting/scenario/architecture/plan/acceptance/review/library/source/decisions/Claude handoff/prompts and fixture annotations; added SCENARIO_CONTRACTS, DESIGN_REVIEW_V2_2, IMPLEMENTATION_HANDOFF. Combined Markdown/Word regenerated with portable documentation tooling. See PACKAGING_VALIDATION for exact actual results and original environment failures. These are package/arithmetic checks, not application tests. Full independent accrued path totals, compiled executable tapes, economic runtime/concurrency/playtest results remain pending.
 
-Record actual commit, changed behavior, commands/results, limits and one next task. Determine this revision's final commit from Git history; the starting commit above is not a claim about current HEAD. Keep proposed, implemented, tested and measured states distinct. A four-week Renewal milestone does not fund the next quarter; continuing seasons need a disclosed budget/capital contract or honest failure.
+## One next task
+
+FF0a only as detailed in IMPLEMENTATION_HANDOFF/X01–X07: compile Case1 authored12–21 record schedule, typed schema/loader/rejection checks, three actor-tagged scripts and independent dated financial oracle with coverage/hashes. Do not start full scaffold/economic features or declare playable status. After verified FF0a update handoff to FF0b. Original P01/P02 scaffold instructions superseded by the revised prompt pack.
+
+Then follow the documented gates: FF0b, FF1a/b, FF2a/b/c and FF3a/b, FF4a/b, FF5a/b/c first playable, FF6a/b/c full initial game; FF7a/b and FF8 optional final extension decision. All application milestones remain pending. No application tests, DB/concurrency experiments, playtests, provider/model calls or installs occurred while expanding these plans.
+
+## Evidence discipline
+
+Inspect current uncommitted planning diff before editing; preserve it. Record actual commands/versions/hashes and pass/fail/pending separately. Original packaging claims from6 October are historical; current command results in PACKAGING_VALIDATION. No measured fun, sustainable firm, empirically calibrated market, database safety or investment skill claim exists. Conditional Renewal does not fund the next quarter. Word rendering/compatibility is unverified despite valid OOXML/package checks.
 
 
 ---
 
 Source: `docs/PACKAGING_VALIDATION.md`
 
-# Design-package validation — v2.1
+# Design-package validation v2.2
 
-These checks concern documents, reference arithmetic and generated review files. They are not application acceptance tests or evidence of playable software.
+7 October2026. These are documentation/reference checks, not application tests, scenario execution or playtest evidence.
 
-Executed successfully:
+## Actual environment and commands
 
-```bash
+Observed Python3.14.3 on Windows; original bare `python scripts/validate_design.py` failed cp1252 decoding. `python -X utf8 scripts/validate_design.py` exposed missing python-docx through the old eager builder import. Those failures are recorded, not treated as passes. No dependency installed. Documentation scripts now read/write explicit UTF-8, optional docx import no longer blocks reference validation, and original standard-library OOXML fallback permits Word generation.
+
+Executed successfully after correction:
+
+```powershell
 python scripts/build_documents.py
 python scripts/validate_design.py
+git diff --check
 ```
 
-The bundle contains 19 canonical source sections; 22 source Markdown files are checked. The validator reports the current check/table/paragraph counts directly. Both commands passed for this revision; subsequent canonical edits require regeneration and validation before commit.
+The previous v2.2 pass passed2,511 package checks across21 sections. Planning revision2.2-M1 adds full20-milestone coverage/required work-package fields and an acyclic dependency check, plus the detailed plans/decision register in23 bundled sections. Current exact check/table/paragraph counts are printed by the validator and recorded after final generation. Counts are package assertions, not application tests. Word is structurally valid ZIP/XML with repeated table headers, heading styles, external link relationships and source hashes/visible-text comparison. No Word/LibreOffice page render was available; table widths, pagination, readability and application compatibility are unverified. The fallback preserves content, with simpler typography/list treatment than python-docx.
 
-Checks include Markdown fences and local links; JSON syntax and version/capital/calendar contracts; six legacy zero-cost cash-account NAV states; 9 separate arithmetic oracles covering fee participation, partial redemption/HWM, post-redemption leverage, cover direction, calendar accrual, short distributions, borrow dates and the terminal boundary; numerical checkpoint calculations across 3 authored cases;17 exact repository/license/source snapshot records; Word archive/XML integrity and source-section inclusion; and exact source-content inclusion in the generated Markdown bundle.
+Checks: local Markdown links/fences; fixture JSON; dated synthetic calendar/capital; six isolated legacy NAV states;9 financial arithmetic oracles; three isolated episode checkpoints;17 pinned repository/source/license records; exact combined source inclusion; Word archive/XML/source-hash and visible-paragraph content. Added independent corrected Case2 issuer/sector/ETF/initial-margin/normalized-cash checks, exclusion of dominated hire, extended gate horizon and scale24 residual/tie arithmetic. These do not execute actual dated scenario paths. v2.2 rules complement v2.1 isolated fixture checkpoints; their complete accrued path oracles/compiler remain FF0a/FF6 work.
 
-The arithmetic validator independently recomputes expected checkpoint values from fixture inputs. It does not run an application or treat expected-output JSON as gameplay evidence. Episode branches isolate their stated decisive calculations; ordinary date-by-date accrual and complete market tapes must still be compiled and tested by the future engine.
+## Checks only proposed / limitations
 
-Manual consistency review covers fund/company separation, pre-provision series participation, survivor HWM, annual performance crystallization, weekend accrual, settled borrow/return, whole-vector risk checks, post-flow leverage, independent reconciliation, real data rights versus source licenses, and proposed versus implemented status. Source audit, library review and architecture are now included in the combined Word document. Table headers repeat across pages.
+No simulation, Next.js/FastAPI/Pydantic application, database, application test suite, financial reducer or complete compiled executable tape exists. No real PostgreSQL races, restore/fault/security/load tests, provider/model tests, two-human playtests or balance experiments ran. No library installed, benchmarked or compatibility-tested. The17 previous pinned records were preserved; only bounded primary-source/DTO-framework verification occurred this session.
 
-Existing repository-creation scripts were preserved and not executed. The remote was inspected through the GitHub connection. Publication uses an atomic commit and guarded non-force ref update against the expected existing HEAD; no visibility or hosting change is part of this task.
+Original entry HEAD51eda0c was clean; full-milestone continuation entered the preserved planning diff. The user then explicitly requested commit/push; actual publication evidence is recorded in PROGRESS after execution. No deployment, paid request, installation, application feature, repository-creation script or visibility change. Word/Markdown regenerated from source docs, excluding standalone SEO/marketing integration sections; old research provenance remains labeled archived. Financial practices, fictional contracts and house simplifications remain distinct. Read PLAN_REVIEW_AND_DECISIONS and IMPLEMENTATION_HANDOFF for remaining uncertainties and the exact next task.
 
-Limitations: no Word application/page-render inspection; no simulation runtime or complete executable market tape; no application unit/integration, PostgreSQL race, security, two-user gameplay, balance, provider, load or ML tests. Library reviews were source/license/API inspections, not installation/compatibility/benchmark/security tests. Financial sources illustrate practices within their stated scope; contract parameters and synthetic calendar remain authored game choices.
+
+---
+
+Source: `docs/DESIGN_REVIEW_V2_2.md`
+
+# FundForge v2.2: critical review and decisions
+
+7 October 2026. Planning only. This review supplements the useful v2.1 research; it does not claim implemented software.
+
+## Verified state and blunt assessment
+
+Starting HEAD: `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f`. `git status --porcelain=v1` was empty. Recent history is the v2.1 audit (`51eda0c`), game redesign (`5ae8a5a`), document package (`797e90d`), and initial README (`1c04c3f`). Tracked instructions are `CLAUDE.md` and two read-only reviewer files under `.claude/agents`; no AGENTS.md was found. Canonical sources are in `docs/`, design JSON in `fixtures/`, generated Markdown/Word in `documents/`.
+
+The local project is a substantial specification, not a Python/Pydantic foundation. There is no backend, frontend, database schema, dependency manifest, application test directory or 26-test suite. The two Python scripts build/validate documentation. We did not inspect another checkout or infer work from an earlier conversation. Repository visibility was not freshly verified remotely.
+
+The design's strengths are its connected economics, separate fund/firm claims, realistic failure distinctions, delegated authority, synthetic information timing and original deterministic engine. Its weakness is that persuasive scenario prose and narrow arithmetic checks conceal missing executable contracts. Case2 actually fails a constraint its success text promises. Some supposed alternatives are dominated or end before their obligations resolve. Broad FF0–FF4 gates defer discovering whether two humans enjoy the game. More libraries will not solve these problems.
+
+| Category | Local evidence | Status |
+|---|---|---|
+| Implemented | Documentation builder and packaging/reference validator | Tooling only; portability fixed in this revision |
+| Tested previously / rerun here | Independent arithmetic and package consistency | See PACKAGING_VALIDATION for actual current command/results |
+| Proposed | All economic modules, UI, persistence, scenarios, recovery | No application behavior established |
+| Unresolved | Full opening campaign tape, runtime pins, economic feasibility under every path, enjoyment | Explicit milestone gates; no invented results |
+
+## Prioritized gaps and acceptance
+
+| ID / priority | Evidence | Consequence | Correction / dependency | Acceptance criterion |
+|---|---|---|---|---|
+| D01 / P0 | SEASON_SCENARIOS §8 Case2 inherits five $3m equities; pay-all NAV $18,995,800 | Each is 15.793%, outside 15% cap; gated branch is 15.001517% | Replace inherited basket with fully specified <=$2.5m names; FF0a authoring before FF2b risk | Every issuer, sector, ETF, gross/net, initial/maintenance and cash test checked at every reference branch and actual execution prefix |
+| D02 / P0 | Scenario JSON `not_yet_compiled`, FF0 versus P01 disagreement | Schema-valid manifest may be mistaken for runnable game | SCENARIO_CONTRACTS supplies complete design schedules; FF0a compiles Case1 only; full opening arc at FF5a | Coverage report, opening balances/series/settled borrow, dated events, command scripts, independent oracle ledger; status never says runnable until engine exists |
+| D03 / P0 | FUND_ACCOUNTING §4 collateral lacks unsettled-lot mapping | Short gap can reserve proceeds twice or omit a top-up; cure sale sweep can spend needed cash | Explicit collateral lots and linked cover release; FF2a | Unsettled short marked above sale price, partial cover, failed settlement, split and duplicate delivery conserve collateral/resources |
+| D04 / P0 | FUND_ACCOUNTING §7 says forced actions first; GAME_SYSTEMS §8 offers voluntary response | Engine could liquidate before timely player cure | Separate due recall buy-ins from pending margin escalation; FF2b | Timely valid voluntary cure consumes available event first; residual deficit then forced; expired recall priority preserved |
+| D05 / P1 | Case2 ends day41, leaves gate claims and unnamed catalyst | Gate upside/recovery cannot be evaluated | Extend same fixed tape to day61; describe preserved broad exposure and floating claims | Pay-all and gate scripts honor obligations through day61, with fee/carry bridge and residual units shown; returns not used as universal strategy proof |
+| D06 / P1 | Case3 hire after known break, no relevant future use | Costly dominated action masquerades as strategy | Remove active hire choice from challenge; retain cash arithmetic as forecast counterexample | Active choices are report/attention/capacity/admission; no success count earned by intentionally worse staffing branch |
+| D07 / P1 | GAME_SYSTEMS §11 operating role mostly previews | Second player may only calculate/sign | TreasuryReserve and SelectReplacementBorrow commands; existing attention allocation | Each role changes at least two material outcomes/opportunities in the opening playtest; log actor/effect |
+| D08 / P1 | Precision uses 'at least'; hashing and retry precedence unspecified | Lost residuals, unstable replay, committed retry conflicts | Exact architecture wire/context/coordinator contracts; FF0b/FF3a | HALF_EVEN/negative zero/overflow/round-trip canonical vectors; stale-version retry returns original committed result without effects |
+| D09 / P1 | FF0–FF4 encompass nearly whole engine before human play | Product risk discovered too late | Split milestones; internal short Case1 experiment FF3b | Two human roles complete a crisis before campaign/UI expansion; retain failure observations |
+| D10 / P1 | Validator default cp1252 and eager docx import | Document evidence cannot be repeated locally | Explicit UTF-8; standard-library Word fallback; documentation tooling only | Bare documented build/validate commands pass without package installation; structural validation distinguished from rendering |
+| D11 / P1 | Case3 fee seed and no per-series history; Case2 'after charges' called day39 | Warm starts can omit liabilities or accrue twice | Distinguish unit-test checkpoints from dated challenge openings; SCENARIO_CONTRACTS | All intervening dates accrue; exact full-path numbers independently computed before release; isolated oracles never substituted for accrued path |
+| D12 / P2 | Library/source reviews already done 6 October | Repeated research distracts from game; SEO outside task | Retain pinned finance-library evidence; exclude SEO from all current plans/prompts/bundle | No SEO milestone/dependency; optional library receives its own unmet-requirement gate |
+
+## Independent reviewer reconciliation
+
+Three bounded read-only agents were explicitly requested and used: financial realism (PM/CRO/accountant/COO), gameplay, engineering/evaluation. Each returned at most five findings. No recursive delegation or reviewer file edits occurred. The following records all returned recommendations; references name the original v2.1 sections, not stable post-edit line numbers.
+
+| Reviewer / finding | Disposition | Reason and destination |
+|---|---|---|
+| Finance F1: Case2 post-flow issuer breach | Accept | Concrete arithmetic defect; corrected basket and A22 |
+| Finance F2: replacement transfer/cutoff undefined | Accept | Explicit day14 cutoff/day15 settled transfer and fee switch; FUND_ACCOUNTING §10 / V26 |
+| Finance F3: retained return collateral ambiguous | Accept | Freeze covered-share reference target through settlement; FUND_ACCOUNTING §10 / V25 |
+| Finance F4: termination economics missing | Accept bounded policy | Ten-business-day authored recovery horizon, actual liquidation/final dealing, persistent claims; V31–V32. Full statutory waterfall deferred |
+| Gameplay G1: dominated Case3 hire | Accept removal; reject adding an artificial hire benefit | Smallest correction preserves truthful automatic accounting; §8 Case3 |
+| Gameplay G2: gate payoff and later plan missing | Accept | Extend horizon and fixed liquidity plan; SCENARIO_CONTRACTS Case2 |
+| Gameplay G3: operating role may only approve | Accept | Commands and resource consequences; GAME_SYSTEMS §12 |
+| Gameplay G4: evidence timing/content incomplete | Accept | Exact evidence matrix and wait path; scenario schedules |
+| Gameplay G5: scenario proof versus fun proof; measured protocol | Accept | Separate financial scripts from human studies; ACCEPTANCE_TESTS §v2.2 |
+| Engineering E1: full scenario artifact gate | Accept in bounded form | Compile one case next; reject making all three engines/full campaign a prerequisite to starting accounting |
+| Engineering E2: earlier human experiment | Accept | FF3b internal challenge, explicitly not first releasable game |
+| Engineering E3: exact precision/canonical form | Accept | SIMULATION_ARCHITECTURE §v2.2 |
+| Engineering E4: retry/version precedence and race oracles | Accept | Coordinator order and C13–C16 |
+| Engineering E5: portable validator / optional generation | Accept | Documentation-tooling correction; no application implementation |
+
+## Retain, simplify, remove, defer
+
+Bounded follow-up reviews accepted eight corrections: finance closed the cheap BRIN inventory bypass and placed accrual before certified dealing; gameplay fixed instrument-ID price assignment, added day14 pre-EXEC_B barrier and simplified Case3 capital-decline path without a research-alpha claim; engineering moved pure LP/firm payment to FF2c before prototype, separated readiness bookkeeping revision and corrected cumulative residual recurrence/rate-change carry/tie bound. No reviewer edits or recursive delegation; these are document corrections, not economic-test results.
+
+Retain one USD equity long/short fund, one fictional prime broker, distinct investor series/firm cash, calendar carry, partial fills, initial versus maintenance margin, real investor obligations, restrictions, independent controls, causal explanations and responsible winddown. These interactions are the game.
+
+Simplify administration into automatic accrual/reconciliation/report production; surface meaningful exceptions. Four instruments suffice for the releasable opening arc; twelve remain the full campaign ceiling. Use authored stress sensitivities rather than covariance fitting. Commission is zero in these challenges; explicit spread/impact remains. No new dashboards, approval layers or distributed services.
+
+Remove active Case3 hiring and its claim to a second strategic success path. Remove SEO/marketing from current implementation scope, prompts and generated package; preserve the old assessment as archived research only. Remove the full frontend/DB scaffold from the immediate FF0a task. Reject a production trading framework, purchasable accurate accounting, guaranteed research alpha, hidden player-targeted shocks and free fund-to-firm bailout.
+
+Defer staffing gameplay to the full campaign where a capability must compete with a defined task; defer real data, optimizers, ML, AI tutors, asynchronous leagues, derivatives, taxes, multi-currency and real broker execution. No scenario or playtest result is declared complete. A referee-like NPC cannot provide the second human signature.
+
+## Rigor and limitations
+
+The graduate-level claim is falsifiable: independent financial derivations, invariant conservation, fixed-tape replay, fault/race evidence, controlled balance experiments and candid human-study results. Hypotheses and failure observations matter more than feature count. Synthetic pricing/counterparty rules are not empirical hedge-fund calibration. Fictional notices/margin priorities are contracts, not universal practice. Full campaign content and release compatibility remain unresolved. Next task is precisely FF0a in IMPLEMENTATION_HANDOFF, not feature implementation during this review.
+
+
+---
+
+Source: `docs/SCENARIO_CONTRACTS.md`
+
+# Three scenario design contracts v2.2
+
+7 October 2026. These are complete bounded **authoring specifications**, not implemented scenarios, full compiled market tapes, demonstrated feasible engine paths or playtests. They tighten SEASON_SCENARIOS §8. Existing `scenario_cases.json` numbers remain isolated checkpoint oracles; full dated runs MUST include all subsequent accruals. If an oracle described below has not been independently calculated, mark it pending, never fill it from engine output.
+
+## Shared contract and exhaustive defaults
+
+All unused instruments begin at reference100 at the warm start and retain that mark unless explicitly overridden. Held instruments use their declared opening marks (Case3 BEAM48). Initial quotes do not execute seeded holdings; opening holdings are journaled inherited assets/loans. No missing prior quote is inferred. This makes the first PUBLIC_MARK record complete for all twelve IDs.
+
+Use the synthetic dated Mon–Fri calendar and ordinary event/accrual order in FUND_ACCOUNTING. Day N is the Nth weekday from 5 January 2026, including fictional holiday trading. Each business date has OPEN_ADMIN, PUBLIC_MARK at 09:30, a decision barrier, EXEC_A at 10:00, EXEC_B at 15:00, CLOSE at16:00 in ordered subphases: final coherent marks, daily accrual/common allocation, management fee/performance provision, reconciliation/certification, dealing, checkpoint. No second accrual after dealing. Each execution may have an authored preceding decision barrier; day14 before EXEC_B is an explicit replacement-cutoff window. These are simulated scenario timestamps, not claims about an actual exchange. Publish each event only when reached. An order accepted after a barrier cannot execute at the preceding PUBLIC_MARK. If a margin call occurs at PUBLIC_MARK, the barrier permits a voluntary cure for EXEC_A; due recalls precede it and forced margin actions consume residual capacity after its valid fills. New incidents during EXEC_A pause before EXEC_B.
+
+Every instrument receives a mark at PUBLIC_MARK and both executions, even if halted. Default references carry unchanged from prior event; no interpolation/randomness. CLOSE uses the last event's coherent marks. Default volume is 1,000,000 shares per instrument per execution; half-spread 5bps, impact coefficient 2,000bps, combined-side participation 5%, commission zero. Market capacity is per fund/instrument/event. Default borrow inventory is opening settled shorts plus 50,000 extra shares in each shortable instrument, rate 2% ACT/360; all twelve instruments are shortable unless restricted. Debt rate 6%, line $7.5m. Ordinary coefficients apply unless overridden. On weekends there are no quotes/trades/payroll; each date accrues ordinary fees/carry against aged last marks. Unknown extra securities/actions are rejected.
+
+Instrument universe: ALTO/BRIN industrial, COVE/DART consumer, ELAN/FENN technology, GALA/HELI health, IONA/JUNO finance; BEAM broad-equity ETF, BOND defensive bond ETF. Default beta: equities and BEAM 1; BOND 0 equity / negative rate sensitivity. For authored stress only: equity market ±10% moves equity/BEAM ±10%; direct sector ±10% affects its names; rates-up shock moves BOND −5%. These are explicit house sensitivities, not fitted forecasts. No actions/splits/dividends except Case3's historical omitted distribution. No subscriptions/extra notices except declared below. Case objectives replace campaign Renewal and confidence-generated requests; LP concern transitions are recorded, but cannot invent additional claims in these challenges. This override is public at start.
+
+Opening economic and settled quantities coincide; all shorts are already borrowed; no trade receivables/payables/locates/returns unless named. Money/fee residuals start zero at the warm start. Costs before it are embodied in stated cash/capital; prior fees already settled except named invoices. Seed/Patient/Tactical have 100,000/80,000/70,000 units respectively. Series allocation is proportionate to units at opening, with HWM specified per case. Opening lot basis equals opening reference prices; past profit is capital history, not a new trade gain. Author opening journal as assets versus liabilities/series capital, not fictional execution at the current known price. Firm owner capital plus accumulated prior P&L balances its stated assets/payables; no inter-entity plug. Pay weekly cost at every day divisible by five; accrue $4,000/business day. Opening payroll payable is stated for each start so the next weekly bill is $20,000, not double-accrued.
+
+Public legal/authority setup: two authenticated partners, active emergency policy, no self-signature. Default independent tickets obey 5% current NAV and 15% chapter-opening NAV turnover. A jointly signed specific reduction package may exceed elective turnover, but never hard risk/cash restrictions. Warm-start holdings were inherited under earlier valid authority. Joint approval of package describes quantity maximum, allowed instruments, cost ceiling, expiry and valid fill prefixes; it does not make legs atomic. Managing Partner independently chooses replacement borrow inside the previously joint-approved ceiling and creates/raises a treasury reserve; lowering it below signed obligations requires joint agreement. PM chooses execution exposure. All current facts are shared; role ownership is not secrecy.
+
+Player action set: choose/no research, allocate contingency, create/counter/sign/cancel package, submit/cancel market or limit order, select replacement when eligible, create treasury reserve, elect/no gate before dealing, certify corrected evidence-backed report, cap/decline/admit eligible capital, advance/hold, request controlled winddown. Routine daily closes/report generation never need clicks. Rejected impossible commands give reasons and leave economics unchanged; choosing hold advances only when both ready, with due-event consequences visible.
+
+Control evidence: independent reference workbooks/scripts (NOT the posting code) must derive opening journal, one voluntary-success path, one alternative success path and one failure/recovery path per case. For each path provide broker settled cash/positions/borrow and admin series/NAV/fee claims at opening, each named shock, dealing and ending. Controls are necessarily path-specific once trades differ; the author stores separately calculated records keyed by command-script hash. An arbitrary player path requires the independent control calculator or invariant/cross-record checks; it cannot compare against a different path's fixed statement. All hidden tape/control material stays server-side. Compilation materializes every default/override into versioned records and reports coverage. A missing record is an authoring fault, never a guessed quote.
+
+## Case1: The borrow is not the thesis
+
+**Start/end.** Before day12 OPEN_ADMIN (20 January); end after day21 OPEN_ADMIN (2 February), before market. Fund assets: longs $27.5m, restricted cash $5m, cash zero. Liabilities: shorts $5m, debt $2.5m. NAV $25m, provision zero, each HWM100. Long quantities at100: ALTO/COVE/ELAN/GALA/IONA 30,000 each, JUNO25,000, BEAM100,000; shorts BRIN/DART/FENN/HELI12,500 each. Firm cash240,000, payroll payable4,000 from day11. All opening observations and known investor terms are public. Initial gross130%, net90%; no mandate deficit.
+
+| Date/event | Public information/window | Fixed hidden input / obligation |
+|---|---|---|
+| day12 opening | Tactical10,000-unit day20 request, settled replacement terms, forthcoming coefficients disclosed | All marks100 through day15; coefficients effective day16: initial80/100%, maintenance70/90% |
+| day12 research choice | Each assignment costs1; do nothing is legal | Debt schedule reveals at day13 PUBLIC_MARK: maturity within next quarter and refinancing unresolved. Survey reveals there instead: recent demand stable, coverage only last month. Neither discloses future price |
+| day12 contingency or day13 barrier | Investigate borrow rather than spend same assignment on thesis | Reveal offer at next PUBLIC_MARK: replace up to1,250 BRIN, rate40%, no upfront fee; acceptance deadline day14 EXEC_B barrier; transfer at day15 OPEN_ADMIN |
+| day13 opening | Broker recall1,250 BRIN; execute cover by day15 EXEC_B or deliver replacement | Recall quantity is a subset of settled loan, not all12,500 shares |
+| day14 final acceptance | Operating partner selects bounded replacement or allows offer to expire | Accepted eligible offer reserves inventory. Transfer atomically returns1,250 old loan shares and creates same replacement quantity at day15 opening; collateral unchanged; old rate ends before day15 accrual,40% begins day15. Late selection is rejected, never accepted as an on-time cure |
+| day15 EXEC_B | Last voluntary cover event; cover accepted before this event may execute | After eligible voluntary recall covers, unresolved recall executes forced buy-in using residual volume. Cover execution satisfies deadline even though borrowed shares return T+1 |
+| day16 PUBLIC_MARK | Publish shock and pause | ALTO/COVE/ELAN/GALA/IONA/JUNO/BEAM95; BRIN/DART/FENN/HELI110; BOND100, regardless of holdings/side. These per-instrument references apply to unused instruments too. Short collateral topped up under treasury rules before voluntary fills; debt may rise. Stressed coefficients now effective |
+| day16 EXEC_A | PM chooses long sale versus short cover; operating partner reserves future cash | BEAM95/volume42,120, BRIN110/volume25,000. EXEC_B reverts default volume; forced cure cannot invent capacity at EXEC_A |
+| day17 opening | Settlement/collateral release | Day16 covers return borrowed shares; unpaid short borrow remains charged until then |
+| day18 EXEC_A | A future opportunity to fund payment; prior planning matters | BEAM95/volume400,000; 20,000 sell gets94.905 and$1,898,100. ALTO/COVE/ELAN/GALA/IONA/JUNO/BEAM remain95, BRIN/DART/FENN/HELI110 through day20; BOND100 |
+| day20 both executions | Previously disclosed possibility of BEAM trading suspension, not forecast certainty | BEAM halted; other instruments retain default volume. Earlier prepared sale and other feasible sales are allowed; failure is not hard-coded merely for missing day18 |
+| day20 close / weekend / day21 opening | Certified dealing, actual invoices, payment checkpoint | Tactical10,000 units, no additional requests; no subscription. Crystallize only those units; pay actual dated claims/invoices after settlement, preserving weekend liabilities for next invoice |
+
+**Borrow-availability override.** Day13 through21 BRIN new ordinary inventory is zero; recalled returned shares leave the lending pool and do not replenish it. Only the1,250-share40% transferred replacement offer can replace this recall; other11,250 original shares retain2% while outstanding. New BRIN shorts cannot cover/reopen into cheap borrow. Later restoration requires a separately authored future event; none occurs in this case. Other instruments retain default inventory.
+
+**Decision tensions.** Early reduction sacrifices upside/control budget for margin freedom. Replacement preserves BRIN exposure at much higher carry and does not cure a margin deficit. Cover lowers short/borrow risk but raises signed net; sell-long lowers net and thesis exposure. Reserve at least$1.25m for investor/invoices before discretionary debt repayment; this changes what credit-funded elective positions can be accepted. A reserve is not an expense or bank cash. A survey/debt/borrow assignment competes for the same finite attention; public recall response never requires buying research.
+
+**Scripts and independent oracles.** S1 jointly approve reduction, cover1,250 BRIN and sell20,000 BEAM at day14 EXEC_A under the signed package, retain payment reserve, then fund Tactical. Sell at99.942 gives1,998,840 proceeds/1,160 cost on default1m volume; cover100.050031 gives125,062.54 payable after cash rounding. Exact dated carry/collateral still belongs to the independent full-path ledger. S2 investigate day12, accept replacement day14, sell2,106 BEAM day16 EXEC_A and20,000 day18 EXEC_A, maintain payment reserve. Each script must calculate exact further quantities/affordability from the independent daily ledger before being called successful. Existing margin oracles $27,348.93/$11,112.50 isolate decisive fills, not carry-inclusive headroom. Check borrower-rate switch, debt for collateral, every prefix, residuals and Tactical series separately. Failure F1 refuse replacement/cover and then hold: forced buy-in is expected; voluntary-control objective fails while solvent recovery can still succeed by paying claims. Recovery F2 reduce later with available other securities; no halt fabricates insolvency. Winning requires positive NAV, resolved recall, paid Tactical and no forced liquidation; Survival reports forced actions honestly. Missing independent complete-path numerical ledgers are a compilation blocker, not a promise both scripts work.
+
+## Case2: Profitable, illiquid, and redeeming
+
+**Start/end.** Day39 OPEN_ADMIN (26 February) through day61 OPEN_ADMIN (30 March). Extend beyond day41 to resolve deferred gate units. Day39 opening is the stated25m balance **before new accrual**: cash2.1m, collateral5m, longs25.5m, shorts5m, debt2.5m, prior fixed fee/financing invoice100,000 due day41. Each series participates at100 per unit, HWM120, provision0. Invoice split: management70,000 matching firm receivable, financing30,000; already expensed. Firm cash180,000; payroll payable12,000 from days36–38. HWM120 prevents provisional incentives on the specified reference trajectories; verify under actual actions rather than assume under arbitrary new trades.
+
+Corrected long basket at100: ALTO/COVE/ELAN/GALA/IONA/JUNO25,000 each ($15m), BOND25,000 ($2.5m), BEAM80,000 ($8m). Shorts BRIN/DART/FENN/HELI12,500 each. This preserves aggregate checkpoint arithmetic but removes the inherited $3m issuer breaches. Both Seed and Tactical have properly noticed external dollar targets3m each, disclosed day30/noticed35, capped at their units. No other requests through61. Deferred units automatically eligible at60; no repeated notice required.
+
+| Range/event | Public information and choices | Fixed branch-independent realization |
+|---|---|---|
+| day39 barrier | PM considers keeping broad market participation versus cash. Operating partner commits reserve, elects gate or full pay. Prospect5m cannot fund until60; it is NOT cash | All marks100 through42; no shocks/dividends. Offer is declined in benchmark scripts; admission optional only under shared contract |
+| day39 research | Cost1, reveal day40 PUBLIC_MARK | Public index-company earnings survey suggests improving demand with uncertainty, not a target return; liquidity research reveals next-window BEAM capacity contract, not future price |
+| day40 EXEC_A | Package/limit committed earlier; execute then re-evaluate all limits | BEAM100/volume840,000. EXEC_B BEAM volume0 (other instruments default). Original42,000 and32,000 comparison branches retain reference fills99.900000/99.920975 |
+| day40 close /41 admin | Deal6m or gate20% of true post-cost/post-fee NAV, pay T+1 | New day39/40 management/carry charges exist; old normalized branch dollars remain unit-test oracles only. Dollar requests convert to units using certified series values; accepted units burn once |
+| day43 PUBLIC_MARK | Publish broad rally; investors can understand the gated exposure retained | BEAM104 through day59; other marks100. No named thin-stock catalyst. Gate retained an extra10,000 BEAM shares versus reference full pay: incremental gross mark gain40,000, before expenses, versus deferred LP exposure/fee/concern costs |
+| day55 barrier | Next-window reserve and reduction choice | Forecast deferred-unit redemption at current values; full-pay has no carried claims. Don't guarantee future dollars |
+| day58 EXEC_A | Existing signed gate contingency sells20,000 BEAM unless revised to another feasible plan | BEAM104/default volume; settle59. Hold at least$1.25m for deferred claims before discretionary debt sweep. Price/tape known only at its time; capacity schedule known from liquidity card |
+| day60 /61 | Price all remaining carried units, no second gate in reference S2; pay | BEAM103 at day60 PUBLIC_MARK and executions; other marks100. Ordinary fees/carry/settlements. Case ends with zero deferred units/overdue investor claims and all hard deficits cured |
+
+**Alternatives/outcomes.** S1 full pay,42,000 BEAM sold40, no new positions/extra gate, retain funding for invoices. S2 gate/32,000 sale, then20,000 sale58 and full next-window payment. These are contrasting control/exposure/liquidity choices, not a claim gating is best. Both require dated independent projections, all issuer/sector/ETF/credit/margin tests and unit/cents reconciliation; the original reference payment cash195,800/197,976.96 excludes future charges. The gate's confidence penalty is real and claims float; its additional $40,000 mark gain does not establish net superiority. Optional admission cannot be counted until funded and certified.
+
+F1 no sale/no gate creates post-flow gross160.5263%/net107.8947% at the isolated checkpoint; enter passive mandate remediation. It is NOT necessarily payment default: available debt capacity may cover cash, subject to collateral/rules. F2 a late sale after40 EXEC_A cannot settle41, but the engine must compute actual permissible credit before calling payment impossible. Recovery sells liquid holdings at41 or later, cures exposure and preserves truthful late-claim history if any. Separate halt variants are new fixed scenario versions, not reactive punishment. Success at61 requires positive NAV, no overdue dealt/remaining deferred claims, reconciled reports, mandate compliance and equal-treatment gate allocation. No full-season return hurdle or unfair comparison with Case1.
+
+## Case3: The report is balanced, the NAV is wrong
+
+**Start/end.** Day29 OPEN_ADMIN (12 February) through day41 OPEN_ADMIN (2 March), with a missed-payroll cure continuation to day45 CLOSE only if necessary. Fund opening erroneous recorded values match old oracle: cash5.035m, restricted4.8m, long22.5m, short4.8m, fixed management payable35,000, reversible provision500,000, apparent NAV27m. Six longs ALTO/COVE/ELAN/GALA/IONA/JUNO30,000 at100 ($18m), BOND45,000 at100 ($4.5m); BEAM short100,000 at48. All original series HWM100; allocate pre-performance B27.5m in unit proportions. The missing200,000 distribution payable is the sole opening discrepancy, not genuine return. Broker/admin truthful opening evidence is B27.3m/F460,000/N26.84m. Correction expense is allocated using opening gross participation, with fee reversals and per-series residuals.
+
+BEAM cum-date day28 preceding close was50; distribution entitlement100,000 short shares×2, ex-date29, payment day34. Opening journal incorrectly included its200,000 price gain but omitted expense; run ex-date economic identity only once (the correction links to that event). Do not create another short price gain by changing48 again. All marks stay at opening values29–41 except ALTO:102 at day33 opening then unchanged. Extra $60,000 long ALTO gain is an explicit future market consequence, not a reward for using confidential information.
+
+Firm cash72,000, payroll payable12,000 from26–28; seeded earned management receivable35,000 due41, all other past costs paid. Daily new fee accrual continues and is separately invoiced at40 due41; therefore47,000 is the **isolated seeded-receipt cash oracle**, not full-run cash. Baseline weekly bill20,000. Active hiring is removed: it had no defined useful capability and merely worsened cash. Old hire29k/6k-arrears calculations remain a labeled dominated forecast example, outside distinct-success counting.
+
+| Event | Information/action | Fixed consequence |
+|---|---|---|
+| day29 public/barrier | Both see broker dividend confirmation/admin break. Correct now versus prioritize other work while certification remains blocked | Routine investigator produces exact correction evidence free; no assignment needed to make accounting true. Preserve wrong/original report |
+| day29 research packet | Explicitly flagged ALTO private sales schedule | Restrict ALTO buys/sells/resting orders until public release33; no self-clearance. Mandatory broker disposition policy remains separate |
+| day29 allocation | Two assignments remain for team in chapter3 warm start: one owned each; qualification already done | One assignment completes LP diligence, reveal day31 opening; one can investigate public portfolio-capacity evidence, reveal31: the BEAM dividend is a financing cost rather than free short alpha, and BOND has negative rates-up sensitivity; the card suggests reducing a large duration concentration or retaining cash, without predicting a price. No card guarantees a payoff on this flat reference realization. Verified report needed35, funding conditional; spending both on portfolio evidence loses this offer, not investor solvency |
+| day30 close /31 | Baseline weekly payment20k; no hire | Seeded-receipt-only cash52k. LP offered up to5m at standard terms, optional cap in1m increments |
+| day33 | Public ALTO release/102 mark | Clear restriction via recorded event; any subsequent order waits next eligible execution. Past restricted orders remain canceled |
+| day34 admin | Pay missing distribution200k | Reduce cash/payable once, no repeat expense. Correction complete before certification |
+| day35 close | Certification deadline/diligence condition; weekly payment | Missing certification forfeits prospect; no guessed NAV. Seeded-only company cash32k |
+| day39 admin | Funded prospect escrow appears if diligence/report passed | Escrow outside fund until40 admission; no company revenue. Players can decline/cap to avoid mismatched capacity |
+| day40 close /41 admin | Weekly20k payroll; optional certified admission; invoices/payments | Seeded-only cash12k then47k; full cash adds actual new collected fees, after due arrears. Provision460k (plus subsequent changes) still not spendable |
+
+**Meaningful choices.** PM chooses public evidence versus using an assignment to support offered capital's capacity, and plans a permitted portfolio under current restrictions. Managing Partner chooses diligence versus reserve attention, proposes admit5m/cap/decline, and preserves cash for fixed claims. Both approve admission; generating truth is automatic. S1 correct promptly, allocate diligence, admit/cap funded LP after checking post-flow capacity. S2 correct promptly, decline optional capital after reviewing current capacity and keep the firm lean; lower AUM/fees, same honest core success. Portfolio-capacity research is optional, not a claimed useful alpha alternative or required second-path unlock. These alternatives use existing mechanics rather than inventing an operations hire reward. F1 ignore the break through35: lose offer, cannot certify dealing; late correction restores reporting but not missed opportunity. F2 fund fee payment unavailable in a separately authored stress version leaves genuine company arrears; do not manufacture this failure on the base cash-rich tape. Recovery truthfully corrects/report/reduces permissible costs and follows five-day cure/termination contract.
+
+**Independent oracles.** Opening correction:200,000 liability,40,000 provision reversal, net NAV26.84m; inter-entity35,000 invoice matches. Restriction mutation/future-information tests; cash payments never repeat expense; a5m subscription issues its own100/HWM100 series and adds zero company cash; full management receivable/payment ledger includes changing daily bases. Both successful scripts require corrected certified report, no prohibited trade, positive fund NAV/company cash at41 and honest LP/cash statements; admission is optional. Independent full-date totals, compiler JSON, race outputs and actual enjoyment remain pending.
+
+## Compilation and certification gate
+
+Defaults plus overrides completely specify these design tapes. There is still **no compiled executable tape or simulator** in this checkout. FF0a materializes Case1 first, records hashes, independently finishes daily oracle totals and fixes any infeasible reference script by a documented version change. FF6a compiles Cases2/3 before implementing them. The full opening 1–20 campaign and full60-day market tapes remain separately unauthored; challenge warm starts cannot be substituted for them. Exact per-path accrued totals are pending oracle work, explicitly separate from the old no-extra-accrual checkpoints. A record-complete design is not a proven viable scenario.
+
+
+---
+
+Source: `docs/IMPLEMENTATION_HANDOFF.md`
+
+# Precise implementation handoff: FF0a only
+
+7 October 2026; source plan v2.2. No feature implementation occurred in this planning update.
+
+Planning revision 2.2-M1 expands all 20 milestones through the final FF8 gate in [MILESTONE_PLANS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\MILESTONE_PLANS.md). [PLAN_REVIEW_AND_DECISIONS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md) assigns unresolved choices/evidence to their due phases. Read the selected detailed package before starting; a roadmap row alone is not an implementation brief. This continuation entered an already modified planning tree; the original clean-entry statement below refers to the first v2.2 review. Preserve the combined changes. The user has now explicitly authorized committing/pushing this completed planning package; no application work or installation is authorized by that request.
+
+## Verified starting point
+
+Local `C:\Users\krish\fundforge`, entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f`, clean at entry. Current planning changes are uncommitted; preserve them. Documentation-only: no Python/Pydantic application or26 tests. Instructions, recent history, all requested docs, fixtures, two Python scripts and reviewer prompts were inspected. No IMPLEMENTATION_HANDOFF existed. Inspect status/HEAD on continuation; remote visibility/other checkouts unverified.
+
+## Exact next milestone
+
+**FF0a: compile Case1's v2.2 authored schedule into a complete validated immutable fixture, command scripts and independently calculated dated financial oracle.** This is the next implementation task, not authorization to build features during this review. Read CLAUDE_HANDOFF, DESIGN_REVIEW_V2_2, SCENARIO_CONTRACTS shared+Case1, FUND_ACCOUNTING, architecture numeric/command contracts and X01–X07 below. Do not run the old full-scaffold FF0 prompt.
+
+Inputs: isolated arithmetic cases and explicit12–21 warm start/default tape/evidence/recall/replacement schedules. Proposed outputs: `fixtures/compiled/case1.v2_2.json`, `fixtures/commands/case1_{early_cover,replacement,forced_recovery}.json`, `docs/oracles/CASE1_DATED_ORACLE.md` with full daily fund/series/firm/claims/residual table, coverage/hashes, `backend/contracts/` loader/schema, `scripts/validate_scenarios.py`, `tests/contracts/` meaningful rejection checks. These paths do not yet exist.
+
+Own only contracts/materialized records/independent worksheet/schema-loader/checks. Use standard-library validation for FF0a; reconsider Pydantic only at a demonstrated API/schema boundary. Economic truth must not depend on coercion. No economic reducer, Next.js/FastAPI/DB scaffold, provider calls, SEO/AI or deployment in FF0a. Source-control publication is separately authorized in the current planning session and does not authorize features.
+
+| Case | Exact required observation |
+|---|---|
+| X01 complete coverage | Every business date12–20 has OPEN_ADMIN/PUBLIC_MARK/EXEC_A/EXEC_B/CLOSE, all intervening calendar accruals, and day21 admin. All twelve marks/volumes/borrow/IDs, defaults materialized; end before21 market |
+| X02 warm start | Assets32.5m−shorts5m−debt2.5m=25m;100k/80k/70k units,H100,F0; company240k/payroll payable4k. All economic/settled/borrow quantities, lot bases, claims explicit and independently checked |
+| X03 chronology | Evidence after assignment; recall13, acceptance cutoff14, transfer15, stress16, sale opportunity18, BEAM halt20, dealing20/payment21. Future file data never player-visible at12 |
+| X04 borrow | Timely acceptance transfers1,250 shares15 with no double loan; old fee ends/replacement40% starts prospectively. Late selection rejected, no cure. Cover satisfies execution deadline but fees/collateral persist through pending return |
+| X05 independent dated oracle | Three scripts list actors/commands/budgets/approvals, all dated fee/carry/payroll/collateral/settlement/series/redemption postings and terminal balances. Success satisfies actual constraints, not100k bounds. Failure distinguishes forced control loss from default. Expected values do not come from a future reducer |
+| X06 rejection | Missing date/mark, duplicate ID, unknown action/instrument, float/NaN/infinite money, negative volume, wrong units, conflicting fee timing, timestamp disorder, uncovered obligation each produces specific error, not silently valid package |
+| X07 reproducibility/status | Repeated compile/load identical canonical bytes/hash including residuals; schema/rule/tape/control/command versions and source hashes. Label SCHEMA_VALID_AUTHORED_FIXTURE, never PLAYABLE/PASSED_ENGINE. Loader tests distinct from package arithmetic |
+
+Done when X01–X07 evidenced, full-path numbers independently derived, conflicts resolved, actual commands/hashes retained, bounded review completed and handoff advances to FF0b. If a script is infeasible, report exact constraint/shortfall and change only a versioned authoring decision, then recalculate. Never fit a hidden tape to a player's holdings. Stop after FF0a; remaining gates need their own task.
+
+## Continuation after the next milestone
+
+FF0b freezes numeric/wire/checkpoint vectors, FF1a builds journal/valuation primitives, FF1b adds dated fee/series history, then FF2a execution and FF2b risk. FF2c owns the integrated pure session/payment/payroll/independent Case1 control path; FF3a owns real human command authority. Both precede FF3b's internal human experiment. Persistence/general investors follow FF4; first playable certification is FF5c; full initial-game certification is FF6c. FF7 historical/advisory and FF8 extension selection remain elective. All 20 are currently pending; completed documentation is not their acceptance evidence.
+
+At each gate produce `docs/evidence/<milestone>/RESULTS.md` with exact executed commands, expected/observed results, input/rule/tape/control hashes, failures/limitations and one next task. Do not auto-run the whole roadmap because it is documented. Full ordered tasks, module ownership, decision deadlines and proposed commands are in MILESTONE_PLANS.
+
+## Environment and checks
+
+Observed Python3.14.3; python/node/npm on PATH. `psql`/`soffice` not found by Get-Command (not proof none installed elsewhere). Active Python lacks python-docx. Bare old validator failed cp1252 decoding; UTF-8 retry failed eager docx import. Tooling now uses explicit UTF-8 and original standard-library Word fallback; PACKAGING_VALIDATION records final actual commands/results. No installed dependencies, database/application/race/playtests, provider or deployment work. Word archive/XML/content can be checked; page rendering unavailable.
+
+Actual documentation commands: `python scripts/build_documents.py`, `python scripts/validate_design.py`. State commands: `git status --short`, `git log -5 --oneline`, `rg --files`. Future `python scripts/validate_scenarios.py fixtures/compiled/case1.v2_2.json` and `python -m unittest discover -s tests/contracts` are proposed interfaces until files exist, not working commands. Packaging counts are not26 application passes.
+
+## Decisions and unresolved assumptions
+
+Accept issuer fix, settled replacement timing, retained collateral, narrow winddown, operating commands, removal of dominated hire, extended gate horizon, exact precision/retry, early human experiment. All reviewer dispositions are in DESIGN_REVIEW_V2_2. Reject artificial hire payoff, extra dependencies/guaranteed alpha. Preserve old research snapshots; fresh source scope is in SOURCES. Full opening campaign tape, full-path oracle totals, release/DB/auth choices, balance/enjoyment remain unverified. v2.2 overlays old isolated fixtures; never use checkpoint values as complete dated-run outputs.
+
+Claude continuation: Read this handoff and verify the current repository state before editing. Critically review the revised plan using bounded financial, gameplay, and engineering reviewers. Resolve concrete contradictions and improve weak acceptance criteria before implementation. Then implement only the next agreed milestone, validate it against the documented acceptance cases, and update this handoff with evidence and the next task.
+
+
+---
+
+Source: `docs/PLAN_REVIEW_AND_DECISIONS.md`
+
+# Milestone-plan review and decision register
+
+7 October 2026, planning revision 2.2-M1. This pass reviewed the existing local v2.2 work and expanded all 20 milestones through FF8. No new application/reviewer/test result is claimed. Earlier three-agent findings remain in DESIGN_REVIEW_V2_2; this follow-up was performed by the primary agent. The entry tree was already modified by the previous planning task at HEAD51eda0c; that work has been preserved. The user subsequently authorized committing and pushing the completed planning changes.
+
+## Findings accepted in this planning pass
+
+| ID / priority | Existing evidence / consequence | Planning correction | Owner / acceptance |
+|---|---|---|---|
+| M01 / P0 | IMPLEMENTATION_PLAN had one row per milestone; no ordered tasks or per-package stop gates | MILESTONE_PLANS defines inputs, owned paths, ordered tasks, outputs, independent acceptance, failure/stop and next task for all 20 | Every roadmap ID must have exactly one matching detailed package |
+| M02 / P0 | Pure modules plus narrow payment did not explicitly name a shared date/phase runner before FF3b | FF2c owns pure all-or-none session runner, checkpoint and full scripted economics; FF3a plugs human authority into it | Actual dated Case1 transitions, not scripted balance assignment, before human experiment |
+| M03 / P0 | Fixed path controls cannot certify arbitrary human actions; general controls appeared only at FF6a | FF2c derives narrow Case1 broker/admin controls independently; FF6a generalizes them and intentionally wrong-report lifecycle | Separate derivation may share value types but cannot import posting/fee/risk functions under test; actual allowed paths certify or show break |
+| M04 / P1 | FUND_ACCOUNTING permits10-business-day winddown but challenge/base tapes stop21/41/61 | Explicit recovery-tail artifact before claimed winddown completion; first prototype never claims terminal liquidation without tail | FF5a/FF6a/FF6b tail coverage, V31–V32; preserve unresolved positions/claims on shortage |
+| M05 / P1 | FF6a wording mainly 'compile' although controls/restrictions still need mechanics | Detailed FF6a implements independent controls, correction/restatement, restrictions and offer predicates using verified economic modules | V12,V14,V28–V30 plus original/corrected report and deadline evidence |
+| M06 / P1 | FF7a data import alone could be called historical replay | Optional FF7a includes one shared-engine historical case, eligible resolution/fill policy, rights/vintage and independent lifecycle oracle | Import valid != replay valid; unavailable rights/coverage leads to defer/reject |
+| M07 / P1 | FF5b real identity choice absent; early prototype actor selection risks becoming auth claim | Explicitly separate controlled local harness, persisted development-auth seam and first-playable protected sessions | FF4a is race authority; FF5b provides unforgeable actor/member/session enforcement and access tests |
+| M08 / P1 | FF8 contains unknown future product requirements | Fully specify an extension selection/design gate; implementation scope waits for one actual selected story | No speculative derivatives/live/league/hosting build or irreversible activity without selected contract |
+| M09 / P1 | Handoffs said 'clean at entry' without distinguishing subsequent planning turn | Record first-review clean entry versus current dirty planning entry and pending/pushed status honestly | Current Git evidence and publish record; don't discard earlier uncommitted docs |
+
+No new finance/trading frameworks, paid services or feature implementation were accepted. Runtime pins/library maintenance research remains scoped to the future milestone that needs it. A more detailed plan is not evidence any milestone is completed.
+
+## Decision status and due gates
+
+'Resolved design' is a selected fictional/engineering convention, not implemented behavior. 'Open evidence' means a specified contract still needs a calculation or experiment. 'Open choice' needs a bounded choice under actual environment/user constraints. A due unresolved decision blocks only dependent work, not unrelated earlier packages.
+
+| ID / status | Decision or uncertainty | Provisional direction / required evidence | Due milestone / owner |
+|---|---|---|---|
+| O01 / open evidence | Case1 complete accrued path feasibility and exact terminal amounts | Independently work every date, margin/cash/policy prefix and fee series for early-cover/replacement/forced recovery; old checkpoint and100k allowance remain isolated | FF0a, scenario/oracle author |
+| O02 / open edge details | Dollar/rate/unit validation bounds and last-cent/allocation remainder at scale limits | Retain context40, field scales/HALF_EVEN/residual recurrence and stable series-ID allocation. Freeze explicit over-redemption/maximum-bound vectors; do not change policy silently | FF0a validation subset, FF0b complete freeze, contract owner |
+| O03 / open choice | Dollar-target request across an LP's multiple fee series | Specify fair within-investor allocation using disclosed rule, then gate across all eligible fund claims; preserve HWM/unit ownership. Case1 unit request is unaffected | FF4b, investor/accounting owner; verify0a unit limits only |
+| O04 / resolved design; tape open | Four-instrument first-playable universe and opening exposures | ALTO/BRIN/BEAM/BOND selected; build moderate positions under real delegated limits, complete tape/oracles still required. Twelve-name warm-start challenge is separate | FF5a, scenario owner |
+| O05 / open environment choice | Supported Python/DB/driver/migrations/frontend/auth/session versions | Choose minimum compatible stack when needed; record official docs/releases/license and lock it. No provider account needed for synthetic play. Do not expose controlled actor selection as production auth | FF4a storage/runtime; FF5b frontend/identity; integration owner |
+| O06 / resolved boundary; implementation pending | Independent controls for non-scripted player paths | Narrow Case1 control derivation before prototype; generalized broker/admin evaluator at6a. Never import tested financial functions or copy current ledger as external evidence | FF2c then FF6a, accounting/control owner |
+| O07 / open authoring evidence | Winddown tail markets/liquidity and completion classification | Ten-business-day selected horizon; reuse frozen in-horizon tape, author missing future records. Voluntary winddown cannot mint cash/provisional fees; horizon can end unresolved | FF5a opening recovery; FF6a challenges; FF6b full termination, scenario/game owner |
+| O08 / open gameplay choice | Staff capability actually worth its salary/recruitment/severance | Name future competing tasks/reveal timing for each retained hire; test two feasible funded configurations. Remove a dominated hire rather than invent an alpha bonus | FF6b, game/company owner |
+| O09 / open experiment | Campaign outcome calibration and enjoyable balanced alternatives | Published thresholds frozen per version; pilot human feedback plus matched policies/held-out versions. No current claim of measured fun or calibrated markets | FF3b, FF5c, FF6c respective gates, game/evaluation owner |
+| O10 / open measured bound | Supported concurrency/workload and performance budget | Define hardware/active-seasons/command mix before profiling; record latency/error/lock waits/invariants, select support claim only after measurement | FF6c, engineering/evaluation owner |
+| O11 / deferred choice | Exact historical dataset/rights/as-of/retention/era coverage | One demonstrable historical teaching use; licensed immutable records including revisions/actions/universe. Reject nonreproducible/nonentitled data; no inferred historical borrow | Optional FF7a, data owner |
+| O12 / deferred choice | One advisory aid, utility target/baseline/model/dependency/cost cap | Default deterministic templates/stress cards. Choose one unmet task, freeze evaluation and spend before runtime; remove if utility absent | Optional FF7b, evaluation owner |
+| O13 / deferred user scope | Actual future extension | Choose one requested hosting/live/league/instrument story and its rights/permissions/lifecycle/budget; then write bounded implementation plan | FF8 decision gate, project owner |
+
+## Readiness and evidence index
+
+All FF0a–FF8 application milestones remain PENDING. Actual current checks are documentation build/packaging/reference arithmetic and Git diff consistency only, recorded in PACKAGING_VALIDATION. Future evidence directories/tests/CLIs in MILESTONE_PLANS do not exist yet. No installation, application implementation, database run, human study or provider activation occurred in this pass.
+
+Next executable milestone remains FF0a; then FF0b, FF1a and FF1b. Stop each milestone at its own gate and update the handoff. The full roadmap reaches first playable FF5c, full initial game FF6c, optional historical/advisory FF7 and selected-extension planning FF8. Publishing documents does not advance any application milestone.
+
+
+---
+
+Source: `docs/MILESTONE_PLANS.md`
+
+# Detailed milestone work packages
+
+Planning revision 2.2-M1, 7 October 2026. All 20 milestones are pending. These plans expand the existing [roadmap](https://github.com/krishbansalofficial/fundforge/blob/main/docs\IMPLEMENTATION_PLAN.md); they do not implement software or claim completed tests. Existing uncommitted v2.2 work is preserved. One builder owns each bounded package; additional agents are used only when explicitly authorized. Application paths and execution commands below are proposed until created by the corresponding implementation task.
+
+## How to execute one package
+
+Before editing, inspect Git status, current handoffs and the selected package's inputs. Confirm its prerequisite evidence actually exists. Resolve that package's due decisions in [PLAN_REVIEW_AND_DECISIONS](https://github.com/krishbansalofficial/fundforge/blob/main/docs\PLAN_REVIEW_AND_DECISIONS.md). Do not rebuild completed research or implement later rows to make the current one appear complete. If an input is missing, identify the specific artifact/contract, repair it within the bounded scope or record a blocked prerequisite; never substitute an assumed result.
+
+Each numbered task is intended to fit one reviewable change. Commit creation is a separate user instruction; this planning request does not authorize commits/pushes. Follow tasks in order within a package; independent calculations may be prepared alongside schema work by the same builder. The default sequence is FF0a through FF6c. After FF2b, FF2c and FF3a are logically independent, but one builder may complete them sequentially. Both must pass before FF3b. FF7/FF8 are optional and never prerequisites for initial-game completion.
+
+**Common evidence contract.** Every package creates or updates `docs/evidence/<milestone>/RESULTS.md`: entry/exit commit and dirty-state description, owned paths, prerequisite evidence references, Python/Node/DB/tool versions actually used, rule/schema/tape/command/control hashes, exact commands and exit codes, expected/observed results, failures/pending checks, limitations and one next task. Attach acceptance-specific artifacts, not just a checkmark. No raw secrets or identifiable tester data. Evidence files do not exist yet. A passing package means its own acceptance cases passed, not that later release gates passed.
+
+**Common completion gate.** No unresolved contradiction in an exercised contract; meaningful cases pass; independent numbers/provenance retained; original journals/inputs not overwritten; source docs and handoff updated; generated review bundle refreshed if canonical text changed. Economic changes preserve deterministic replay and explain their effect. A required unavailable test is pending, not passed. Unit tests cannot satisfy real PostgreSQL races or two-human playtests. Documentation checks today are distinct from all proposed application commands below.
+
+**Common exclusions.** No real money, broker execution, SEO/marketing, hidden AI decision-maker, paid provider activation, mass dependencies, premature distributed system or unsupported compliance claim. Financial truth comes from the original deterministic kernel; player/client/adapters cannot directly post authoritative balances. A requirement that adds no meaningful choice should be automated or removed, with rationale.
+
+## FF0a — Compile Case1 and independent dated reference ledgers
+
+**Purpose and value.** Eliminate missing inputs before builders write economics. A complete authored fixture is a specification artifact, not a playable game. The current isolated shock numbers and $100,000 expense bound are insufficient full-path oracles.
+
+**Entry / inputs.** No application prerequisite. Read SCENARIO_CONTRACTS shared defaults and Case1, FUND_ACCOUNTING including section 10, architecture numeric profile and IMPLEMENTATION_HANDOFF X01–X07. Inventory old JSON checkpoints; retain their isolated status. Decide O01/O02/O03 using the decision register. Use standard-library schema/validation for this package; no dependency installation is required.
+
+**Ownership / outputs.** `backend/contracts/` scenario record types/loader; `scripts/validate_scenarios.py`; `tests/contracts/`; `fixtures/compiled/case1.v2_2.json`; three actor-tagged scripts under `fixtures/commands/`; `docs/oracles/CASE1_DATED_ORACLE.md`; FF0a evidence. These are proposed new paths. No economic reducer, API, DB or UI.
+
+**Ordered tasks.**
+
+1. Freeze the smallest scenario schema covering IDs/versions, calendar/phase/subphase, instrument quotes/volume/borrow, public observations, obligations, openings/series/residuals and policy/authority. Add schema status distinguishing authored/validated/executed; unknown records fail explicitly.
+2. Materialize defaults plus every Case1 override for business days 12–20, weekend accrual dates and day21 opening administration. Include the pre-EXEC_B replacement cutoff barrier, prospective loan transfer, zero new BRIN inventory, instrument-ID price shock and BEAM halt. Specify opening references for unused instruments. No RNG or external data.
+3. Author fund and company opening account/lot/loan/series balances independently. Declare their preexisting payroll and prior settled fee history; avoid inventing current-price trades to create warm-start holdings. Add exact public versus hidden release times.
+4. Write early-cover, replacement-plus-sale and forced-recovery scripts with immutable actor IDs, policy/proposal hashes, quantities, cash ceilings, readiness and event eligibility. Scripts can include state-conditioned remediation with declared calculation; fix their final numbers in the independent worksheet before labeling them viable.
+5. Independently calculate every dated mark, cash movement, margin/collateral/credit, fee/carry residual, investor provision/units/dealing claim and company payroll through day21. Record before/after balances and all constraint ratios. Do not copy expected values from the loader or future reducer. Resolve infeasible paths by a documented authored version change.
+6. Add loader coverage and adversarial schema rejection checks; publish canonical artifact hashes and the oracle derivation. Retain the original isolated checkpoint values beside their limited scope.
+
+**Acceptance / verification.** X01–X07 must each have evidence: complete records, $25m opening fund and separate $240k company with $4k payroll claim, timely/late replacement, one accrual per date, actual two voluntary paths plus forced-recovery expected balances and exact rejection reasons. A proposed command is `python scripts/validate_scenarios.py fixtures/compiled/case1.v2_2.json`; loader tests use `python -m unittest discover -s tests/contracts`. The financial worksheet is independently reviewed against claims conservation; these commands must not claim engine execution.
+
+**Failure and stop.** Missing tape/control/oracle cells, unpriced obligations or infeasible alleged success block completion. Do not drop expenses to force success. Stop with SCHEMA_VALID_AUTHORED_FIXTURE and an evidence-linked handoff to FF0b; no app scaffold.
+
+## FF0b — Freeze numerical types, canonical serialization and checkpoint schema
+
+**Purpose and value.** Give all later modules one exact definition of money, residuals, identities, economic versions and replay hashes. Prevent incompatible implementations from passing rounded-value comparisons.
+
+**Entry / inputs.** FF0a complete authored package and derivation. Apply the already specified Decimal context/scales and state-version distinction; resolve O02, rather than silently inventing another precision policy. FF0a uses the textual profile; FF0b formally freezes it, so FF0a does not depend on nonexistent FF0b code.
+
+**Ownership / outputs.** `backend/contracts/values.py`, `serialization.py`, command/event/checkpoint schemas; `fixtures/canonical_vectors.json`; `tests/contracts/`; a schema/version migration note. Names are interface intent, not installed framework names.
+
+**Ordered tasks.**
+
+1. Encode field-specific bounds/scales, price-before-cash rounding and explicit Decimal traps. Reject float/nonfinite inputs and extra fields; define string decimal/rate/unit validation.
+2. Implement residual recurrence and rate-bucket transfer, largest-remainder allocation and whole-share/unit conversion contracts. Explain where a cent/last unit remains and prohibit over-redemption.
+3. Freeze canonical UTF-8 JSON bytes, sorted keys, ordered event arrays, identity-set order, positive zero, fixed decimal strings and SHA-256. List included/excluded fields and prove excluded administrative metadata cannot affect future economics.
+4. Define checkpoint state with next pending phase/subphase, unsettled claims/returns, remaining capacity/reservations, rate residuals, authority, LP history and rule/tape identity. Separate economic state_version from administrative_revision.
+5. Create independently authored vectors for HALF_EVEN ties, residual thirds, negative zero, numeric overflow, malformed timestamps and save-mid-accrual. Hash fixed expected bytes, not output produced by the function under test.
+
+**Acceptance / verification.** V22–V24 and O02 boundary cases: first three borrow postings 55.56/55.55/55.56 sum166.67 with documented scale24 residuals; identical economic state under audit-time/key-order changes hashes identically; changing an obligation/residual/phase changes hash. Proposed: `python -m unittest discover -s tests/contracts -p 'test_serialization*.py'`. Test object→canonical bytes→object round-trip and checkpoint rejection across incompatible versions.
+
+**Failure and stop.** Ambiguous rounding/allocation or a hash that ignores future-economic state is blocking. Any changed FF0a numerical result requires a versioned fixture/oracle update. Stop at frozen types/wire profile, hand off to FF1a.
+
+## FF1a — Immutable journal, positions and valuation primitives
+
+**Purpose and value.** Create an inspectable balance sheet and history for both entities before execution logic. Every later game consequence must be representable as balanced entries and obligations.
+
+**Entry / inputs.** FF0a openings/oracles and FF0b values/checkpoints; accounting account definitions, FIFO and raw-price/corporate-action rules. A ledger entry cannot rely on future execution/persistence modules.
+
+**Ownership / outputs.** `backend/domain/accounting/` account/chart definitions, journals, lots, marks and obligations; `tests/domain/accounting/`; primitive golden cases. No network or DB writes.
+
+**Ordered tasks.**
+
+1. Define distinct fund/company account IDs, asset/liability/capital/expense/income signs and entity ownership. Import balanced opening journal batches from explicit fixture facts.
+2. Post immutable balanced batches keyed by economic identity, preserving source/cause IDs. Derive balances from journal; reject unbalanced/mixed-entity/mixed-currency/duplicate postings atomically.
+3. Add economic long lots/FIFO disposal, short liabilities, trade receivables/payables and coherent mark snapshots. Expose NAV, gross assets and settled cash separately; no clamp hides negative NAV.
+4. Implement reversal/reposting links and indicative/certified/restated valuation states. A balanced but missing economic event stays distinguishable from a corrupted ledger; independent broker/admin records are external inputs, not another view of the same function.
+5. Test primitive distributions and integer lot transformations here; settled-borrow/order/locate propagation is completed with FF2a. Reject unsupported corporate actions rather than partially applying them.
+
+**Acceptance / verification.** A01–A06, A08–A14 within primitive scope: FIFO 10@100 +10@120, sell12@130 realizes320 and leaves960 basis; legacy final cash99,440 plus six shares110 gives100,100 NAV. Borrowing100k adds equal cash/debt, not return. Fee payment against seeded claims clears both books, without repeating income/expense. Replay/reversal reproduces balances. Proposed: `python -m unittest discover -s tests/domain/accounting`.
+
+**Failure and stop.** Failed internal invariant rejects the entire batch; do not plug cash. Do not claim full corporate-action lifecycle or actual payroll processing before later modules exist. Stop at tested journal/lot/valuation primitives; next FF1b.
+
+## FF1b — Calendar accrual, fair series participation and fee history
+
+**Purpose and value.** Ensure carrying a position, earning a fee or receiving new capital changes the correct claim over actual dates. Prevent provisional incentive from financing the firm.
+
+**Entry / inputs.** FF1a journals, FF0b numeric contract, FF0a daily worksheet; exact calendar and fee-series formulas. No live calendars or research libraries are needed.
+
+**Ownership / outputs.** `backend/domain/accounting/series.py`, `fees.py`, `accruals.py`; `backend/domain/clock/` dated calendar primitives; `tests/domain/accounting/` fee/day-count cases; independent series bridges.
+
+**Ordered tasks.**
+
+1. Build synthetic dated business/calendar iterators and unique per-date accrual identities. Initialize immediately before day1; weekend uses original last-mark timestamps, no executable event or company business-day payroll.
+2. Accrue management ACT/365 against opening participation, debit/settled-borrow ACT/360 against stated closing basis, with carried residuals and prospective rate changes. Exclude unsettled locates, end borrow only at actual returned settlement.
+3. Allocate common P&L/expenses by net capital plus reversible provision. Show sum of participation, common P&L, management liability, provisional incentive and investor net capital.
+4. Recompute reversible incentive/HWM; implement pure annual and partial-redemption fee transformations. The actual notice/dealing/payment orchestration comes at FF2c/FF4b. Annual full crystallization takes precedence if same date; preserve survivor HWM.
+5. Recognize contractual management revenue/receivable and fixed incentive only when due under contract; keep provisional amount a forecast. Restore halfway through residual/series history and compare uninterrupted result.
+
+**Acceptance / verification.** V01–V05,V08–V10,V20 plus fee portions of L05–L09. The210,000 participation/21,000 gain allocates11,000/10,000; total net226,800. Redeem250 of1,000 at B110k: payable27k/fixed500/survivor F1,500/N81k/H100. Quarter close never crystalizes the whole fund. Friday short/Monday settlement versus Friday cover/Monday return prove endpoints. Proposed: `python -m unittest discover -s tests/domain/accounting -p 'test_fees*.py'` and corresponding accrual tests.
+
+**Failure and stop.** Invalid total participation or missing mark basis produces visible distress/error, not division by zero or silent substitution. A partial-fee helper passing is not a dealing-flow pass. Stop at deterministic dated fees/carry; next FF2a.
+
+## FF2a — Future-event execution, cash settlement and stock-borrow lots
+
+**Purpose and value.** Turn a budgeted intention into an actual later fill, partial position and dated payment. Make liquidity and short financing consequences credible.
+
+**Entry / inputs.** FF1a/b, FF0b types, complete Case1 tape; execution formula, collateral mapping, settlement priority and whole-share rules. Initially call modules with a validated authority object; human command routing comes at FF3a. This seam is private domain code, not a client bypass.
+
+**Ownership / outputs.** `backend/domain/market/`, `execution/`, `treasury/`, `borrow/`; settlement and corporate-action linkage; `tests/domain/execution/`; order/fill/settlement trace. No broker/trading framework.
+
+**Ordered tasks.**
+
+1. Select strictly later eligible events; load coherent instrument reference/spread/volume/borrow/quality. Track per-event total participation capacity and separate buy/sell cumulative impact quantities.
+2. Implement immutable market/limit order budgets and partial-fill policy, DAY/chapter expiration, cancellation and explicit closing/opening reversal legs. Compute largest affordable whole-share limit fill; no OHLC inference.
+3. Translate fills to economic holdings and trade obligations using the existing journal; price-round then cash-round once. Reserve/release remaining notional, credit and locate capacity without booking reservation expense.
+4. Settle T+1 gross obligations in allowed netting sets; short proceeds restricted, active shorts marked, covered target frozen until matched return. Failed receipts do not fund payments; failed return keeps loan/collateral.
+5. Propagate supported distributions/splits through settled/economic shares, pending deliveries/returns/orders/locates once. Preserve original mark/action IDs; raw executable prices plus explicit distribution, never double income.
+
+**Acceptance / verification.** E01–E05,E08–E09,E12–E15,V04,V10–V11,V25. Splitting a ticket cannot reset impact/capacity; buy at known prior close denied; halt yields zero fill. Case1 2,106 BEAM sale94.905 yields199,869.93, cost200.07; 1,250 BRIN cover110.11 yields137,637.50 payable with frozen137,500 collateral. The V25 unsettled sale/mark/return case rejects double top-up. Proposed: `python -m unittest discover -s tests/domain/execution`.
+
+**Failure and stop.** Insufficient resources rejects or fills only preauthorized affordable quantity; no negative settled cash. Partials expose remaining obligations and event capacity. Stop at tested execution/settlement lifecycle, not complete risk/governance; next FF2b.
+
+## FF2b — Complete risk vector, replacement borrow and crisis escalation
+
+**Purpose and value.** Make timely voluntary choices matter without letting signatures waive solvency or mandate. Distinguish leverage, equity margin, actual settlement cash and company risk.
+
+**Entry / inputs.** FF2a and Case1 full oracle; risk coefficients/deadlines/quantities, replacement acceptance/transfer contract and stress sensitivities. Use original deterministic calculations, no optimizer or fitted VaR.
+
+**Ownership / outputs.** `backend/domain/risk/`, `treasury/forecasts.py`, `borrow/replacements.py`, `incidents/`; `tests/domain/risk/`; exact explanation/reason-code snapshots.
+
+**Ordered tasks.**
+
+1. Calculate gross/net, equity issuer/sector caps, separate ETF caps, signed stress factors, initial/maintenance equity, debt-line use and dated cash adequacy including reservations/claims. Tag every result by denominator/as-of/input quality.
+2. Preview every executable order prefix and anticipated redemption; track deficit changes individually. A cover may raise net exposure; emergency reduction cannot worsen another hard deficit.
+3. Implement timed inventory reservation/settled loan replacement. Case1 zero new BRIN inventory prevents cheap cover/reopen; original unaffected11,250-share loan keeps2%, replaced1,250 switches40% on15.
+4. Implement watch/call/remediation/cure/default incidents with simulation deadlines and cancellation of risk-adding remainder. Process due recalls, then authorized voluntary margin cure, then residual forced margin action; recheck after each partial fill.
+5. Add deterministic forced priority/tie-break and shortage/halts. Explanations identify the specific ratio/cash obligation, feasible remedies and remaining deficits, not a generic red meter.
+
+**Acceptance / verification.** A22,V06–V07,V26–V27,E06–E07,E10–E11; Case1 complete dated before/after snapshots. Separate unreduced reference23.125m NAV/23.2375m maintenance gap112,500 from the actual paid-fee/modified-book path. Short cover with100 cost beyond net100% rejected unless another safe prefix fixes it. Debt-funded redemption cannot restore investor equity. Proposed: `python -m unittest discover -s tests/domain/risk`.
+
+**Failure and stop.** Forced liquidation can fail to cure; record original liabilities/passive breaches rather than invalidate mandatory fills. Stale/missing marks block decisions that require certification. Stop at crisis state-machine correctness; then FF2c and FF3a.
+
+## FF2c — Case1 investor payment, firm payroll and pure session runner
+
+**Purpose and value.** Close the economic loop needed by the early human experiment. Merely prescribing an investor payment in a script is insufficient.
+
+**Entry / inputs.** FF1b/FF2b and independent Case1 daily ledgers; Tactical10,000-unit notice/dealing, company payroll/cure and daily close order. Do not require generalized gates/subscriptions or DB.
+
+**Ownership / outputs.** `backend/domain/investors/` narrow notice/claim/dealing functions, `company/` baseline payroll/receivables/cure, `backend/application/in_memory_session.py`, `backend/tools/run_scenario.py`, `tests/scenarios/`; Case1 full economic traces. The application runner is in-process, not deployed API or persistent authority.
+
+**Ordered tasks.**
+
+1. Wire pure modules into one date/phase/subphase reducer applying effects all-or-none in memory, with event identities and next pending phase. This fills the previously implicit integration seam; individual modules cannot own their own clocks.
+2. Validate Tactical notice/units; at certified20 close allocate fee/crystalize only dealt units, cancel units and create claim; pay only at ordinary21 admin after actual settlement/weekend carry.
+3. Accrue/pay baseline company payroll from company cash, collect earned due fund fees as matched inter-entity transfers, and enter/cure timed company distress. No fund-payroll or provisional-fee bailout.
+4. Derive narrow independent Case1 broker/admin controls from opening facts, confirmed fills/settlements, raw marks/rates and separate fee/series derivation. They may share exact value types, not the posting/fee/risk functions tested. Support allowed non-scripted prototype choices; a different script's fixed statement cannot certify them.
+5. Execute all FF0a command scripts with validated domain authority placeholders; compare every dated fund/series/loan/firm/claim value to independent worksheet, not only terminal totals.
+6. Capture complete checkpoints; resume after Friday close/weekend/settlement exactly once. Produce pre-flow/flow/payment/weekend bridges and incident causes for later UI.
+
+**Acceptance / verification.** V02,V06,V08,V09,V16,V18 and full Case1 success/failure oracles. One notice, one dealt claim, one payment; no quarterwide incentive fee. Default/forced recovery retains liabilities. Proposed `python -m backend.tools.run_scenario --scenario fixtures/compiled/case1.v2_2.json --commands fixtures/commands/case1_replacement.json --output docs/evidence/FF2c/replacement` plus `python -m unittest discover -s tests/scenarios -p 'test_case1*.py'`; this CLI does not exist today.
+
+**Failure and stop.** A same-source expected/output comparison does not pass. Any stage drift or unpaid claim must be explained numerically. Stop at real pure economic Case1 closure; FF3a must add actual human authority before FF3b.
+
+## FF3a — Human authority, readiness and resource reservation commands
+
+**Purpose and value.** Enable complementary independent actions inside agreed boundaries, with material exceptions needing the other human. Prevent repetitive approvals and silent authority expansion.
+
+**Entry / inputs.** FF2b contracts, FF0b command values and GAME_SYSTEMS sections2/12. FF2c is not necessary to isolated governance tests, but both are prerequisite to the integrated human challenge.
+
+**Ownership / outputs.** `backend/domain/governance/`, `backend/application/commands.py` in-memory coordinator, actor membership/role contracts, resource reservations; `tests/domain/governance/`. No production identity SDK or PostgreSQL safety claim yet.
+
+**Ordered tasks.**
+
+1. Define exactly two partner IDs, actor-bound roles, immutable proposals/sleeves and version/content/policy/scope/expiry signatures. New/edit/counter proposals require fresh distinct approval; nonowners cannot expand themselves.
+2. Route submit/cancel/order package, AssignResearch, TreasuryReserve and SelectReplacementBorrow through typed permission/resource checks. Link receipts/claims/reserves so the same liability is not double-reserved.
+3. Store in-memory idempotency scope and payload conflicts; return original accepted result on identical committed retry, reject same-key changed payload. New/stale requests obey exact economic-version policy; auth checked even for old results.
+4. Bind Ready to window/economic version/plan digest while updating administrative revision only. Financial/plan mutation clears both; advance needs two matching ready partners. Disconnect/hold cannot advance simulated deadlines.
+5. Remove fixture authority placeholders from human-accessible routes. Recheck current restriction and authority at each partial fill; preserve system forced-action rules separately.
+
+**Acceptance / verification.** C02–C07,C09,C11,C13–C16 in pure sequential/order-permutation scope; actor self-approval/third-user attempts denied. Each routine permitted ticket avoids a fresh approval. Two consecutive ready commands on unchanged economic version permit one advance; reserve/order mutation invalidates both. Proposed: `python -m unittest discover -s tests/domain/governance`. Pure simulations do not establish real DB concurrency.
+
+**Failure and stop.** Disagreement leaves existing approved policies active and window paused, not auto-consent. Stale authority denies addition without losing recorded original economics. Stop at correct in-memory authority; next FF3b after FF2c.
+
+## FF3b — Internal two-person crisis experiment
+
+**Purpose and value.** Test whether interacting finance obligations create enjoyable cooperation before UI/content breadth. This is an internal challenge prototype, not the first playable release.
+
+**Entry / inputs.** FF2c full economic traces and FF3a human command routing, Case1 fixed artifacts, playtest protocol. At least two viable independent scripts must already satisfy the financial oracle.
+
+**Ownership / outputs.** `prototype/` minimal local CLI or single-page adapter, actor-tagged action history, checkpoint/resume, deterministic explanatory debrief; anonymous FF3b observations. Choose the simpler interface; no Next.js scaffold is required here.
+
+**Ordered tasks.**
+
+1. Build one command desk showing next binding obligations, public evidence, cash/NAV/company distinction and actionable constraints. Show a small table of choices instead of a dashboard suite; hidden tape stays outside observation output.
+2. Let two controlled local identities sign/act/read/ready independently with actual domain commands. Identity selection is disclosed development harness, not production authentication or isolation evidence.
+3. Run three pairs through the fixed challenge using the existing unmeasured20–30minute target; no facilitator financial solution unless intervention is explicitly logged. Rotate role assignment across pairs.
+4. Record consequential choice/effect per role, approval-only wait, misunderstood cash/deadlines, actual duration, failure/recovery explanations and desire to continue. Allow save/disagreement/resume; no real-world absence penalty.
+5. Separate presentation defects from finance failures and authored dominance. Improve clarity/options within a versioned change, rerun affected economic checks and report remaining problems before advancing.
+
+**Acceptance / verification.** R06/G09–G14 and prototype protocol: both roles can change future feasible actions/resources; neither becomes merely an approval queue. Exact replay/resume hashes still match. Retain raw anonymous observations; absent pairs mean pending human gate. Financial scripts cannot satisfy this gate. No promised fun result.
+
+**Failure and stop.** Repeated role starvation or inability to explain a binding obligation blocks progression to the richer UI. Repair choice/info design, not add another library/dashboard. Case1 prototype demonstrates within-horizon voluntary/forced recovery; it cannot claim completed winddown beyond its supplied tape. Explicitly show an unsupported tail as unresolved, or author/test a bounded tail before exposing that ending. Stop with explicit GO/REVISE decision and limitations, then FF4a if passed.
+
+## FF4a — PostgreSQL authority, atomic transactions and minimal API
+
+**Purpose and value.** Replace the development in-memory store with durable authority capable of two concurrent clients and safe retries/crashes. Keep one season serialization boundary across fund and firm.
+
+**Entry / inputs.** FF3b go evidence, FF0b types and FF3a coordinator policy. Resolve O05 supported Python/PostgreSQL/driver/migration/auth-boundary choices when implementation is authorized. Actual DB provisioning is a future implementation step, not this documentation task.
+
+**Ownership / outputs.** `backend/adapters/persistence/`, `backend/application/coordinator.py`, minimal FastAPI `backend/api/`, migrations and runtime locks; `tests/integration/`; local setup/restore guide. No Redis, distributed worker or externally hosted identity required.
+
+**Ordered tasks.**
+
+1. Freeze supported local runtime and one direct DB access/migration strategy; pin/lock only required dependencies and document clean setup. Define a replaceable development-auth seam that cannot be mistaken for production credentials.
+2. Create season/member/command/event/journal/state/obligation/series/order/reservation/outbox schema with exact NUMERIC scales and identity uniqueness. Persist all future-economic checkpoint state; fail overflow before DB coercion.
+3. Implement current membership→season lock→idempotency→new-request version/authority/resources→atomic effect/result/outbox order. Fixed season/entity/obligation lock order; domain calls do not commit independently or perform network calls.
+4. Expose minimal command submission, current permitted state, history and checkpoint endpoints using the same reducer. No client-supplied financial result or forecast can replace server state.
+5. Add separate-connection barrier races, commit fault injection and bounded timeout/deadlock retry. Persist original committed result even after version/market change; replay from stored events restores exact economic state.
+
+**Acceptance / verification.** C01,C07–C10,C13–C16,V16,V18; one winning mutation, no loser journals/reserves/events, atomic matched fund/firm transfer, crash before commit rollback, after commit deduped recovery/outbox. Repeat100 trials per declared race/environment; record allowed result pairs and lock/isolation settings. Proposed: `python -m unittest discover -s tests/integration -p 'test_postgres*.py'` against documented test DB, never a user's existing database. Missing DB means pending, not SQLite pass.
+
+**Failure and stop.** Infrastructure error rolls back, bounded retry preserves key/payload, no partial success. Outbox publication occurs only after commit. Stop at durable command authority and minimal API; real production-facing auth/tenant UI is FF5b.
+
+## FF4b — General LP contracts, dealing, escrow and management-company survival
+
+**Purpose and value.** Generalize narrow Case1 obligations into the initial-game investor and company lifecycle without rewriting tested economic primitives.
+
+**Entry / inputs.** FF1b, FF2c narrow dealing/payroll and FF4a persistence. Selected standard investor terms, gate/escrow allocation and distress rules; resolve O03 unit/cent edge cases first.
+
+**Ownership / outputs.** `backend/domain/investors/`, `company/`, `game/relationships.py`; API command adapters, persistence fields; `tests/domain/investors/`, `tests/integration/`; complete dealing/firm forecast traces.
+
+**Ordered tasks.**
+
+1. Implement notice lead/lockups, unit requests and dollar-target conversion, maximum of external versus confidence request, queue identity and carried eligible units. A notice is not yet an NAV liability.
+2. Deal only on certified post-fee pre-flow NAV; joint gate elected beforehand, one pro-rata fund cap, accepted units burn once, rejected/deferred units remain invested. Preserve HWM/provision history; no first-arrival favoritism.
+3. Stage funded prospect escrow outside fund until eligible admission; create new fee series at100/H100; contribution never becomes performance or company revenue. Enforce capacity/certification, cap/decline options and no instant funding.
+4. Generalize earned/fixed/incentive receipts, weekly payroll/provider claims, 13-week forecast and five-business-day company cure. Separate cash runway from receivable-based forecast and provisional fees.
+5. Apply confidence/concern/report/meeting transitions once with component IDs; visible bands, fulfilled-evidence recovery, no repeated meeting/report reward. Test fee/flow/payment and cross-entity concurrency together.
+
+**Acceptance / verification.** L01–L12,V01–V03,V06,V13,V15–V16,G05/G08; gate10m requests on25m deals5m fairly, ineffective gate no confidence penalty. Redemption shrinks NAV once before payment; valid investor entitlement cannot be refused for leverage. Paid matched fee receipt cannot directly move LP capital to payroll. Proposed: `python -m unittest discover -s tests/domain/investors` and PostgreSQL subscription/payment races.
+
+**Failure and stop.** Uncertified close records missed dealing incident, not guessed unit price. Unpaid claims/company arrears persist and trigger authored cure; no rescue subscription unless actually eligible/funded. Stop at standard flows/firm lifecycle; next FF5a.
+
+## FF5a — Author the ordinary zero-position two-chapter campaign
+
+**Purpose and value.** Turn a warm-start engineering challenge into an actual fund launch with credible constrained initial decisions. Prove the opening authority can build the proposed book.
+
+**Entry / inputs.** FF3b human observations, FF4b mechanics, existing SEASON_SCENARIOS opening goals. Resolve O04 four-instrument scope and observation schedule; inherit12-instrument challenge coverage only as a separate artifact.
+
+**Ownership / outputs.** `fixtures/compiled/opening.v2_2.json`, public briefs/evidence/contingencies, actor-tagged success/wait/failure scripts, independent daily control records/oracles; scenario and information rule modules; `tests/scenarios/` opening gates.
+
+**Ordered tasks.**
+
+1. Freeze the opening tradable universe ALTO/BRIN/BEAM/BOND, base25m three-series/300k company opening and two joint sleeves with one owned by each partner. Nontradeable names cannot enter via arbitrary IDs; Case1 remains twelve-name warm start.
+2. Author all business1–20 plus day21 administration and calendar accrual records. Choose a modest located short/long book under actual5% ticket/15% sleeve chapter turnover, not the inherited130%-gross challenge book.
+3. Schedule research/public evidence, contingency/borrow recall and formal Tactical notice. Give PM a meaningful exposure/evidence choice and operating partner independent reserve/borrow/attention tradeoffs each chapter. Public obligations inspectable; future price outcomes remain hidden.
+4. Create two strategically defensible success scripts, cash/wait baseline and an explainable failure/recovery script on the same tape. Use independently calculated journal/control/series totals for each; include post-flow ratios and due investor/firm cash.
+5. Integrate observations with server as-of filtering: mutate future/revised facts and show earlier brief/chart/export state unchanged. Build causal debrief references without fabricated counterfactual profits.
+6. Add bounded liquidation-tail fixtures for failure paths and declare final unresolved obligations if the tail cannot settle. Tail behavior follows O07; finishing21 without liquidation does not turn remaining holdings into cash.
+
+**Acceptance / verification.** Opening contract from MASTER_SPEC/SEASON_SCENARIOS, I01–I04,I14,G09–G11,V09/V18. Both actual success scripts obey all sleeve/mandate/settlement constraints, investor paid21, company bills reflected, no whole-fund quarter incentive. At least two material opportunities per role are authored; human experience is validated later. Proposed scenario-runner calls and `python -m unittest discover -s tests/scenarios -p 'test_opening*.py'`.
+
+**Failure and stop.** Missing quotes, authority overspend or same hidden market changed by holdings is blocking. Retune scenario versions, preserve prior failed-policy evidence. Stop at a fully executable and independently verified opening campaign; next FF5b.
+
+## FF5b — First playable interface, real identities and reconnect
+
+**Purpose and value.** Let two humans understand and act on the verified campaign through a reliable, accessible interface. Build the minimum view for consequential decisions.
+
+**Entry / inputs.** FF5a opening artifacts, FF4a/b APIs and O05 authentication/session choice. Define one local/test identity setup and the protection needed for a distributable first playable; controlled FF3b actor selection is not acceptable authentication here.
+
+**Ownership / outputs.** `frontend/` Next.js/TypeScript command desk, committee, investment/operations views and debrief; auth/session middleware, permitted observation/query/export endpoints; `tests/e2e/`; local two-user setup. Rich charts are secondary.
+
+**Ordered tasks.**
+
+1. Freeze frontend runtime/package-manager/necessary dependencies and API DTO generation/contract checks. Establish exactly two member season creation/join/invite policy and protected sessions; prevent actor IDs from being forged by clients.
+2. Implement desk with next obligations, settled/restricted/fund/firm cash, resource budget and active incident reasons. Use clear calculation/alternative labels; deeper ledger is an inspectable drawer.
+3. Add proposals/sleeves and independent routine commands, research/borrow/reserve choices and uncertainty previews. Edited proposals clear signatures; rejected requests retain user intent and show current state/version without silent resubmission.
+4. Show permitted market/position/LP reports and causal debrief; all queries/exports enforce actor entitlement and availability cutoff. Browser bundles/downloads contain no hidden tape or private control workbook.
+5. Implement polling/reconnect from authoritative sequence/checkpoint, version conflict recovery, duplicate-click safety, missing-partner pause and save/resume. Optimistic order UI says pending, never invents a fill.
+6. Verify keyboard navigation, readable numeric labels, error/loading/offline states, reduced motion and small-screen review. Add only the automation needed to repeat the two-user critical path, not a general browser framework collection.
+
+**Acceptance / verification.** C10–C11,I01–I04,I14,R03–R04/G12–G14; two real sessions finish ordinary opening21 with signatures/roles visible. Third/revoked/cross-season identity and stale-key retrieval denied; CSRF/session-expiry behavior matches selected auth design; raw narrative escaped and bounded. Proposed frontend type/build and selected browser-runner commands are pinned/documented only when that tool exists; backend query tests are independently reproducible.
+
+**Failure and stop.** A local role dropdown is not a production session. Hidden tape exposure, wrong-actor consent or fabricated balances blocks completion even if UI is attractive. Stop at working first-playable candidate; FF5c decides release.
+
+## FF5c — Certify the first playable release
+
+**Purpose and value.** Make a truthful release claim from combined economic, safety and two-human evidence. Freeze the opening experience before expanding to six chapters.
+
+**Entry / inputs.** FF5b playable candidate, FF5a independent policies, FF4a race evidence and FF3b observations. No optional AI, historical provider or staffing breadth prerequisite.
+
+**Ownership / outputs.** `docs/evidence/FF5c/` financial/replay/race/information/accessibility/human study, reproducible first-playable manifest/demo guide and explicit release decision. Fixes belong only to exercised modules and receive regression evidence.
+
+**Ordered tasks.**
+
+1. Re-run the two success, wait and failure/recovery policies against frozen manifests; compare full dated balances/claims, not only returns. Record independent oracle provenance and old-versus-new evidence validity.
+2. Restore a copied test database and replay to multiple subphase checkpoints; confirm exact economic hashes/next phase and no duplicated weekend fee or payment. Exercise reconnect and duplicate delivery.
+3. Verify cross-season/revoked users, proposal edit/readiness, future mutation/exports and protected result retrieval; rerun only affected concurrency suites plus required end-to-end proof.
+4. Run six consented anonymous pairs, three novice-finance and three finance-familiar, with counterbalanced roles and recorded facilitator intervention. Gather duration, both-player agency, approval-only wait, financial comprehension, failure recovery and desire to continue.
+5. Decide RELEASE_CANDIDATE/REVISE from predeclared gates; publish negative results/limitations. If changes alter economics, issue new rule/tape version and refresh dependent oracles; cosmetic fixes do not reroll tape.
+
+**Acceptance / verification.** Each partner at least two consequential choices; neither >25% decision-window time solely waiting for approval; both explain cash vs NAV, next deadline and one immediate/delayed consequence; failure pair can identify recovery/winddown without financial coaching. Record actual40–60minute target distribution and median interest rating target>=4/5, with dissent. All required financial/replay/security cases pass; human gate is pending until observed, not satisfied by scripts.
+
+**Failure and stop.** Any material financial/permission/leakage failure or repeated agency/comprehension failure blocks release. Small pilot does not establish statistical proof of fun. Stop at evidence-backed first playable; next FF6a, not optional tooling.
+
+## FF6a — Compile Cases2/3 and implement operations/restrictions
+
+**Purpose and value.** Add capital-flow/valuation tensions without increasing instrument complexity. Finish the missing downstream contracts before the full campaign.
+
+**Entry / inputs.** FF5c evidence, SCENARIO_CONTRACTS Cases2/3, corrected baskets and isolated arithmetic. Resolve O06 path-specific independent control computation and O07 liquidation tail. Do not revive the dominated Case3 hire choice.
+
+**Ownership / outputs.** compiled Case2/3 and recovery tails, independent dated oracles/scripts/control records, `backend/domain/controls/`, `restrictions/`, report/restatement/offer predicates; `tests/scenarios/` and control/restriction integration cases.
+
+**Ordered tasks.**
+
+1. Materialize Case2 day39–61 references/borrow/volumes/claims/company/series histories and Case3 day29–41 plus conditional cure through45, including ordinary intervening weekend fees. Clearly distinguish seeded35k/100k invoices from new accruals.
+2. Independently calculate full-pay versus gated-sale-and-later-payment scripts, every issuer/sector/ETF/margin ratio, fair unit conversion and actual floating carried request. Verify constrained credit before labeling a no-sale path payment default.
+3. Build an independently derived control evaluator/records for arbitrary valid player paths using separate derivation, not importing posting/fee/risk functions under test. Define timing differences/tolerance/source hashes; fixed scripts also get hand-authored records.
+4. Implement discrepancy triage and correct/reverse/restated evidence; known false NAV cannot certify. Free routine truth checks do not consume paid research or require an operations hire.
+5. Enforce restricted-source instrument state/canceled resting orders/clearance event at each partial fill; public unrelated research remains available. Case3 capital-diligence/cap/decline and report deadline have declared deterministic consequences.
+6. Integrate actual success/failure/recovery scripts and debriefs through their stated horizon; include independently authored winddown tail if invoked. Recheck observation leakage and restoration around corrections.
+
+**Acceptance / verification.** A22,V28–V30,V12,V14,C12; gated claims pay61 with zero unresolved deferred units; corrected Case3 opening26.84m follows200k expense/40k provision reversal, preserves original report, pays distribution once. Admission zero company cash; report missed35 offer stays lost. Proposed `python -m unittest discover -s tests/scenarios -p 'test_case[23]*.py'` and control/restriction tests.
+
+**Failure and stop.** Calling the production fee function an independent admin is a failed oracle. Uncertified closes/remaining carried units/hire-only success counting block completion. Stop at two additional verified cases, not full campaign proof; next FF6b.
+
+## FF6b — Full campaign, useful staff capacity and complete endings
+
+**Purpose and value.** Deliver the initial game as a connected investment business, carrying obligations/fee history across all six chapters and meaningful endings.
+
+**Entry / inputs.** FF6a verified cases, FF5c role findings, company/LP standard mechanics. Resolve O08 staffing payoffs, O09 full campaign objectives and O07 termination tail. No derivatives/multicurrency/live sandbox.
+
+**Ownership / outputs.** full1–61 authored campaign plus up to10-business-day winddown/cure tails, chapter/evidence manifests, standard prospects/staff assignments, continuation forecast, outcome/score/winddown reducers, independent full campaign oracles; `tests/scenarios/`, `tests/domain/game/`.
+
+**Ordered tasks / subgates.**
+
+1. FF6b.1 — Freeze chapters3–6 tensions, visible obligations/briefs, information quality, named action alternatives and role ownership. Each window has one investment and one operations choice; merge repeated recap/approval work.
+2. FF6b.2 — Author complete future-independent market/borrow/volume/action/restriction tape, plus scenario-independent ending tails. No hidden punishment based on current holdings; NPC reactions depend only on published behavioral rules.
+3. FF6b.3 — Add qualified/diligent/funded standard prospects with capacity/cap/decline; staff hiring/releasing uses recruiting cash, next-chapter capacity and weekly salary/severance. Each hire buys a named additional assignment that competes with another real task; it cannot improve price luck or buy true accounting.
+4. FF6b.4 — Integrate chapters incrementally and extend independent success/defensive/failure ledgers at each dealing40/60. Preserve earlier histories; validate post-redemption leverage and thin-runway manager reality.
+5. FF6b.5 — Implement published Renewal conditions at certified60 close/ordinary61 admin, Survival, Responsible Winddown, Broker Default and Company Failure. Preserve terminal unpaid claims; scenario challenges do not share a return leaderboard with campaign.
+6. FF6b.6 — Implement joint controlled winddown/finite tail, actual executable liquidations, settled return, final certified fee/units/distributions and company closure. Horizon expiry with halt/claims means unresolved winddown, not invented proceeds or legal waterfall.
+7. FF6b.7 — Generate certified financial attribution, LP statements, separate firm runway/13-week continuation forecast and evidence-linked debrief. Counterfactual replay alters only selected commands on the same tape; it is practice, not fresh blind scoring.
+
+**Acceptance / verification.** Full six-chapter scripts through61 and every outcome label; G01–G08,G11,G14,V09,V18,V31–V32. Salary/release timing exact, performance provision never spent on payroll,4-week conditional Renewal never implies financed next quarter. Winddown raises no incentive cash merely from scored end. Two distinct solvent policies exist on frozen authored versions; gate/fee/concentration/wait exploits have recorded outcomes. Proposed scenario-runner manifest matrix and `python -m unittest discover -s tests/domain/game` plus full campaign tests.
+
+**Failure and stop.** A chapter implemented with narrative-only money changes fails; a staffing payoff with no actual useful task is removed/deferred. Maintain compatibility or start a new campaign version after a rule change. Stop at full initial-game candidate; FF6c supplies release evidence.
+
+## FF6c — Full release evaluation, recovery and reproducibility package
+
+**Purpose and value.** Demonstrate financial correctness, role balance, exploit resistance and recovery with reproducible experiments. Measure rigor through evidence rather than architecture/library count.
+
+**Entry / inputs.** FF6b complete candidate and all earlier evidence. Resolve O09 outcome/balance hypotheses and O10 supported workload/hardware before measuring. Existing tests remain valid only when their input/rule hashes match.
+
+**Ownership / outputs.** `docs/evidence/FF6c/` experiment protocols/manifests/raw anonymous observations/results; reproducibility/evidence index, limitations and release disposition; bounded necessary fixes only.
+
+**Ordered tasks.**
+
+1. Freeze training/balance-tuning versions and at least one separately authored held-out version. Run cash/defensive, diversified, liquidity-aware, concentrated gambler, trust spam, repeated gate and terminal-holding policies with identical costs/availability. Keep all failure/undefined outcomes.
+2. Report return/drawdown/LP capital returned/claims deferred or overdue/company cash/forced actions separately. Show deterministic mechanical paired replays; make no empirical investment-skill or real-world alpha inference.
+3. Run novice/finance-familiar full-season paired sessions, rotating role assignment and save/resume across chapters. Predeclare observation windows and success/agency/recovery comprehension criteria; distinguish facilitated runs and actual duration.
+4. Restore backup to a separate DB, replay to checkpoints before/after all dealing/forced/correction events, inject pre/postcommit crashes and reconnect/message loss. Verify no altered economic hash or duplicate identity.
+5. Execute access/secret/input bounds/escaped narrative/as-of tests plus all required PostgreSQL financial races. Profile the declared hardware/operation mix/active seasons, record latency/error/lock waits and invariant failures; select supported load from results, not aspirations.
+6. Publish RELEASE/REVISE with links from each claim to actual artifacts, current unsupported behaviors and sample/model limits. Future enhancements must cite a demonstrated need; do not inflate graduate claims using unused frameworks.
+
+**Acceptance / verification.** No unresolved major financial/authority/leakage/recovery defect; all required cases pass; human role/comprehension criteria sustained across chapters; exploits unable to erase obligations/reroll outcomes. Measured throughput is evidence only for the tested load/environment. Record baseline failures without selective reporting. Proposed domain/integration/scenario/E2E matrix is captured with exact pinned commands at this milestone; unavailable tester/load infrastructure stays pending.
+
+**Failure and stop.** Pilot observations cannot establish universal enjoyment; a held-out failure needs honest diagnosis/versioned repair and fresh evidence. Stop at supported full initial-game release and limitations. FF7/FF8 are elective, not a requirement to declare a correct completed initial game.
+
+## FF7a — Optional licensed historical replay, end to end
+
+**Purpose and value.** Determine whether one historical dataset can deliver reproducible as-of gameplay using the same economics. Importing data alone is not historical replay.
+
+**Entry / inputs.** FF6c passed and a separate selected research task. Resolve O11 exact dataset/rights/coverage/cost and historical epoch-specific accounting/settlement/borrow assumptions. No paid activation implicit. If no dataset meets criteria, the valid result is DEFER/REJECT.
+
+**Ownership / outputs.** rights/coverage decision, frozen snapshot manifest/import adapter, read-only historical scenario compiler, replay policy and one bounded playable historical case; `backend/adapters/data/`, `backend/domain/market/` adapter interface, `tests/data/`; independent historical economic oracles.
+
+**Ordered tasks.**
+
+1. Choose one case/instrument universe/date interval and unmet learning objective. Verify official provider terms and actual schema/example; separate software license from display/retention/export/derivation/replay rights and costs. Do not repeat the entire candidate-list research.
+2. Require publication/availability/revision history, raw prices and explicit corporate actions, universe/delisting/symbol continuity and era calendar/settlement conventions. State authored financing/LP behavior; present-day borrow cannot masquerade as historical borrow.
+3. Freeze immutable entitled inputs with versions/hashes and rights retention policy. Import outside locked gameplay; malformed/stale/partial/forbidden/timeouts remain distinct. No zeros or current revisions silently replace missing historical facts.
+4. Select only one needed dataframe/calendar tool from existing research; DuckDB only for demonstrated query need. Compile explicit future-eligible events appropriate to data resolution; daily OHLC cannot promise intraday path/priority.
+5. Run the same command/execution/ledger/series/firm engine on one historical case, prove as-of leakage mutations and shared-engine parity. Track source staleness/resolution uncertainty; label prices historical, fills/financing/investors simulated.
+6. Evaluate educational utility and reproduce from retained licensed artifacts, or close the task with a reasoned rejection if required rights/coverage are unavailable.
+
+**Acceptance / verification.** I01–I04,I07–I08,I14,V17–V18,E13–E14; immutable permitted replay, actual one-case shared-engine run, independent costs/flow/corporate-action oracle and explicit historical limitations. Proposed `python -m unittest discover -s tests/data` and historical scenario-runner commands. No real provider call is needed for early adapter failure tests.
+
+**Failure and stop.** A hash cannot recreate a dataset forbidden to be retained; reject such replay claims. No as-of evidence means unsupported observation, not a guessed date. Stop at one supported historical pack or documented deferral, not live data/ML.
+
+## FF7b — Optional advisory aid with a falsifiable usefulness test
+
+**Purpose and value.** Add one read-only aid only if it improves a measured task beyond existing deterministic templates/stress cards. This is not an AI platform or requirement for fun.
+
+**Entry / inputs.** FF6c, plus FF7a only if the selected aid needs historical data. Resolve O12 selecting exactly one aid, evaluation target/dataset/baseline and allowed spend. Default recommendation is deterministic explanations; no AI runtime until an actual unmet comprehension need is documented.
+
+**Ownership / outputs.** one advisory adapter, sanitized observation interface, fixed evaluation packets/rubrics, experiment report and adopt/remove decision; `backend/adapters/advisory/`, `tests/advisory/`, evidence. No economic/governance mutation interface.
+
+**Ordered tasks.**
+
+1. Choose one bounded candidate: source-grounded tutor for cash/obligation explanation, constraint-based allocation suggestion, or measured diagnostic. Write target/end-user benefit and deterministic baseline before selecting a dependency/model. Do not implement all three.
+2. Define frozen permitted packets and withheld future facts; tutor uses20 curated fact packets plus leakage/injection/malformed/outage adversarial packets. If statistical forecast chosen instead, freeze lag-safe train/validation/held-out chronological split and simple baseline.
+3. Build a read-only typed proposal/explanation boundary; every allocation suggestion converts to whole-share commands and reruns original risk/authority. No tool can approve, execute, post balances, set trust or score.
+4. Evaluate fact-source accuracy, forbidden-fact disclosure, numerical hallucination, human comprehension change versus templates, latency and actual cost under authorized capped usage. Optimizer/diagnostic evaluation includes feasibility/conversion/cost sensitivity and baseline error, not persuasive prose.
+5. Require deterministic unavailable/timeout/invalid fallback, bounded retries and server-only secrets; store what players saw for audit without changing frozen economics. Publish rejected results and remove unused dependency if utility is absent.
+
+**Acceptance / verification.** I08–I12,I14; zero mutation privilege, no hidden tape, facts/citations verifiable, errors/outages preserve core play. Utility threshold and cost cap are frozen before the test; there is no presently verified model advantage. Proposed `python -m unittest discover -s tests/advisory` and protocol-specific evaluation command once chosen. Live-model calls need their own authorized budget; fixture tests alone do not prove model utility.
+
+**Failure and stop.** Missing paid approval/data/target yields DEFER with deterministic baseline retained. Strong writing alone is not adoption evidence. Stop after one aid decision; do not launch ML/provider workstreams automatically.
+
+## FF8 — Future-extension decision gate, not an unbounded build promise
+
+**Purpose and value.** Keep speculative hosting/live data/leagues/new instruments from corrupting initial-game scope. A full implementation plan for an unknown product request would invent requirements; this milestone fully specifies how a selected extension earns such a plan.
+
+**Entry / inputs.** Full initial game evidence, explicit new requested extension and unmet-need statement. Resolve O13 selecting one extension/budget/permissions. Existing future ideas are not authorization for deployment, billing, external messages or real execution.
+
+**Ownership / outputs.** `docs/extensions/<selected>/SPEC.md`, `PLAN.md`, `ACCEPTANCE.md`, updated dependency/risk/rights decision and explicit go/defer/reject. No implementation paths owned until an extension plan is selected and agreed.
+
+**Ordered tasks.**
+
+1. Specify one user story, actors, mode, constraints and desired change in observable behavior. Demonstrate why current campaign cannot deliver it; reject cosmetic complexity without a useful decision.
+2. Choose the appropriate boundary: hosting needs identity/security/cost/recovery; live sandbox needs entitlements/timestamps/outage/no-real-execution; league needs attempt/fairness/seed/version policy and isolation; new instrument needs lifecycle/valuation/collateral/settlement/accounting cases.
+3. Map unchanged versus new authoritative state/commands/events/invariants and exact schema/migration compatibility. Preserve synthetic deterministic campaigns; optional service failure cannot rewrite prior economics.
+4. Verify only the specific primary docs/rights/license/API needed, against a small original implementation alternative. Document recurring cost/cap, infrastructure/credential requirements and affected permissions without activating them.
+5. Produce disjoint small implementation milestones with independent oracles, reproducible experiment, failure/restore cases and stop gates; resolve blockers before assigning a builder. Seek actual authorization only for genuinely irreversible/external/billed action.
+
+**Acceptance / verification.** Selected extension has measurable success/failure, complete lifecycle/permissions/rights/cost boundaries, dependency-aware owned steps and independent validation. Rejected/deferred decisions include exact missing evidence; no fictional implemented result. Document checks can validate packaging, not hosting/market/legal functionality.
+
+**Failure and stop.** No selected extension means NOT_STARTED, not a reason to expand the stack. Stop at a concrete reviewed extension plan or deferral. Real-money trading remains excluded from FundForge's scope.
 

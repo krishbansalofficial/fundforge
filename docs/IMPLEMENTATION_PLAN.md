@@ -1,75 +1,52 @@
-# Implementation plan v2.1
+# Dependency-aware implementation plan v2.2
 
-The game must be fun and financially coherent before optional ML or live integrations. Work is dependency-gated, not a promise to finish in a fixed week. Every implementation milestone is currently pending. The user requested this redesign and file update; that does not mean application code has been built.
+7 October 2026. All application milestones pending. The local checkout has documentation tooling, not the reportedly completed foundation/26 tests. DESIGN_REVIEW_V2_2 records reconciliation; SCENARIO_CONTRACTS freezes challenge schedules; IMPLEMENTATION_HANDOFF owns the exact next task. The old roadmap remains in Git history, not authoritative.
 
-Read REALISM_AUDIT for priorities, SIMULATION_ARCHITECTURE for ownership/interfaces, and LIBRARY_RESEARCH before adding a dependency. v2.1 corrects fee participation, day counts, annual versus redemption crystallization, cover-direction risk, post-redemption leverage and independent control evidence. Implement those contracts before adding presentation.
+Planning revision 2.2-M1 expands **all 20 milestones through final FF8** in [MILESTONE_PLANS](MILESTONE_PLANS.md). Each package defines purpose, input evidence, module/file ownership, ordered tasks, deliverables, independent acceptance, proposed verification, failure behavior and completion/stop gate. [PLAN_REVIEW_AND_DECISIONS](PLAN_REVIEW_AND_DECISIONS.md) records this pass's corrections and unresolved decisions with their due milestone. This table remains the navigation/dependency summary, not the complete task instructions.
 
-| Gate | Scope | Dependencies | Observable completion |
+## Release definitions and sequencing
+
+The smallest internal end-to-end experiment is Case1's warm-start crisis: two roles, research/borrow choice, signed/delegated reduction, settlement, Tactical dealing, separate firm cash and causal report through day21 administration. A simple local two-role interface follows pure economics. Label it **internal challenge prototype**, not first release or evidence of secure multi-user hosting. It can invalidate tedious or one-sided gameplay before broad content work.
+
+**First playable release (FF5)** is the ordinary zero-position day1 launch through day21 opening administration: two authenticated human identities, three LPs, four tradable instruments, two chapters, scarce evidence/contingency, long/short/financing, investor payment, separate firm bills, disagreement/pause/resume and debrief. Require two defensible successful policies, an explainable recovery path, independent accounting/replay/concurrency evidence and actual two-human playtests. Warm starts cannot replace that opening campaign. Staffing/fundraising previews may wait.
+
+**Full initial game (FF6)** is six chapters/60 business days through day61 administration, up to twelve instruments, standard fundraising and useful staffing tradeoffs, all three challenges, restrictions/control incidents, conditional Renewal/Survival/Winddown/Default/Company Failure, security/restore/balance/human-study evidence. No provider, ML or finance framework is required. Release labels need evidence, not estimated dates.
+
+Ledger and dated obligations come first because each interesting choice changes claims, cash or authority; fake UI balances hide affordability. Authoring comes before economics so builders do not invent outcomes. The first human experiment follows only necessary Case1 mechanics; catalog breadth follows evidence of agency.
+
+## Small verifiable milestones
+
+Each row requires a bounded diff, assumptions, actual commands/results with runtime/rule/tape/command/control hashes, updated handoff and no unreported failures. Paths under backend/frontend/tests are proposed. Row acceptance plus this evidence record is its definition of done. Dependencies mean demonstrated output, not a checked box.
+
+| ID / purpose | Inputs / prerequisites | Outputs / affected modules | Acceptance / definition of done |
 |---|---|---|---|
-| FF0 | Inspect environment; freeze domain contracts; minimal app/DB/CI skeleton | P01 review | Versioned scenario schema, event phases, entities, command results, reproducible install and health checks |
-| FF1 | Journal, marks, lots, LP series, dated calendar accrual, trade/settlement obligations, separate firm ledger | FF0 | Independent cohort/HWM/day-count/corporate-action arithmetic, balance/replay/reversal and external-control discrepancy evidence |
-| FF2 | Clock, future-event execution, costs/participation, long/short borrow, financing, margin and forced actions | FF1 | Gap, recall, collateral, deadline and halt cases; no fabricated fills |
-| FF3 | Two-player authorization, sleeves, committee proposals, reservations and races | FF1–FF2 contracts | PostgreSQL race tests; no expired/revoked authority, double spend or third partner |
-| FF4 | LP contracts/notices/dealing, fees/HWM, management-company budget, NPC trust | FF1–FF3 | Subscriptions/redemptions/fees reconcile; fund cash cannot pay firm payroll directly |
-| FF5 | Integrate the two-chapter opening arc, authored research, crisis choices, save/resume and causal debrief | FF2–FF4 | Two people finish 20 business days through ordinary day21 opening administration, offline from providers; target two 20–30 minute chapters, duration unmeasured |
-| FF6 | Six-chapter campaign, all three scenario contracts, endings, scoring, difficulty/balance, security and recovery | FF5 | Complete 60-day run through ordinary day61 opening administration; tested failure/winddown; versioned balance/replay and two-user playtest evidence |
-| FF7 | Licensed snapshots, optional OpenSEO adapter spike, shared-engine backtests, evaluated ML | FF6 | Point-in-time data gate, provider failure/cost checks, honest baseline comparison |
-| FF8 | Optional asynchronous league/opponents, extra strategies/instruments, private hosting | Relevant prior gates | Separate permission, fairness, data and instrument acceptance contracts |
+| FF0a: compile one challenge, no engine | Current rules, Case1 complete authoring schedule, old isolated oracles | compiled Case1 fixture, three actor-tagged scripts, independent daily oracle, coverage/hash report; contracts/loader and rejection checks | X01–X07 in handoff: complete12–21 tape/openings/series/authority/residuals, specific missing/invalid rejection, full-path independently calculated balances. Schema validity is not playability |
+| FF0b: exact wire/replay values | FF0a, numerical conventions | frozen schemas/canonical vectors; contracts/serialization | V22–V24 string decimals, finite bounds, negative zero, HALF_EVEN, residual round-trip, expected canonical bytes/hash; no implicit DB rounding |
+| FF1a: balanced immutable journal/lots | FF0a, FF0b | accounting, fund/firm openings, obligations/lots/reversal | A01–A06,A08–A11,A14–A15; Case1 opening balances; deliberately wrong balanced event not called reconciled; separate entity journals balance |
+| FF1b: dated series fees/carry | FF1a + dated oracle worksheet | accounting/series/calendar, residual persistence and HWM | V01–V05,V08–V11,V20; every date once, Friday/Monday borrow endpoints; reversible provision never company receivable; partial redemption conserves claims |
+| FF2a: future-event execution/settlement | FF1b + Case1 tape | market/OMS/borrow/treasury, whole-share budgeted partial fills | E01–E05,E08–E09,E12,V25; exact costs/cumulative impact, unsettled top-up, retained collateral, failed settlement; no duplicate borrow/cash |
+| FF2b: risk/financing/deadlines | FF2a | deficit vector, replacement transfer, voluntary/forced queues | A22,V26,V27; all constraint prefixes; timely transfer/late rejection; voluntary cure before forced margin, real shortfall after costs; forced fills can leave deficits |
+| FF2c: narrow Case1 payment/firm lifecycle | FF1b, FF2b | pure session runner/checkpoint, Tactical dealing/payment, baseline payroll/cure and independent Case1 controls | V02,V06,V08,V09,V16,V18 and dated full oracle; actual claims/payment21 and allowed non-scripted controls, not scripted balance edits. General gates/subscriptions deferred to FF4b |
+| FF3a: two-role command authority | FF2b + frozen commands | governance/reducer, ready digest, immutable signatures/idempotency | C02–C07,C09,C13–C16 pure tests; distinct consent, edits reset readiness, no double resource spend. No PostgreSQL safety claim yet |
+| FF3b: early human crisis experiment | FF3a, FF2c + economic scripts meet independent oracles | minimal local CLI/one-page desk, causal report/checkpoint; controlled two-role identities | Two humans resolve recall/payment and failure recovery; role choices/wait/confusion recorded. Exact save/replay. Not production auth or first releasable game |
+| FF4a: persisted authority/API skeleton | FF3b + transaction contracts | PostgreSQL adapters/coordinator/uniqueness/outbox/migrations; minimal FastAPI | Real separate-connection C01,C07–C10,C13–C16 races and crash rollback/outbox; allowed result pairs/journal counts; versions pinned when needed |
+| FF4b: standard dealing/firm obligations | FF1b, FF4a | notices/gate/escrow, payroll/receivables/distress, cross-entity transfer | L01–L12,V06,V13,V15–V16; units/cents reconcile; redemption cannot be refused for leverage; no provisional-fee payroll; payment NAV-neutral |
+| FF5a: author zero-position opening | FF3b observations + FF4b | complete1–21 four-instrument tape/evidence/controls, two success + failure scripts | Authority permits actual initial trades; each role has two consequential choices; no130%-warm-start shortcut; independent daily outcomes and coverage; retuning creates new version |
+| FF5b: first playable UI/identity | FF5a, FF4a, FF4b | Next.js desk/committee/portfolio/operations/debrief; two-human rooms, polling |20-day arc/payment bridge with users; cross-fund/revoked identity denied, partner absence pauses, no future chart/export, keyboard/error/reduced-motion checks |
+| FF5c: certify first release | FF5b | financial/replay/race evidence and human observations | Independent totals, replay/restore hashes, playtest gates; unresolved major agency/comprehension defects block release.40–60min target measured, never assumed |
+| FF6a: compile Cases2/3 and operations | FF5c + authored schedules | compiled tapes/oracles, independent arbitrary-path controls, restrictions/correction/restatement and offer predicates | A22,V12,V14,V28–V30: all issuer limits, gated units paid61, balanced wrong report detected, deadline loss retained, dominated hire excluded |
+| FF6b: full campaign/endings | FF6a | complete1–61 campaign, prospects, useful staffing, termination | Two feasible survivor policies; five ending labels preserve liabilities; funded continuation forecast; hire trades concrete task capacity for cash, not alpha |
+| FF6c: full release evidence | FF6b | held-out balance study, human study, restore/security/load evidence | Baseline/exploit policies; no save reroll/trust spam/terminal gate escape; V31–V32 winddown; hardware/load measured before claims; failed/undefined cases published |
+| FF7a: optional historical replay | FF6c + specific licensed dataset requirement | immutable/as-of read-only adapter, one historical scenario using shared economic engine, independent oracle, justified dataframe/calendar tool | Rights/retention/export, vintage/calendar/actions/era settlement, resolution-safe fills and actual one-case replay; failures preserve campaigns, no invented historic borrow; reject nonreproducible data |
+| FF7b: optional advisory/AI | FF6c; FF7a additionally if historical data needed; measurable use | one diagnostic/optimizer/tutor and protocol | Baseline/holdout/calibration/errors/cost evidence; no mutation authority; remove if no utility. No SEO/marketing |
+| FF8: selected-extension planning gate | FF6c + explicit one new user story and relevant evidence | concrete extension SPEC/PLAN/ACCEPTANCE and dependency/rights/cost decision; no automatic build | Complete lifecycle/permissions/failure/independent acceptance and bounded implementation steps; unknown future products are deferred, not initial-release criteria |
 
-FF1–FF4 are engine foundations. FF5 is the first playable two-chapter release; FF6 is the full initial game. Neither may drop LPs, financing, firm survival and a real crisis merely to declare success early. FF7 is not a prerequisite for enjoyable play.
+FF1/2 are pure in-process work. PostgreSQL arrives at the multi-user persistence boundary, not as authoring prerequisite. FF0a has one scenario and no financial reducer, UI/API/database. Subsequent work locks supported dependencies when needed; no mass installation.
 
-## FF0: freeze interfaces without overbuilding
+## Experiments and evaluation
 
-Inspect actual tools/runtime versions and repository state. Choose one Python and one frontend package manager; pin and lock versions. Set up local PostgreSQL and CI. Confirm production authentication separately from controlled development identities. Do not build five dashboards first.
+Use independent Decimal worksheets and claim identities, not expected values copied from tested functions. Replay records commit/runtime/rules/tape/commands/control hashes and canonical state/economic-event hashes. Races record immutable requests, permitted result pairs, journal/reservation counts and failure boundary. Mutate hidden prices/revisions without changing past observations.
 
-Write schemas for SeasonConfig, MarketEvent, Observation, Fund, Firm, InvestorSeries, Mandate, SleeveAuthority, ProposalVersion, Order, Reservation, Fill, BorrowContract, JournalEntry, MarginCall, LPNotice, ResearchTask, ChapterCheckpoint, independent ControlRecord and Debrief. Include schema/rules/data versions, monotonic event sequence, calendar dates/business-day indexes, simulated phases, wall-clock audit time and actor/economic identities. Freeze unsupported-action rejection, version conflicts and stale-mark behavior. Validate one authored scenario; a manifest without a complete tape/control records is not a runnable season.
+Enjoyment is a separate planned study in ACCEPTANCE_TESTS: novice and financially literate pairs, role agency/comprehension, facilitator intervention distinguished, raw anonymous observations, versioned iteration. No study has run. A challenge can disprove the premise; more staffing/instruments cannot substitute for repair.
 
-Proposed package boundaries: `backend/domain/accounting`, `market`, `governance`, `fund_operations`, `game`; `backend/application` for transactions; `backend/adapters` for persistence/providers; `frontend` for views. Freeze the command/result contracts before parallel implementation. A modular monolith is sufficient.
-
-## FF1–FF2: economics before presentation
-
-Implement cash, restricted collateral, receivables, payables, debt, holdings, short liabilities, fund fees, LP capital and firm accounts without network calls. Trade-date postings and cash settlement are different events. Keep gross assets, NAV, margin equity, liquidity available for payments and company runway separate.
-
-Use the legacy `fixtures/golden_scenario.json` only as the no-cost accounting smoke reference. It does not define campaign investors or capital. Add independent examples for short gains/losses, borrow expense, dividends in lieu, debt interest, fees, new series, dealing and fund/firm transfers. The authored `season_scenario.json` is a design contract; implement a validated tape/loader before claiming playability.
-
-Build a deterministic event executor with reproducible RNG streams, explicit phase ordering, pauses at material decisions, and no per-refresh RNG. Surface missing/unsupported data rather than guessing. Mark-to-market can trigger a recoverable mandate breach; broker remedies and insolvency are separate state machines. Forced actions obey their specified execution/capacity policy and can fail to cure a deficit.
-
-## FF3: governance that creates choices
-
-Implement immutable sleeve charters jointly approved by both partners. Routine orders can be submitted by the authorized manager within those envelopes; exceptions require another person's affirmative consent. Recheck all fund-wide combined commitments at fill. Deadlock leads to a documented hold/default, never automatic acceptance.
-
-Season-serialized PostgreSQL transactions covering the fund and its separate company protect approvals, budgets, locates, reservations, orders and journals. Tests use independent connections/barriers, not SQLite. Use a durable outbox before asynchronous critical jobs; in the earliest synchronous slice commit the domain effects atomically. Persist economic IDs so worker retries cannot repeat costs, LP dealing or payments. Reconnect from an authoritative sequence/snapshot.
-
-## FF4–FF5: make the management game
-
-Deliver the first two complete chapters (20 simulated business days through first dealing and ordinary day21 opening administration) with briefing, allocation of scarce analyst capacity, a trading/hedging choice, one investor or broker deadline, a budget decision and an attributable outcome. Use structured choices and optional rationale text; prose quality and word count cannot earn trust or performance points.
-
-Five main destinations: command desk, investment committee/portfolio, research room, fund operations/LP desk, and chapter debrief. Show the deadline, expected effects, uncertainty and reversibility near each action. The operating partner must have independent actions and resource tradeoffs; do not reduce the role to an approval queue. Advanced ledger details are inspectable behind clear summaries.
-
-The first vertical slice uses fictional companies and authored evidence. It must offer at least two credible strategies, support hold/wait without arbitrary punishment, and include a difficult decision that cannot be solved by clicking every available button. Add brief contextual lessons on actual consequences rather than interrupting with a textbook.
-
-## FF6: full campaign and balance evidence
-
-Expand only after the opening-arc playtest. Complete all six chapters and season endings, seed/rules/data manifests, tutorial difficulty, action history and save/resume. Review whether conservative play, aggressive concentration, gaming trust, delaying reports, final-day liquidation and repeatedly reopening saves exploit the score. Keep learning replay separate from ranked attempts.
-
-Run matched-seed baselines: cash/defensive, simple mandate-valid diversified policy, concentrated momentum, and liquidity-aware policy. These are balancing experiments, not proof of investment superiority. Record end outcomes, return/drawdown, unpaid obligations, LP retention, trust, firm cash, decisions per role and waiting time. Adjust authored parameters only between versioned scenarios. No invisible rubber-band market punishment.
-
-Provisional usability gates: both players can explain why cash differs from NAV; each makes several consequential choices; neither spends most of the chapter waiting for approval; they can identify the cause of the crisis and one alternative decision from the debrief. Measure actual completion time and confusion, then revise the 20–30 minute design target. Accessibility includes keyboard, readable status text, loading/error/offline and reduced motion.
-
-Security/recovery gate: cross-fund access denial, no future information, backup restore/replay, idempotent jobs and reconnect, safe exports, input bounds and escaped narrative. Profile concurrency against declared hardware and operation mix; choose a supported load target after measuring. No invented throughput claim.
-
-## FF7 and extensions
-
-Use `OPENSEO_INTEGRATION.md` for the bounded research spike. Data must have rights and defensible availability timestamps before historical use. Freeze datasets and share the same execution/cost engine between game and research. Begin ML with a simple baseline and defined held-out target; HMM filtered inference is optional, not guaranteed to improve gameplay or returns. Reject candidates honestly. LLMs may explain verified facts or play disclosed sandbox opponents, never grade financial truth or mutate authoritative state.
-
-Defer derivatives, multi-currency, distressed private assets, real-time exchange microstructure, unrestricted crawling and a multi-strategy empire until the initial game is finished. Each instrument needs dedicated accounting and lifecycle cases. Public deployment and real spend are separate user decisions.
-
-## FF7 dependency gates and exclusions
-
-FF7a imports immutable licensed snapshots only after as-of, rights, corporate-action and calendar checks. Add pandas and exchange_calendars here; add DuckDB only for demonstrated snapshot-query needs. FF7b may evaluate CVXPY allocation suggestions or statsmodels diagnostics against a simple baseline after FF7a supplies adequate data. FF7c is an independent optional OpenSEO fixture/adapter spike; a synthetic evidence card does not depend on a real provider. FF7d trains a model only after its target, lag-safe dataset and baseline are frozen. A failed experiment closes that feature instead of expanding the stack.
-
-FF5/FF6 exclude live feeds, real broker routes, derivatives, multi-currency, multi-fund allocation, full statutory tax/accounting, prime-broker contract negotiation engines, unrestricted scraping and LLM-controlled economics. First implement one fund, one currency, one simplified prime-broker agreement, limited corporate actions, standardized investor terms and automatic routine administration. Additional realism needs a new meaningful decision, an owned lifecycle and independent acceptance cases.
-
-The scenario manifest, scenario cases and research manifest are design evidence. FF0 must produce a loader plus complete tape/control records before claiming a runnable scenario. Manual playtesting at FF5 and FF6 is mandatory evidence for enjoyment and role balance; document checks cannot substitute for it.
-
-A Renewal ending is conditional continuation, not proof of a sustainable firm. At constant25m,1.5% annual management fees are375k against1.04m annualized20k/week overhead:665k structural gap before incentive income/capital/cost changes. The300k opening company balance is15 weeks at base cost; four weeks of remaining runway does not finance another12-week season. Display this gap and require an explicit continuation budget/recapitalization contract; do not award sustainability from AUM or provisional incentive alone.
+Compare cash/defensive, simple diversified, liquidity-aware and concentration/gate/trust exploit policies on identical tapes, then a held-out version. Report completion/unpaid claims/return/drawdown/company cash/role decisions; do not optimize one seed or call game returns empirical alpha. Complexity earns no credit without independent evidence.

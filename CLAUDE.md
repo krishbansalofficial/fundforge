@@ -1,10 +1,12 @@
 # FundForge working rules
 
-Read `docs/CLAUDE_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.1. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
+Read `docs/CLAUDE_HANDOFF.md`, `docs/IMPLEMENTATION_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.2; v2.1 isolated arithmetic remains explicitly scoped. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
 
 Product: two-player cooperative hedge-fund management game. Default fictional campaign: $25m outside capital, separate $300k management company, 60 simulated business days, six chapters. LPs, long/short financing, fund versus firm accounting, fees, investor flows, governance and crises are core release mechanics. A trading-only demo is not a completed game. No real money, brokerage execution, cash prizes or paid investment signals.
 
 Architecture: Next.js/TypeScript; FastAPI/Python modular backend; PostgreSQL authority; pure finance/game domain. Fixtures and polling first. Add queue/cache/WebSockets only for a demonstrated boundary.
+
+Full work packages for all 20 milestones through FF8 are in `docs/MILESTONE_PLANS.md`; use the selected package with `docs/PLAN_REVIEW_AND_DECISIONS.md`. `docs/IMPLEMENTATION_PLAN.md` is the dependency index. Current next task remains FF0a. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
 
 Non-negotiables:
 - Decimal/fixed precision with explicit rounding; immutable balanced journal and deterministic replay.
@@ -22,6 +24,6 @@ Non-negotiables:
 
 Work by explicit objective, owned paths, contracts and acceptance evidence. Inspect before editing; use rg. Run meaningful checks for changed risks. After two unsuccessful repair cycles, preserve the exact failure and choose a narrower diagnosis rather than repeat the same attempts. Do not invent a CLI command or supported model name.
 
-Default one builder; use a bounded reviewer only when authorized. No recursive delegation. The owner explicitly requested Astra/extra-high for this v2.1 design review; that is not standing authorization for unlimited agent teams. Inventory installed relevant skills once, load only applicable guidance.
+Default one builder; use a bounded reviewer only when authorized. No recursive delegation. The owner explicitly requested Astra/extra-high for this v2.1 design review; that is not standing authorization for unlimited agent teams. Load relevant guidance only when needed; no SEO or marketing integration belongs to this plan.
 
 At task end update `docs/PROGRESS.md` with actual state, paths, checks, limitations and one next task. Commit only task-related files when authorized. No force-push, visibility change, public deployment, paid usage or real-money capability without explicit authorization.

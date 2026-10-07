@@ -1,5 +1,22 @@
 # Sources and verification boundaries
 
+## Fresh bounded verification,7 October2026
+
+Prior research remains dated6 October; it was not all repeated. The following primary sources were opened for material current financial/engineering distinctions. Old publication dates remain old; fictional numbers and corrections are design judgments, not source prescriptions.
+
+| Exact source | Freshly checked narrow evidence | Design judgment / limitation |
+|---|---|---|
+| [SEC T+1 release,21 May2024](https://www.sec.gov/newsroom/press-releases/2024-62) | Applicable most broker-dealer transactions moved to T+1 effective28 May2024 | FundForge deliberately uses a holiday-free synthetic calendar; not an exchange/era universal rule |
+| [Investor.gov Hedge Funds](https://www.investor.gov/introduction-investing/investing-basics/investment-products/private-investment-funds/hedge-funds) | Fund terms, leverage, valuation, fees and withdrawal limits/incentive conflicts need attention | Our1.5/20 fee terms, gates, lockups, redemption payment and investor behavior are authored contracts |
+| [IBKR short-sale cost](https://www.interactivebrokers.com/en/pricing/short-sale-cost.php) | One broker distinguishes borrow fees and short-proceeds interest; availability/rates depend on security | Our zero rebate,40% replacement, frozen pending-return collateral and deadlines are fictional choices, not IBKR promises |
+| [ESMA performance-fee guidelines PDF](https://www.esma.europa.eu/sites/default/files/library/esma34-39-992_guidelines_on_performance_fees_en.pdf) | Scoped UCITS/certain-AIF guidance distinguishes performance-fee methodology/crystallization | Does not govern every equity hedge fund; our annual/redemption/termination dates and series methodology are explicit contract design |
+| [FINRA Margin Calls](https://www.finra.org/investors/insights/margin-calls) | Retail margin-risk context includes changed house requirements/liquidation risk | Not institutional prime-broker contract authority; no legal grace period inferred. Two other guessed FINRA URLs failed and are not evidence |
+| [Python Decimal](https://docs.python.org/3/library/decimal.html) | Exact decimal contexts/rounding/traps | Our precision40/scales/residual policy must be independently tested; no implementation claim |
+| [PostgreSQL explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html) | Row FOR UPDATE locking semantics, concurrency/deadlock considerations | Season-wide lock is our architecture choice; requires real race/fault evidence |
+| [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/) and [strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/) | Typed model validation API and strict behavior | Optional boundary tooling; cannot replace independent financial oracles. License/purpose/fit details in LIBRARY_RESEARCH |
+
+No real fund/legal compliance claim is made. Portfolio factor sensitivities/stress outcomes, counterparty timings and NPC confidence are authored abstractions. Historical strategy/jurisdiction/broker variation and omitted AML/tax/illiquid valuation remain explicitly scoped in REALISM_AUDIT. SEO entries below preserve earlier research provenance only and are excluded from the active plan and generated package's standalone sections.
+
 Checked 6 October 2026 for this redesign. All campaign dollar amounts, horizons, rates, gates, margin coefficients, confidence effects and victory conditions are original fictional house rules. Source material motivates financial concepts; it does not certify this simulator as accurate legal compliance or a deployable investment service.
 
 | Source | Narrow support | Boundary |

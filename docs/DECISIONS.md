@@ -19,6 +19,12 @@ These are proposed product/engineering decisions, not claims of implemented beha
 | AI | Optional explanations/baselines after game | No LLM control over financial truth, approvals or scoring |
 | Workflow | One builder, bounded review | Astra/extra-high was explicitly requested for this redesign, not perpetual delegation |
 
+## v2.2 accepted decisions,7 October2026
+
+Planning revision 2.2-M1: accepted all 20 detailed work packages through FF8, explicit pure integration/independent Case1 controls before human experiment, winddown-tail authoring gates, generalized6a controls/restrictions, end-to-end7a historical replay and a bounded8 extension-selection gate. PLAN_REVIEW_AND_DECISIONS is the current due-decision register; no new dependency or application feature implemented. Standard-library validation selected forFF0a. Prior planning diff preserved; commit/push explicitly authorized by the latest user instruction.
+
+DESIGN_REVIEW_V2_2 records every independent financial/gameplay/engineering finding and rationale. Retain the connected economics and modular monolith. Correct Case2 issuer basket; extend gated payment horizon61; fix replacement cutoff/transfer, retained pending-return collateral and voluntary-before-forced margin ordering. Remove active dominated Case3 hire; retain its arithmetic as teaching forecast. Add useful operating commands, exact precision/hash/retry/readiness, bounded termination, early human prototype and small milestone gates. Next is FF0a authoring/schema-loader only, not full app scaffold. SEO/marketing excluded; old row/assessment below is historical evidence, not active authorization. Release/balance/fun remain unproven.
+
 ## Superseded defaults
 
 Original 30-day/$100k equal-manager-capital season, strict long-only release, universal per-ticket partner approval, and postponement of fees/redemptions/shorts to an optional final milestone are replaced. The old arithmetic fixture remains a deliberately small primitive reference; it is not a campaign configuration. Full original docs remain recoverable from Git history before this revision. Current generated Word/Markdown bundles must be regenerated together.
