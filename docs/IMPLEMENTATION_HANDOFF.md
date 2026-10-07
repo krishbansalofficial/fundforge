@@ -6,7 +6,7 @@ Planning revision 2.2-M1 expands all 20 milestones through the final FF8 gate in
 
 ## Verified starting point
 
-Local `C:\Users\krish\fundforge`, entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f`, clean at entry. Current planning changes are uncommitted; preserve them. Documentation-only: no Python/Pydantic application or26 tests. Instructions, recent history, all requested docs, fixtures, two Python scripts and reviewer prompts were inspected. No IMPLEMENTATION_HANDOFF existed. Inspect status/HEAD on continuation; remote visibility/other checkouts unverified.
+Local `C:\Users\krish\fundforge`, original review entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f` was clean; full-milestone continuation preserved its uncommitted diff. The combined27-file planning package is now committed as `a404948` and successfully pushed to `origin/main`; this follow-up records publication evidence. Inspect current HEAD/status on continuation and preserve any new work. Documentation-only: no Python/Pydantic application or26 tests. Instructions, recent history, all requested docs, fixtures, two Python scripts and reviewer prompts were inspected. IMPLEMENTATION_HANDOFF was added by this planning task. Remote repository visibility/other checkouts remain unverified.
 
 ## Exact next milestone
 
