@@ -82,3 +82,11 @@ def test_view_never_contains_future_information():
     blob = json.dumps(s.view("ana"))
     assert "squeeze" not in blob and "40%" not in blob and "\"95\"" not in blob
     assert "tape" not in s.view("ben")
+
+
+def test_decision_history_records_who_did_what_but_not_ready_clicks():
+    s = session()
+    s.handle("ben", "k1", {"type": "research", "topic": "borrow"})
+    s.handle("ana", "k2", {"type": "ready"})
+    d = s.view("ana")["decisions"]
+    assert d == [{"day": 12, "phase": "PUBLIC_MARK", "role": "mp", "type": "research", "detail": {"topic": "borrow"}}]

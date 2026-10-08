@@ -203,6 +203,9 @@ class Session:
                          for p in self.packages.values()],
             "notices": e.notices,
             "incidents": e.incidents,
+            "decisions": [{"day": x["day"], "phase": x["phase"], "role": x["role"], "type": x["command"]["type"],
+                           "detail": {k: v for k, v in x["command"].items() if k != "type"}}
+                          for x in self.log if x["command"]["type"] != "ready"],
             "outcome": e.outcome() if e.finished() else None,
         }
 
