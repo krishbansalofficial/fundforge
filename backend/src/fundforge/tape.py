@@ -69,11 +69,24 @@ class Tape:
         return {k: {s: D(v) for s, v in row[k].items()} for k in ("initial", "maintenance")}
 
 
-def load(path: str | Path) -> Tape:
-    return compile_tape(json.loads(Path(path).read_text(encoding="utf-8")))
+def load(path: str | Path, variant: str | None = None) -> Tape:
+    return compile_tape(json.loads(Path(path).read_text(encoding="utf-8")), variant)
 
 
-def compile_tape(raw: dict) -> Tape:
+def variants(raw: dict) -> list[str]:
+    return ["base", *sorted(raw.get("variants", {}))]
+
+
+def compile_tape(raw: dict, variant: str | None = None) -> Tape:
+    """Materialize the tape. A variant replaces overrides that match its (day, event) keys and appends others;
+    players never learn which variant they are in until the debrief."""
+    if variant not in (None, "base"):
+        if variant not in raw.get("variants", {}):
+            raise TapeError(f"unknown variant {variant!r}")
+        v = raw["variants"][variant]
+        keys = {(o["day"], o["event"]) for o in v["overrides"]}
+        raw = {**raw, "overrides": [o for o in raw["overrides"] if (o["day"], o["event"]) not in keys] + v["overrides"],
+               "public_notices": raw["public_notices"] + v.get("public_notices", []), "variant": variant}
     syms = raw["instruments"]
     if len(set(syms)) != len(syms):
         raise TapeError("duplicate instrument id")

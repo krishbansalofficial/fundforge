@@ -1,7 +1,7 @@
 {
   "scenario_id": "case1",
   "title": "The borrow is not the thesis",
-  "version": "3.1.0",
+  "version": "3.3.0",
   "source": "docs/SCENARIO_CONTRACTS.md#case1-the-borrow-is-not-the-thesis",
   "calendar": {
     "day1": "2026-01-05",
@@ -216,5 +216,44 @@
       "deal_day": 20
     }
   ],
-  "objectives": "Win: positive NAV, recall resolved without forced buy-in, Tactical paid day 21, no forced margin liquidation. Survival: claims paid but forced actions occurred."
+  "objectives": "Win: positive NAV, recall resolved without forced buy-in, Tactical paid day 21, no forced margin liquidation. Survival: claims paid but forced actions occurred.",
+  "mandate": {
+    "version": "case1-mandate-v1",
+    "gross_min": "0.80",
+    "gross_max": "2.00",
+    "net_min": "0.40",
+    "net_max": "1.10",
+    "issuer_max": "0.15",
+    "issuer_exempt": [
+      "BEAM",
+      "BOND"
+    ],
+    "restricted": []
+  },
+  "variants": {
+    "rally": {
+      "description": "Same crisis calendar, but day 16 brings a broad rally that squeezes nobody: longs +5%, crowded shorts fall 8%.",
+      "overrides": [
+        {
+          "day": 16,
+          "event": "PUBLIC_MARK",
+          "marks": {
+            "ALTO": "105",
+            "COVE": "105",
+            "ELAN": "105",
+            "GALA": "105",
+            "IONA": "105",
+            "JUNO": "105",
+            "BEAM": "105",
+            "BRIN": "92",
+            "DART": "92",
+            "FENN": "92",
+            "HELI": "92"
+          },
+          "headline": "Broad equity rally; crowded shorts unwind. Prime broker still applies stressed margin coefficients.",
+          "headline_code": "market_rally"
+        }
+      ]
+    }
+  }
 }

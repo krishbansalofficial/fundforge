@@ -113,6 +113,7 @@ class Session:
             raise CommandRejected(f"ticket ${notional:,.2f} exceeds 5% of NAV; propose a joint package")
         if self.turnover + notional > cents(self.opening_nav * TURNOVER_LIMIT):
             raise CommandRejected("independent turnover limit (15% of opening NAV) reached; propose a joint package")
+        self._mandate([(c["sym"], c["side"], int(c["qty"]))])
         o = self.e.submit_order(c["order_id"], c["sym"], c["side"], int(c["qty"]), self._limit(c))
         self.turnover += notional
         return {"order_id": o.order_id, "status": o.status}
@@ -122,7 +123,8 @@ class Session:
         if not orders:
             raise CommandRejected("empty package")
         expires = self.e.cursor + 1  # valid only for the next execution event
-        digest = hashlib.sha256(canonical([POLICY_VERSION, c["package_id"], orders, expires]).encode()).hexdigest()
+        digest = hashlib.sha256(canonical([POLICY_VERSION, self.e.mandate.digest, c["package_id"], orders, expires])
+                                .encode()).hexdigest()
         if c["package_id"] in self.packages:
             raise CommandRejected("package id already used; edits must be proposed as a new package")
         self.packages[c["package_id"]] = Package(c["package_id"], role, orders, expires, digest, {role})
@@ -139,6 +141,7 @@ class Session:
         if self.e.cursor > p.expires_cursor or not self.e.at_barrier():
             p.status = "EXPIRED"
             raise CommandRejected("package expired")
+        self._mandate([(sym, side, qty) for _, sym, side, qty, _ in p.orders])  # signatures never override limits
         p.signatures.add(role)
         p.status = "AUTHORIZED_QUEUED"
         for oid, sym, side, qty, limit in p.orders:
@@ -216,6 +219,14 @@ class Session:
         return not self.clock["paused"] and not self.e.finished()
 
     # ---------- helpers ----------
+    def _mandate(self, orders):
+        for sym, side, qty in orders:
+            if sym not in self.e.marks or side not in ("BUY", "SELL", "SHORT", "COVER") or qty <= 0:
+                raise CommandRejected(f"invalid order {side} {qty} {sym}")
+        breaches = self.e.compliance_check(orders)
+        if breaches:
+            raise CommandRejected("mandate: " + "; ".join(b.detail for b in breaches))
+
     def _limit(self, c):
         return D(c["limit"]) if c.get("limit") else None
 

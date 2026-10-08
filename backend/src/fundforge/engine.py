@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal, localcontext
 
+from .compliance import Breach, Ruleset, evaluate
 from .execution import BUY_SIDES, capacity, fill_price
 from .journal import Journal, entry
 from .money import CTX, D, Accrual, allocate, cents
@@ -20,7 +21,7 @@ from .tape import EXEC_PHASES, MarketEvent, Tape
 
 SIDES = ("BUY", "SELL", "SHORT", "COVER")
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.1"
+RULES_VERSION = "case1-rules-2026.10.2"
 
 
 class CommandRejected(ValueError):
@@ -89,6 +90,8 @@ class Engine:
         self.reserve: Decimal | None = None  # None => default 2% NAV buffer (FUND_ACCOUNTING §4)
         self.incidents: list[str] = []
         self.paid: dict[str, Decimal] = {}
+        self.mandate = Ruleset.from_raw(tape.raw["mandate"])
+        self._opening_marks = dict(self.marks)
         self._open()
 
     # ---------- journal helpers ----------
@@ -257,6 +260,12 @@ class Engine:
         if nxt is None or (nxt.day, nxt.phase) > (off["accept_by_day"], off["accept_by_event"]):
             raise CommandRejected("replacement acceptance cutoff has passed")
         self.replacement_accepted = True
+
+    def compliance_check(self, new_orders: list[tuple[str, str, int]]) -> list[Breach]:
+        """Mandate check for new orders on top of every still-open voluntary order, at current marks."""
+        queued = [(o.sym, o.side, o.remaining) for o in self.orders
+                  if o.status in ("QUEUED", "PARTIALLY_FILLED") and not o.forced]
+        return evaluate(self.pos, self.marks, self.nav(), queued + new_orders, self.mandate)
 
     def set_reserve(self, amount: Decimal):
         if amount < 0:
@@ -436,6 +445,10 @@ class Engine:
         if o.side in ("BUY", "SHORT") and not o.forced:
             if not self._initial_margin_ok(s, o.side, q):
                 return self._reject(o, "initial margin would be breached at execution")
+        if not o.forced:  # revalidate the mandate at execution with live marks and NAV
+            breaches = evaluate(self.pos, self.marks, self.nav(), [(s, o.side, q)], self.mandate)
+            if breaches:
+                return self._reject(o, f"mandate: {breaches[0].detail}")
         self._book(o, q, price, amount)
         self.event_fills[(s, "both")] = done + q
         self.event_fills[(s, "BUY" if o.side in BUY_SIDES else "SELL")] = same + q
@@ -622,6 +635,23 @@ class Engine:
         assert self.bal("collateral") >= 0
 
     # ---------- outcome ----------
+    FORCED_PENALTY_BPS = Decimal(150)
+
+    def score(self, n_forced: int) -> dict:
+        """Excess unit return over a passive buy-and-hold of the opening book (no costs), minus forced-action
+        penalties. Flows don't distort it: redemptions leave at NAV per unit."""
+        with localcontext(CTX):
+            open_pos = self.tape.raw["opening"]["fund"]["positions"]
+            open_nav = sum((D(x["units"]) for x in self.tape.raw["opening"]["fund"]["series"]), Decimal(0)) * 100
+            bench = sum((q * (self.marks[s] - self._opening_marks[s]) for s, q in open_pos.items()), Decimal(0)) / open_nav
+            units = sum((x.units for x in self.series), Decimal(0))
+            unit_nav = sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
+            fund = unit_nav / 100 - 1
+            excess = ((fund - bench) * 10000).quantize(Decimal("0.1"))
+            return {"fund_return_bps": str((fund * 10000).quantize(Decimal("0.1"))),
+                    "benchmark_return_bps": str((bench * 10000).quantize(Decimal("0.1"))),
+                    "excess_bps": str(excess), "score": str(excess - self.FORCED_PENALTY_BPS * n_forced)}
+
     def outcome(self) -> dict:
         forced = [i for i in self.incidents if "forced" in i]
         unpaid = [i for i in self.incidents if "unpaid" in i or "shortfall" in i or "failed" in i]
@@ -635,6 +665,8 @@ class Engine:
             label = "SURVIVAL"
         else:
             label = "WIN"
-        return {"label": label, "nav": str(nav), "redemption_paid": str(tactical), "forced": forced,
+        score = self.score(len(forced))
+        return {"label": label, "nav": str(nav), **score, "redemption_paid": str(tactical), "forced": forced,
                 "unpaid": unpaid, "recall_resolved_by": self.recall_resolved_by,
+                "variant": self.tape.raw.get("variant", "base"),
                 "journal_digest": self.j.digest(), "tape_digest": self.tape.digest}

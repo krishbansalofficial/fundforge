@@ -23,7 +23,7 @@ from psycopg_pool import ConnectionPool
 
 from .engine import RULES_VERSION, CommandRejected, Engine
 from .governance import CLOCK, Session, canonical
-from .tape import load
+from .tape import load, variants
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json"}
@@ -47,10 +47,14 @@ def _h(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def _tape(scenario: str):
+def _tape(scenario: str, variant: str = "base"):
     if scenario not in SCENARIOS:
         raise CommandRejected(f"unknown scenario {scenario!r}")
-    return load(FIXTURES / SCENARIOS[scenario])
+    return load(FIXTURES / SCENARIOS[scenario], variant)
+
+
+def _variants(scenario: str) -> list[str]:
+    return variants(json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8")))
 
 
 def chain(prev: str, seq: int, key: str, user: str, command: dict, result, digest_after: str) -> str:
@@ -104,15 +108,19 @@ class Store:
                     self._cache.popitem(last=False)
 
     # ---------- rooms and seats ----------
-    def create_room(self, scenario: str, pm_name: str, mp_name: str) -> dict:
-        tape = _tape(scenario)
+    def create_room(self, scenario: str, pm_name: str, mp_name: str, variant: str | None = None) -> dict:
+        if scenario not in SCENARIOS:
+            raise CommandRejected(f"unknown scenario {scenario!r}")
+        variant = variant or secrets.choice(_variants(scenario))  # hidden from players until the debrief
+        tape = _tape(scenario, variant)
         room = secrets.token_hex(6)
         seats = {r: (secrets.token_hex(8), secrets.token_urlsafe(24)) for r in ("pm", "mp")}
         partners = {r: uid for r, (uid, _) in seats.items()}
         names = {"pm": pm_name.strip()[:40] or "Portfolio manager", "mp": mp_name.strip()[:40] or "Managing partner"}
         with self.pool.connection() as c, c.transaction():
-            c.execute("insert into rooms (id, scenario, tape_digest, partners, names, rules_version) values (%s,%s,%s,%s,%s,%s)",
-                      (room, scenario, tape.digest, Jsonb(partners), Jsonb(names), RULES_VERSION))
+            c.execute("insert into rooms (id, scenario, variant, tape_digest, partners, names, rules_version)"
+                      " values (%s,%s,%s,%s,%s,%s,%s)",
+                      (room, scenario, variant, tape.digest, Jsonb(partners), Jsonb(names), RULES_VERSION))
             self._append_journal(c, room, self._fresh(tape, partners).e.j.entries, 0)
             for r, (uid, tok) in seats.items():
                 c.execute("insert into seats values (%s,%s,%s,%s)", (_h(tok), room, uid, r))
@@ -133,14 +141,14 @@ class Store:
         return Session(e, partners)
 
     def _room(self, c, room: str, lock: bool = False):
-        row = c.execute("select version, scenario, partners, names, rules_version, tape_digest from rooms where id=%s"
+        row = c.execute("select version, scenario, partners, names, rules_version, tape_digest, variant from rooms where id=%s"
                         + (" for update" if lock else ""), (room,)).fetchone()
         if not row:
             raise KeyError(room)
-        version, scenario, partners, names, rules, digest = row
+        version, scenario, partners, names, rules, digest, variant = row
         if rules != RULES_VERSION:
             raise RoomIncompatible(f"room uses rules {rules}; this server runs {RULES_VERSION}")
-        tape = _tape(scenario)
+        tape = _tape(scenario, variant)
         if tape.digest != digest:
             raise RoomIncompatible("room's scenario tape changed since it was created")
         return version, tape, partners, names

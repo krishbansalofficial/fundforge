@@ -178,3 +178,20 @@ def test_clock_ticks_are_logged_idempotent_and_verifiable(room):
         n = c.execute("select count(*) from commands where room_id=%s and user_id='clock'", (rid,)).fetchone()[0]
     assert n == 1
     assert fresh(st).verify(rid)["version"] == v + 1
+
+
+def test_variant_is_secret_until_the_debrief(room):
+    st, rid, u = room
+    import json as _json
+    _, s, _ = fresh(st).session(rid)
+    blob = _json.dumps(s.view(u["pm"]))
+    assert "rally" not in blob and "variant" not in blob
+
+
+def test_both_variants_can_be_drawn():
+    st = Store(DSN)
+    _opened.append(st)
+    st.init()
+    for v in ("base", "rally"):
+        rid = st.create_room("case1", "A", "B", variant=v)["room_id"]
+        assert fresh(st).verify(rid)["version"] == 0
