@@ -116,3 +116,55 @@ def test_ready_bound_to_seen_version():
     with pytest.raises(CommandRejected, match="stale"):
         s.handle("ben", "k2", {"type": "ready", "version": seen})
     assert s.handle("ben", "k3", {"type": "ready", "version": s.version})["advanced"] is False
+
+
+def tick(s):
+    return s.handle("clock", f"tick-{s.version}", {"type": "tick", "expected_version": s.version})
+
+
+def test_clock_runs_only_when_played_and_auto_pauses_on_news():
+    s = session()
+    with pytest.raises(CommandRejected, match="paused"):
+        tick(s)  # starts paused
+    s.handle("ana", "go", {"type": "set_speed", "speed": 2})
+    paused_at = None
+    for _ in range(60):
+        out = tick(s)
+        if s.clock["paused"]:
+            paused_at = (s.e.ev.day, s.clock["reason"])
+            break
+    assert paused_at is not None and paused_at[0] == 13  # day-13 recall notice stops the clock
+    with pytest.raises(CommandRejected, match="paused"):
+        tick(s)
+
+
+def test_clock_waits_for_signature_and_rejects_stale_or_forged_ticks():
+    s = session()
+    s.handle("ana", "p", {"type": "propose", "package_id": "p",
+                          "orders": [{"order_id": "o", "sym": "BEAM", "side": "SELL", "qty": 20000}]})
+    s.handle("ben", "go", {"type": "set_speed", "speed": 1})
+    cursor = s.e.cursor
+    assert tick(s)["advanced"] is False and s.clock["reason"].startswith("A package")
+    assert s.e.cursor == cursor and s.packages["p"].status == "PENDING_APPROVAL"
+    with pytest.raises(CommandRejected, match="stale"):
+        s.handle("clock", "old", {"type": "tick", "expected_version": 0})
+    with pytest.raises(CommandRejected, match="only the clock"):
+        s.handle("ana", "x", {"type": "tick", "expected_version": s.version})
+    with pytest.raises(CommandRejected, match="can only tick"):
+        s.handle("clock", "y", {"type": "set_speed", "speed": 4})
+
+
+def test_full_game_on_the_clock_matches_replay():
+    s = session()
+    s.handle("ana", "go", {"type": "set_speed", "speed": 4})
+    for _ in range(200):
+        if s.e.finished():
+            break
+        if s.clock["paused"]:
+            s.handle("ben", f"resume{s.version}", {"type": "set_speed", "speed": 4})
+        tick(s)
+    assert s.e.finished() and s.clock["reason"] == "Season complete."
+    r = session()
+    for x in s.log:  # ticks are ordinary logged commands, so replay is exact
+        r.handle({"pm": "ana", "mp": "ben", "system": "clock"}[x["role"]], x["key"], x["command"])
+    assert r.e.j.digest() == s.e.j.digest()

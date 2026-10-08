@@ -163,3 +163,18 @@ def test_shared_store_reads_never_see_rejected_command_effects(room):
     _, s, _ = st.session(rid)
     assert s.e.orders == [] and s.packages["p1"].status == "PENDING_APPROVAL"
     assert fresh(st).verify(rid)["version"] == 1
+
+
+def test_clock_ticks_are_logged_idempotent_and_verifiable(room):
+    st, rid, u = room
+    st.apply(rid, u["pm"], "go", {"type": "set_speed", "speed": 4})
+    with psycopg.connect(DSN) as c:
+        c.execute("update rooms set next_tick_at = now() where id=%s", (rid,))
+    v = fresh(st).session(rid)[0]
+    # two schedulers fire for the same due window: exactly one tick is logged
+    out = race([lambda: fresh(st).tick(rid, v), lambda: fresh(st).tick(rid, v)])
+    assert out[0][1] == out[1][1]  # second is an idempotent replay of the first
+    with psycopg.connect(DSN) as c:
+        n = c.execute("select count(*) from commands where room_id=%s and user_id='clock'", (rid,)).fetchone()[0]
+    assert n == 1
+    assert fresh(st).verify(rid)["version"] == v + 1

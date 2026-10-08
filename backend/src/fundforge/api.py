@@ -1,6 +1,10 @@
 """HTTP API. Players poll /view; every mutation goes through POST /commands with an Idempotency-Key."""
 
+import asyncio
+import contextlib
+import logging
 import os
+from contextlib import asynccontextmanager
 from functools import lru_cache
 
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -10,7 +14,31 @@ from pydantic import BaseModel, Field
 from .engine import CommandRejected
 from .store import KeyReused, ReplayDivergence, RoomIncompatible, Store
 
-app = FastAPI(title="FundForge", version="0.1.0")
+log = logging.getLogger("fundforge.clock")
+
+
+async def clock_loop():
+    """Wall-clock scheduler: logs a tick for every running room whose window is due."""
+    while True:
+        try:
+            for room, version in await asyncio.to_thread(store().due_rooms):
+                await asyncio.to_thread(store().tick, room, version)
+        except Exception:  # keep the clock alive; a failed tick is retried next loop
+            log.exception("clock loop error")
+        await asyncio.sleep(0.25)
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    task = asyncio.create_task(clock_loop()) if os.environ.get("FUNDFORGE_CLOCK", "1") == "1" else None
+    yield
+    if task:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+
+app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
                    allow_methods=["GET", "POST"], allow_headers=["Authorization", "Idempotency-Key", "Content-Type"])
 
@@ -52,7 +80,7 @@ def create_room(body: NewRoom):
 @app.get("/api/rooms/{room_id}/view")
 def view(room_id: str, user: str = Depends(seat)):
     version, s, names = store().session(room_id)
-    return {"names": names, **s.view(user), "version": version}
+    return {"names": names, **s.view(user), "version": version, "realtime": store().clock_info(room_id)}
 
 
 @app.get("/api/rooms/{room_id}/ledger")

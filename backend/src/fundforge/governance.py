@@ -20,6 +20,9 @@ from .engine import CommandRejected, Engine
 from .money import D, cents
 
 POLICY_VERSION = "case1-authority-v1"
+CLOCK = "clock"  # system actor for logged time ticks
+SPEEDS = (1, 2, 4)
+ROLE_NAMES = {"pm": "portfolio manager", "mp": "managing partner"}
 ROLES = ("pm", "mp")  # portfolio manager, managing (operating/risk) partner
 TICKET_NAV_LIMIT = Decimal("0.05")
 TURNOVER_LIMIT = Decimal("0.15")
@@ -52,8 +55,12 @@ class Session:
         self.turnover = Decimal(0)
         self.opening_nav = engine.nav()
         self.log: list[dict] = []
+        # Real-time clock: wall time only decides WHEN the server sends a logged `tick`; economics never see it.
+        self.clock = {"speed": 0, "paused": True, "reason": "Opening: review the book and press play."}
 
     def role_of(self, user: str) -> str:
+        if user == CLOCK:
+            return "system"
         for r, u in self.partners.items():
             if u == user:
                 return r
@@ -69,18 +76,24 @@ class Session:
                 raise CommandRejected(f"idempotency key {key!r} reused for a different command")
             return result
         role = self.role_of(user)
+        if role == "system" and command.get("type") != "tick":
+            raise CommandRejected("the clock can only tick")
+        if role != "system" and command.get("type") == "tick":
+            raise CommandRejected("only the clock ticks")
         handler = COMMANDS.get(command.get("type"))
         if handler is None:
             raise CommandRejected(f"unknown command type {command.get('type')!r}")
         # ponytail: snapshot by deepcopy (tape shared via memo); per-entity undo log if profiling says so
-        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover), {id(self.e.tape): self.e.tape})
+        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover, self.clock),
+                              {id(self.e.tape): self.e.tape})
         try:
             result = handler(self, role, command)
         except Exception:
-            self.e, self.packages, self.ready, self.turnover = saved
+            self.e, self.packages, self.ready, self.turnover, self.clock = saved
             raise
         self.results[key] = (fp, result)
-        self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "command": command, "result": result})
+        self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "key": key,
+                         "command": command, "result": result})
         if command["type"] != "ready":
             self.ready.clear()
         return result
@@ -165,6 +178,43 @@ class Session:
             return {"advanced": True, "next": self._next()}
         return {"advanced": False, "waiting_for": sorted(set(ROLES) - self.ready)}
 
+    # ---------- real-time clock ----------
+    def _cmd_set_speed(self, role, c):
+        speed = c.get("speed")
+        if speed not in SPEEDS:
+            raise CommandRejected(f"speed must be one of {SPEEDS}")
+        if self.e.finished():
+            raise CommandRejected("the season is over")
+        self.clock = {"speed": speed, "paused": False, "reason": None}
+        return {"clock": self.clock}
+
+    def _cmd_pause(self, role, c):
+        self.clock = {**self.clock, "paused": True, "reason": f"Paused by the {ROLE_NAMES[role]}."}
+        return {"clock": self.clock}
+
+    def _cmd_tick(self, role, c):
+        """Advance one execution window. Auto-pauses on anything a partner should see before time moves on."""
+        if c.get("expected_version") != self.version:
+            raise CommandRejected("stale tick")
+        if self.clock["paused"] or self.e.finished():
+            raise CommandRejected("clock is paused")
+        if any(p.status == "PENDING_APPROVAL" for p in self.packages.values()):
+            self.clock = {**self.clock, "paused": True, "reason": "A package is waiting for a signature."}
+            return {"advanced": False, "clock": self.clock}
+        n_notices, n_incidents = len(self.e.notices), len(self.e.incidents)
+        self.e.advance()
+        new = self.e.notices[n_notices:]
+        if self.e.finished():
+            self.clock = {"speed": 0, "paused": True, "reason": "Season complete."}
+        elif self.e.incidents[n_incidents:] or any(n["kind"] in ("alert", "market", "research") for n in new):
+            self.clock = {**self.clock, "paused": True, "reason": (new[-1]["text"] if new else self.e.incidents[-1])}
+        elif new:
+            self.clock = {**self.clock, "paused": True, "reason": new[-1]["text"]}
+        return {"advanced": True, "next": self._next(), "clock": self.clock}
+
+    def running(self) -> bool:
+        return not self.clock["paused"] and not self.e.finished()
+
     # ---------- helpers ----------
     def _limit(self, c):
         return D(c["limit"]) if c.get("limit") else None
@@ -191,6 +241,7 @@ class Session:
             "clock": {"day": e.ev.day, "date": e.ev.date.isoformat(), "phase": e.ev.phase, "next": self._next(),
                       "finished": e.finished()},
             "ready": sorted(self.ready),
+            "clock_state": self.clock,
             "version": self.version,
             "fund": {
                 "nav": str(nav), "cash": str(e.bal("cash")), "collateral": str(e.bal("collateral")),
@@ -223,7 +274,7 @@ class Session:
             "incidents": e.incidents,
             "decisions": [{"day": x["day"], "phase": x["phase"], "role": x["role"], "type": x["command"]["type"],
                            "detail": {k: v for k, v in x["command"].items() if k != "type"}}
-                          for x in self.log if x["command"]["type"] != "ready"],
+                          for x in self.log if x["command"]["type"] not in ("ready", "tick")],
             "outcome": e.outcome() if e.finished() else None,
         }
 

@@ -22,12 +22,13 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
 from .engine import RULES_VERSION, CommandRejected, Engine
-from .governance import Session, canonical
+from .governance import CLOCK, Session, canonical
 from .tape import load
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json"}
 CACHE_ROOMS = 256
+SECONDS_PER_WINDOW = float(os.environ.get("FUNDFORGE_SECONDS_PER_WINDOW", "8"))
 
 
 class KeyReused(CommandRejected):
@@ -183,9 +184,31 @@ class Store:
                       " values (%s,%s,%s,%s,%s,%s,%s,%s)",
                       (room, seq, key, user, Jsonb(command), Jsonb(result), digest, link))
             self._append_journal(c, room, s.e.j.entries[n:], seq)
-            c.execute("update rooms set version=%s where id=%s", (seq, room))
+            speed = s.clock["speed"] or 1
+            c.execute("update rooms set version=%s, running=%s, speed=%s,"
+                      " next_tick_at = now() + make_interval(secs => %s) where id=%s",
+                      (seq, s.running(), s.clock["speed"], SECONDS_PER_WINDOW / speed, room))
         self._cache_put(room, seq, s)
         return result
+
+    # ---------- real-time clock ----------
+    def due_rooms(self, limit: int = 50) -> list[tuple[str, int]]:
+        with self.pool.connection() as c:
+            return c.execute("select id, version from rooms where running and next_tick_at <= now()"
+                             " order by next_tick_at limit %s", (limit,)).fetchall()
+
+    def tick(self, room: str, version: int) -> dict | None:
+        """Log one clock tick; idempotent per version, so duplicate schedulers cannot double-advance."""
+        try:
+            return self.apply(room, CLOCK, f"tick-{version}", {"type": "tick", "expected_version": version})
+        except CommandRejected:
+            return None
+
+    def clock_info(self, room: str) -> dict:
+        with self.pool.connection() as c:
+            row = c.execute("select running, speed, next_tick_at from rooms where id=%s", (room,)).fetchone()
+        return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
+                "seconds_per_window": SECONDS_PER_WINDOW}
 
     @staticmethod
     def _append_journal(c, room, entries, seq):
