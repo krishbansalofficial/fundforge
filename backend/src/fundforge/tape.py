@@ -30,6 +30,7 @@ class MarketEvent:
     marks: dict[str, Decimal]
     volume: dict[str, int]
     headline: str | None = None
+    headline_code: str | None = None
 
 
 def business_date(day1: date, n: int) -> date:
@@ -114,7 +115,7 @@ def compile_tape(raw: dict) -> Tape:
             o = by_key.get((day, phase), {})
             marks = {**marks, **{s: D(v) for s, v in o.get("marks", {}).items()}}
             vol = {s: base_vol for s in syms} | o.get("volume", {}) if phase in EXEC_PHASES else {}
-            events.append(MarketEvent(day, dt, phase, dict(marks), vol, o.get("headline")))
+            events.append(MarketEvent(day, dt, phase, dict(marks), vol, o.get("headline"), o.get("headline_code")))
     end = cal["end_day"]
     events.append(MarketEvent(end, business_date(day1, end), "OPEN_ADMIN", dict(marks), {}))
 

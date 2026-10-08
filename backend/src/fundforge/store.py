@@ -206,9 +206,9 @@ class Store:
 
     def clock_info(self, room: str) -> dict:
         with self.pool.connection() as c:
-            row = c.execute("select running, speed, next_tick_at from rooms where id=%s", (room,)).fetchone()
+            row = c.execute("select running, speed, next_tick_at, now() from rooms where id=%s", (room,)).fetchone()
         return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
-                "seconds_per_window": SECONDS_PER_WINDOW}
+                "server_now": row[3].isoformat(), "seconds_per_window": SECONDS_PER_WINDOW}
 
     @staticmethod
     def _append_journal(c, room, entries, seq):

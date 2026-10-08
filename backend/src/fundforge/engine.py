@@ -284,16 +284,17 @@ class Engine:
     def finished(self) -> bool:
         return self.cursor >= len(self.tape.events)
 
-    def _notice(self, text: str, kind: str = "notice"):
-        self.notices.append({"day": self.ev.day, "date": self.ev.date.isoformat(), "phase": self.ev.phase,
+    def _notice(self, text: str, kind: str = "notice", code: str = "notice", **refs):
+        """Typed notice: game logic and the world read ``code``/refs; ``text`` is presentation only."""
+        self.notices.append({"code": code, "refs": refs, "day": self.ev.day, "date": self.ev.date.isoformat(), "phase": self.ev.phase,
                              "kind": kind, "text": text})
 
     def _publish_notices(self):
         for n in self.tape.raw["public_notices"]:
             if (n["day"], n["event"]) == (self.ev.day, self.ev.phase):
-                self._notice(n["text"])
+                self._notice(n["text"], code=n.get("code", "notice"))
         if self.ev.headline:
-            self._notice(self.ev.headline, "market")
+            self._notice(self.ev.headline, "market", code=self.ev.headline_code or "market_event")
 
     def _open_admin(self):
         self._publish_notices()
@@ -316,14 +317,15 @@ class Engine:
             self.recall_open = rc["qty"]
         for r in self.research_used:
             if r["reveal_day"] == self.ev.day:
-                self._notice(self.tape.raw["research"]["topics"][r["topic"]], "research")
+                self._notice(self.tape.raw["research"]["topics"][r["topic"]], "research", code="research_reveal", topic=r["topic"])
                 if r["topic"] == "borrow":
                     self.offer_visible = True
         self._true_up_collateral()
         d = self.deficit()
         self.margin_call = d if d > 0 else None
         if d > 0:
-            self._notice(f"Margin call: maintenance deficit ${d:,.2f}. Cure at the next execution or face forced liquidation.", "alert")
+            self._notice(f"Margin call: maintenance deficit ${d:,.2f}. Cure at the next execution or face forced liquidation.", "alert",
+                         code="margin_call", deficit=str(d))
 
     def _exec_a(self):
         self._execute()
@@ -519,7 +521,7 @@ class Engine:
     def _transfer_replacement(self, off):
         q = min(off["qty"], self.recall_open)
         if q <= 0:
-            self._notice("Replacement borrow not needed: the recall was already covered.")
+            self._notice("Replacement borrow not needed: the recall was already covered.", code="replacement_unneeded")
             return
         self._return_shares(off["sym"], q)
         self.loans.append(Loan(f"L-replacement-{off['sym']}", off["sym"], q, D(off["rate"])))
@@ -527,7 +529,7 @@ class Engine:
         self.recall_open -= covered
         if self.recall_open == 0 and self.recall_resolved_by is None:
             self.recall_resolved_by = "replacement borrow"
-        self._notice(f"Replacement borrow settled: {q} {off['sym']} at {D(off['rate']) * 100}% replaces recalled shares.")
+        self._notice(f"Replacement borrow settled: {q} {off['sym']} at {D(off['rate']) * 100}% replaces recalled shares.", code="replacement_settled", sym=off["sym"], qty=q)
 
     # ---------- accrual, invoicing, dealing, payment ----------
     def _accrue(self, key: str, exact: Decimal) -> Decimal:
@@ -583,7 +585,8 @@ class Engine:
                 self._post_pair(f"Crystallize redeemed performance fee {r['series']}",
                                 [(f"provision:{r['series']}", fee), ("perf_fee_payable", -fee)],
                                 [("fee_receivable", fee), ("fee_revenue", -fee)])
-            self._notice(f"Dealt {r['series']} redemption of {r['units']} units: ${payable:,.2f} payable next business day.")
+            self._notice(f"Dealt {r['series']} redemption of {r['units']} units: ${payable:,.2f} payable next business day.", code="redemption_dealt",
+                         series=r["series"], payable=str(payable))
 
     def _pay_due(self):
         """Treasury sweep priority: redemptions, then fixed fees, then interest (collateral already trued up)."""

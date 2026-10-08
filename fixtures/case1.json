@@ -1,10 +1,27 @@
 {
   "scenario_id": "case1",
   "title": "The borrow is not the thesis",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "source": "docs/SCENARIO_CONTRACTS.md#case1-the-borrow-is-not-the-thesis",
-  "calendar": {"day1": "2026-01-05", "start_day": 12, "end_day": 21},
-  "instruments": ["ALTO", "BRIN", "COVE", "DART", "ELAN", "FENN", "GALA", "HELI", "IONA", "JUNO", "BEAM", "BOND"],
+  "calendar": {
+    "day1": "2026-01-05",
+    "start_day": 12,
+    "end_day": 21
+  },
+  "instruments": [
+    "ALTO",
+    "BRIN",
+    "COVE",
+    "DART",
+    "ELAN",
+    "FENN",
+    "GALA",
+    "HELI",
+    "IONA",
+    "JUNO",
+    "BEAM",
+    "BOND"
+  ],
   "defaults": {
     "mark": "100",
     "volume": 1000000,
@@ -21,34 +38,142 @@
       "cash": "0",
       "collateral": "5000000",
       "debt": "2500000",
-      "positions": {"ALTO": 30000, "COVE": 30000, "ELAN": 30000, "GALA": 30000, "IONA": 30000, "JUNO": 25000, "BEAM": 100000,
-                    "BRIN": -12500, "DART": -12500, "FENN": -12500, "HELI": -12500},
+      "positions": {
+        "ALTO": 30000,
+        "COVE": 30000,
+        "ELAN": 30000,
+        "GALA": 30000,
+        "IONA": 30000,
+        "JUNO": 25000,
+        "BEAM": 100000,
+        "BRIN": -12500,
+        "DART": -12500,
+        "FENN": -12500,
+        "HELI": -12500
+      },
       "series": [
-        {"id": "Patient", "units": "80000", "hwm": "100"},
-        {"id": "Seed", "units": "100000", "hwm": "100"},
-        {"id": "Tactical", "units": "70000", "hwm": "100"}
+        {
+          "id": "Patient",
+          "units": "80000",
+          "hwm": "100"
+        },
+        {
+          "id": "Seed",
+          "units": "100000",
+          "hwm": "100"
+        },
+        {
+          "id": "Tactical",
+          "units": "70000",
+          "hwm": "100"
+        }
       ]
     },
-    "firm": {"cash": "240000", "payroll_payable": "4000"}
+    "firm": {
+      "cash": "240000",
+      "payroll_payable": "4000"
+    }
   },
-  "firm": {"payroll_per_business_day": "4000", "pay_every_n_days": 5},
+  "firm": {
+    "payroll_per_business_day": "4000",
+    "pay_every_n_days": 5
+  },
   "margin_schedule": [
-    {"from_day": 12, "initial": {"long": "0.50", "short": "0.60"}, "maintenance": {"long": "0.35", "short": "0.40"}},
-    {"from_day": 16, "initial": {"long": "0.80", "short": "1.00"}, "maintenance": {"long": "0.70", "short": "0.90"}}
+    {
+      "from_day": 12,
+      "initial": {
+        "long": "0.50",
+        "short": "0.60"
+      },
+      "maintenance": {
+        "long": "0.35",
+        "short": "0.40"
+      }
+    },
+    {
+      "from_day": 16,
+      "initial": {
+        "long": "0.80",
+        "short": "1.00"
+      },
+      "maintenance": {
+        "long": "0.70",
+        "short": "0.90"
+      }
+    }
   ],
   "overrides": [
-    {"day": 16, "event": "PUBLIC_MARK", "marks": {"ALTO": "95", "COVE": "95", "ELAN": "95", "GALA": "95", "IONA": "95", "JUNO": "95", "BEAM": "95",
-                                                 "BRIN": "110", "DART": "110", "FENN": "110", "HELI": "110"},
-     "headline": "Broad equity sell-off; crowded shorts squeeze. Prime broker applies stressed margin coefficients."},
-    {"day": 16, "event": "EXEC_A", "volume": {"BEAM": 42120, "BRIN": 25000}},
-    {"day": 18, "event": "EXEC_A", "volume": {"BEAM": 400000}},
-    {"day": 20, "event": "EXEC_A", "volume": {"BEAM": 0}, "headline": "BEAM trading halted."},
-    {"day": 20, "event": "EXEC_B", "volume": {"BEAM": 0}}
+    {
+      "day": 16,
+      "event": "PUBLIC_MARK",
+      "marks": {
+        "ALTO": "95",
+        "COVE": "95",
+        "ELAN": "95",
+        "GALA": "95",
+        "IONA": "95",
+        "JUNO": "95",
+        "BEAM": "95",
+        "BRIN": "110",
+        "DART": "110",
+        "FENN": "110",
+        "HELI": "110"
+      },
+      "headline": "Broad equity sell-off; crowded shorts squeeze. Prime broker applies stressed margin coefficients.",
+      "headline_code": "market_shock"
+    },
+    {
+      "day": 16,
+      "event": "EXEC_A",
+      "volume": {
+        "BEAM": 42120,
+        "BRIN": 25000
+      }
+    },
+    {
+      "day": 18,
+      "event": "EXEC_A",
+      "volume": {
+        "BEAM": 400000
+      }
+    },
+    {
+      "day": 20,
+      "event": "EXEC_A",
+      "volume": {
+        "BEAM": 0
+      },
+      "headline": "BEAM trading halted.",
+      "headline_code": "trading_halt"
+    },
+    {
+      "day": 20,
+      "event": "EXEC_B",
+      "volume": {
+        "BEAM": 0
+      }
+    }
   ],
   "borrow": {
-    "recall": {"announce_day": 13, "sym": "BRIN", "qty": 1250, "deadline_day": 15, "deadline_event": "EXEC_B"},
-    "no_new_inventory": {"sym": "BRIN", "from_day": 13},
-    "replacement_offer": {"sym": "BRIN", "qty": 1250, "rate": "0.40", "accept_by_day": 14, "accept_by_event": "EXEC_B", "transfer_day": 15}
+    "recall": {
+      "announce_day": 13,
+      "sym": "BRIN",
+      "qty": 1250,
+      "deadline_day": 15,
+      "deadline_event": "EXEC_B"
+    },
+    "no_new_inventory": {
+      "sym": "BRIN",
+      "from_day": 13
+    },
+    "replacement_offer": {
+      "sym": "BRIN",
+      "qty": 1250,
+      "rate": "0.40",
+      "accept_by_day": 14,
+      "accept_by_event": "EXEC_B",
+      "transfer_day": 15
+    }
   },
   "research": {
     "budget": 2,
@@ -59,11 +184,37 @@
     }
   },
   "public_notices": [
-    {"day": 12, "event": "OPEN_ADMIN", "text": "Tactical has noticed a 10,000-unit redemption for the day 20 dealing close, payable day 21."},
-    {"day": 12, "event": "OPEN_ADMIN", "text": "Prime broker: stressed margin coefficients (initial 80/100%, maintenance 70/90%) take effect day 16."},
-    {"day": 13, "event": "PUBLIC_MARK", "text": "Prime broker recalls 1,250 BRIN. Cover by day 15 EXEC_B or deliver an accepted replacement; otherwise a forced buy-in executes."},
-    {"day": 18, "event": "PUBLIC_MARK", "text": "Exchange notice: BEAM may be suspended later this week pending a sponsor review."}
+    {
+      "day": 12,
+      "event": "OPEN_ADMIN",
+      "text": "Tactical has noticed a 10,000-unit redemption for the day 20 dealing close, payable day 21.",
+      "code": "redemption_notice"
+    },
+    {
+      "day": 12,
+      "event": "OPEN_ADMIN",
+      "text": "Prime broker: stressed margin coefficients (initial 80/100%, maintenance 70/90%) take effect day 16.",
+      "code": "margin_terms"
+    },
+    {
+      "day": 13,
+      "event": "PUBLIC_MARK",
+      "text": "Prime broker recalls 1,250 BRIN. Cover by day 15 EXEC_B or deliver an accepted replacement; otherwise a forced buy-in executes.",
+      "code": "recall"
+    },
+    {
+      "day": 18,
+      "event": "PUBLIC_MARK",
+      "text": "Exchange notice: BEAM may be suspended later this week pending a sponsor review.",
+      "code": "halt_risk"
+    }
   ],
-  "redemptions": [{"series": "Tactical", "units": "10000", "deal_day": 20}],
+  "redemptions": [
+    {
+      "series": "Tactical",
+      "units": "10000",
+      "deal_day": 20
+    }
+  ],
   "objectives": "Win: positive NAV, recall resolved without forced buy-in, Tactical paid day 21, no forced margin liquidation. Survival: claims paid but forced actions occurred."
 }
