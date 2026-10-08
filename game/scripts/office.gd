@@ -13,6 +13,7 @@ var role := "pm"
 
 var _boxes: Array = []  # [grid Vector2, size Vector3, color]
 var _screens_red := false
+var _screens_green := false
 var _alarm := false
 var _halt := false
 var _glow_research := 0.0
@@ -91,6 +92,9 @@ func apply_view(view: Dictionary, effects: Array) -> void:
 	for e in effects:
 		match e:
 			"screens_red": _screens_red = true
+			"screens_green": _screens_green = true
+			"cheer":
+				for t in traders: t.panic = true
 			"panic":
 				for t in traders: t.panic = true
 			"shake": _shake = 0.6
@@ -227,6 +231,8 @@ func _box(b: Array) -> void:
 		col = Color("#122b1c")
 		if tag == "screen" and _screens_red:
 			col = Color("#5c1410").lerp(Color("#a9281f"), 0.5 + 0.5 * sin(_t * 5.0 + g.x))
+		elif tag == "screen" and _screens_green:
+			col = Color("#0f4a22").lerp(Color("#2fbf5a"), 0.5 + 0.5 * sin(_t * 4.0 + g.x))
 		elif tag == "riskwall" and _alarm:
 			col = Color("#a9281f").lerp(Color("#300"), 0.5 + 0.5 * sin(_t * 6.0))
 		elif tag == "board" and _halt:

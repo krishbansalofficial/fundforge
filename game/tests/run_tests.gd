@@ -39,6 +39,7 @@ func _initialize() -> void:
 	var notices := [{"code": "redemption_notice"}, {"code": "recall"}, {"code": "market_shock"}]
 	check(WorldRules.new_effects(notices, 1) == ["courier", "letter_committee", "screens_red", "panic", "shake"], "recall and shock effects")
 	check(WorldRules.new_effects(notices, 3) == [], "no effects replayed for seen notices")
+	check(WorldRules.new_effects([{"code": "market_rally"}], 0) == ["screens_green", "cheer"], "rally effects")
 
 	# partner avatar goes where their last decision was made
 	var v := {"decisions": [{"role": "mp", "type": "research"}, {"role": "pm", "type": "ticket"}, {"role": "mp", "type": "accept_replacement"}]}

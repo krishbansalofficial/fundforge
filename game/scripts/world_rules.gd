@@ -33,6 +33,7 @@ const COMMAND_LOCATION := {
 const EFFECTS := {
 	"recall": ["courier", "letter_committee"],
 	"market_shock": ["screens_red", "panic", "shake"],
+	"market_rally": ["screens_green", "cheer"],
 	"margin_call": ["alarm"],
 	"trading_halt": ["halt_board"],
 	"halt_risk": ["halt_warning"],
