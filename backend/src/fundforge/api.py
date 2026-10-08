@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from .engine import CommandRejected
-from .store import KeyReused, Store
+from .store import KeyReused, ReplayDivergence, RoomIncompatible, Store
 
 app = FastAPI(title="FundForge", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
@@ -51,15 +51,15 @@ def create_room(body: NewRoom):
 
 @app.get("/api/rooms/{room_id}/view")
 def view(room_id: str, user: str = Depends(seat)):
-    version, s = store().session(room_id)
-    return {"version": version, "names": store().names(room_id), **s.view(user)}
+    version, s, names = store().session(room_id)
+    return {"names": names, **s.view(user), "version": version}
 
 
 @app.get("/api/rooms/{room_id}/ledger")
 def ledger(room_id: str, entity: str = "fund", user: str = Depends(seat)):
     if entity not in ("fund", "firm"):
         raise HTTPException(422, "entity must be fund or firm")
-    _, s = store().session(room_id)
+    _, s, _ = store().session(room_id)
     return {"entity": entity, "entries": s.ledger(entity, limit=1000), "digest": s.e.j.digest()}
 
 
@@ -69,7 +69,18 @@ def command(room_id: str, body: dict, user: str = Depends(seat), idempotency_key
         raise HTTPException(422, "command type required")
     try:
         return store().apply(room_id, user, idempotency_key, body)
+    except RoomIncompatible as e:
+        raise HTTPException(409, str(e)) from e
     except KeyReused as e:
         raise HTTPException(409, str(e)) from e
     except (CommandRejected, KeyError, TypeError, ValueError) as e:
         raise HTTPException(422, str(e) or "invalid command") from e
+
+
+@app.get("/api/rooms/{room_id}/verify")
+def verify(room_id: str, user: str = Depends(seat)):
+    """Re-derive the whole room from tape + command log and compare with every stored row."""
+    try:
+        return {"ok": True, **store().verify(room_id)}
+    except (ReplayDivergence, RoomIncompatible) as e:
+        return {"ok": False, "error": str(e)}

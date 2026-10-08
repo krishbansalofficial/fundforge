@@ -5,6 +5,7 @@ description = "Deterministic fund/firm accounting engine for the FundForge coope
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.142.4",
+    "psycopg-pool>=3.3.3",
     "psycopg[binary]>=3.3.6",
     "uvicorn[standard]>=0.54.0",
 ]

@@ -19,6 +19,8 @@ from .series import Series, mgmt_fee_exact, redeem, reprovision
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
 SIDES = ("BUY", "SELL", "SHORT", "COVER")
+# Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
+RULES_VERSION = "case1-rules-2026.10.1"
 
 
 class CommandRejected(ValueError):
