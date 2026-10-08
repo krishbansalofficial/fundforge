@@ -1,5 +1,7 @@
 # Precise implementation handoff: FF0a only
 
+> **Superseded 7 October 2026 by [REPLAN_V3](REPLAN_V3.md).** FF0a's hand-built full dated oracle is replaced by FUND_ACCOUNTING §6 oracle tests + property tests; implementation follows M0–M6. Content below is retained as v2.2 history.
+
 7 October 2026; source plan v2.2. No feature implementation occurred in this planning update.
 
 Planning revision 2.2-M1 expands all 20 milestones through the final FF8 gate in [MILESTONE_PLANS](MILESTONE_PLANS.md). [PLAN_REVIEW_AND_DECISIONS](PLAN_REVIEW_AND_DECISIONS.md) assigns unresolved choices/evidence to their due phases. Read the selected detailed package before starting; a roadmap row alone is not an implementation brief. This continuation entered an already modified planning tree; the original clean-entry statement below refers to the first v2.2 review. Preserve the combined changes. The user has now explicitly authorized committing/pushing this completed planning package; no application work or installation is authorized by that request.

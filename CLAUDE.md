@@ -6,7 +6,7 @@ Product: two-player cooperative hedge-fund management game. Default fictional ca
 
 Architecture: Next.js/TypeScript; FastAPI/Python modular backend; PostgreSQL authority; pure finance/game domain. Fixtures and polling first. Add queue/cache/WebSockets only for a demonstrated boundary.
 
-Full work packages for all 20 milestones through FF8 are in `docs/MILESTONE_PLANS.md`; use the selected package with `docs/PLAN_REVIEW_AND_DECISIONS.md`. `docs/IMPLEMENTATION_PLAN.md` is the dependency index. Current next task remains FF0a. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
+**Active plan: `docs/REPLAN_V3.md`** (M0–M6 portfolio slice on Case1; supersedes the 20-milestone sequencing). `docs/MILESTONE_PLANS.md`/`IMPLEMENTATION_PLAN.md` remain long-range design reference for Stretch work. Evidence lives in CI, tests and `docs/ENGINEERING.md`, not per-milestone RESULTS files. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
 
 Non-negotiables:
 - Decimal/fixed precision with explicit rounding; immutable balanced journal and deterministic replay.

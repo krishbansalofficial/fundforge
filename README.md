@@ -2,7 +2,7 @@
 
 A cooperative hedge-fund management strategy game. Two partners build an investment business, manage outside investors' capital, and survive the consequences of their decisions.
 
-**Status: design package v2.2, 7 October 2026. No application has been implemented.** Three bounded independent reviews strengthened the existing v2.1 plan. The reported Python/Pydantic foundation and26 tests are absent from this checkout. Earlier research remains preserved.
+**Status: implementation started 7 October 2026 under [re-plan v3](docs/REPLAN_V3.md)** — a deployable two-player Case1 slice built on the v2.2 accounting contracts. Three bounded independent reviews strengthened the existing v2.1 plan. The reported Python/Pydantic foundation and26 tests are absent from this checkout. Earlier research remains preserved.
 
 ## The game
 
