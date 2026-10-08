@@ -84,7 +84,7 @@ class Engine:
         self.recall_open = 0
         self.recall_resolved_by: str | None = None
         self.margin_call: Decimal | None = None
-        self.reserve = Decimal(0)
+        self.reserve: Decimal | None = None  # None => default 2% NAV buffer (FUND_ACCOUNTING §4)
         self.incidents: list[str] = []
         self.paid: dict[str, Decimal] = {}
         self._open()
@@ -101,6 +101,10 @@ class Engine:
 
     def _post_pair(self, memo, fund_legs, firm_legs, date_=None):
         d = (date_ or self.ev.date).isoformat()
+        fund_legs = [(a, x) for a, x in fund_legs if x != 0]
+        firm_legs = [(a, x) for a, x in firm_legs if x != 0]
+        if not fund_legs:
+            return
         self.j.post_many([entry(self._eid(), "fund", d, memo, *fund_legs), entry(self._eid(), "firm", d, memo, *firm_legs)])
 
     def bal(self, account: str, entity: str = "fund") -> Decimal:
@@ -170,10 +174,15 @@ class Engine:
         return min(amount, self.bal("cash"))
 
     def _repay_debt(self):
-        spare = self.bal("cash") - self.reserve
+        known = -sum((self.bal(a) for a in ("redemption_payable", "mgmt_fee_payable", "perf_fee_payable",
+                                            "interest_payable", "trade_payable")), Decimal(0))
+        spare = self.bal("cash") - self.buffer() - known
         repay = min(spare, -self.bal("debt"))
         if repay > 0:
             self._post("Repay broker debit above treasury reserve", ("debt", repay), ("cash", -repay))
+
+    def buffer(self) -> Decimal:
+        return cents(D("0.02") * self.nav()) if self.reserve is None else self.reserve
 
     def _remark(self):
         dl = self.long_mv() - self.bal("long_securities")
@@ -181,9 +190,14 @@ class Engine:
         self._post("Mark positions to reference", ("long_securities", dl), ("short_liability", ds), ("common_pnl", -dl - ds))
 
     def _collateral_target(self) -> Decimal:
+        """Per symbol: active short value less its own earmarked unsettled proceeds (never negative), plus frozen covers."""
         frozen = sum((p.frozen for p in self.pending if p.kind == "COVER"), Decimal(0))
-        earmarked = sum((p.amount for p in self.pending if p.kind == "SHORT"), Decimal(0))
-        return self.short_mv() + frozen - earmarked
+        need = Decimal(0)
+        for s, q in self.pos.items():
+            mv = cents(-q * self.marks[s]) if q < 0 else Decimal(0)
+            earmarked = sum((p.amount for p in self.pending if p.kind == "SHORT" and p.sym == s), Decimal(0))
+            need += max(Decimal(0), mv - earmarked)
+        return need + frozen
 
     def _true_up_collateral(self):
         diff = self._collateral_target() - self.bal("collateral")
@@ -236,6 +250,8 @@ class Engine:
             raise CommandRejected("no replacement offer is known")
         if self.replacement_accepted:
             raise CommandRejected("replacement already accepted")
+        if self.recall_open <= 0:
+            raise CommandRejected("there is no open recall to replace")
         if nxt is None or (nxt.day, nxt.phase) > (off["accept_by_day"], off["accept_by_event"]):
             raise CommandRejected("replacement acceptance cutoff has passed")
         self.replacement_accepted = True
@@ -280,9 +296,9 @@ class Engine:
     def _open_admin(self):
         self._publish_notices()
         day = self.ev.day
-        for p in [p for p in self.pending if p.settle_day == day]:
-            self._settle(p)
-            self.pending.remove(p)
+        for p in [p for p in self.pending if p.settle_day <= day]:
+            if self._settle(p):
+                self.pending.remove(p)
         off = self.tape.raw["borrow"]["replacement_offer"]
         if self.replacement_accepted and day == off["transfer_day"]:
             self._transfer_replacement(off)
@@ -468,7 +484,8 @@ class Engine:
         self.pending.append(Pending(t1, o.side, s, q, amount, frozen))
         self._remark()
 
-    def _settle(self, p: Pending):
+    def _settle(self, p: Pending) -> bool:
+        """Settle one obligation; on a cash shortfall record a failed settlement and keep it pending."""
         memo = f"Settle {p.kind} {p.qty} {p.sym}"
         if p.kind == "SELL":
             self._post(memo, ("cash", p.amount), ("trade_receivable", -p.amount))
@@ -477,25 +494,31 @@ class Engine:
             self.loans.append(Loan(f"L-{self.ev.day}-{p.sym}-{self.seq}", p.sym, p.qty, D(self.cfg["borrow_rate"])))
         elif p.kind == "BUY":
             got = self._raise_cash(p.amount, memo)
-            self._post(memo, ("trade_payable", got), ("cash", -got))
             if got < p.amount:
                 self.incidents.append(f"day {self.ev.day}: failed settlement {memo}, short {p.amount - got}")
+                return False
+            self._post(memo, ("trade_payable", p.amount), ("cash", -p.amount))
         else:  # COVER: release frozen collateral to pay, return borrowed shares
             extra = p.amount - p.frozen
-            if extra > 0:
-                self._raise_cash(extra, memo)
+            if extra > 0 and self._raise_cash(extra, memo) < extra:
+                self.incidents.append(f"day {self.ev.day}: failed settlement {memo}; borrow and collateral retained")
+                return False
             self._post(memo, ("trade_payable", p.amount), ("collateral", -p.frozen), ("cash", p.frozen - p.amount))
             self._return_shares(p.sym, p.qty)
+        return True
 
     def _return_shares(self, sym, qty):
-        for l in sorted((l for l in self.loans if l.sym == sym), key=lambda l: (l.rate, l.loan_id)):
+        for l in sorted((l for l in self.loans if l.sym == sym), key=lambda l: (-l.rate, l.loan_id)):
             take = min(qty, l.qty)
             l.qty -= take
             qty -= take
         self.loans = [l for l in self.loans if l.qty > 0]
 
     def _transfer_replacement(self, off):
-        q = off["qty"]
+        q = min(off["qty"], self.recall_open)
+        if q <= 0:
+            self._notice("Replacement borrow not needed: the recall was already covered.")
+            return
         self._return_shares(off["sym"], q)
         self.loans.append(Loan(f"L-replacement-{off['sym']}", off["sym"], q, D(off["rate"])))
         covered = min(q, self.recall_open)
@@ -517,7 +540,7 @@ class Engine:
             debt = -self.bal("debt")
             amt = self._accrue("debit", debt * D(self.cfg["debit_rate"]) / 360)
             self._post("Broker debit interest", ("common_pnl", amt), ("accrued_interest", -amt), date_=d)
-        opening = self.series
+        opening = [s for s in self.series if s.units > 0]
         fees = {s.series_id: self._accrue(f"mgmt:{s.series_id}", mgmt_fee_exact(s)) for s in opening}
         pnl = -self.bal("common_pnl")
         shares = allocate(pnl, {s.series_id: s.participation for s in opening}) if pnl else {}
@@ -536,7 +559,8 @@ class Engine:
             self._post(f"Performance provision change {s.series_id}", (f"capital:{s.series_id}", dF),
                        (f"provision:{s.series_id}", -dF), date_=d)
             new.append(n)
-        self.series = new
+        by_id = {n.series_id: n for n in new}
+        self.series = [by_id.get(x.series_id, x) for x in self.series]
 
     def _invoice(self):
         self._post("Invoice management fees accrued through dealing close",

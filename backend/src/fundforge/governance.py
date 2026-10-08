@@ -176,7 +176,7 @@ class Session:
             "ready": sorted(self.ready),
             "fund": {
                 "nav": str(nav), "cash": str(e.bal("cash")), "collateral": str(e.bal("collateral")),
-                "debt": str(-e.bal("debt")), "credit_left": str(e.credit_left()), "reserve": str(e.reserve),
+                "debt": str(-e.bal("debt")), "credit_left": str(e.credit_left()), "reserve": str(e.buffer()),
                 "long_mv": str(lm), "short_mv": str(sm),
                 "gross": str(((lm + sm) / nav).quantize(D("0.0001"))) if nav > 0 else None,
                 "net": str(((lm - sm) / nav).quantize(D("0.0001"))) if nav > 0 else None,

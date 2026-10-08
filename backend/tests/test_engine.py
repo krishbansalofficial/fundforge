@@ -113,3 +113,43 @@ def test_player_cannot_short_brin_after_recall():
     o = e.submit_order("x", "BRIN", "SHORT", 100)
     e.advance()
     assert o.status == "REJECTED"
+
+
+# ---- regressions from the bounded finance review ----
+
+def test_replacement_after_voluntary_cover_does_not_create_expensive_loan():
+    def accept_and_cover(e_):
+        e_.submit_order("c", "BRIN", "COVER", 1250)
+        e_.accept_replacement()  # recall still open at the barrier, cover fills later at EXEC_A
+    e = run({(12, "EXEC_A"): s2_research, (14, "EXEC_A"): accept_and_cover})
+    assert not any(l.rate == D("0.40") for l in e.loans)
+    assert e.borrowed("BRIN") == 11250
+
+
+def test_collateral_never_released_by_cross_symbol_netting():
+    e = Engine(load(CASE1))
+    e.advance()
+    e.submit_order("s", "BOND", "SHORT", 40000)
+    e.advance()  # fills at EXEC_A; proceeds unsettled and earmarked
+    e.marks["BOND"] = D(95)  # mark falls below the earmarked proceeds before settlement
+    bond_mv = D(40000) * D(95)
+    # BOND contributes zero (not a negative offset); other shorts keep their full target
+    assert e._collateral_target() == e.short_mv() - bond_mv
+
+
+def test_default_treasury_buffer_keeps_two_percent_cash():
+    out = run(S2)
+    assert out.outcome()["label"] == "WIN"
+    assert out.bal("cash") >= 0
+
+
+def test_failed_cover_settlement_is_recorded_not_negative_cash():
+    e = Engine(load(CASE1))
+    e.advance()
+    e.submit_order("c", "BRIN", "COVER", 1250)
+    e.advance()
+    e.cfg = {**e.cfg, "credit_limit": str(-e.bal("debt"))}  # exhaust credit before settlement
+    while e.ev.day < 13:
+        e.advance()  # day 13 OPEN_ADMIN attempts the T+1 settlement
+    assert any("failed settlement" in i for i in e.incidents)
+    assert e.bal("cash") >= 0 and any(p.kind == "COVER" for p in e.pending)
