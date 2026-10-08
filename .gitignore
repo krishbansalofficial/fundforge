@@ -22,3 +22,6 @@ data/private/
 artifacts/
 mlruns/
 logs/
+.playwright-mcp/
+*.tsbuildinfo
+next-env.d.ts
