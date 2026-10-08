@@ -1,0 +1,16 @@
+[project]
+name = "fundforge"
+version = "0.1.0"
+description = "Deterministic fund/firm accounting engine for the FundForge cooperative hedge-fund game"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8", "hypothesis>=6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
