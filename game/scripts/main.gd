@@ -1,9 +1,8 @@
 extends Node
 ## Entry point: open or join a fund, then run the office world with its HUD.
 
-var office: Office
+var office: Office3D
 var hud: Hud
-var _daylight: CanvasModulate
 var _seen_notices := 0
 var _joined := false
 var _menu: Control
@@ -108,9 +107,7 @@ func _on_view(view: Dictionary) -> void:
 	if not _joined:
 		_joined = true
 		_menu.get_parent().queue_free()
-		_daylight = CanvasModulate.new()
-		add_child(_daylight)
-		office = Office.new()
+		office = Office3D.new()
 		add_child(office)
 		var names: Dictionary = view.get("names", {})
 		var role: String = view.get("role", "pm")
@@ -131,5 +128,5 @@ func _process(_delta: float) -> void:
 	if not _joined:
 		return
 	var h := WorldRules.clock_hour(Api.view, Time.get_ticks_msec() / 1000.0 - Api.view_received_at)
-	_daylight.color = WorldRules.daylight(h)
+	office.set_hour(h)
 	hud.update_clock(h)
