@@ -62,14 +62,30 @@ func _build_menu() -> void:
 	var mp := _field(v, "Managing partner's name", "Ben")
 	var status := Label.new()
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var solo_pm := Button.new()
+	solo_pm.text = "Play solo as portfolio manager (bot runs operations)"
+	v.add_child(solo_pm)
+	var solo_mp := Button.new()
+	solo_mp.text = "Play solo as managing partner (bot trades)"
+	v.add_child(solo_mp)
 	var open := Button.new()
-	open.text = "Open a new fund"
+	open.text = "Open a two-player fund"
 	v.add_child(open)
 	var code := _field(v, "...or join with an invite code (room:token)", "")
 	var join := Button.new()
 	join.text = "Join fund"
 	v.add_child(join)
 	v.add_child(status)
+	for spec in [[solo_pm, "pm"], [solo_mp, "mp"]]:
+		var role: String = spec[1]
+		(spec[0] as Button).pressed.connect(func():
+			status.text = "Opening..."
+			var res: Dictionary = await Api.create_room(server.text, pm.text, mp.text, role)
+			if not res["ok"]:
+				status.text = "Couldn't reach the server at %s. Start it with: docker compose up" % server.text
+				return
+			var d: Dictionary = res["data"]
+			_enter(server.text, d["room_id"], d["tokens"][role]))
 	open.pressed.connect(func():
 		status.text = "Opening..."
 		var res: Dictionary = await Api.create_room(server.text, pm.text, mp.text)

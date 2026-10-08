@@ -194,12 +194,17 @@ func apply_view(v: Dictionary) -> void:
 	var ratio := WorldRules.headroom_ratio(f)
 	_headroom.value = minf(ratio, 1.6)
 	_headroom.modulate = Color("#e05a4a") if ratio < 1.0 else (Color("#e0a14a") if ratio < 1.05 else Color("#6cbf8f"))
-	var lines := ""
-	var notices: Array = v.get("notices", [])
-	for i in range(maxi(0, notices.size() - 8), notices.size()):
-		var n: Dictionary = notices[i]
+	var items: Array = []
+	for n in v.get("notices", []):
 		var col: String = {"alert": "#ff7a6a", "market": "#f0c27a", "research": "#8fd6a8"}.get(n.get("kind", ""), "#dfe7ef")
-		lines += "[color=#8aa0b8]Day %d[/color]  [color=%s]%s[/color]\n" % [n.get("day", 0), col, n.get("text", "")]
+		items.append([n.get("day", 0), "[color=%s]%s[/color]" % [col, n.get("text", "")]])
+	var names: Dictionary = v.get("names", {})
+	for m in v.get("chat", []):
+		items.append([m.get("day", 0), "[color=#9fd0ff][b]%s:[/b] %s[/color]" % [names.get(m.get("role", ""), m.get("role", "")), m.get("text", "")]])
+	items.sort_custom(func(a, b): return a[0] < b[0])
+	var lines := ""
+	for i in range(maxi(0, items.size() - 9), items.size()):
+		lines += "[color=#8aa0b8]Day %d[/color]  %s\n" % [items[i][0], items[i][1]]
 	_feed.text = lines
 	if _panel.visible:
 		_render_panel(_open_location)

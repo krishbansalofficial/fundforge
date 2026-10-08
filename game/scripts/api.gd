@@ -60,10 +60,12 @@ func request(method: int, path: String, body: Variant = null, key := "") -> Dict
 			"status": status, "data": data, "network_error": res[0] != HTTPRequest.RESULT_SUCCESS}
 
 
-func create_room(url: String, pm_name: String, mp_name: String) -> Dictionary:
+func create_room(url: String, pm_name: String, mp_name: String, solo_role := "") -> Dictionary:
 	base_url = url.trim_suffix("/")
-	return await request(HTTPClient.METHOD_POST, "/api/rooms",
-			{"scenario": "case1", "pm_name": pm_name, "mp_name": mp_name})
+	var body := {"scenario": "case1", "pm_name": pm_name, "mp_name": mp_name}
+	if solo_role != "":
+		body["solo_role"] = solo_role
+	return await request(HTTPClient.METHOD_POST, "/api/rooms", body)
 
 
 ## Send one game command. A network failure is retried once with the SAME key, so the server
