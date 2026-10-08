@@ -67,8 +67,8 @@ Design write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md) (the self-checking 
 | `backend/src/fundforge` | `money`, `journal`, `series`, `risk`, `execution`, `tape`, `engine`, `governance`, `store`, `api` |
 | `frontend/app` | Landing page and the two-seat desk, including ribbon, book, feed, committee, ledger and debrief |
 | `fixtures/case1.json` | Authored Case1 tape: defaults are materialized and validated at load |
-| `docs/` | The specification. Active plan: [REPLAN_V3](docs/REPLAN_V3.md). Progress: [PROGRESS](docs/PROGRESS.md) |
+| `docs/` | The specification. Active plan: [ROADMAP](docs/ROADMAP.md). Progress: [PROGRESS](docs/PROGRESS.md) |
 
 ## Status and scope
 
-The Case1 vertical slice is implemented. Next come deployment and a recorded two-person playtest. The full 60-day, six-chapter campaign is specified in the design docs and is planned work, not finished work. All money, entities and investors are fictional. There is no brokerage connection, no real capital and no investment advice.
+The Case1 vertical slice is implemented. The plan ([ROADMAP](docs/ROADMAP.md)) hardens it, deploys it, builds a graphical two-partner world and grows it into a complete 60–90 minute game. The full 60-day, six-chapter campaign is specified in the design docs and is planned work, not finished work. All money, entities and investors are fictional. There is no brokerage connection, no real capital and no investment advice.

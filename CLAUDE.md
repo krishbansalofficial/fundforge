@@ -1,12 +1,12 @@
 # FundForge working rules
 
-Read `docs/CLAUDE_HANDOFF.md`, `docs/IMPLEMENTATION_HANDOFF.md` and `docs/PROGRESS.md` first. Canonical design is v2.2; v2.1 isolated arithmetic remains explicitly scoped. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
+Read `docs/ROADMAP.md` and `docs/PROGRESS.md` first. Canonical design is v2.2; v2.1 isolated arithmetic remains explicitly scoped. Read only documents needed for the bounded task; generated combined documents are not separate authorities.
 
 Product: two-player cooperative hedge-fund management game. Default fictional campaign: $25m outside capital, separate $300k management company, 60 simulated business days, six chapters. LPs, long/short financing, fund versus firm accounting, fees, investor flows, governance and crises are core release mechanics. A trading-only demo is not a completed game. No real money, brokerage execution, cash prizes or paid investment signals.
 
 Architecture: Next.js/TypeScript; FastAPI/Python modular backend; PostgreSQL authority; pure finance/game domain. Fixtures and polling first. Add queue/cache/WebSockets only for a demonstrated boundary.
 
-**Active plan: `docs/REPLAN_V3.md`**, followed by G1–G11 in `docs/FULL_GAME_PLAN.md` and `docs/RESEARCH_AND_ANALYTICS_PLAN.md` (M0–M6 portfolio slice on Case1; supersedes the 20-milestone sequencing). `docs/MILESTONE_PLANS.md`/`IMPLEMENTATION_PLAN.md` remain long-range design reference for Stretch work. Evidence lives in CI, tests and `docs/ENGINEERING.md`, not per-milestone RESULTS files. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
+**Active plan: `docs/ROADMAP.md` (v4, phases P0–P5, from a 50-reviewer adversarial review).** Graphical layer: `docs/WORLD_GAME_PLAN.md` as amended there. Older plans (REPLAN_V3, FULL_GAME_PLAN, MILESTONE_PLANS, IMPLEMENTATION_PLAN) are mechanics reference only. Evidence lives in CI, tests and `docs/ENGINEERING.md`. Finishing a plan is not passing a milestone.
 
 Non-negotiables:
 - Decimal/fixed precision with explicit rounding; immutable balanced journal and deterministic replay.
