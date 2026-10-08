@@ -63,3 +63,7 @@ The accounting is the existing FUND_ACCOUNTING contract, implemented for the mec
 ## Rules carried forward
 
 Everything in CLAUDE.md's non-negotiables still applies. Simplifications are recorded in the code with a `ponytail:` comment and in ENGINEERING.md. They are never hidden.
+
+## After M6
+
+The full game (G1–G11, about 25 core weeks) and the analytics stack (pandas, statsmodels, CVXPY advisory, exchange_calendars, DuckDB) are planned in [FULL_GAME_PLAN](FULL_GAME_PLAN.md) and [RESEARCH_AND_ANALYTICS_PLAN](RESEARCH_AND_ANALYTICS_PLAN.md). Analytics stay read-only and off the Decimal money path.

@@ -6,7 +6,7 @@ Product: two-player cooperative hedge-fund management game. Default fictional ca
 
 Architecture: Next.js/TypeScript; FastAPI/Python modular backend; PostgreSQL authority; pure finance/game domain. Fixtures and polling first. Add queue/cache/WebSockets only for a demonstrated boundary.
 
-**Active plan: `docs/REPLAN_V3.md`** (M0–M6 portfolio slice on Case1; supersedes the 20-milestone sequencing). `docs/MILESTONE_PLANS.md`/`IMPLEMENTATION_PLAN.md` remain long-range design reference for Stretch work. Evidence lives in CI, tests and `docs/ENGINEERING.md`, not per-milestone RESULTS files. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
+**Active plan: `docs/REPLAN_V3.md`**, followed by G1–G11 in `docs/FULL_GAME_PLAN.md` and `docs/RESEARCH_AND_ANALYTICS_PLAN.md` (M0–M6 portfolio slice on Case1; supersedes the 20-milestone sequencing). `docs/MILESTONE_PLANS.md`/`IMPLEMENTATION_PLAN.md` remain long-range design reference for Stretch work. Evidence lives in CI, tests and `docs/ENGINEERING.md`, not per-milestone RESULTS files. Finishing a plan is not passing a milestone; required financial/race/human evidence stays pending until run. FF8 is a selected-extension planning gate, not a promise to implement unspecified future products.
 
 Non-negotiables:
 - Decimal/fixed precision with explicit rounding; immutable balanced journal and deterministic replay.
@@ -24,6 +24,6 @@ Non-negotiables:
 
 Work by explicit objective, owned paths, contracts and acceptance evidence. Inspect before editing; use rg. Run meaningful checks for changed risks. After two unsuccessful repair cycles, preserve the exact failure and choose a narrower diagnosis rather than repeat the same attempts. Do not invent a CLI command or supported model name.
 
-Default one builder; use a bounded reviewer only when authorized. No recursive delegation. The owner explicitly requested Astra/extra-high for this v2.1 design review; that is not standing authorization for unlimited agent teams. Load relevant guidance only when needed; no SEO or marketing integration belongs to this plan.
+Default one builder; use a bounded reviewer only when authorized. No recursive delegation. The owner explicitly requested Astra/extra-high for this v2.1 design review; that is not standing authorization for unlimited agent teams. Load relevant guidance only when needed. SEO is limited to landing-page/docs discoverability (owner request, 7 Oct 2026); no tracking or marketing scripts in the game.
 
 At task end update `docs/PROGRESS.md` with actual state, paths, checks, limitations and one next task. Commit only task-related files when authorized. No force-push, visibility change, public deployment, paid usage or real-money capability without explicit authorization.
