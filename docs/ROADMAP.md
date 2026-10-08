@@ -38,7 +38,9 @@ Each reviewer cited files and lines. These are the findings that changed the pla
 | Decision | Why | Rejected alternative |
 |---|---|---|
 | **Keep command sourcing.** Pin rules and tape per room and verify replay. | A deterministic engine makes commands the cheapest log. The journal is the event stream. | Domain-event store or snapshots: unneeded at a few hundred commands (measured: Case1 replay ≈10 ms) |
-| **Build the graphical world.** It is the owner's requirement. Its spatial rules are engine-enforced attention rules, not cosmetic movement (see below). | The skeptics were right that a free-walk skin over forms adds friction. Locations as the assignment menu add decisions. | Proximity-only signing gate (it adds latency, not choices); SVG-only map (too thin for "a game in a world") |
+| **A desktop simulation game in Godot 4**, not a website. The owner decided this on 8 October 2026. The Python engine and Postgres stay authoritative, and the client is the world. | The owner wants a simulation game. A Godot desktop build (plus an optional web export) reads as an actual game, and keeping economics on the server keeps every claim about determinism and replay true. | Phaser in Next.js (still a website); Unity (heavier, license terms) |
+| **Real time with pause, 1x/2x/4x and auto-pause.** Owner decision, 8 October 2026. | Feels like a sim (Two Point / Paradox style). Ticks are logged commands bound to the room version, so wall time never touches the economics. | Pure turn-based Ready barriers (kept as the "skip ahead together" action) |
+| **The world's spatial rules are engine-side attention rules**, not cosmetic movement. | The skeptics were right that a free-walk skin over forms adds friction. Locations as the assignment menu add decisions. | Proximity-only signing gate (adds latency, not choices) |
 | **No LLM anywhere in the product.** Use deterministic, authored, templated NPCs. | The owner wants a real project, not an AI wrapper. | LLM narration, tutor or "AI analyst" (old FF7b): cut |
 | Keep the analytics libraries off the critical path. CVXPY only as a dev-time test oracle for our own Decimal margin-cure solver. | Our own algorithm is the substance; a library call isn't. | DuckDB, exchange_calendars at runtime, real-price replay (no redistribution rights): cut |
 | One small VM running compose with Caddy | WebSockets, same origin, local Postgres, about $5/month | Vercel+Fly+Neon (WS proxying, connection caps, cold starts); Render free (sleeps, DB expiry) |
@@ -108,9 +110,22 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
   - `coucou/` ignored
   - docs consolidated to about 8 files, with the rest in `docs/archive/`
 
-### P3: The world (weeks 5–9)
+### P3: The world (weeks 5–9). Started early at the owner's request.
 
-This is W1–W5 from [WORLD_GAME_PLAN](WORLD_GAME_PLAN.md): Phaser 4, Tiled maps, Kenney CC0 art, and HTML overlays for the terminals. Presence goes over WebSocket on the same origin. Positions are ephemeral and never economic.
+**Done (`5ad801d`, `d41a528`):**
+- Godot 4.7 desktop client in `game/`, drawing a procedural isometric office and street: trading floor, committee room, risk and treasury, research library, management company, investor lounge, and the prime broker across the street.
+- Walkable partner avatars, and terminals that open each location's actions.
+- NPC traders, a broker courier and LP visitors that react to typed engine events.
+- A server real-time clock with pause/speed and auto-pause, with daylight tied to the in-world hour.
+- Headless Godot tests in CI.
+
+**Remaining (W2–W5, re-targeted from Phaser to Godot):**
+- WebSocket presence for live partner movement. Today the partner avatar walks to the place of their last decision.
+- Kenney CC0 art pass, with provenance recorded in CREDITS.md.
+- Engine-enforced location assignments (below).
+- Audio.
+- Exported builds attached to GitHub releases: Windows, macOS, Linux, and a web export.
+- A scripted two-client end-to-end run that records the trailer.
 
 **Amendment (from the world-design and world-tech skeptics).** The world's meaningful rules are engine-side, keyed by location rather than by pixel position:
 1. **Locations are the assignment menu.** The prime-broker desk, the LP lounge, the research library and the risk room each offer that place's assignments. Taking one is a command `{type: "visit", location, assignment}`, checked by the engine against each partner's per-window attention budget.
