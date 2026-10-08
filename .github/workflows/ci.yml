@@ -28,3 +28,13 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npx tsc --noEmit
       - run: npm run build
+  game:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: game } }
+    env: { GODOT_URL: "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" }
+    steps:
+      - uses: actions/checkout@v4
+      - run: curl -sSL "$GODOT_URL" -o godot.zip && unzip -q godot.zip && mv Godot_v4.7.2-stable_linux.x86_64 godot
+      - run: ./godot --headless --path . --import
+      - run: ./godot --headless --path . --script res://tests/run_tests.gd
+      - run: ./godot --headless --path . --quit-after 300
