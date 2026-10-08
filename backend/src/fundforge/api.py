@@ -1,0 +1,75 @@
+"""HTTP API. Players poll /view; every mutation goes through POST /commands with an Idempotency-Key."""
+
+import os
+from functools import lru_cache
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from .engine import CommandRejected
+from .store import KeyReused, Store
+
+app = FastAPI(title="FundForge", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
+                   allow_methods=["GET", "POST"], allow_headers=["Authorization", "Idempotency-Key", "Content-Type"])
+
+
+@lru_cache
+def store() -> Store:
+    s = Store(os.environ.get("DATABASE_URL", "postgresql://fundforge:fundforge@localhost:5432/fundforge"))
+    s.init()
+    return s
+
+
+class NewRoom(BaseModel):
+    scenario: str = "case1"
+    pm_name: str = Field("", max_length=40)
+    mp_name: str = Field("", max_length=40)
+
+
+def seat(room_id: str, authorization: str = Header("")) -> str:
+    token = authorization.removeprefix("Bearer ").strip()
+    try:
+        return store().auth(room_id, token)
+    except PermissionError as e:
+        raise HTTPException(401, str(e)) from e
+
+
+@app.get("/api/health")
+def health():
+    return {"ok": True}
+
+
+@app.post("/api/rooms", status_code=201)
+def create_room(body: NewRoom):
+    try:
+        return store().create_room(body.scenario, body.pm_name, body.mp_name)
+    except CommandRejected as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@app.get("/api/rooms/{room_id}/view")
+def view(room_id: str, user: str = Depends(seat)):
+    version, s = store().session(room_id)
+    return {"version": version, "names": store().names(room_id), **s.view(user)}
+
+
+@app.get("/api/rooms/{room_id}/ledger")
+def ledger(room_id: str, entity: str = "fund", user: str = Depends(seat)):
+    if entity not in ("fund", "firm"):
+        raise HTTPException(422, "entity must be fund or firm")
+    _, s = store().session(room_id)
+    return {"entity": entity, "entries": s.ledger(entity, limit=1000), "digest": s.e.j.digest()}
+
+
+@app.post("/api/rooms/{room_id}/commands")
+def command(room_id: str, body: dict, user: str = Depends(seat), idempotency_key: str = Header(..., max_length=100)):
+    if not isinstance(body.get("type"), str):
+        raise HTTPException(422, "command type required")
+    try:
+        return store().apply(room_id, user, idempotency_key, body)
+    except KeyReused as e:
+        raise HTTPException(409, str(e)) from e
+    except (CommandRejected, KeyError, TypeError, ValueError) as e:
+        raise HTTPException(422, str(e) or "invalid command") from e

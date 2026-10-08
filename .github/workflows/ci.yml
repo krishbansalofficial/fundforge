@@ -4,6 +4,14 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: backend } }
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env: { POSTGRES_USER: fundforge, POSTGRES_PASSWORD: fundforge, POSTGRES_DB: fundforge }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U fundforge" --health-interval 2s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://fundforge:fundforge@localhost:5432/fundforge
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5

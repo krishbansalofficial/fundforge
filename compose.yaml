@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment: { POSTGRES_USER: fundforge, POSTGRES_PASSWORD: fundforge, POSTGRES_DB: fundforge }
+    ports: ["5432:5432"]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "fundforge"], interval: 2s, retries: 20 }
+  api:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://fundforge:fundforge@db:5432/fundforge
+      CORS_ORIGINS: http://localhost:3000
+    ports: ["8000:8000"]
+    depends_on: { db: { condition: service_healthy } }
