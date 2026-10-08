@@ -36,3 +36,17 @@ class Accrual:
             total = self.residual + exact
             posted = cents(total)
             return posted, Accrual(total - posted)
+
+
+def allocate(total: Decimal, weights: dict[str, Decimal]) -> dict[str, Decimal]:
+    """Split ``total`` cents pro rata by largest remainder; ties go to the smaller key (series ID)."""
+    wsum = sum(weights.values())
+    if wsum <= 0:
+        raise ValueError("non-positive participation; fund is in distress")
+    with localcontext(CTX):
+        exact = {k: total * w / wsum for k, w in weights.items()}
+        out = {k: v.quantize(CENT, rounding="ROUND_FLOOR") for k, v in exact.items()}
+        left = int((total - sum(out.values())) / CENT)
+        for k in sorted(exact, key=lambda k: (-(exact[k] - out[k]), k))[:left]:
+            out[k] += CENT
+    return out
