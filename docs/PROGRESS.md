@@ -1,23 +1,54 @@
 # Current project state
 
-Updated7 October2026. Design v2.2; application implementation not started locally.
+Updated 7 October 2026. The active plan is [REPLAN_V3](REPLAN_V3.md), a seven-week Case1 vertical slice. Design contracts v2.2 (FUND_ACCOUNTING, SCENARIO_CONTRACTS) remain the accounting authority.
 
-Continuation revision 2.2-M1: the entry tree contained the earlier uncommitted planning work at51eda0c, which was preserved. All 20 milestones through FF8 now have full packages in MILESTONE_PLANS; PLAN_REVIEW_AND_DECISIONS records current corrections,13 due decisions and pending evidence. Added pure session/arbitrary-path Case1 controls before human prototype, explicit recovery tails, controls/restriction mechanics and actual historical-replay delivery. Remote fetch confirmed main/origin/main both51eda0c before publication. Under the user's explicit commit/push instruction, commit `a404948` (27 planning/document/tooling files) was created and `git push origin main` succeeded, publishing51eda0c..a404948. This evidence update is a follow-up documentation commit; inspect latest Git history for its own final hash.
+## Done (committed on main)
 
-Original review entry HEAD51eda0c was clean; this follow-up preserved its planning changes. Recent commits confirm v2.1 audit, prior redesign and original document package. No backend/frontend/dependency manifest/test directory, Pydantic foundation or26 tests found. Existing source paths/Claude instructions/fixtures/scripts inspected. No work assumed transferred from other checkouts. The first planning pass did not commit/push; this continuation publishes its combined documentation under the user's explicit request. No deployment/installation/application implementation occurred.
+| Milestone | Commit | What exists |
+|---|---|---|
+| Re-plan | `53bb24f` | Advocate and challenger review recorded in REPLAN_V3. The 20-milestone sequence is superseded, and FF6–FF8 are now stretch |
+| M0 | `1013dc5` | `backend/src/fundforge/money.py` (Decimal, HALF_EVEN, residual `Accrual`) and `journal.py` (immutable, balanced, per-entity, idempotent entry IDs, sha256 digest). CI workflow |
+| M1 | `d71fd1f` | `series.py`: participation add-back, HWM provision, cohort allocation, partial-redemption crystallization. `risk.py`: exposures and margin |
+| M2 | `77f5289`, `d3e4147`, `f03001f` | `fixtures/case1.json` plus `tape.py`: materialized day 12–21 tape, authoring-fault rejection and tape digest. `execution.py`: quadratic impact and a shared participation cap. `engine.py`: dated phases, T+1 settlement, collateral, recall/replacement, margin call and forced liquidation, ACT/360 and ACT/365 accruals, invoicing, dealing and payment, and firm payroll. State is reconciled against the journal after every event |
+| M3 | `99a5a6e` | `governance.py`: two distinct partners; PM tickets capped at 5% of NAV and 15% turnover; digest-bound joint packages with no self-approval; MP-only borrow and reserve; time advances only when both are ready; as-of player view |
+| M4 | `ea868b6` | `store.py` plus `api.py`: Postgres append-only command log and journal (enforced by trigger), room-row lock per command, idempotency keys, replay-rebuilt state, hashed seat tokens. `compose.yaml`, backend Dockerfile, and CI with a Postgres service |
 
-Planning changes: three bounded read-only independent reviews; evidence/consequences/dispositions in DESIGN_REVIEW_V2_2. Corrected Case2 issuer concentration, explicit replacement cutoff/transfer, frozen covered collateral, voluntary margin priority and termination; removed dominated active Case3 hire; extended gated-unit horizon; authored complete bounded schedules; concrete operating commands, precise numeric/hash/retry/readiness and measured playtest plan. Split large gates and added early internal human experiment. SEO/marketing excluded. Prior financial research retained with narrowly updated sources/dependency choices.
+## Evidence actually observed (local, Windows, Python 3.14.3, Postgres 17 in Docker)
 
-Changed canonical master/game/accounting/scenario/architecture/plan/acceptance/review/library/source/decisions/Claude handoff/prompts and fixture annotations; added SCENARIO_CONTRACTS, DESIGN_REVIEW_V2_2, IMPLEMENTATION_HANDOFF. Combined Markdown/Word regenerated with portable documentation tooling. See PACKAGING_VALIDATION for exact actual results and original environment failures. These are package/arithmetic checks, not application tests. Full independent accrued path totals, compiled executable tapes, economic runtime/concurrency/playtest results remain pending.
+- `cd backend && DATABASE_URL=... uv run pytest -q` passed 44 tests (45 collected, 1 warning) at `ea868b6`. These include the FUND_ACCOUNTING §6 oracles 1–7, the Case1 fill prices from the contract, and four separate-connection race tests, which were run three times.
+- Case1 scripted outcomes:
+  - S1 (early cover plus BEAM sale): WIN.
+  - S2 (replacement borrow plus cure): WIN.
+  - F1 (inaction): SURVIVAL through a forced buy-in. It stays solvent with about $13k of maintenance headroom.
+  - F2 (keep the full BRIN short, no cure): forced margin liquidation.
+- `docker compose up api`: `/api/health` and room creation answered over HTTP.
+- GitHub Actions CI has not yet been observed passing remotely. Nothing has been pushed in this session.
 
-Publication checks actually run: documentation build/validator passed (3,055 checks before this evidence update; final count printed after regeneration), all20 work packages cover roadmap IDs and have required fields, dependency graph acyclic, Git diff/staged-diff checks passed, remote fetched without divergence, commit and push succeeded. No application files/backend/frontend/tests/prototype exist. No dependency installed. Word source-content/structure validated; page rendering unavailable.
+## In progress (uncommitted at the time of writing)
+
+- **Fixes from the bounded finance review**, applied in `engine.py` and `governance.py` with regression tests in `test_engine.py`:
+  1. The replacement transfer is capped at the open recall, and the most expensive loan is returned first.
+  2. A cover or buy settlement that hits a cash shortfall is recorded as a failed settlement and stays pending, so cash never goes negative.
+  3. Collateral is netted per symbol, so frozen cash is never released on trade date.
+  4. The default treasury buffer is 2% of NAV plus known payables.
+  5. Closed series are skipped during accrual.
+
+  Test status for these fixes: **pending re-run**.
+- `frontend/`: a Next.js 15.5.4 scaffold has been created but not installed or built. Design plan: a blue-grey "prime-broker statement" palette, IBM Plex Sans Condensed with tabular figures, and a deadline ribbon as the single bold element.
+
+## Known limitations (deliberate, recorded in code)
+
+- No FIFO lots or realized/unrealized split.
+- No gates or escrow.
+- No cash budgets on market orders.
+- Limit-price search uses coarse quantity steps.
+- Forced margin liquidation uses a largest-value-first heuristic.
+- The replay cache is per process.
+- Seat tokens are bearer links, not production auth.
+- Mandate limits other than margin and the ticket caps are not enforced.
+- No human playtest has run.
+- No balance, load or security study has been done.
 
 ## One next task
 
-FF0a only as detailed in IMPLEMENTATION_HANDOFF/X01–X07: compile Case1 authored12–21 record schedule, typed schema/loader/rejection checks, three actor-tagged scripts and independent dated financial oracle with coverage/hashes. Do not start full scaffold/economic features or declare playable status. After verified FF0a update handoff to FF0b. Original P01/P02 scaffold instructions superseded by the revised prompt pack.
-
-Then follow the documented gates: FF0b, FF1a/b, FF2a/b/c and FF3a/b, FF4a/b, FF5a/b/c first playable, FF6a/b/c full initial game; FF7a/b and FF8 optional final extension decision. All application milestones remain pending. No application tests, DB/concurrency experiments, playtests, provider/model calls or installs occurred while expanding these plans.
-
-## Evidence discipline
-
-Inspect current uncommitted planning diff before editing; preserve it. Record actual commands/versions/hashes and pass/fail/pending separately. Original packaging claims from6 October are historical; current command results in PACKAGING_VALIDATION. No measured fun, sustainable firm, empirically calibrated market, database safety or investment skill claim exists. Conditional Renewal does not fund the next quarter. Word rendering/compatibility is unverified despite valid OOXML/package checks.
+Re-run the backend suite on the review fixes and commit them. Then build M5: a Next.js desk that polls `/api/rooms/{id}/view`, with the ticket/package/sign flow, MP borrow and reserve controls, ready state, ledger and debrief.

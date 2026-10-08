@@ -1,5 +1,7 @@
 # Claude handoff: FundForge v2.2
 
+> **Current state: see [PROGRESS](PROGRESS.md) and [ENGINEERING](ENGINEERING.md); M0–M4 implemented, M5 frontend next.**
+>
 > **Superseded 7 October 2026 by [REPLAN_V3](REPLAN_V3.md).** FF0a's hand-built full dated oracle is replaced by FUND_ACCOUNTING §6 oracle tests + property tests; implementation follows M0–M6. Content below is retained as v2.2 history.
 
 7 October2026. Planning only. Original v2.2 review entry HEAD `51eda0c1aa806e0c9f94b7e2527a013b4dedb77f` was clean; this continuation entered its preserved planning diff. The user requested publication of the completed plans; see PROGRESS for actual publication evidence and inspect current Git state before editing. Repository visibility was not freshly verified. Local tree has audit/docs/fixtures and document scripts, **no application, Python/Pydantic foundation or26-test suite**. Do not assume work in another session transferred.
