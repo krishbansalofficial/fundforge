@@ -54,6 +54,7 @@ class NewRoom(BaseModel):
     scenario: str = "case1"
     pm_name: str = Field("", max_length=40)
     mp_name: str = Field("", max_length=40)
+    solo_role: str | None = Field(None, pattern="^(pm|mp)$")  # play alone; the bot takes the other seat
 
 
 def seat(room_id: str, authorization: str = Header("")) -> str:
@@ -72,7 +73,7 @@ def health():
 @app.post("/api/rooms", status_code=201)
 def create_room(body: NewRoom):
     try:
-        return store().create_room(body.scenario, body.pm_name, body.mp_name)
+        return store().create_room(body.scenario, body.pm_name, body.mp_name, solo_role=body.solo_role)
     except CommandRejected as e:
         raise HTTPException(422, str(e)) from e
 

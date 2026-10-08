@@ -44,7 +44,7 @@ def canonical(obj) -> str:
 
 
 class Session:
-    def __init__(self, engine: Engine, partners: dict[str, str]):
+    def __init__(self, engine: Engine, partners: dict[str, str], bots: frozenset[str] = frozenset()):
         if set(partners) != set(ROLES) or len(set(partners.values())) != 2:
             raise ValueError("exactly two distinct human partners are required")
         self.e = engine
@@ -55,6 +55,8 @@ class Session:
         self.turnover = Decimal(0)
         self.opening_nav = engine.nav()
         self.log: list[dict] = []
+        self.bots = frozenset(bots)  # roles played by the deterministic partner bot (solo mode)
+        self.chat: list[dict] = []
         # Real-time clock: wall time only decides WHEN the server sends a logged `tick`; economics never see it.
         self.clock = {"speed": 0, "paused": True, "reason": "Opening: review the book and press play."}
 
@@ -84,12 +86,12 @@ class Session:
         if handler is None:
             raise CommandRejected(f"unknown command type {command.get('type')!r}")
         # ponytail: snapshot by deepcopy (tape shared via memo); per-entity undo log if profiling says so
-        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover, self.clock),
+        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover, self.clock, self.chat),
                               {id(self.e.tape): self.e.tape})
         try:
             result = handler(self, role, command)
         except Exception:
-            self.e, self.packages, self.ready, self.turnover, self.clock = saved
+            self.e, self.packages, self.ready, self.turnover, self.clock, self.chat = saved
             raise
         self.results[key] = (fp, result)
         self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "key": key,
@@ -191,6 +193,14 @@ class Session:
         self.clock = {"speed": speed, "paused": False, "reason": None}
         return {"clock": self.clock}
 
+    def _cmd_say(self, role, c):
+        text = str(c.get("text", "")).strip()
+        if not text or len(text) > 240:
+            raise CommandRejected("messages must be 1-240 characters")
+        self.chat.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "text": text,
+                          "ref": c.get("ref")})
+        return {"said": True}
+
     def _cmd_pause(self, role, c):
         self.clock = {**self.clock, "paused": True, "reason": f"Paused by the {ROLE_NAMES[role]}."}
         return {"clock": self.clock}
@@ -253,6 +263,8 @@ class Session:
                       "finished": e.finished()},
             "ready": sorted(self.ready),
             "clock_state": self.clock,
+            "bots": sorted(self.bots),
+            "chat": self.chat[-40:],
             "version": self.version,
             "fund": {
                 "nav": str(nav), "cash": str(e.bal("cash")), "collateral": str(e.bal("collateral")),
@@ -285,7 +297,7 @@ class Session:
             "incidents": e.incidents,
             "decisions": [{"day": x["day"], "phase": x["phase"], "role": x["role"], "type": x["command"]["type"],
                            "detail": {k: v for k, v in x["command"].items() if k != "type"}}
-                          for x in self.log if x["command"]["type"] not in ("ready", "tick")],
+                          for x in self.log if x["command"]["type"] not in ("ready", "tick", "say")],
             "outcome": e.outcome() if e.finished() else None,
         }
 

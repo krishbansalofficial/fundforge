@@ -195,3 +195,22 @@ def test_both_variants_can_be_drawn():
     for v in ("base", "rally"):
         rid = st.create_room("case1", "A", "B", variant=v)["room_id"]
         assert fresh(st).verify(rid)["version"] == 0
+
+
+def test_solo_room_bot_rows_are_chained_and_verifiable():
+    st = Store(DSN)
+    _opened.append(st)
+    st.init()
+    r = st.create_room("case1", "Me", "", variant="base", solo_role="pm")
+    rid, me = r["room_id"], st.auth(r["room_id"], r["tokens"]["pm"])
+    assert set(r["tokens"]) == {"pm"} and r["bot_role"] == "mp"
+    for i in range(6):
+        st.apply(rid, me, f"r{i}", {"type": "ready"})
+    with psycopg.connect(DSN) as c:
+        bots = c.execute("select count(*) from commands where room_id=%s and user_id='bot:v1'", (rid,)).fetchone()[0]
+    assert bots > 6  # research, acceptance, chat and ready answers
+    rep = fresh(st).verify(rid)
+    _, s, names = fresh(st).session(rid)
+    assert names["mp"] == "Morgan (bot)" and s.view(me)["bots"] == ["mp"]
+    assert any(m["role"] == "mp" for m in s.view(me)["chat"])
+    assert rep["version"] == s.version
