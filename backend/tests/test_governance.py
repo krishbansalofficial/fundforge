@@ -90,3 +90,29 @@ def test_decision_history_records_who_did_what_but_not_ready_clicks():
     s.handle("ana", "k2", {"type": "ready"})
     d = s.view("ana")["decisions"]
     assert d == [{"day": 12, "phase": "PUBLIC_MARK", "role": "mp", "type": "research", "detail": {"topic": "borrow"}}]
+
+
+def test_rejected_command_leaves_no_partial_state():
+    s = session()
+    pkg = s.handle("ana", "k1", {"type": "propose", "package_id": "p",
+                                 "orders": [{"order_id": "a", "sym": "BEAM", "side": "SELL", "qty": 20000},
+                                            {"order_id": "b", "sym": "ZZZZ", "side": "SELL", "qty": 1}]})
+    digest = s.e.j.digest()
+    with pytest.raises(CommandRejected):
+        s.handle("ben", "k2", {"type": "sign", "package_id": "p", "digest": pkg["digest"]})  # 2nd leg invalid
+    assert s.e.orders == [] and s.packages["p"].status == "PENDING_APPROVAL" and s.e.j.digest() == digest
+
+
+def test_unknown_command_is_rejected_not_crash():
+    with pytest.raises(CommandRejected, match="unknown command"):
+        session().handle("ana", "k", {"type": "launch_missiles"})
+
+
+def test_ready_bound_to_seen_version():
+    s = session()
+    seen = s.version
+    s.handle("ana", "k1", {"type": "propose", "package_id": "p",
+                           "orders": [{"order_id": "a", "sym": "BEAM", "side": "SELL", "qty": 20000}]})
+    with pytest.raises(CommandRejected, match="stale"):
+        s.handle("ben", "k2", {"type": "ready", "version": seen})
+    assert s.handle("ben", "k3", {"type": "ready", "version": s.version})["advanced"] is False

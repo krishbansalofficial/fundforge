@@ -10,6 +10,7 @@
 * Time advances only when both partners are ready; any state change clears readiness.
 """
 
+import copy
 import hashlib
 import json
 from dataclasses import dataclass, field
@@ -60,7 +61,7 @@ class Session:
 
     # ---------- single entry point ----------
     def handle(self, user: str, key: str, command: dict):
-        """Apply ``command`` once per idempotency ``key``."""
+        """Apply ``command`` once per idempotency ``key``. All-or-nothing: a rejection leaves no trace."""
         fp = hashlib.sha256(canonical([user, command]).encode()).hexdigest()
         if key in self.results:
             prior_fp, result = self.results[key]
@@ -68,12 +69,26 @@ class Session:
                 raise CommandRejected(f"idempotency key {key!r} reused for a different command")
             return result
         role = self.role_of(user)
-        result = getattr(self, "_cmd_" + command["type"])(role, command)
+        handler = COMMANDS.get(command.get("type"))
+        if handler is None:
+            raise CommandRejected(f"unknown command type {command.get('type')!r}")
+        # ponytail: snapshot by deepcopy (tape shared via memo); per-entity undo log if profiling says so
+        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover), {id(self.e.tape): self.e.tape})
+        try:
+            result = handler(self, role, command)
+        except Exception:
+            self.e, self.packages, self.ready, self.turnover = saved
+            raise
         self.results[key] = (fp, result)
         self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "command": command, "result": result})
         if command["type"] != "ready":
             self.ready.clear()
         return result
+
+    @property
+    def version(self) -> int:
+        """Accepted-command count; equals the persisted room version."""
+        return len(self.log)
 
     # ---------- commands ----------
     def _cmd_ticket(self, role, c):
@@ -138,6 +153,8 @@ class Session:
         return {"reserve": c["amount"]}
 
     def _cmd_ready(self, role, c):
+        if "version" in c and c["version"] != self.version:
+            raise CommandRejected("stale: the plan changed since you looked; review it before marking ready")
         self.ready.add(role)
         if self.ready == set(ROLES) and not self.e.finished():
             self.ready.clear()
@@ -174,6 +191,7 @@ class Session:
             "clock": {"day": e.ev.day, "date": e.ev.date.isoformat(), "phase": e.ev.phase, "next": self._next(),
                       "finished": e.finished()},
             "ready": sorted(self.ready),
+            "version": self.version,
             "fund": {
                 "nav": str(nav), "cash": str(e.bal("cash")), "collateral": str(e.bal("collateral")),
                 "debt": str(-e.bal("debt")), "credit_left": str(e.credit_left()), "reserve": str(e.buffer()),
@@ -211,3 +229,6 @@ class Session:
 
     def ledger(self, entity: str = "fund", limit: int = 200) -> list[dict]:
         return [x.canonical() for x in self.e.j.entries if x.entity == entity][-limit:]
+
+
+COMMANDS = {name[len("_cmd_"):]: fn for name, fn in vars(Session).items() if name.startswith("_cmd_")}
