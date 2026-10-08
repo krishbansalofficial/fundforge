@@ -203,12 +203,19 @@ class Store:
             return self.apply(room, CLOCK, f"tick-{version}", {"type": "tick", "expected_version": version})
         except CommandRejected:
             return None
+        except RoomIncompatible:  # park rooms from older rules/tapes instead of retrying forever
+            with self.pool.connection() as c:
+                c.execute("update rooms set running=false where id=%s", (room,))
+            return None
 
     def clock_info(self, room: str) -> dict:
         with self.pool.connection() as c:
-            row = c.execute("select running, speed, next_tick_at, now() from rooms where id=%s", (room,)).fetchone()
+            row = c.execute("select running, speed, next_tick_at, now(),"
+                            " greatest(0, extract(epoch from next_tick_at - now()))::float from rooms where id=%s",
+                            (room,)).fetchone()
         return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
-                "server_now": row[3].isoformat(), "seconds_per_window": SECONDS_PER_WINDOW}
+                "server_now": row[3].isoformat(), "next_tick_in": row[4],
+                "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1)}
 
     @staticmethod
     def _append_journal(c, room, entries, seq):
