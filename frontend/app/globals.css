@@ -152,6 +152,8 @@ tr.entry-start td { border-top: 1px solid var(--ink-soft); }
 .debrief dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.2rem; margin: 0; }
 .debrief dt { color: var(--ink-soft); }
 .debrief dd { margin: 0; }
+.decisions { margin: 0; padding: 0; list-style: none; display: grid; }
+.decisions li { display: grid; grid-template-columns: 3.6rem 1fr; gap: 0.5rem; padding: 0.3rem 0; border-bottom: 1px solid var(--rule); }
 .verdict { font-size: 2.6rem; line-height: 1; font-weight: 700; }
 .verdict.win { color: var(--gain); }
 .verdict.survival { color: var(--amber); }

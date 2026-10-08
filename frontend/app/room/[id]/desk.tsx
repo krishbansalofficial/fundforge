@@ -436,6 +436,31 @@ function Debrief({ v, headroom }: { v: View; headroom: number }) {
         <dt>Unpaid or failed</dt><dd>{o.unpaid.length ? o.unpaid.join("; ") : "none"}</dd>
         <dt>Replay proof</dt><dd className="digest">tape {o.tape_digest.slice(0, 12)}, journal {o.journal_digest.slice(0, 12)}</dd>
       </dl>
+      <h2>How you got here</h2>
+      {v.decisions.length === 0 ? <p className="muted">Neither partner acted; the tape and the broker decided.</p> : (
+        <ol className="decisions">
+          {v.decisions.map((d: any, i: number) => (
+            <li key={i}>
+              <span className="when">Day {d.day}</span>
+              <span>{v.names[d.role]} {describe(d)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   );
+}
+
+function describe(d: any): string {
+  const x = d.detail;
+  switch (d.type) {
+    case "ticket": return `sent a ticket: ${x.side} ${Number(x.qty).toLocaleString()} ${x.sym}`;
+    case "propose": return `proposed ${x.orders.map((o: any) => `${o.side} ${Number(o.qty).toLocaleString()} ${o.sym}`).join(", ")}`;
+    case "sign": return "countersigned the package";
+    case "cancel": return `canceled ${x.order_id}`;
+    case "research": return `assigned research: ${x.topic.replace("_", " ")}`;
+    case "accept_replacement": return "accepted the 40% replacement borrow";
+    case "set_reserve": return `set the treasury reserve to ${money(x.amount)}`;
+    default: return d.type;
+  }
 }
