@@ -1,54 +1,31 @@
 # Current project state
 
-Updated 7 October 2026. The active plan is [REPLAN_V3](REPLAN_V3.md), a seven-week Case1 vertical slice. Design contracts v2.2 (FUND_ACCOUNTING, SCENARIO_CONTRACTS) remain the accounting authority.
+Updated 8 October 2026. Active plan: [ROADMAP](ROADMAP.md) (v4). Graphical layer: [WORLD_GAME_PLAN](WORLD_GAME_PLAN.md) as amended in the roadmap.
 
-## Done (committed on main)
+## What exists and runs
 
-| Milestone | Commit | What exists |
+| Area | State | Evidence |
 |---|---|---|
-| Re-plan | `53bb24f` | Advocate and challenger review recorded in REPLAN_V3. The 20-milestone sequence is superseded, and FF6–FF8 are now stretch |
-| M0 | `1013dc5` | `backend/src/fundforge/money.py` (Decimal, HALF_EVEN, residual `Accrual`) and `journal.py` (immutable, balanced, per-entity, idempotent entry IDs, sha256 digest). CI workflow |
-| M1 | `d71fd1f` | `series.py`: participation add-back, HWM provision, cohort allocation, partial-redemption crystallization. `risk.py`: exposures and margin |
-| M2 | `77f5289`, `d3e4147`, `f03001f` | `fixtures/case1.json` plus `tape.py`: materialized day 12–21 tape, authoring-fault rejection and tape digest. `execution.py`: quadratic impact and a shared participation cap. `engine.py`: dated phases, T+1 settlement, collateral, recall/replacement, margin call and forced liquidation, ACT/360 and ACT/365 accruals, invoicing, dealing and payment, and firm payroll. State is reconciled against the journal after every event |
-| M3 | `99a5a6e` | `governance.py`: two distinct partners; PM tickets capped at 5% of NAV and 15% turnover; digest-bound joint packages with no self-approval; MP-only borrow and reserve; time advances only when both are ready; as-of player view |
-| M4 | `ea868b6` | `store.py` plus `api.py`: Postgres append-only command log and journal (enforced by trigger), room-row lock per command, idempotency keys, replay-rebuilt state, hashed seat tokens. `compose.yaml`, backend Dockerfile, and CI with a Postgres service |
+| Engine (`backend/src/fundforge`) | Decimal per-entity journal, LP series and HWM, impact execution, dated Case1 session (recall, margin, settlement, dealing, firm payroll) | Oracle, property, scenario and golden-digest tests |
+| Rules | Versioned compliance mandate on tickets, signatures and every fill; hidden market variants (sell-off or rally); benchmark-relative score and league rank | `test_balance.py`: flatten refused, no dominant policy |
+| Market | Five rule-based rival funds whose flow moves prices. Permanent impact with resilience produces an emergent short squeeze, deleveraging, blow-ups and a crowding report | `test_market.py` |
+| Governance | Two roles, digest-bound packages, all-or-nothing commands, version-bound ready, chat | Stateful Hypothesis test of random command sequences |
+| Solo play | Deterministic bot partner (`bot:v1`, not an LLM) using the same commands and checks; owner decision 8 Oct 2026 | `test_bot.py`; bot rows chained and verified in Postgres |
+| Time | Real-time clock (pause, 1x, 2x, 4x) with auto-pause; ticks are logged, version-bound commands | Clock tests; two schedulers racing produce one tick |
+| Persistence | PostgreSQL command log with numbered migrations, pinned rules/tape/variant per room, hash chain, SQL-checked balanced `journal_lines`, TRUNCATE refused; `verify(room)` re-derives everything | Separate-connection race and tamper-detection tests |
+| Game client (`game/`) | Godot 4.7 desktop simulation. The 3D office and city use Kenney CC0 models, animated characters, lighting tied to the in-world hour, rival towers, a Street league table, solo/duo menu and HUD terminals per location | Headless Godot tests and boot check in CI; screenshots verified locally |
+| Web desk (`frontend/`) | Earlier Next.js two-seat desk, kept as a secondary client | `npm run build`, audit clean |
 
-## Evidence actually observed (local, Windows, Python 3.14.3, Postgres 17 in Docker)
+Most recent full backend run, with Postgres: 81 passed (`886b7e2`). Game: 35 headless checks passed (`8b1f88a`). GitHub Actions has not run yet because nothing has been pushed.
 
-- `cd backend && DATABASE_URL=... uv run pytest -q` passed 44 tests (45 collected, 1 warning) at `ea868b6`. These include the FUND_ACCOUNTING §6 oracles 1–7, the Case1 fill prices from the contract, and four separate-connection race tests, which were run three times.
-- Case1 scripted outcomes:
-  - S1 (early cover plus BEAM sale): WIN.
-  - S2 (replacement borrow plus cure): WIN.
-  - F1 (inaction): SURVIVAL through a forced buy-in. It stays solvent with about $13k of maintenance headroom.
-  - F2 (keep the full BRIN short, no cure): forced margin liquidation.
-- `docker compose up api`: `/api/health` and room creation answered over HTTP.
-- GitHub Actions CI has not yet been observed passing remotely. Nothing has been pushed in this session.
+## Known limitations
 
-## In progress (uncommitted at the time of writing)
+- Case1 is the only scenario. The 30-day v1 campaign, research cards and LP agents are P4 work in the roadmap.
+- The partner avatar walks to the place of its last decision; live WebSocket presence is not built.
+- Squeeze strength is limited by day-16 BRIN volume (25k shares); tuning notes are in the backend commit.
+- No deployment, recorded playtest or exported game builds yet.
+- A realistic-graphics pass (PBR textures, HDRI lighting, SDFGI, more realistic humans) is in progress.
 
-- **Fixes from the bounded finance review**, applied in `engine.py` and `governance.py` with regression tests in `test_engine.py`:
-  1. The replacement transfer is capped at the open recall, and the most expensive loan is returned first.
-  2. A cover or buy settlement that hits a cash shortfall is recorded as a failed settlement and stays pending, so cash never goes negative.
-  3. Collateral is netted per symbol, so frozen cash is never released on trade date.
-  4. The default treasury buffer is 2% of NAV plus known payables.
-  5. Closed series are skipped during accrual.
+## Next task
 
-  Test status for these fixes: **pending re-run**.
-- `frontend/`: a Next.js 15.5.4 scaffold has been created but not installed or built. Design plan: a blue-grey "prime-broker statement" palette, IBM Plex Sans Condensed with tabular figures, and a deadline ribbon as the single bold element.
-
-## Known limitations (deliberate, recorded in code)
-
-- No FIFO lots or realized/unrealized split.
-- No gates or escrow.
-- No cash budgets on market orders.
-- Limit-price search uses coarse quantity steps.
-- Forced margin liquidation uses a largest-value-first heuristic.
-- The replay cache is per process.
-- Seat tokens are bearer links, not production auth.
-- Mandate limits other than margin and the ticket caps are not enforced.
-- No human playtest has run.
-- No balance, load or security study has been done.
-
-## One next task
-
-Re-run the backend suite on the review fixes and commit them. Then build M5: a Next.js desk that polls `/api/rooms/{id}/view`, with the ticket/package/sign flow, MP borrow and reserve controls, ready state, ledger and debrief.
+Finish the realism pass, then P2: deploy plus exported builds, an end-to-end two-client run that records the trailer, and docs consolidation.
