@@ -26,7 +26,8 @@ func _dev_flags() -> void:
 	if args.has("goto"):
 		await get_tree().create_timer(1.5).timeout
 		if office:
-			office.me.walk_to(WorldRules.LOCATIONS[args["goto"]]["spot"])
+			var spot: Vector2 = WorldRules.LOCATIONS[args["goto"]]["spot"]
+			office.me.walk_to(Vector3(spot.x, 0.0, spot.y))
 	if args.has("shot"):
 		await get_tree().create_timer(float(args.get("shot-after", "6"))).timeout
 		await RenderingServer.frame_post_draw

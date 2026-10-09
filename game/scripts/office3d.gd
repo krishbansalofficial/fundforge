@@ -11,6 +11,16 @@ const F := "res://assets/kenney/furniture/%s.glb"
 const CITY := "res://assets/kenney/city/%s.glb"
 const ROAD := "res://assets/kenney/roads/%s.glb"
 const WALL := Vector3(1.0, 0.55, 1.0)  # cutaway height so the camera sees into rooms
+## Rival funds' towers across the street: id -> [name, model, x, height at scale 3].
+const RIVALS := {
+	"vantage": ["Vantage Quant", "building-a", -3.2, 3.9],
+	"halcyon": ["Halcyon Partners", "building-skyscraper-c", 2.2, 12.3],
+	"northbeam": ["Northbeam Capital", "building-skyscraper-a", 13.8, 8.7],
+	"granite": ["Granite Macro", "building-h", 18.0, 3.9],
+	"copperline": ["Copperline Activist", "building-c", 21.4, 2.7],
+}
+const STREET_CAM := Vector3(9.8, 13.0, -13.0)
+const STREET_LOOK := Vector3(9.8, 6.5, 20.0)
 
 var role := "pm"
 var me: Actor3D
@@ -37,6 +47,8 @@ var _mode := ""  # "", "red", "green"
 var _alarm := false
 var _halt := false
 var _glow_research := 0.0
+var _towers := {}  # rival id -> {beacon, label, sign, light, status, flash}
+var _look := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -133,18 +145,17 @@ func _build_city() -> void:
 	_plane(Rect2(-6, 17, 36, 1), 0.01, Color("#8c8f93"))  # far sidewalk
 	for x in [2, 8, 14, 20]:
 		_model(ROAD % "light-square", Vector3(x, 0.0, 14.8), 0.0, 2.6)
-	# prime broker building across the street, plus neighbours for a skyline
+	# prime broker building across the street, flanked by the rival funds' towers
 	_model(CITY % "building-e", Vector3(8.5, 0.0, 20.2), 180.0, 3.2)
-	_model(CITY % "building-skyscraper-c", Vector3(1.5, 0.0, 21.0), 180.0, 3.0)
-	_model(CITY % "building-skyscraper-a", Vector3(15.5, 0.0, 21.0), 180.0, 3.0)
-	_model(CITY % "building-h", Vector3(21.5, 0.0, 20.0), 180.0, 3.0)
-	_model(CITY % "building-a", Vector3(-3.5, 0.0, 20.0), 180.0, 3.0)
+	for id in RIVALS:
+		_build_tower(id)
 	var sign := Label3D.new()
 	sign.text = "PRIME BROKER"
 	sign.font_size = 96
 	sign.pixel_size = 0.006
 	sign.modulate = Color("#f0c27a")
 	sign.outline_size = 16
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # readable from the office and from street view
 	sign.position = Vector3(8.5, 3.3, 18.4)
 	add_child(sign)
 	# exchange board on the street
@@ -158,14 +169,52 @@ func _build_city() -> void:
 	add_child(_board_label)
 
 
+func _build_tower(id: String) -> void:
+	var spec: Array = RIVALS[id]
+	var x: float = spec[2]
+	var h: float = spec[3]
+	_model(CITY % spec[1], Vector3(x, 0.0, 21.0), 180.0, 3.0)
+	var label := Label3D.new()
+	label.text = spec[0]
+	label.font_size = 72
+	label.pixel_size = 0.008
+	label.outline_size = 18
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true  # never hidden behind a neighbouring tower
+	label.position = Vector3(x, h + 1.3, 20.0)
+	add_child(label)
+	var sign := Label3D.new()
+	sign.text = "LIQUIDATING"
+	sign.font_size = 80
+	sign.pixel_size = 0.008
+	sign.outline_size = 18
+	sign.modulate = Color("#ff3a2a")
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sign.no_depth_test = true
+	sign.position = Vector3(x, h * 0.5, 18.7)
+	sign.visible = false
+	add_child(sign)
+	var light := OmniLight3D.new()
+	light.position = Vector3(x, h * 0.5, 18.2)
+	light.omni_range = 6.0
+	light.light_color = Color("#ff2a1a")
+	light.light_energy = 0.0
+	add_child(light)
+	_towers[id] = {"beacon": _emissive(Vector3(0.6, 0.35, 0.6), Vector3(x, h + 0.2, 21.0), Color("#2fd36a")),
+			"label": label, "sign": sign, "light": light, "status": "", "flash": 0.0}
+
+
 func _build_rooms() -> void:
 	var floors := {"trading": Color("#3a4c63"), "committee": Color("#6a4e35"), "risk": Color("#4a3a40"),
-			"research": Color("#3c5440"), "backoffice": Color("#4a4a55"), "lp": Color("#6b5a3e"), "broker": Color("#3b5560")}
+			"research": Color("#3c5440"), "backoffice": Color("#4a4a55"), "lp": Color("#6b5a3e"), "broker": Color("#3b5560"), "street": Color("#5a6470")}
 	for key in WorldRules.LOCATIONS:
 		if key == "broker":
 			continue
 		var r: Rect2i = WorldRules.LOCATIONS[key]["rect"]
 		_floor_mats[key] = _plane(Rect2(r.position.x, r.position.y, r.size.x, r.size.y), 0.01, floors[key], 0.6)
+		if key == "street":  # open-air terrace: no walls or lamp, just the floor and its sign
+			_room_label(key, Vector3(r.position.x + r.size.x / 2.0, 1.9, r.position.y + 0.5))
+			continue
 		# back walls only (cutaway, like a management sim): along the north and west edges
 		for x in range(r.size.x):
 			var wall := "wallWindow" if (x % 3 == 1 and r.position.y == 2) else "wall"
@@ -178,14 +227,18 @@ func _build_rooms() -> void:
 		lamp.light_energy = 0.7
 		lamp.light_color = Color("#ffe2b8")
 		add_child(lamp)
-		var label := Label3D.new()
-		label.text = WorldRules.LOCATIONS[key]["label"]
-		label.font_size = 64
-		label.pixel_size = 0.005
-		label.outline_size = 12
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		label.position = Vector3(r.position.x + r.size.x / 2.0, 1.2, r.position.y + 0.4)
-		add_child(label)
+		_room_label(key, Vector3(r.position.x + r.size.x / 2.0, 1.2, r.position.y + 0.4))
+
+
+func _room_label(key: String, pos: Vector3) -> void:
+	var label := Label3D.new()
+	label.text = WorldRules.LOCATIONS[key]["label"]
+	label.font_size = 64
+	label.pixel_size = 0.005
+	label.outline_size = 12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.position = pos
+	add_child(label)
 
 
 func _build_furniture() -> void:
@@ -306,10 +359,34 @@ func apply_view(view: Dictionary, effects: Array) -> void:
 			"courier_back": _send_courier(false)
 			"letter_committee": _place_letter()
 			"lp_visitor": _send_visitor()
+			"rival_alarm": _shake = maxf(_shake, 0.35)
+			"rival_blowup":
+				for t in traders: t.excited = true
+	_apply_league(view)
 	var other := "mp" if role == "pm" else "pm"
 	var dest := _spot(WorldRules.partner_location(view, other)) + Vector3(0.7, 0, 0.5)
 	if partner and partner.position.distance_to(dest) > 1.0 and not partner.is_moving():
 		partner.follow(_route(partner.position, dest))
+
+
+## Rival towers mirror the league table: name, live return, beacon status; a red flash when one turns.
+func _apply_league(view: Dictionary) -> void:
+	for row in WorldRules.league_rows(view):
+		var id: String = row.get("id", "")
+		if not _towers.has(id):
+			continue
+		var tw: Dictionary = _towers[id]
+		var status: String = row.get("status", "active")
+		var bps: int = row["return_bps"]
+		var label: Label3D = tw["label"]
+		label.text = "%s
+%+d bps" % [row.get("name", RIVALS[id][0]), bps]
+		label.modulate = Color("#7dffa8") if bps >= 0 else Color("#ff7a6a")
+		(tw["sign"] as Label3D).visible = status == "liquidating"
+		var prev: String = tw["status"]
+		if prev != "" and prev != status and status in ["deleveraging", "liquidating"]:
+			tw["flash"] = 4.0 if status == "liquidating" else 1.5
+		tw["status"] = status
 
 
 ## Simple door-aware route: step out to the corridor in front of the rooms, walk along it, then step in.
@@ -405,12 +482,17 @@ func _process(delta: float) -> void:
 			_near = loc
 			near_location.emit(loc)
 		var target := me.position + Vector3(0, 0.5, 0)
-		var offset := Vector3(sin(_cam_yaw), 0.95, cos(_cam_yaw)).normalized() * _cam_dist
-		_camera.position = _camera.position.lerp(target + offset, minf(1.0, delta * 4.0)) if _camera.position != Vector3.ZERO else target + offset
+		var cam_pos := target + Vector3(sin(_cam_yaw), 0.95, cos(_cam_yaw)).normalized() * _cam_dist
+		if _near == "street":  # street view: over the office roofline, facing the rival towers
+			target = STREET_LOOK
+			cam_pos = STREET_CAM
+		var k := minf(1.0, delta * 4.0) if _camera.position != Vector3.ZERO else 1.0
+		_camera.position = _camera.position.lerp(cam_pos, k)
+		_look = _look.lerp(target, k)
 		if _shake > 0.0:
 			_shake -= delta
 			_camera.position += Vector3(randf_range(-0.08, 0.08), randf_range(-0.05, 0.05), 0)
-		_camera.look_at(target)
+		_camera.look_at(_look)
 	# world effects
 	for i in _screens.size():
 		var c := Color("#1d6b8f")
@@ -428,3 +510,9 @@ func _process(delta: float) -> void:
 		var base: Color = _floor_mats[key].albedo_color
 		_floor_mats[key].emission_enabled = key == _near
 		_floor_mats[key].emission = base * 0.35
+	for id in _towers:
+		var tw: Dictionary = _towers[id]
+		var flash: float = maxf(0.0, float(tw["flash"]) - delta)
+		tw["flash"] = flash
+		(tw["beacon"] as StandardMaterial3D).emission = WorldRules.beacon_color(str(tw["status"]) if tw["status"] != "" else "active", _t)
+		(tw["light"] as OmniLight3D).light_energy = (3.0 + 3.0 * sin(_t * 14.0)) if flash > 0.0 else 0.0

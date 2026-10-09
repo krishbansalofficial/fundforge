@@ -49,5 +49,19 @@ func _initialize() -> void:
 	check(WorldRules.money("-1234567.4") == "-$1,234,567", "money formatting")
 	check(WorldRules.headroom_ratio({"nav": "110", "maintenance_req": "100"}) > 1.09, "headroom ratio")
 
+	# rival funds: league table and tower beacons
+	check(WorldRules.location_at(Vector2(2.5, 14.5)) == "street", "street view terrace")
+	var lv := {"league": [{"id": "halcyon", "status": "liquidating", "return_bps": "-2400.5"},
+			{"id": "you", "status": "active", "return_bps": "310"}, {"id": "granite", "status": "active", "return_bps": "310"}]}
+	var rows := WorldRules.league_rows(lv)
+	check(rows.map(func(r): return r["id"]) == ["granite", "you", "halcyon"], "league ranked by return, ties by id")
+	check(rows[1]["rank"] == 2 and rows[1]["is_you"] and rows[2]["return_bps"] == -2400, "league rank, you flag, bps")
+	check(WorldRules.league_rows({}) == [] and WorldRules.league_rows({"league": null}) == [], "league absent is empty")
+	check(WorldRules.beacon_color("active", 0.0) == WorldRules.beacon_color("active", 1.3), "active beacon is steady")
+	check(WorldRules.beacon_color("deleveraging", 0.0) != WorldRules.beacon_color("deleveraging", 0.4), "deleveraging beacon pulses")
+	check(WorldRules.beacon_color("liquidating", 0.1).r > 0.9 and WorldRules.beacon_color("liquidating", 0.3).r < 0.2, "liquidating beacon flashes")
+	check(WorldRules.beacon_color("closed", 0.0).v < 0.05, "closed beacon is dark")
+	check(WorldRules.new_effects([{"code": "rival_deleveraging"}, {"code": "rival_blowup"}], 0) == ["rival_alarm", "rival_blowup", "shake"], "rival effects")
+
 	print("%d failure(s)" % failures)
 	quit(1 if failures else 0)

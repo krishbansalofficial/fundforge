@@ -18,6 +18,7 @@ const LOCATIONS := {
 	"backoffice": {"label": "Management company", "rect": Rect2i(8, 9, 6, 5), "spot": Vector2(11, 10), "color": Color("#3a3a46")},
 	"lp": {"label": "Investor lounge", "rect": Rect2i(15, 9, 7, 5), "spot": Vector2(18.5, 10), "color": Color("#463c2a")},
 	"broker": {"label": "Prime broker", "rect": Rect2i(5, 18, 7, 4), "spot": Vector2(8.5, 18), "color": Color("#29404a")},
+	"street": {"label": "Street view", "rect": Rect2i(0, 14, 5, 1), "spot": Vector2(2.5, 14.5), "color": Color("#3a4450")},
 }
 const STREET := Rect2i(0, 15, 24, 2)
 const WORLD := Rect2i(0, 0, 24, 23)
@@ -41,6 +42,8 @@ const EFFECTS := {
 	"redemption_dealt": ["lp_visitor", "cash_out"],
 	"research_reveal": ["research_glow"],
 	"replacement_settled": ["courier_back"],
+	"rival_deleveraging": ["rival_alarm"],
+	"rival_blowup": ["rival_blowup", "shake"],
 }
 
 
@@ -135,3 +138,28 @@ static func money(s: Variant) -> String:
 		out = "," + whole.substr(whole.length() - 3) + out
 		whole = whole.substr(0, whole.length() - 3)
 	return ("-$" if neg else "$") + whole + out
+
+
+## Status beacon on a rival tower: steady green, pulsing amber, flashing red, or dark once closed.
+static func beacon_color(status: String, t: float) -> Color:
+	match status:
+		"active": return Color("#2fd36a")
+		"deleveraging": return Color("#ffb020").lerp(Color("#3a2400"), 0.5 + 0.5 * sin(t * 4.0))
+		"liquidating": return Color("#ff2a1a") if fposmod(t, 0.5) < 0.25 else Color("#200000")
+	return Color(0.02, 0.02, 0.02)
+
+
+## League table rows from the server view, ranked by return (ties by id), with `rank` and `is_you` added.
+static func league_rows(view: Dictionary) -> Array:
+	var rows: Array = []
+	var league: Array = view.get("league", []) if view.get("league") is Array else []
+	for r in league:
+		var row: Dictionary = (r as Dictionary).duplicate()
+		row["return_bps"] = int(float(str(row.get("return_bps", "0"))))
+		row["is_you"] = row.get("id", "") == "you"
+		rows.append(row)
+	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a["return_bps"] > b["return_bps"] or (a["return_bps"] == b["return_bps"] and str(a.get("id", "")) < str(b.get("id", ""))))
+	for i in rows.size():
+		rows[i]["rank"] = i + 1
+	return rows

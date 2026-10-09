@@ -144,6 +144,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not _panel.visible:
 		var paused: bool = view.get("clock_state", {}).get("paused", true)
 		_set_speed(1 if paused else 0)
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
+		if _open_location == "street":
+			close_panel()
+		else:
+			open_panel("street")
 
 
 func _show_toast(msg: String) -> void:
@@ -264,6 +269,7 @@ func _render_panel(location: String) -> void:
 		"backoffice": _backoffice()
 		"lp": _lp()
 		"broker": _broker()
+		"street": _street()
 
 
 func _trading() -> void:
@@ -342,7 +348,8 @@ func _research() -> void:
 	var r: Dictionary = view.get("research", {})
 	var used: Array = r.get("used", []).map(func(u): return u["topic"])
 	_text("Assignments left: %d. Findings arrive at the next market open." % (int(r.get("budget", 0)) - used.size()))
-	var names := {"borrow": "BRIN borrow availability", "debt_schedule": "BRIN debt schedule", "demand_survey": "BRIN demand survey"}
+	var names := {"borrow": "BRIN borrow availability", "debt_schedule": "BRIN debt schedule", "demand_survey": "BRIN demand survey",
+			"crowding": "Prime broker crowding report"}
 	for t in r.get("topics", []):
 		var topic: String = t
 		_button(names.get(topic, topic) + ("  (assigned)" if topic in used else ""),
@@ -406,6 +413,41 @@ func _broker() -> void:
 		_text("Ask for a desk check in the research library to learn about replacement borrow.", 12, Color("#4d5e72"))
 
 
+func _street() -> void:
+	var rows := WorldRules.league_rows(view)
+	if rows.is_empty():
+		_text("No league table from the server yet.", 14, Color("#4d5e72"))
+		return
+	var grid := GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 18)
+	_panel_body.add_child(grid)
+	for h in ["#", "Fund", "Style", "Status", "Return (bps)"]:
+		grid.add_child(_cell(h, Color("#4d5e72")))
+	for r in rows:
+		var you: bool = r["is_you"]
+		var ink := Color("#1d5fa8") if you else Color("#16263a")
+		var bps: int = r["return_bps"]
+		grid.add_child(_cell(str(r["rank"]), ink, you))
+		grid.add_child(_cell("Your fund" if you else str(r.get("name", r.get("id", ""))), ink, you))
+		grid.add_child(_cell(str(r.get("style", "")).replace("_", " "), ink, you))
+		var status := str(r.get("status", ""))
+		grid.add_child(_cell(status, {"deleveraging": Color("#b0700a"), "liquidating": Color("#a9281f"), "closed": Color("#6a6a6a")}.get(status, ink), you))
+		grid.add_child(_cell("%+d" % bps, Color("#2d6e4a") if bps >= 0 else Color("#a9281f"), you))
+	_text("Returns since the warm start, public marks. Press L to toggle.", 12, Color("#4d5e72"))
+
+
+func _cell(t: String, color: Color, bold := false) -> Label:
+	var l := Label.new()
+	l.text = t
+	l.add_theme_font_size_override("font_size", 16 if bold else 15)
+	l.add_theme_color_override("font_color", color)
+	if bold:
+		l.add_theme_color_override("font_outline_color", color)
+		l.add_theme_constant_override("outline_size", 1)
+	return l
+
+
 # ---------------- debrief ----------------
 
 func _show_debrief(o: Dictionary) -> void:
@@ -432,4 +474,8 @@ func _show_debrief(o: Dictionary) -> void:
 		WorldRules.money(o["nav"]), WorldRules.money(o["redemption_paid"]), str(o.get("recall_resolved_by", "unresolved")),
 		"none" if o["forced"].is_empty() else "; ".join(o["forced"]), "none" if o["unpaid"].is_empty() else "; ".join(o["unpaid"]),
 		str(o["tape_digest"]).substr(0, 12), str(o["journal_digest"]).substr(0, 12)]
+	if o.get("rank") != null and o.get("funds") != null:
+		body.text = "You finished #%d of %d funds
+
+" % [int(o["rank"]), int(o["funds"])] + body.text
 	v.add_child(body)
