@@ -1,6 +1,8 @@
 class_name Office3D
 extends Node3D
-## HD 3D fund office and street (Kenney CC0 models, Forward+ lighting, shadows, SSAO, glow).
+## 3D fund office and street: Poly Haven PBR materials and HDRI sky, Quaternius humans, Kenney furniture,
+## Forward+ with SDFGI, SSR, SSIL/SSAO, volumetric fog and a tilt-shift depth of field.
+## FF_QUALITY=low (env var) turns off SDFGI, SSIL, SSR, volumetric fog, lamp shadows and DOF for weaker GPUs.
 ## Grid coordinates from WorldRules map 1 tile = 1 metre-ish unit: grid (x, y) -> world (x, 0, y).
 ## Pure presentation: reads the server view, never changes economics.
 
@@ -10,6 +12,18 @@ signal near_location(location: String)
 const F := "res://assets/kenney/furniture/%s.glb"
 const CITY := "res://assets/kenney/city/%s.glb"
 const ROAD := "res://assets/kenney/roads/%s.glb"
+const PH := "res://assets/polyhaven/%s"
+## Poly Haven texture id -> metres covered by one texture tile (1 world unit ~ 1.95 m).
+const TILE := {"herringbone_parquet": 2.4, "dirty_carpet": 1.2, "smooth_concrete_floor": 1.5,
+		"painted_plaster_wall": 1.2, "asphalt_02": 1.5, "concrete_pavement": 1.5}
+## Room floor -> [texture, tint]; the tint keeps each room recognisable.
+const FLOORS := {
+	"trading": ["dirty_carpet", Color("#7f8fa6")], "committee": ["herringbone_parquet", Color.WHITE],
+	"risk": ["dirty_carpet", Color("#a08c90")], "research": ["herringbone_parquet", Color("#c9d6c0")],
+	"backoffice": ["smooth_concrete_floor", Color.WHITE], "lp": ["herringbone_parquet", Color("#f2dcc0")],
+	"street": ["concrete_pavement", Color.WHITE],
+}
+const M := 0.513  # metres -> world units, for real-scale Poly Haven models
 const WALL := Vector3(1.0, 0.55, 1.0)  # cutaway height so the camera sees into rooms
 ## Rival funds' towers across the street: id -> [name, model, x, height at scale 3].
 const RIVALS := {
@@ -49,6 +63,9 @@ var _halt := false
 var _glow_research := 0.0
 var _towers := {}  # rival id -> {beacon, label, sign, light, status, flash}
 var _look := Vector3.ZERO
+var _high := OS.get_environment("FF_QUALITY").to_lower() != "low"
+var _cam_attr: CameraAttributesPractical  # null on low quality
+var _mats := {}  # cache: texture id + tint -> StandardMaterial3D
 
 
 func _ready() -> void:
@@ -67,33 +84,112 @@ func _environment() -> void:
 	var we := WorldEnvironment.new()
 	_env = Environment.new()
 	var sky := Sky.new()
-	var mat := ProceduralSkyMaterial.new()
-	mat.sky_top_color = Color("#3b5f8f")
-	mat.sky_horizon_color = Color("#a9c3d9")
-	mat.ground_horizon_color = Color("#6b7a86")
-	sky.sky_material = mat
+	var pano := PanoramaSkyMaterial.new()
+	pano.panorama = load(PH % "hdri/canary_wharf_2k.hdr")
+	sky.sky_material = pano
 	_env.background_mode = Environment.BG_SKY
 	_env.sky = sky
+	_env.sky_rotation = Vector3(0, deg_to_rad(120.0), 0)
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	_env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	_env.ambient_light_energy = 0.6
-	_env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	_env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	_env.tonemap_exposure = 1.0
 	_env.ssao_enabled = true
-	_env.ssao_radius = 0.6
-	_env.ssao_intensity = 1.6
+	_env.ssao_radius = 0.5
+	_env.ssao_intensity = 1.2
+	_env.ssao_power = 1.4
+	_env.ssil_enabled = _high
+	_env.ssil_radius = 2.0
+	_env.ssil_intensity = 0.8
+	_env.ssr_enabled = _high
+	_env.ssr_max_steps = 48
+	_env.ssr_depth_tolerance = 0.3
+	_env.sdfgi_enabled = _high
+	_env.sdfgi_use_occlusion = true
+	_env.sdfgi_cascades = 3
+	_env.sdfgi_min_cell_size = 0.1
+	_env.sdfgi_energy = 0.8
 	_env.glow_enabled = true
-	_env.glow_intensity = 0.6
-	_env.glow_bloom = 0.08
+	_env.glow_intensity = 0.35
+	_env.glow_bloom = 0.03
+	_env.glow_hdr_threshold = 1.2
 	_env.fog_enabled = true
-	_env.fog_density = 0.004
-	_env.fog_light_color = Color("#a9c3d9")
+	_env.fog_density = 0.0006
+	_env.fog_light_color = Color("#b8c4cf")
+	_env.fog_aerial_perspective = 0.15
+	_env.volumetric_fog_enabled = _high
+	_env.volumetric_fog_density = 0.002
+	_env.volumetric_fog_albedo = Color("#e8e4dc")
+	_env.volumetric_fog_length = 40.0
+	_env.adjustment_enabled = true
+	_env.adjustment_contrast = 1.12
+	_env.adjustment_saturation = 1.05
 	we.environment = _env
+	if _high:  # tilt-shift miniature look: blur what is far behind the focus
+		_cam_attr = CameraAttributesPractical.new()
+		var cam := _cam_attr
+		cam.dof_blur_far_enabled = true
+		cam.dof_blur_far_distance = 22.0
+		cam.dof_blur_far_transition = 14.0
+		cam.dof_blur_amount = 0.06
+		we.camera_attributes = cam
 	add_child(we)
 	_sun = DirectionalLight3D.new()
 	_sun.shadow_enabled = true
+	_sun.shadow_blur = 1.5
+	_sun.light_angular_distance = 0.6
 	_sun.directional_shadow_max_distance = 45.0
-	_sun.light_energy = 1.3
+	_sun.light_volumetric_fog_energy = 1.5
 	add_child(_sun)
 	set_hour(10.0)
+
+
+## PBR material from a vendored Poly Haven texture set, tiled in world space so any mesh size works.
+func _pbr(id: String, tint := Color.WHITE) -> StandardMaterial3D:
+	var key := "%s/%s" % [id, tint.to_html()]
+	if _mats.has(key):
+		return _mats[key]
+	var res := "2k" if id == "herringbone_parquet" else "1k"
+	var base := PH % ("%s/%s_%%s_%s.jpg" % [id, id, res])
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = load(base % "Diffuse")
+	m.albedo_color = tint
+	m.normal_enabled = true
+	m.normal_texture = load(base % "nor_gl")
+	m.roughness_texture = load(base % "Rough")
+	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = true
+	m.uv1_scale = Vector3.ONE * (1.95 / float(TILE[id]))
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	_mats[key] = m
+	return m
+
+
+func _glass() -> StandardMaterial3D:
+	if not _mats.has("glass"):
+		var g := StandardMaterial3D.new()
+		g.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		g.albedo_color = Color(0.75, 0.85, 0.9, 0.18)
+		g.metallic = 0.2
+		g.roughness = 0.03
+		g.metallic_specular = 0.9
+		_mats["glass"] = g
+	return _mats["glass"]
+
+
+## Swap a Kenney wall's flat paint for plaster and its window pane for real glass.
+func _dress_wall(n: Node) -> void:
+	for node in n.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		for i in mi.mesh.get_surface_count():
+			var mat := mi.mesh.surface_get_material(i)
+			var mname := mat.resource_name if mat else ""
+			if mname == "_defaultMat":
+				mi.set_surface_override_material(i, _pbr("painted_plaster_wall", Color("#efe9df")))
+			elif mname == "glass":
+				mi.set_surface_override_material(i, _glass())
 
 
 func _model(path: String, pos: Vector3, rot_deg := 0.0, scale := 1.0) -> Node3D:
@@ -105,13 +201,16 @@ func _model(path: String, pos: Vector3, rot_deg := 0.0, scale := 1.0) -> Node3D:
 	return n
 
 
-func _plane(rect: Rect2, y: float, color: Color, rough := 0.8) -> StandardMaterial3D:
+func _plane(rect: Rect2, y: float, color: Color, rough := 0.8, tex := "") -> StandardMaterial3D:
 	var mi := MeshInstance3D.new()
 	var pm := PlaneMesh.new()
 	pm.size = rect.size
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = rough
+	if tex != "":
+		mat = _pbr(tex, color).duplicate()  # own copy: each room floor highlights on its own
+	else:
+		mat.albedo_color = color
+		mat.roughness = rough
 	pm.material = mat
 	mi.mesh = pm
 	mi.position = Vector3(rect.position.x + rect.size.x / 2.0, y, rect.position.y + rect.size.y / 2.0)
@@ -137,12 +236,12 @@ func _emissive(size: Vector3, pos: Vector3, color: Color, rot_deg := 0.0) -> Sta
 
 
 func _build_city() -> void:
-	_plane(Rect2(-12, -12, 48, 48), -0.02, Color("#55606a"), 0.95)  # ground
-	_plane(Rect2(0, 0, 24, 15), 0.0, Color("#2a313a"))  # office slab
-	for x in range(-6, 30):  # street
-		_model(ROAD % "road-straight", Vector3(x + 0.5, 0.0, 15.5), 90.0)
-		_model(ROAD % "road-straight", Vector3(x + 0.5, 0.0, 16.5), 90.0)
-	_plane(Rect2(-6, 17, 36, 1), 0.01, Color("#8c8f93"))  # far sidewalk
+	_plane(Rect2(-90, -90, 200, 200), -0.02, Color("#9a9a96"), 0.95, "concrete_pavement")  # ground
+	_plane(Rect2(0, 0, 24, 15), 0.0, Color("#9aa3ad"), 0.8, "smooth_concrete_floor")  # office slab
+	_plane(Rect2(-12, 15, 48, 2), 0.005, Color("#d8d8d8"), 0.9, "asphalt_02")  # street
+	for x in range(-11, 36, 2):  # dashed centre line
+		_plane(Rect2(x, 15.97, 1.0, 0.06), 0.008, Color("#d9d4c4"), 0.6)
+	_plane(Rect2(-12, 17, 48, 1), 0.02, Color("#c8c8c4"), 0.9, "concrete_pavement")  # far sidewalk
 	for x in [2, 8, 14, 20]:
 		_model(ROAD % "light-square", Vector3(x, 0.0, 14.8), 0.0, 2.6)
 	# prime broker building across the street, flanked by the rival funds' towers
@@ -205,27 +304,32 @@ func _build_tower(id: String) -> void:
 
 
 func _build_rooms() -> void:
-	var floors := {"trading": Color("#3a4c63"), "committee": Color("#6a4e35"), "risk": Color("#4a3a40"),
-			"research": Color("#3c5440"), "backoffice": Color("#4a4a55"), "lp": Color("#6b5a3e"), "broker": Color("#3b5560"), "street": Color("#5a6470")}
 	for key in WorldRules.LOCATIONS:
 		if key == "broker":
 			continue
 		var r: Rect2i = WorldRules.LOCATIONS[key]["rect"]
-		_floor_mats[key] = _plane(Rect2(r.position.x, r.position.y, r.size.x, r.size.y), 0.01, floors[key], 0.6)
+		var fl: Array = FLOORS[key]
+		_floor_mats[key] = _plane(Rect2(r.position.x, r.position.y, r.size.x, r.size.y), 0.01, fl[1], 0.6, fl[0])
 		if key == "street":  # open-air terrace: no walls or lamp, just the floor and its sign
 			_room_label(key, Vector3(r.position.x + r.size.x / 2.0, 1.9, r.position.y + 0.5))
 			continue
 		# back walls only (cutaway, like a management sim): along the north and west edges
 		for x in range(r.size.x):
 			var wall := "wallWindow" if (x % 3 == 1 and r.position.y == 2) else "wall"
-			_model(F % wall, Vector3(r.position.x + x, 0.0, r.position.y), 0.0).scale = WALL
+			var w := _model(F % wall, Vector3(r.position.x + x, 0.0, r.position.y), 0.0)
+			w.scale = WALL
+			_dress_wall(w)
 		for y in range(r.size.y):
-			_model(F % "wall", Vector3(r.position.x, 0.0, r.position.y + y + 1), 90.0).scale = WALL
-		var lamp := OmniLight3D.new()
-		lamp.position = Vector3(r.position.x + r.size.x / 2.0, 1.2, r.position.y + r.size.y / 2.0)
-		lamp.omni_range = maxf(r.size.x, r.size.y) * 0.8
-		lamp.light_energy = 0.7
-		lamp.light_color = Color("#ffe2b8")
+			var w := _model(F % "wall", Vector3(r.position.x, 0.0, r.position.y + y + 1), 90.0)
+			w.scale = WALL
+			_dress_wall(w)
+		var lamp := OmniLight3D.new()  # warm ceiling light, above the cutaway walls
+		lamp.position = Vector3(r.position.x + r.size.x / 2.0, 1.4, r.position.y + r.size.y / 2.0)
+		lamp.omni_range = maxf(r.size.x, r.size.y) * 0.9
+		lamp.omni_attenuation = 1.4
+		lamp.light_energy = 0.75
+		lamp.light_color = Color("#ffd7a8")
+		lamp.shadow_enabled = _high
 		add_child(lamp)
 		_room_label(key, Vector3(r.position.x + r.size.x / 2.0, 1.2, r.position.y + 0.4))
 
@@ -258,7 +362,7 @@ func _build_furniture() -> void:
 		t.rotation_degrees.y = 180.0
 		t.seated = true
 		traders.append(t)
-	_model(F % "pottedPlant", Vector3(9.4, 0, 2.5))
+	_model(PH % "potted_plant_04/potted_plant_04_1k.gltf", Vector3(9.4, 0, 2.6), 0.0, 1.8)
 	_model(F % "kitchenCoffeeMachine", Vector3(2.4, 0.0, 7.4))
 	# committee room: long table with chairs, and the recall letter appears here
 	_model(F % "rugRectangle", Vector3(13.5, 0.01, 4.5), 0.0, 1.6)
@@ -266,7 +370,7 @@ func _build_furniture() -> void:
 	for dz in [-0.9, 0.0, 0.9]:
 		_model(F % "chairCushion", Vector3(12.6, 0.0, 4.5 + dz), 90.0)
 		_model(F % "chairCushion", Vector3(14.4, 0.0, 4.5 + dz), -90.0)
-	_model(F % "pottedPlant", Vector3(15.4, 0, 2.6))
+	_model(PH % "potted_plant_04/potted_plant_04_1k.gltf", Vector3(15.4, 0, 2.6), 40.0, 1.8)
 	# risk and treasury: wall of screens, desk, red alarm light
 	_model(F % "cabinetTelevision", Vector3(19.5, 0.0, 2.5))
 	_model(F % "televisionModern", Vector3(19.1, 0.3, 2.4))
@@ -285,6 +389,7 @@ func _build_furniture() -> void:
 		_model(F % "books", Vector3(2.5 + i * 1.0, 0.45, 9.3))
 	_model(F % "lampRoundFloor", Vector3(6.3, 0.0, 9.6))
 	_model(F % "table", Vector3(4.5, 0.0, 11.8))
+	_model(PH % "desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf", Vector3(4.2, 0.4, 11.6), 30.0, 0.35)
 	_model(F % "chair", Vector3(4.5, 0.0, 12.5), 180.0)
 	_research_light = OmniLight3D.new()
 	_research_light.position = Vector3(4.5, 1.2, 11.0)
@@ -295,17 +400,18 @@ func _build_furniture() -> void:
 	# management company back office: desk, cabinets, the payroll safe
 	_model(F % "deskCorner", Vector3(10.5, 0.0, 10.5), 180.0)
 	_model(F % "laptop", Vector3(10.3, 0.38, 10.4), 180.0)
+	_model(PH % "desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf", Vector3(10.0, 0.385, 10.2), 200.0, 0.35)
 	_model(F % "chairDesk", Vector3(10.4, 0.0, 11.1), 180.0)
 	_model(F % "bookcaseClosedWide", Vector3(12.8, 0.0, 9.4))
 	_model(F % "sideTableDrawers", Vector3(9.2, 0.0, 9.4))
 	_model(F % "cardboardBoxClosed", Vector3(13.2, 0.0, 12.9))
 	# investor lounge
 	_model(F % "rugRound", Vector3(18.5, 0.01, 11.5), 0.0, 1.8)
-	_model(F % "loungeSofaLong", Vector3(18.5, 0.0, 10.0))
-	_model(F % "loungeChair", Vector3(17.0, 0.0, 11.8), 90.0)
-	_model(F % "loungeChair", Vector3(20.0, 0.0, 11.8), -90.0)
+	_model(PH % "sofa_03/sofa_03_1k.gltf", Vector3(18.5, 0.0, 9.85), 0.0, M)
+	_model(PH % "modern_arm_chair_01/modern_arm_chair_01_1k.gltf", Vector3(17.0, 0.0, 11.6), 90.0, M)
+	_model(PH % "modern_arm_chair_01/modern_arm_chair_01_1k.gltf", Vector3(20.0, 0.0, 11.6), -90.0, M)
 	_model(F % "tableCoffeeGlass", Vector3(18.5, 0.0, 11.5))
-	_model(F % "pottedPlant", Vector3(21.4, 0.0, 9.5))
+	_model(PH % "potted_plant_04/potted_plant_04_1k.gltf", Vector3(21.4, 0.0, 9.6), 0.0, 1.8)
 	_model(F % "lampSquareFloor", Vector3(15.6, 0.0, 9.5))
 	_model(F % "coatRackStanding", Vector3(21.3, 0.0, 13.3))
 
@@ -335,9 +441,9 @@ func set_hour(h: float) -> void:
 	var x := fposmod(h, 24.0)
 	var elev := clampf(sin((x - 6.0) / 12.0 * PI), -0.25, 1.0)  # sunrise 6, noon peak, sunset 18
 	_sun.rotation = Vector3(-deg_to_rad(10.0 + 55.0 * maxf(elev, 0.0)), deg_to_rad(-30.0 + (x - 12.0) * 8.0), 0.0)
-	_sun.light_energy = maxf(0.05, elev) * 1.4
+	_sun.light_energy = maxf(0.05, elev) * 2.6
 	_sun.light_color = Color("#ffb070").lerp(Color("#fff4e6"), clampf(elev * 1.5, 0.0, 1.0))
-	_env.ambient_light_energy = 0.25 + 0.45 * maxf(elev, 0.0)
+	_env.ambient_light_energy = 0.15 + 0.3 * maxf(elev, 0.0)
 
 
 # ---------------- state from the server ----------------
@@ -493,6 +599,9 @@ func _process(delta: float) -> void:
 			_shake -= delta
 			_camera.position += Vector3(randf_range(-0.08, 0.08), randf_range(-0.05, 0.05), 0)
 		_camera.look_at(_look)
+		if _cam_attr:  # tilt-shift: focus on what the camera looks at, blur only what is well behind it
+			_cam_attr.dof_blur_far_distance = _camera.position.distance_to(_look) + 8.0
+			_cam_attr.dof_blur_far_enabled = _near != "street"  # keep rival tower labels sharp
 	# world effects
 	for i in _screens.size():
 		var c := Color("#1d6b8f")
@@ -507,9 +616,8 @@ func _process(delta: float) -> void:
 	_glow_research = maxf(0.0, _glow_research - delta)
 	_research_light.light_energy = _glow_research * 0.6
 	for key in _floor_mats:
-		var base: Color = _floor_mats[key].albedo_color
 		_floor_mats[key].emission_enabled = key == _near
-		_floor_mats[key].emission = base * 0.35
+		_floor_mats[key].emission = Color("#ffcf8a") * 0.07
 	for id in _towers:
 		var tw: Dictionary = _towers[id]
 		var flash: float = maxf(0.0, float(tw["flash"]) - delta)

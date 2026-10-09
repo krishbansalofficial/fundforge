@@ -1,0 +1,4 @@
+Poly Haven assets - CC0 1.0 Universal (public domain dedication)
+https://polyhaven.com/license
+Fetched through https://api.polyhaven.com/files/<id> on 8 October 2026. Each folder is named by its asset id:
+https://polyhaven.com/a/<id>
