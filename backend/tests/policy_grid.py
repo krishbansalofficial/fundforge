@@ -3,7 +3,8 @@
 from pathlib import Path
 from fundforge.engine import CommandRejected, Engine
 from fundforge.governance import Session
-from fundforge.tape import load
+from fundforge.tape import EXEC_PHASES, load
+from test_engine import cure_qty
 
 F = Path(__file__).parents[2] / "fixtures" / "case1.json"
 LONGS = {"ALTO": 30000, "COVE": 30000, "ELAN": 30000, "GALA": 30000, "IONA": 30000, "JUNO": 25000, "BEAM": 100000}
@@ -15,7 +16,9 @@ POLICIES = {
     "derisk_floor": {(12, "EXEC_A"): [o("b", "BEAM", "SELL", 50000), o("a", "ALTO", "SELL", 25000), o("c", "COVE", "SELL", 25000)],
                      (14, "EXEC_A"): [o("r", "BRIN", "COVER", 1250)]},
     "S1_balanced": {(14, "EXEC_A"): [o("r", "BRIN", "COVER", 1250), o("b", "BEAM", "SELL", 20000)]},
-    "cover_recall_only": {(14, "EXEC_A"): [o("r", "BRIN", "COVER", 1250)]},
+    # Answers margin calls when they are announced (no foreknowledge): since the endogenous market,
+    # Halcyon's day-16 forced covering squeezes BRIN enough to put the minimal line into a margin call.
+    "cover_recall_only": {(14, "EXEC_A"): [o("r", "BRIN", "COVER", 1250)], "cure": True},
 }
 
 def play(variant, plan):
@@ -23,8 +26,11 @@ def play(variant, plan):
     while not s.e.finished():
         k += 1
         nxt = s.e.next_event()
-        if (nxt.day, nxt.phase) in plan:
-            d = s.handle("ana", f"p{k}", {"type": "propose", "package_id": f"p{k}", "orders": plan[(nxt.day, nxt.phase)]})
+        orders = list(plan.get((nxt.day, nxt.phase), []))
+        if plan.get("cure") and s.e.margin_call is not None and nxt.phase in EXEC_PHASES:
+            orders.append(o(f"cure{k}", "ALTO", "SELL", cure_qty(s.e, k=2)))
+        if orders:
+            d = s.handle("ana", f"p{k}", {"type": "propose", "package_id": f"p{k}", "orders": orders})
             try:
                 s.handle("ben", f"s{k}", {"type": "sign", "package_id": f"p{k}", "digest": d["digest"]})
             except CommandRejected:

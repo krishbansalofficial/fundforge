@@ -1,26 +1,26 @@
 {
-  "rules_version": "case1-rules-2026.10.2",
-  "tape_digest": "3d1f0188b0b4b4f23d88396782006cdabcf875dbc52b9750d43212e7b5876fab",
+  "rules_version": "case1-rules-2026.10.3",
+  "tape_digest": "a7102be52aafed9ebf013760be3e2065d6cfbbba1769d2c5159ce756de5fe211",
   "paths": {
     "S1_early_reduction": {
       "label": "WIN",
-      "nav": "22286796.03",
-      "journal_digest": "5ef64599bef9e8a1acfacaadab43d4ea7ff4c69aea981f92663f34e889ebf151"
+      "nav": "22287235.42",
+      "journal_digest": "85b2bbd19160c3019da2cd716985bfafdfb384f252f346cc192de578cab6d8ea"
     },
     "S2_replacement_and_cure": {
       "label": "WIN",
-      "nav": "22175841.73",
-      "journal_digest": "548dfe5e2101385afd3b61abdcbbca724caea0cca9aec5de7822bfe227427fc2"
+      "nav": "22177571.17",
+      "journal_digest": "d7aaeb270aebe890aa1b27b2f06c6d2c190e990687a814fd31ff2ecc7d619b4f"
     },
     "F1_inaction": {
       "label": "SURVIVAL",
-      "nav": "22190152.54",
-      "journal_digest": "29d33201fb44320ddfff9f09db60249e031d490038a69658a9ac16d371b3d124"
+      "nav": "22179323.07",
+      "journal_digest": "67c220ce4b3e041e7bedcc056a62ec3755cbe95e50e6da620b028e2e9797b271"
     },
     "F2_replacement_without_cure": {
       "label": "SURVIVAL",
-      "nav": "22176616.39",
-      "journal_digest": "ff542a0c18e79641ddd936c4f62191644f6a117ba88ff7c5c9f7c01e68091c3c"
+      "nav": "22168060.54",
+      "journal_digest": "bd513f9d4f984e7c5161d969f65cd006a74082c833e0d25bd06d314ded9cc7f5"
     }
   }
 }

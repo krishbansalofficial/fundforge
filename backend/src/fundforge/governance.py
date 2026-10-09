@@ -294,6 +294,7 @@ class Session:
                           "orders": [dict(zip(("order_id", "sym", "side", "qty", "limit"), o)) for o in p.orders]}
                          for p in self.packages.values()],
             "notices": e.notices,
+            "league": e.league(),  # rival returns come from public marks only
             "incidents": e.incidents,
             "decisions": [{"day": x["day"], "phase": x["phase"], "role": x["role"], "type": x["command"]["type"],
                            "detail": {k: v for k, v in x["command"].items() if k != "type"}}

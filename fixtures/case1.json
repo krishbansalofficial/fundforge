@@ -1,7 +1,7 @@
 {
   "scenario_id": "case1",
   "title": "The borrow is not the thesis",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "source": "docs/SCENARIO_CONTRACTS.md#case1-the-borrow-is-not-the-thesis",
   "calendar": {
     "day1": "2026-01-05",
@@ -180,7 +180,8 @@
     "topics": {
       "borrow": "Desk check on BRIN lending: one agent can transfer up to 1,250 shares at 40% annual, no upfront fee. Accept before day 14 EXEC_B; transfer day 15 opening.",
       "debt_schedule": "BRIN's term debt matures within the next quarter and refinancing is unresolved.",
-      "demand_survey": "Channel survey: recent BRIN demand stable, but coverage spans only the last month."
+      "demand_survey": "Channel survey: recent BRIN demand stable, but coverage spans only the last month.",
+      "crowding": "Crowding report (computed from the street's live positions when revealed)."
     }
   },
   "public_notices": [
@@ -255,5 +256,82 @@
         }
       ]
     }
+  },
+  "market": {
+    "impact": "0.5",
+    "resilience": "0.25",
+    "max_participation": "0.10",
+    "funds": [
+      {
+        "id": "halcyon",
+        "name": "Halcyon Partners",
+        "style": "crowded_short",
+        "cash": "20000000",
+        "positions": {
+          "BEAM": 120000,
+          "BRIN": -40000,
+          "DART": -30000,
+          "FENN": -25000,
+          "HELI": -25000
+        },
+        "params": {
+          "deleverage": "0.35"
+        }
+      },
+      {
+        "id": "northbeam",
+        "name": "Northbeam Capital",
+        "style": "momentum",
+        "cash": "20000000",
+        "positions": {
+          "ALTO": 50000,
+          "ELAN": 50000,
+          "GALA": 50000,
+          "BEAM": 100000
+        },
+        "params": {
+          "size": "0.02"
+        }
+      },
+      {
+        "id": "granite",
+        "name": "Granite Macro",
+        "style": "macro",
+        "cash": "30000000",
+        "positions": {
+          "BEAM": 150000,
+          "BOND": 200000
+        },
+        "params": {
+          "size": "0.02"
+        }
+      },
+      {
+        "id": "vantage",
+        "name": "Vantage Quant",
+        "style": "mean_reversion",
+        "cash": "30000000",
+        "positions": {
+          "IONA": 30000,
+          "JUNO": 30000
+        },
+        "params": {
+          "size": "0.01"
+        }
+      },
+      {
+        "id": "copperline",
+        "name": "Copperline Activist",
+        "style": "activist",
+        "cash": "2000000",
+        "positions": {
+          "ELAN": 200000,
+          "COVE": 100000
+        },
+        "params": {
+          "pain": "0.08"
+        }
+      }
+    ]
   }
 }

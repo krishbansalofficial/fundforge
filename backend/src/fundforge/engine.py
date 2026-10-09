@@ -15,13 +15,14 @@ from decimal import Decimal, localcontext
 from .compliance import Breach, Ruleset, evaluate
 from .execution import BUY_SIDES, capacity, fill_price
 from .journal import Journal, entry
+from .market import Market
 from .money import CTX, D, Accrual, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
 SIDES = ("BUY", "SELL", "SHORT", "COVER")
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.2"
+RULES_VERSION = "case1-rules-2026.10.3"
 
 
 class CommandRejected(ValueError):
@@ -92,6 +93,9 @@ class Engine:
         self.paid: dict[str, Decimal] = {}
         self.mandate = Ruleset.from_raw(tape.raw["mandate"])
         self._opening_marks = dict(self.marks)
+        self.market = Market(tape.raw.get("market"), tape.instruments)
+        self.market.init_navs(self.marks)
+        self._prev_exec_marks = dict(self.marks)
         self._open()
 
     # ---------- journal helpers ----------
@@ -281,7 +285,9 @@ class Engine:
             if e.phase in EXEC_PHASES and done:
                 break
             self.ev = e
-            self.marks = dict(e.marks)
+            self.market.decay()
+            self.marks = self.market.effective(e.marks)
+            self._remark()  # prices can move at any event (news or impact decay); books always follow
             getattr(self, "_" + e.phase.lower())()
             self.cursor += 1
             done.append(e)
@@ -326,7 +332,9 @@ class Engine:
             self.recall_open = rc["qty"]
         for r in self.research_used:
             if r["reveal_day"] == self.ev.day:
-                self._notice(self.tape.raw["research"]["topics"][r["topic"]], "research", code="research_reveal", topic=r["topic"])
+                text = (self.market.crowding_report(self.marks, self.pos) if r["topic"] == "crowding"
+                        else self.tape.raw["research"]["topics"][r["topic"]])
+                self._notice(text, "research", code="research_reveal", topic=r["topic"])
                 if r["topic"] == "borrow":
                     self.offer_visible = True
         self._true_up_collateral()
@@ -373,7 +381,15 @@ class Engine:
 
     # ---------- execution ----------
     def _execute(self):
+        self.event_fills = {}  # participation capacity is per execution event (FUND_ACCOUNTING §8)
         self._remark()
+        # rival funds trade first on public marks; their flow moves prices before our orders fill
+        flow, news = self.market.trade(self.marks, self._prev_exec_marks, self.ev.volume, self.tape.margin(self.ev.day))
+        self.market.push(flow, self.ev.volume)
+        self.marks = self.market.effective(self.ev.marks)
+        self._remark()
+        for n in news:
+            self._notice(n["text"], "market", code=n["code"], rival=n["rival"])
         rc = self.tape.raw["borrow"]["recall"]
         deadline = (self.ev.day, self.ev.phase) == (rc["deadline_day"], rc["deadline_event"])
         queued = [o for o in self.orders if o.status in ("QUEUED", "PARTIALLY_FILLED")]
@@ -383,6 +399,10 @@ class Engine:
             self._forced("recall", rc["sym"], "COVER", min(self.recall_open, -self.pos[rc["sym"]]))
         if self.margin_call is not None and self.deficit() > 0:
             self._forced_margin()
+        # our own net flow leaves a permanent footprint on later prices
+        ours = {s: self.event_fills.get((s, "BUY"), 0) - self.event_fills.get((s, "SELL"), 0) for s in self.pos}
+        self.market.push({s: q for s, q in ours.items() if q}, self.ev.volume)
+        self._prev_exec_marks = dict(self.marks)
         self._true_up_collateral()
         d = self.deficit()
         self.margin_call = d if d > 0 else None
@@ -634,6 +654,15 @@ class Engine:
         assert -self.bal("debt") <= D(self.cfg["credit_limit"]), "credit limit"
         assert self.bal("collateral") >= 0
 
+    def league(self) -> list[dict]:
+        """Public league table: every fund's return since the warm start, ours included."""
+        with localcontext(CTX):
+            units = sum((x.units for x in self.series), Decimal(0))
+            unit_nav = sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
+            ours = {"id": "you", "name": "Your fund", "style": "long/short", "status": "active",
+                    "return_bps": str(((unit_nav / 100 - 1) * 10000).quantize(Decimal("0.1"))), "nav": str(self.nav())}
+        return sorted(self.market.league(self.marks) + [ours], key=lambda x: (-Decimal(x["return_bps"]), x["id"]))
+
     # ---------- outcome ----------
     FORCED_PENALTY_BPS = Decimal(150)
 
@@ -666,6 +695,10 @@ class Engine:
         else:
             label = "WIN"
         score = self.score(len(forced))
+        league = self.league()
+        score["rank"] = 1 + sorted((-Decimal(x["return_bps"]), x["id"]) for x in league).index(
+            next((-Decimal(x["return_bps"]), x["id"]) for x in league if x["id"] == "you"))
+        score["funds"] = len(league)
         return {"label": label, "nav": str(nav), **score, "redemption_paid": str(tactical), "forced": forced,
                 "unpaid": unpaid, "recall_resolved_by": self.recall_resolved_by,
                 "variant": self.tape.raw.get("variant", "base"),
