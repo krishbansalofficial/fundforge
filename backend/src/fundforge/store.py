@@ -279,13 +279,13 @@ class Store:
     def clock_info(self, room: str) -> dict:
         with self.pool.connection() as c:
             row = c.execute("select running, speed, next_tick_at, now(),"
-                            " greatest(0, extract(epoch from next_tick_at - now()))::float from rooms where id=%s",
-                            (room,)).fetchone()
+                            " greatest(0, extract(epoch from next_tick_at - now()))::float, version"
+                            " from rooms where id=%s", (room,)).fetchone()
         if row is None:
             raise KeyError(room)
         return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
                 "server_now": row[3].isoformat(), "next_tick_in": row[4],
-                "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1)}
+                "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1), "version": row[5]}
 
     @staticmethod
     def _append_journal(c: Conn, room: str, entries: Sequence[Entry], seq: int) -> None:

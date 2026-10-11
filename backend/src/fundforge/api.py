@@ -4,12 +4,13 @@ import asyncio
 import contextlib
 import logging
 import os
+import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -122,18 +123,42 @@ def create_room(body: NewRoom) -> dict[str, Any]:
         raise HTTPException(422, str(e)) from e
 
 
-@app.get("/api/rooms/{room_id}/view")
-def view(room_id: str, user: str = Depends(seat)) -> dict[str, Any]:
+# A room can only become incompatible (new rules/tape) across a server restart; a fresh epoch per
+# process makes the first poll after a restart take the full path, which checks compatibility.
+EPOCH = secrets.token_hex(4)
+
+
+def _etag(version: int, running: bool) -> str:
+    # Everything in a view is fixed by the room version and clock state; ``next_tick_in`` is measured
+    # from when the client received the full view, so a 304 keeps that view and its arrival time.
+    return f'"{EPOCH}-v{version}-{int(running)}"'
+
+
+@app.get("/api/rooms/{room_id}/view", response_model=None)
+def view(room_id: str, user: str = Depends(seat),
+         if_none_match: str | None = Header(None)) -> dict[str, Any] | Response:
+    headers = {"Cache-Control": "private, no-cache"}
+    info = store().clock_info(room_id)
+    if if_none_match is not None and if_none_match == _etag(info["version"], info["running"]):
+        return Response(status_code=304, headers={**headers, "ETag": if_none_match})
     version, s, names = store().session(room_id)
-    return {"names": names, **s.view(user), "version": version, "realtime": store().clock_info(room_id)}
+    info = store().clock_info(room_id)
+    realtime = {k: v for k, v in info.items() if k != "version"}
+    body = {"names": names, **s.view(user), "version": version, "realtime": realtime}
+    return JSONResponse(body, headers={**headers, "ETag": _etag(version, info["running"])})
 
 
 @app.get("/api/rooms/{room_id}/ledger")
-def ledger(room_id: str, entity: str = "fund", user: str = Depends(seat)) -> dict[str, Any]:
+def ledger(room_id: str, entity: str = "fund", after: int | None = Query(None, ge=0),
+           user: str = Depends(seat)) -> dict[str, Any]:
+    """The newest 1,000 entries, or with ``after`` the entries following that many (the previous ``next``)."""
     if entity not in ("fund", "firm"):
         raise HTTPException(422, "entity must be fund or firm")
     _, s, _ = store().session(room_id)
-    return {"entity": entity, "entries": s.ledger(entity, limit=1000), "digest": s.e.j.digest()}
+    entries = [x.canonical() for x in s.e.j.entries if x.entity == entity]
+    page = entries[-1000:] if after is None else entries[after:after + 1000]
+    start = len(entries) - len(page) if after is None else min(after, len(entries))
+    return {"entity": entity, "entries": page, "next": start + len(page), "digest": s.e.j.digest()}
 
 
 @app.get("/api/rooms/{room_id}/terminal")

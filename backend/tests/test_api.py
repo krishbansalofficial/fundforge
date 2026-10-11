@@ -43,6 +43,22 @@ def test_two_seat_flow_over_http(client):
     assert reuse.status_code == 409 and reuse.json()["code"] == "key_reused"
     led = c.get(f"/api/rooms/{rid}/ledger?entity=firm", headers=h(mp)).json()
     assert led["entries"][0]["memo"] == "Management company opening book"
+    n = led["next"]
+    assert n == len(led["entries"])
+    assert c.get(f"/api/rooms/{rid}/ledger?entity=firm&after={n}", headers=h(mp)).json()["entries"] == []
+    tail = c.get(f"/api/rooms/{rid}/ledger?entity=firm&after=1", headers=h(mp)).json()
+    assert tail["entries"] == led["entries"][1:] and tail["next"] == n
+    assert c.get(f"/api/rooms/{rid}/ledger?after=-1", headers=h(mp)).status_code == 422
+    full = c.get(f"/api/rooms/{rid}/view", headers=h(pm))
+    tag = full.headers["etag"]
+    assert full.headers["cache-control"] == "private, no-cache"
+    same = c.get(f"/api/rooms/{rid}/view", headers={**h(pm), "If-None-Match": tag})
+    assert same.status_code == 304 and same.headers["etag"] == tag and not same.content
+    c.post(f"/api/rooms/{rid}/commands", headers=h(pm, "k-etag"), json={"type": "ready"})
+    moved = c.get(f"/api/rooms/{rid}/view", headers={**h(pm), "If-None-Match": tag})
+    assert moved.status_code == 200 and moved.headers["etag"] != tag
+    assert moved.json()["version"] > full.json()["version"]
+    assert c.get(f"/api/rooms/{rid}/view", headers={"If-None-Match": tag}).status_code == 401  # auth first
 
 
 def test_broker_challenge_authenticated_correction_flow(client):

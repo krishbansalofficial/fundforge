@@ -16,6 +16,21 @@ export async function api(path: string, token?: string, body?: unknown, key: str
     cache: "no-store",
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : `Request failed (${res.status})`);
+  if (!res.ok) throw new Error(errorMessage(data, res.status));
   return data;
+}
+
+const errorMessage = (data: { message?: unknown; detail?: unknown }, status: number) =>
+  typeof data.message === "string" ? data.message : typeof data.detail === "string" ? data.detail : `Request failed (${status})`;
+
+/** Poll the room view; null means unchanged since `etag` (HTTP 304), so keep the view already shown. */
+export async function fetchView(path: string, token: string, etag: string): Promise<{ view: View; etag: string } | null> {
+  const res = await fetch(path, {
+    headers: { Authorization: `Bearer ${token}`, ...(etag ? { "If-None-Match": etag } : {}) },
+    cache: "no-store",
+  });
+  if (res.status === 304) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(errorMessage(data, res.status));
+  return { view: data, etag: res.headers.get("ETag") ?? "" };
 }

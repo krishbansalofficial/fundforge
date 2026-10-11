@@ -12,6 +12,7 @@ var room_id := ""
 var token := ""
 var view: Dictionary = {}
 var view_received_at := 0.0  # Time.get_ticks_msec()/1000 when the last view arrived
+var view_etag := ""  # sent as If-None-Match; a 304 keeps the view and its arrival time
 
 var _polling := false
 var _poll_timer: Timer
@@ -28,6 +29,7 @@ func join(url: String, room: String, seat_token: String) -> void:
 	base_url = url.trim_suffix("/")
 	room_id = room
 	token = seat_token
+	view_etag = ""
 	_poll_timer.start()
 	_poll()
 
@@ -36,8 +38,8 @@ func new_key() -> String:
 	return Crypto.new().generate_random_bytes(16).hex_encode()
 
 
-## Low-level request. Returns {ok: bool, status: int, data: Variant, network_error: bool}.
-func request(method: int, path: String, body: Variant = null, key := "") -> Dictionary:
+## Low-level request. Returns {ok: bool, status: int, data: Variant, network_error: bool, headers}.
+func request(method: int, path: String, body: Variant = null, key := "", if_none_match := "") -> Dictionary:
 	var http := HTTPRequest.new()
 	http.timeout = 10.0
 	add_child(http)
@@ -46,18 +48,21 @@ func request(method: int, path: String, body: Variant = null, key := "") -> Dict
 		headers.append("Authorization: Bearer " + token)
 	if key != "":
 		headers.append("Idempotency-Key: " + key)
+	if if_none_match != "":
+		headers.append("If-None-Match: " + if_none_match)
 	var payload := "" if body == null else JSON.stringify(body)
 	var err := http.request(base_url + path, headers, method, payload)
 	if err != OK:
 		http.queue_free()
-		return {"ok": false, "status": 0, "data": null, "network_error": true}
+		return {"ok": false, "status": 0, "data": null, "network_error": true, "headers": PackedStringArray()}
 	var res: Array = await http.request_completed
 	http.queue_free()
 	var status: int = res[1]
 	var text: String = (res[3] as PackedByteArray).get_string_from_utf8()
 	var data: Variant = JSON.parse_string(text) if text != "" else null
 	return {"ok": res[0] == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300,
-			"status": status, "data": data, "network_error": res[0] != HTTPRequest.RESULT_SUCCESS}
+			"status": status, "data": data, "network_error": res[0] != HTTPRequest.RESULT_SUCCESS,
+			"headers": res[2]}
 
 
 func create_room(url: String, pm_name: String, mp_name: String, solo_role := "", scenario := "case1") -> Dictionary:
@@ -109,9 +114,10 @@ func _poll() -> void:
 	if _polling or room_id == "":
 		return
 	_polling = true
-	var res := await request(HTTPClient.METHOD_GET, "/api/rooms/%s/view" % room_id)
+	var res := await request(HTTPClient.METHOD_GET, "/api/rooms/%s/view" % room_id, null, "", view_etag)
 	_polling = false
 	if res["ok"] and res["data"] is Dictionary:
+		view_etag = WorldRules.header_value(res["headers"], "etag")
 		view = res["data"]
 		view_received_at = Time.get_ticks_msec() / 1000.0
 		view_changed.emit(view)

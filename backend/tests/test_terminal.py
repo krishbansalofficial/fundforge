@@ -130,6 +130,9 @@ def test_terminal_http_auth_and_consistent_version_without_database():
         def session(self, room):
             return 7, s, {}
 
+        def clock_info(self, room):
+            return {"running": False, "version": 7}
+
     # Routes use store() directly; replace its module binding, not dependency overrides.
     import fundforge.api as api
 
@@ -152,8 +155,15 @@ def test_terminal_http_auth_and_consistent_version_without_database():
         def incompatible(_self, _room):
             raise RoomIncompatible("room uses different rules")
 
+        first = c.get("/api/rooms/room/view", headers={"Authorization": "Bearer pm-token"})
+        assert first.status_code == 200
         mp.setattr(FakeStore, "session", incompatible)
         assert c.get(path, headers={"Authorization": "Bearer pm-token"}).status_code == 409
+        # A server restart (new epoch) must not answer an old ETag with 304 for a now-incompatible room.
+        mp.setattr(api, "EPOCH", "restarted")
+        stale = c.get("/api/rooms/room/view", headers={"Authorization": "Bearer pm-token",
+                                                       "If-None-Match": first.headers["etag"]})
+        assert stale.status_code == 409 and stale.json()["code"] == "room_incompatible"
         assert c.get("/api/rooms/room/view", headers={"Authorization": "Bearer pm-token"}).status_code == 409
         assert c.get("/api/rooms/room/ledger", headers={"Authorization": "Bearer pm-token"}).status_code == 409
     assert api.store is store

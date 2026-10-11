@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
-import { api, money, pct, type View } from "../../lib";
+import { api, fetchView, money, pct, type View } from "../../lib";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
@@ -36,10 +36,15 @@ export default function Desk({ roomId }: { roomId: string }) {
   const [flash, setFlash] = useState("");
   const [tab, setTab] = useState<"orders" | "investors" | "ledger" | "debrief">("orders");
 
+  const etag = useRef("");
   const refresh = useCallback(async () => {
     if (!token) return;
     try {
-      setV(await api(`/api/rooms/${roomId}/view`, token));
+      const got = await fetchView(`/api/rooms/${roomId}/view`, token, etag.current);
+      if (got) {
+        etag.current = got.etag;
+        setV(got.view);
+      }
       setError("");
     } catch (e) {
       setError((e as Error).message);

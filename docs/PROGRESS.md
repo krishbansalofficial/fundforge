@@ -195,3 +195,15 @@ Validation: **260 backend tests passed with PostgreSQL** (new `test_rejected_key
 Limitations: malformed commands (`invalid_command`) are not bound to their key; FastAPI request-validation errors keep their default list-shaped `detail`; ETag/304, ledger cursor and Pydantic command unions remain open API v1 items.
 
 **One next task:** P2 API v1: `ETag: <room version>` on `/view` with `If-None-Match` returning 304, and a ledger cursor (`after_seq`), with tests; then update the Godot/web pollers to use them.
+
+## View ETag/304 and ledger cursor (P2), 11 October 2026
+
+Completed the prior next task. `GET /view` returns `ETag: "<process epoch>-v<room version>-<running>"` and `Cache-Control: private, no-cache`; a matching `If-None-Match` gets an empty 304 after authentication and one cheap `rooms` query (no replay or view build). The per-process epoch makes the first poll after a server restart take the full path, so a room made incompatible by new rules/tape still answers 409 `room_incompatible` instead of a stale 304 (a test drops the epoch and fails). `next_tick_in` stays correct because both clients measure it from when the full view arrived and keep that time on a 304. `GET /ledger?after=N` returns the entries following the first N (up to 1,000) plus `next`; without `after` it still returns the newest 1,000, now with `next`.
+
+Clients: Godot `Api` sends `If-None-Match` from the last view's ETag (reset on join) and keeps the view on 304 (`WorldRules.header_value`, 2 new checks). The web desk polls through `fetchView` and shows the envelope's `message`.
+
+Validation: **260 backend tests passed with PostgreSQL** (ETag/304/version-change/auth-first and ledger-cursor assertions in `test_api.py`; restart-epoch incompatibility in `test_terminal.py`; two test doubles updated for `clock_info`'s new `version`). Ruff and mypy (24 modules) passed. Godot: **81 checks, 0 failures**, headless boot clean. Frontend: `tsc`, `npm test` 2 passed, `npm run build` passed. Real HTTP through the Next.js rewrite proxy (API on 8000, `next start` on 3011, both stopped afterwards): first view `ETag "v0-0"` (before the epoch was added), unchanged poll 304, after a `ready` 200, and a rejected command returned `{code: "rejected", message, detail}`.
+
+Limitations: with several API processes each has its own epoch, so polls alternating between processes mostly get 200; acceptable for the single-process deployment target. The Godot HUD journal and web ledger tab do not use the cursor yet.
+
+**One next task:** P2 abuse limits (body size cap, per-IP room-creation limit, room TTL, bounded cache) if the parallel session has not landed them; otherwise P2 observability: JSON logs with request/room/seq/command type and Prometheus `command_seconds`, `replay_seconds`, `rejections_total{code}`.

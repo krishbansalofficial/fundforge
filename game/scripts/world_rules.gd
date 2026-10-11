@@ -138,6 +138,15 @@ static func partner_location(view: Dictionary, role: String) -> String:
 	return "trading" if role == "pm" else "risk"
 
 
+## Value of an HTTP response header (case-insensitive name), or "" when absent.
+static func header_value(headers: PackedStringArray, name: String) -> String:
+	var want := name.to_lower() + ":"
+	for h in headers:
+		if h.to_lower().begins_with(want):
+			return h.substr(want.length()).strip_edges()
+	return ""
+
+
 static func money(s: Variant) -> String:
 	var v := float(str(s))
 	var neg := v < 0.0

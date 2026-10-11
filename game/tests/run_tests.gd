@@ -64,6 +64,9 @@ func _initialize() -> void:
 			"detail": {"location": "invalid"}}]}, "mp") == "committee", "unknown assignment location is safe")
 
 	check(WorldRules.money("-1234567.4") == "-$1,234,567", "money formatting")
+	var hdrs := PackedStringArray(["content-type: application/json", "ETag: \"v7-1\""])
+	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
+	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
 	check(WorldRules.headroom_ratio({"nav": "110", "maintenance_req": "100"}) > 1.09, "headroom ratio")
 
 	# rival funds: league table and tower beacons
