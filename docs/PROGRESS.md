@@ -133,3 +133,13 @@ Measured: passive Case1 finishes in **6 skip rounds versus 18** stepped rounds (
 Validation: **234 backend tests passed with PostgreSQL** (3 new; two tests now compare `set(s.ready)` because readiness records each vote), Ruff and mypy (21 modules) passed; Godot test script 0 failures; headless boot clean. Secondary Next.js desk has no skip button.
 
 **One next task:** P2 backups: a `pg_dump` script plus a restore-and-`verify` check that proves a restored database reproduces the same room digests.
+
+## Backups with restore-and-verify (P2), 11 October 2026
+
+Confirmed the solo bot already mirrors the human's skip vote (`bot.py`), so the prior next task was this one. New `backend/src/fundforge/backup.py` (`python -m fundforge.backup dump|check ARCHIVE`, `DATABASE_URL` required). `dump` opens one repeatable-read snapshot, writes a manifest of each room's stored version, last journal digest and chain head, and runs `pg_dump --format=custom --snapshot=<that snapshot>`, so archive and manifest describe the same commands. `check` restores into a fresh scratch database, requires the restored heads to equal the manifest, then runs `Store.verify` per room; it reports `verified` only when replay reproduces the manifest digest and chain head. Rooms pinned to older rules are reported `incompatible` (heads compared, not replayed). The scratch database is dropped unless `--keep`. `PG_BIN` selects the client tools.
+
+Validation: **238 backend tests passed with PostgreSQL 16** (4 new in `test_backup.py`, each on its own source database: two rooms restored and verified with the same digests/chain heads and the scratch DB dropped; append-only triggers survive restore; a trigger-bypassing tampered command fails the check; a manifest that disagrees with the archive fails, and an old-rules room is `incompatible`). Disabling the manifest comparison and the divergence error made 2 of the 4 fail. Ruff and mypy (22 modules) passed. Godot (unchanged code) on this machine: import OK, **79 checks, 0 failures**, headless boot clean. Running the CLI against the shared test database correctly failed on the room `test_store.py` deliberately tampers with.
+
+CI now installs `postgresql-client-17` from the PostgreSQL apt repository, sets `PG_BIN` and `FUNDFORGE_REQUIRE_PG_DUMP=1`, so these tests fail rather than skip there; locally they skip when `pg_dump` is missing or older than the server. Not yet done: a nightly schedule (needs the P2 deploy compose/VM, which needs owner authorization to deploy) and off-host storage of archives. Archives contain seat-token hashes; treat them as secrets.
+
+**One next task:** P2 abuse limits in the API: request body size cap, per-IP room-creation rate limit, and a bounded room TTL, each with tests.

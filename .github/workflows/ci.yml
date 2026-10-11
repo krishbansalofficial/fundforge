@@ -12,8 +12,11 @@ jobs:
         options: --health-cmd "pg_isready -U fundforge" --health-interval 2s --health-retries 20
     env:
       DATABASE_URL: postgresql://fundforge:fundforge@localhost:5432/fundforge
+      PG_BIN: /usr/lib/postgresql/17/bin  # pg_dump must not be older than the postgres:17 service
+      FUNDFORGE_REQUIRE_PG_DUMP: "1"  # the backup restore check fails instead of skipping
     steps:
       - uses: actions/checkout@v4
+      - run: sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y && sudo apt-get install -y postgresql-client-17
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --locked --python 3.13
       - run: uv run ruff check
