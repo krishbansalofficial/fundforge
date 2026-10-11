@@ -320,3 +320,11 @@ The HUD back-office journal now pages: `Api.ledger(entity, after)` passes the cu
 Validation: Godot **83 checks, 0 failures** (2 new page checks), headless boot clean. A headless Godot probe against a live local API (port 8000, stopped afterwards) fetched the newest page, then `after=0`, and matched the tail entry. That room had only its opening fund entry (total 1), so it is a minimal round trip, not a multi-page run. Backend unchanged in this slice.
 
 **One next task:** owner decisions (generator gate rule; Case1 opening LP confidences; real-listed ticker rename). Otherwise: P2 Grafana dashboard JSON for the three metrics, validated by a test that every panel query names an exported metric.
+
+## Grafana dashboard (P2), 11 October 2026
+
+`deploy/grafana/fundforge.json`: four panels (command p95 latency by type, commands/s by type, replay p95, rejections/s by code) over a selectable Prometheus datasource. `test_dashboard.py` parses the dashboard and the live exposition and requires every panel's metric names and `by (...)` labels to exist; renaming one metric in the JSON makes it fail.
+
+Validation: **279 backend tests passed with PostgreSQL**; Ruff and mypy (28 modules) passed. Not imported into a running Grafana (none available here), so rendering is unverified.
+
+**One next task:** owner decisions (generator gate rule; Case1 opening LP confidences; real-listed ticker rename; deployment authorization for P2 deploy/CD). Without them: a P2 `deploy/compose.prod.yaml` draft (Caddy TLS, no published DB port, non-root containers, `.env` secrets), validated with `docker compose config` if Docker is available. It must not be deployed.
