@@ -234,3 +234,33 @@ def test_rejected_key_keeps_its_outcome_after_state_changes(room):
     version = st.session(rid)[0]
     assert st.apply(rid, u["mp"], "share-2", share) is not None  # a new key is a new decision
     assert st.session(rid)[0] == version + 1 and st.verify(rid)["version"] == version + 1
+
+
+def test_generated_room_is_gated_hidden_until_the_end_and_verifiable():
+    import json
+
+    from fundforge.generator import commitment
+    from fundforge.terminal import snapshot
+
+    st = Store(DSN)
+    _opened.append(st)
+    st.init()
+    r = st.create_room("case1-generated", "Ana", "Ben")  # draws seeds through the balance gate
+    rid = r["room_id"]
+    u = {role: st.auth(rid, tok) for role, tok in r["tokens"].items()}
+    with psycopg.connect(DSN) as c:
+        variant = c.execute("select variant from rooms where id=%s", (rid,)).fetchone()[0]
+    seed = variant.removeprefix("seed:")
+    assert variant.startswith("seed:") and len(seed) > 8
+    _, s, _ = st.session(rid)
+    assert s.e.tape.raw["generator"]["seed_commitment"] == commitment(seed)
+    for role in ("pm", "mp"):  # the seed is in no player-facing read before the end
+        assert seed not in json.dumps(s.view(u[role])) and seed not in json.dumps(snapshot(s.e, role))
+    while not s.e.finished():
+        for role in ("pm", "mp"):
+            version, s, _ = st.session(rid)
+            st.apply(rid, u[role], f"r-{version}", {"type": "ready", "version": version})
+        _, s, _ = st.session(rid)
+    assert s.view(u["pm"])["outcome"]["variant"] == variant  # revealed with the debrief
+    st._cache.clear()
+    assert st.verify(rid)["tape_digest"] == s.e.tape.digest  # re-derived from the stored seed

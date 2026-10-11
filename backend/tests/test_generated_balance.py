@@ -29,3 +29,29 @@ def test_an_unwinnable_crash_is_rejected():
 def test_gate_is_deterministic_for_a_generated_seed():
     tape = compile_tape(generate("gate-1", GEN_VERSION, SKELETON))
     assert accept(tape) == accept(compile_tape(generate("gate-1", GEN_VERSION, SKELETON)))
+
+
+def test_room_seed_draw_retries_until_accepted_and_gives_up_bounded(monkeypatch):
+    import pytest
+
+    from fundforge import store
+    from fundforge.engine import CommandRejected
+
+    calls = []
+
+    def gate(answers):
+        def fake(tape):
+            calls.append(tape.raw["variant"])
+            ok = answers.pop(0)
+            return ok, {"failures": [] if ok else ["passive_wins"]}
+        return fake
+
+    monkeypatch.setattr(store.balance, "accept", gate([False, False, True]))
+    variant = store._draw_variant(store.GENERATED)
+    assert variant == calls[-1] and variant.endswith("-2") and len(calls) == 3
+    monkeypatch.setattr(store.balance, "accept", gate([False] * store.GENERATION_ATTEMPTS))
+    with pytest.raises(CommandRejected, match="balanced market"):
+        store._draw_variant(store.GENERATED)
+    with pytest.raises(CommandRejected, match="seed variant"):
+        store._tape(store.GENERATED, "base")
+    assert store._draw_variant("case1") in {"base", "rally"}

@@ -25,8 +25,9 @@ from psycopg import Connection
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
-from . import bot
+from . import balance, bot
 from .engine import RULES_VERSION, CommandRejected, Engine
+from .generator import GEN_VERSION, commitment, generate
 from .governance import CLOCK, Session, canonical
 from .journal import Entry
 from .observability import COMMAND_SECONDS, REPLAY_SECONDS, command_type, context, timed
@@ -36,7 +37,10 @@ Conn = Connection[tuple[Any, ...]]
 log = logging.getLogger("fundforge.commands")
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
-SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json"}
+SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json",
+             "case1-generated": "case1.json"}
+GENERATED = "case1-generated"
+GENERATION_ATTEMPTS = 12  # default Spec measured 3 of 6 accepted; a room needs one accepted tape
 CACHE_ROOMS = 256
 SECONDS_PER_WINDOW = float(os.environ.get("FUNDFORGE_SECONDS_PER_WINDOW", "8"))
 ROOM_TTL_HOURS = float(os.environ.get("FUNDFORGE_ROOM_TTL_HOURS", "72"))  # a game is a 60-90 minute sitting
@@ -68,6 +72,10 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
     if scenario != "case1":
         raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))
         raw["scenario_id"] = scenario
+        if scenario == GENERATED:  # the hidden variant column holds the seed; the outcome reveals it at the end
+            if not variant.startswith("seed:") or len(variant) < 6:
+                raise CommandRejected("generated rooms need a seed variant")
+            return compile_tape({**generate(variant[5:], GEN_VERSION, raw), "variant": variant})
         if scenario == "case1-controls":
             raw["broker_statements"] = json.loads((FIXTURES / "broker_break_example.json").read_text(encoding="utf-8"))
         else:  # $100k above the $2.5m opening debt: a large purchase fails until sale proceeds arrive
@@ -78,6 +86,22 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
 
 def _variants(scenario: str) -> list[str]:
     return variants(json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8")))
+
+
+def _draw_variant(scenario: str) -> str:
+    """A hidden variant for a new room; generated markets retry seeds until the balance gate accepts one."""
+    if scenario != GENERATED:
+        return secrets.choice(_variants(scenario))
+    base = secrets.token_hex(16)
+    for attempt in range(GENERATION_ATTEMPTS):
+        variant = f"seed:{base}-{attempt}"
+        ok, report = balance.accept(_tape(scenario, variant))
+        log.info("generated tape %s", "accepted" if ok else "rejected",
+                 extra={"command": "generate", "code": ",".join(report["failures"]) or "ok",
+                        "commitment": commitment(variant[5:])})  # never log the seed itself
+        if ok:
+            return variant
+    raise CommandRejected("could not generate a balanced market; try again")
 
 
 def chain(prev: str, seq: int, key: str, user: str, command: dict, result: object, digest_after: str) -> str:
@@ -145,7 +169,7 @@ class Store:
             pm_name = "Morgan (bot)"
         if scenario not in SCENARIOS:
             raise CommandRejected(f"unknown scenario {scenario!r}")
-        variant = variant or secrets.choice(_variants(scenario))  # hidden from players until the debrief
+        variant = variant or _draw_variant(scenario)  # hidden from players until the debrief
         tape = _tape(scenario, variant)
         room = secrets.token_hex(6)
         seats = {r: (secrets.token_hex(8), secrets.token_urlsafe(24)) for r in ("pm", "mp") if r != bot_role}

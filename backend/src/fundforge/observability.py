@@ -47,7 +47,7 @@ def context(**fields: Any) -> dict[str, Any]:
 class JsonFormatter(logging.Formatter):
     """One JSON object per line: time, level, logger, message, request id and any ``extra`` fields."""
 
-    FIELDS = ("room", "seq", "command", "status", "method", "path", "ms", "code")
+    FIELDS = ("room", "seq", "command", "status", "method", "path", "ms", "code", "commitment")
 
     def format(self, record: logging.LogRecord) -> str:
         out: dict[str, Any] = {"ts": round(record.created, 3), "level": record.levelname, "logger": record.name,
