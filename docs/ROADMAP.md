@@ -159,7 +159,7 @@ Systems:
 - **Broker statements.** A statement with declared breaks, plus a break queue with aging. An open break blocks NAV certification.
 - **Risk.** A stress and liquidity simulator: shock marks, then replay forced liquidation over future events with real impact and capacity, to get events-to-cure, cost and the insolvency point.
 - **Margin cure.** A minimum-impact cure solved by marginal-cost bisection in Decimal. It is used both for forced liquidation and as a draft for players. CVXPY appears only in tests, as an oracle.
-- **Market generator.** `generate(seed, gen_version, skeleton) -> raw` uses a SHA-256-counter PRNG with Decimal-only factor and regime shocks. The seed stays server-side until the debrief. A tape is accepted only if the balance runner passes.
+- **Market generator.** `generate(seed, gen_version, skeleton) -> raw` uses a SHA-256-counter PRNG with Decimal-only factor and regime shocks. The seed stays server-side until the debrief. A tape is accepted only if the balance runner passes. (Generator done 11 Oct 2026, `fundforge/generator.py`; balance gate and room wiring open.)
 - **As-of tape.** `(instrument, event_time, available_at, revision, value)`. The view resolves the latest revision visible at the current clock.
 
 ### P5: Stretch, cut first

@@ -243,3 +243,20 @@ Validation: **263 backend tests passed with PostgreSQL** (new `test_metrics_and_
 Limitations: the roadmap's Grafana JSON is not written (it can't be checked here without Grafana). Metrics are per process.
 
 **One next task:** P2 hygiene: a test rejecting real-listed tickers in fixtures needs a ticker rename, which changes tapes and goldens (rules bump). Ask the owner before renaming ALTO/BEAM/BOND/ELAN/JUNO. Meanwhile take P4 market generator: `generate(seed, gen_version, skeleton)` with a SHA-256-counter PRNG and Decimal-only shocks in the pure domain, with determinism tests.
+
+## Seeded market generator (P4), 11 October 2026
+
+New pure `backend/src/fundforge/generator.py`: `generate(seed, gen_version, skeleton, spec) -> raw`.
+
+- **Randomness:** SHA-256 counter stream over `gen_version|seed|n`, turned into integers by rejection sampling (no modulo bias, no floats).
+- **Shocks:** each unauthored `PUBLIC_MARK` gets a whole-basis-point market factor scaled by the regime and each instrument's beta (default 1; BOND 0 per the scenario house sensitivities), plus an idiosyncratic shock. Prices step by exact Decimal multiplication, quantized once to 6dp HALF_EVEN.
+- **Regime:** a two-state calm/stressed chain; stressed multiplies the factor bound.
+- **Authored inputs:** the skeleton's overrides (Case1's day-16 shock, volumes, headlines) are never changed; later days continue from the authored levels.
+- **Bounds:** `Spec` rejects bounds that could take a price to zero in one step.
+- **Seed secrecy:** the output records only `seed_commitment = sha256(seed)` plus the regime path, so the debrief can reveal the seed for verification.
+
+Validation: **271 backend tests passed with PostgreSQL** (8 new in `test_generator.py`): same seed gives the same tape digest, while seed or version changes it; authored marks match exactly after compile; the seed never appears in the output; BOND stays at 100 with beta 0 and no noise; all marks are 6dp positive strings; 5,000 draws on [-2, 2] land within 900–1,100 per value; three generated tapes play through the Engine to a valid outcome and replay to identical journal digests; regime switching alternates at `switch_bp=10000`. Ruff and mypy (26 modules) passed.
+
+Limitations: not yet exposed as a scenario. Rooms still choose authored variants. Acceptance through the balance runner (`test_balance.py` policy grid) is not wired; that gate decides whether a generated tape is fair and must pass before any room uses one. Generated marks live in `tape.raw`, which the server already treats as hidden.
+
+**One next task:** gate generated tapes with the balance policy grid (`tests/policy_grid.py` → a reusable `fundforge` function), then offer `case1-generated` rooms whose seed is stored server-side and revealed with its commitment in the debrief. Separately, ask the owner before renaming real-listed tickers (ALTO/BEAM/BOND/ELAN/JUNO).
