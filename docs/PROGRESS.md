@@ -313,9 +313,24 @@ Not wired into the debrief or outcome: SCENARIO_CONTRACTS says LP concern transi
 
 **One next task:** owner decisions recorded above (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). Without them, the next unblocked item is P3/P2 Godot ledger paging with the new `after` cursor in the HUD journal, with Godot checks.
 
+## Godot journal paging with the ledger cursor, 11 October 2026
+
+The HUD back-office journal now pages: `Api.ledger(entity, after)` passes the cursor, and `_show_ledger(entity, end)` shows 15 entries newest first, with the range and total, plus an "Older entries" button while earlier entries remain. The page arithmetic is the pure `WorldRules.ledger_page(end, size)`.
+
+Validation: Godot **83 checks, 0 failures** (2 new page checks), headless boot clean. A headless Godot probe against a live local API (port 8000, stopped afterwards) fetched the newest page, then `after=0`, and matched the tail entry. That room had only its opening fund entry (total 1), so it is a minimal round trip, not a multi-page run. Backend unchanged in this slice.
+
+**One next task:** owner decisions (generator gate rule; Case1 opening LP confidences; real-listed ticker rename). Otherwise: P2 Grafana dashboard JSON for the three metrics, validated by a test that every panel query names an exported metric.
+
+## Grafana dashboard (P2), 11 October 2026
+
+`deploy/grafana/fundforge.json`: four panels (command p95 latency by type, commands/s by type, replay p95, rejections/s by code) over a selectable Prometheus datasource. `test_dashboard.py` parses the dashboard and the live exposition and requires every panel's metric names and `by (...)` labels to exist; renaming one metric in the JSON makes it fail.
+
+Validation: **279 backend tests passed with PostgreSQL**; Ruff and mypy (28 modules) passed. Not imported into a running Grafana (none available here), so rendering is unverified.
+
+**One next task:** owner decisions (generator gate rule; Case1 opening LP confidences; real-listed ticker rename; deployment authorization for P2 deploy/CD). Without them: a P2 `deploy/compose.prod.yaml` draft (Caddy TLS, no published DB port, non-root containers, `.env` secrets), validated with `docker compose config` if Docker is available. It must not be deployed.
 ## HUD journal paging and production deploy stack (P2/P3), 11 October 2026
 
-**Journal paging.** The Godot back-office journal now uses the `/ledger` `after` cursor. `WorldRules.ledger_path`, `merge_ledger` and `ledger_window` are pure: the first request takes the newest page, later ones fetch only entries after the cached `next`, a page that does not continue the cache replaces it, and the cache is capped at 1,000 entries. The HUD keeps the chosen journal open across view refreshes (it used to vanish on the next poll), refetches only when the room version changes, and pages with Newer/Older buttons that stay on the same entries while new ones arrive. Over real HTTP, a whole two-seat game fetched incrementally gave exactly the same fund (194) and firm (52) entries as one full fetch.
+**Journal paging.** This replaces the parallel session's `ledger_page` paging above, whose journal still vanished when the panel re-rendered on the next view and downloaded up to 1,000 entries to show 15. The Godot back-office journal uses the `/ledger` `after` cursor. `WorldRules.ledger_path`, `merge_ledger` and `ledger_window` are pure: the first request takes the newest page, later ones fetch only entries after the cached `next`, a page that does not continue the cache replaces it, and the cache is capped at 1,000 entries. The HUD keeps the chosen journal open across view refreshes (it used to vanish on the next poll), refetches only when the room version changes, and pages with Newer/Older buttons that stay on the same entries while new ones arrive. Over real HTTP, a whole two-seat game fetched incrementally gave exactly the same fund (194) and firm (52) entries as one full fetch.
 
 **Production stack.** New `deploy/compose.prod.yaml`, `Caddyfile`, `backup-loop.sh`, `.env.example` and `smoke.sh`:
 
@@ -331,7 +346,7 @@ Running it locally exposed four defects, all fixed before commit: Caddy's fixed 
 
 Validation:
 - **279 backend tests passed with PostgreSQL 16**, including the new readiness test; Ruff and mypy (27 files) passed.
-- Godot 4.7.2 (SHA512-checked): import OK, **92 checks, 0 failures** (11 new ledger checks), headless boot clean.
+- Godot 4.7.2 (SHA512-checked): import OK, **92 checks, 0 failures** (11 new ledger checks; the two `ledger_page` checks went with that helper), headless boot clean.
 - Frontend `tsc`, `npm test` and `npm run build` passed (unchanged code).
 - Real HTTP against a local API: `analysis_smoke.py` (standard and `--broker-challenge`, rules 2026.10.8), and a solo bot game with skip-ahead (6 rounds, verified).
 - `terminal_smoke.py` was stale (it compared PM and MP snapshots, which now carry `role`); it is fixed and passes.
@@ -342,7 +357,6 @@ Sandbox note: this container's proxy forbids ghcr.io blob downloads and `deb.deb
 Limitations:
 - Nothing is hosted, and a public deployment needs owner authorization.
 - There is no GHCR publish/SSH CD workflow (it needs deploy secrets and a host) and no off-host backup copy.
-- Grafana JSON is still open.
 - Caddy runs as root inside its container.
 - The secondary web desk's journal does not use the cursor.
 

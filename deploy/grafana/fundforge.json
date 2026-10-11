@@ -1,0 +1,37 @@
+{
+  "title": "FundForge API",
+  "uid": "fundforge-api",
+  "schemaVersion": 39,
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {"list": [{"name": "datasource", "type": "datasource", "query": "prometheus"}]},
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Command latency p95 by type (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "targets": [{"refId": "A", "legendFormat": "{{type}}",
+                   "expr": "histogram_quantile(0.95, sum by (le, type) (rate(fundforge_command_seconds_bucket[5m])))"}]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Commands per second by type",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "targets": [{"refId": "A", "legendFormat": "{{type}}",
+                   "expr": "sum by (type) (rate(fundforge_command_seconds_count[5m]))"}]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Session replay p95 (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "targets": [{"refId": "A", "legendFormat": "p95",
+                   "expr": "histogram_quantile(0.95, sum by (le) (rate(fundforge_replay_seconds_bucket[5m])))"}]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Rejections per second by code",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "${datasource}"},
+      "targets": [{"refId": "A", "legendFormat": "{{code}}",
+                   "expr": "sum by (code) (rate(fundforge_rejections_total[5m]))"}]
+    }
+  ]
+}
