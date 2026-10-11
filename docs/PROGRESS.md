@@ -296,3 +296,19 @@ Diagnosis on the quiet spec, seeds 0–5: 5 WIN; seed 2 ends SURVIVAL with day-1
 No spec was changed: whether the minimal recall-only line must win in every generated world, or the gate should require only that some recall-handling line wins, is a balance-design decision for the owner (GAME_SYSTEMS/ROADMAP). The current gate is conservative; with the default spec, 12 attempts make an all-reject room creation unlikely, though that is not a measured rate.
 
 **One next task:** owner decision on the gate rule above. Meanwhile, P4 LP agents in play: compute `lp.chapter_close` facts from the engine at a chapter boundary (return per series, breaches, certification) in a pure adapter with tests, without changing Case1 economics.
+
+## LP chapter facts from the engine (P4), 11 October 2026
+
+New `backend/src/fundforge/investors.py`: `chapter_facts(engine, start_nav_per_unit, start_day)` derives `lp.ChapterFacts` per series still holding units, using only typed state:
+
+- net return in percentage points from net per unit against the chapter's starting value;
+- report certified when the combined control report is `checked`;
+- overdue payments: unpaid-redemption incidents, counted only for series with a `redemption_dealt` notice in the window.
+
+The docstring states three facts the engine cannot yet produce instead of guessing them: avoidable breaches are 0 (orders are refused pre-trade and passive breaches aren't typed), gate deferral is False (no gate election yet), and meeting evidence is None.
+
+Validation: **278 backend tests passed with PostgreSQL** (2 new in `test_investors.py`: S1 facts match hand-computed returns, are certified with no overdue, and Seed's performance component caps at −6; the case1-settlement DISTRESS path gives Tactical one overdue redemption (−15) and Seed/Patient none). Ruff and mypy (28 modules) passed.
+
+Not wired into the debrief or outcome: SCENARIO_CONTRACTS says LP concern transitions are recorded in cases, but it does not state Case1's opening confidences. Using the season-launch roster values (72/80/65) would be an invented assumption, so it waits for the owner or a contract update.
+
+**One next task:** owner decisions recorded above (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). Without them, the next unblocked item is P3/P2 Godot ledger paging with the new `after` cursor in the HUD journal, with Godot checks.
