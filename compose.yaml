@@ -5,7 +5,7 @@ services:
     ports: ["5432:5432"]
     healthcheck: { test: ["CMD", "pg_isready", "-U", "fundforge"], interval: 2s, retries: 20 }
   api:
-    build: { context: ., dockerfile: backend/Dockerfile }
+    build: { context: ., dockerfile: backend/Dockerfile, target: api }
     environment:
       DATABASE_URL: postgresql://fundforge:fundforge@db:5432/fundforge
       CORS_ORIGINS: http://localhost:3000

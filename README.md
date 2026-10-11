@@ -130,7 +130,8 @@ Engineering write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md).
 | `frontend/` | Next.js landing page and the earlier two-seat web desk |
 | `fixtures/case1.json` | The Case1 scenario tape: calendar, book, LPs, recall, research, notices, mandate, variants and rival funds |
 | `docs/` | Guides, architecture, engineering, decisions, progress, the [roadmap](docs/ROADMAP.md) and the domain contracts. Superseded plans are in [`docs/archive/`](docs/archive/README.md) |
-| `compose.yaml` | `db`, `api` and `web` services |
+| `compose.yaml` | `db`, `api` and `web` services for local development |
+| `deploy/` | Production stack (`compose.prod.yaml`: Caddy TLS, unpublished Postgres, non-root app containers, nightly verified backups) and `smoke.sh`, which CI runs |
 
 ## Status and limitations
 
@@ -140,5 +141,5 @@ FundForge is a playable vertical slice, not a finished game. See [PROGRESS](docs
 - The other partner's avatar walks to the location of their last decision. There is no live presence yet.
 - Research assignments now enforce role, location, per-role budgets and one assignment per decision window. Physical proximity is not required; signatures and mandatory remedies remain reachable.
 - In progress: an independent shadow NAV, plus ruff and mypy tooling; exported builds; and a recorded trailer run.
-- Not done: deployment, audio, recorded playtests.
+- Not done: a public deployment (the production stack is written and smoke-tested locally and in CI, but nothing is hosted), audio, recorded playtests.
 - Everything is fictional. The tickers are invented (some collide with real symbols; renaming them is on the roadmap). There is no brokerage connection, no real money and no investment advice.

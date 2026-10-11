@@ -159,3 +159,17 @@ def test_metrics_and_json_request_logs(client, caplog):
     assert "no_such_thing" not in text
     assert 'fundforge_rejections_total{code="rejected"}' in text
     assert "fundforge_replay_seconds_count" in text
+
+
+def test_ready_requires_a_migrated_reachable_database(client, monkeypatch):
+    from fundforge import api
+
+    assert client.get("/api/ready").json() == {"ok": True}
+
+    def down(*_args, **_kwargs):
+        raise OSError("connection refused")
+
+    monkeypatch.setattr(api.store().pool, "connection", down)
+    r = client.get("/api/ready")
+    assert r.status_code == 503 and r.json()["code"] == "unavailable"
+    assert client.get("/api/health").json() == {"ok": True}  # liveness does not touch the database

@@ -312,3 +312,38 @@ Validation: **278 backend tests passed with PostgreSQL** (2 new in `test_investo
 Not wired into the debrief or outcome: SCENARIO_CONTRACTS says LP concern transitions are recorded in cases, but it does not state Case1's opening confidences. Using the season-launch roster values (72/80/65) would be an invented assumption, so it waits for the owner or a contract update.
 
 **One next task:** owner decisions recorded above (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). Without them, the next unblocked item is P3/P2 Godot ledger paging with the new `after` cursor in the HUD journal, with Godot checks.
+
+## HUD journal paging and production deploy stack (P2/P3), 11 October 2026
+
+**Journal paging.** The Godot back-office journal now uses the `/ledger` `after` cursor. `WorldRules.ledger_path`, `merge_ledger` and `ledger_window` are pure: the first request takes the newest page, later ones fetch only entries after the cached `next`, a page that does not continue the cache replaces it, and the cache is capped at 1,000 entries. The HUD keeps the chosen journal open across view refreshes (it used to vanish on the next poll), refetches only when the room version changes, and pages with Newer/Older buttons that stay on the same entries while new ones arrive. Over real HTTP, a whole two-seat game fetched incrementally gave exactly the same fund (194) and firm (52) entries as one full fetch.
+
+**Production stack.** New `deploy/compose.prod.yaml`, `Caddyfile`, `backup-loop.sh`, `.env.example` and `smoke.sh`:
+
+- Caddy terminates TLS and routes `/api/*` to the API and the rest to the web desk. It returns 404 for `/metrics`, which is published only on host `127.0.0.1:9464` for a local scraper. Caddy runs as root to bind 80/443, with every capability dropped except `NET_BIND_SERVICE`.
+- Postgres has no published port and sits on an `internal` network with no egress.
+- The API (uid 10001, read-only root filesystem), web (uid 1000) and backup (uid 10001) containers run non-root with all capabilities dropped. The API image runs uvicorn from the venv, so `uv` isn't needed at runtime.
+- Secrets come from `deploy/.env`; compose refuses to start without `POSTGRES_PASSWORD` and `FUNDFORGE_DOMAIN`.
+- uvicorn trusts `X-Forwarded-For` only from Caddy's fixed address. Other containers are allocated from the upper half of the subnet so they can never take that address.
+- New `GET /api/ready` applies migrations and pings the database, returning 503 `unavailable` otherwise. It is the API healthcheck; Caddy and backup wait for it.
+- The `backup` service is built on `postgres:17-trixie`, so `pg_dump` always matches the server, with the API's Python runtime copied in. It dumps nightly at `BACKUP_AT` and restores into a scratch database with `fundforge.backup check`. An archive gets a `.verified` marker only after replay reproduces every digest and chain head; a failure leaves `.FAILED` and is never pruned.
+
+Running it locally exposed four defects, all fixed before commit: Caddy's fixed IP taken by an earlier container, an invalid Caddyfile with an empty ACME email (removed), a root-owned backup volume, and the startup backup racing the API's lazy migrations (fixed with `/api/ready`). The dev `compose.yaml` now pins `target: api`.
+
+Validation:
+- **279 backend tests passed with PostgreSQL 16**, including the new readiness test; Ruff and mypy (27 files) passed.
+- Godot 4.7.2 (SHA512-checked): import OK, **92 checks, 0 failures** (11 new ledger checks), headless boot clean.
+- Frontend `tsc`, `npm test` and `npm run build` passed (unchanged code).
+- Real HTTP against a local API: `analysis_smoke.py` (standard and `--broker-challenge`, rules 2026.10.8), and a solo bot game with skip-ahead (6 rounds, verified).
+- `terminal_smoke.py` was stale (it compared PM and MP snapshots, which now carry `role`); it is fixed and passes.
+- `deploy/smoke.sh --no-build` passed from empty volumes. It checks TLS routing, web 200, HTTP→HTTPS redirect, public `/metrics` 404 with host `/metrics` served, no published DB port, non-root app processes, a two-seat game through Caddy to a verified journal, and a verified startup backup. Spoofed `X-Forwarded-For` was ignored both through Caddy and directly. A room survived a stack restart, and a backup containing it restored and verified.
+
+Sandbox note: this container's proxy forbids ghcr.io blob downloads and `deb.debian.org`, so the local images were built from scratchpad copies of the Dockerfiles with the proxy CA added and a local stand-in for the `ghcr.io/astral-sh/uv` binary (uv 0.11.32; dependencies come from the frozen lockfile). The repository Dockerfiles are unchanged by that. The new CI `deploy` job builds them unmodified; its result is in CI after the push.
+
+Limitations:
+- Nothing is hosted, and a public deployment needs owner authorization.
+- There is no GHCR publish/SSH CD workflow (it needs deploy secrets and a host) and no off-host backup copy.
+- Grafana JSON is still open.
+- Caddy runs as root inside its container.
+- The secondary web desk's journal does not use the cursor.
+
+**One next task:** owner decisions still block three items (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). The next unblocked item is P2 API v1: openapi-typescript types generated from the FastAPI schema to replace `View = any` in the web desk, with a CI check that the generated file is current.

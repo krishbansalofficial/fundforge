@@ -166,7 +166,7 @@ app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", 
 
 
 CODES = {401: "unauthorized", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 410: "room_expired",
-         413: "body_too_large", 422: "rejected", 429: "rate_limited"}
+         413: "body_too_large", 422: "rejected", 429: "rate_limited", 503: "unavailable"}
 
 
 class ApiError(HTTPException):
@@ -234,6 +234,17 @@ def metrics() -> Response:
 
 @app.get("/api/health")
 def health() -> dict[str, bool]:
+    return {"ok": True}
+
+
+@app.get("/api/ready")
+def ready() -> dict[str, bool]:
+    """Readiness: the schema is migrated and the database answers. Deploy healthchecks gate on this."""
+    try:
+        with store().pool.connection(timeout=5) as c:
+            c.execute("select 1 from schema_migrations limit 1")
+    except Exception as e:
+        raise HTTPException(503, "database not ready") from e
     return {"ok": True}
 
 

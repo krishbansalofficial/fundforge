@@ -91,9 +91,9 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 
 ### P2: Ship and prove (week 4)
 
-- **Deploy:** `deploy/compose.prod.yaml` with Caddy TLS and no published DB port, secrets in `.env`, and non-root containers.
+- **Deploy:** `deploy/compose.prod.yaml` with Caddy TLS and no published DB port, secrets in `.env`, and non-root containers. (Written and smoke-tested 11 Oct 2026: `deploy/smoke.sh` in CI; no public host yet, which needs owner authorization.)
 - **CD:** a GHCR build plus an SSH deploy workflow, with actions pinned by SHA and `permissions: contents: read`.
-- **Backups:** a nightly `pg_dump`. CI restores it and runs `verify` to get the same digest. (Dump/restore-check implemented 11 Oct 2026 as `python -m fundforge.backup`; the nightly schedule waits for the deploy compose.)
+- **Backups:** a nightly `pg_dump`. CI restores it and runs `verify` to get the same digest. (Dump/restore-check implemented 11 Oct 2026 as `python -m fundforge.backup`; nightly dump plus restore-and-verify runs in the deploy compose's `backup` service. Off-host copies remain open.)
 - **Abuse limits:** a body size cap, a per-IP room-creation limit, a room TTL and a bounded cache. The seat token moves to the URL fragment (`#t=`). (Done 11 Oct 2026; TTL makes rooms read-only rather than deleting the append-only log.)
 - **Observability:**
   - JSON logs with request, room, seq and command type
