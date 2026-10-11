@@ -46,6 +46,7 @@ Effort in the profiles means relative integration/verification burden, not a tim
 | [polakowo/vectorbt](https://github.com/polakowo/vectorbt) | Apache-2.0 with Commons Clause | reference; reject core dependency |
 | [mementum/backtrader](https://github.com/mementum/backtrader) | GPL-3.0-or-later | reject core dependency |
 | [every-app/open-seo](https://github.com/every-app/open-seo) | MIT; data rights separate | adapt patterns; defer service |
+| [prometheus/client_python](https://github.com/prometheus/client_python) | Apache-2.0 AND BSD-2-Clause (0.26.0 wheel metadata) | adopted 11 Oct 2026 for P2 `/metrics` only |
 
 ## Licenses and market-data rights are separate
 

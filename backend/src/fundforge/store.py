@@ -11,6 +11,7 @@ everything from scratch and compares it with what was stored.
 import copy
 import hashlib
 import json
+import logging
 import os
 import secrets
 import threading
@@ -28,9 +29,11 @@ from . import bot
 from .engine import RULES_VERSION, CommandRejected, Engine
 from .governance import CLOCK, Session, canonical
 from .journal import Entry
+from .observability import COMMAND_SECONDS, REPLAY_SECONDS, command_type, context, timed
 from .tape import Tape, compile_tape, load, variants
 
 Conn = Connection[tuple[Any, ...]]
+log = logging.getLogger("fundforge.commands")
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json"}
@@ -191,10 +194,11 @@ class Store:
 
     def _replay(self, c: Conn, room: str, version: int, tape: Tape, partners: dict[str, str],
                 bot_role: str | None = None) -> Session:
-        s = self._fresh(tape, partners, bot_role)
-        for uid, key, cmd in c.execute("select user_id, idem_key, command from commands"
-                                       " where room_id=%s and seq<=%s order by seq", (room, version)):
-            s.handle(uid, key, cmd)
+        with timed(REPLAY_SECONDS):
+            s = self._fresh(tape, partners, bot_role)
+            for uid, key, cmd in c.execute("select user_id, idem_key, command from commands"
+                                           " where room_id=%s and seq<=%s order by seq", (room, version)):
+                s.handle(uid, key, cmd)
         return s
 
     def session(self, room: str) -> tuple[int, Session, dict]:
@@ -209,7 +213,8 @@ class Store:
     # ---------- commands ----------
     def apply(self, room: str, user: str, key: str, command: dict) -> dict:
         try:
-            return self._apply(room, user, key, command)
+            with timed(COMMAND_SECONDS, type=command_type(command)):
+                return self._apply(room, user, key, command)
         except KeyReused:
             raise
         except CommandRejected as e:
@@ -266,6 +271,7 @@ class Store:
                       " next_tick_at = now() + make_interval(secs => %s) where id=%s",
                       (seq, s.running(), s.clock["speed"], SECONDS_PER_WINDOW / speed, room))
         self._cache_put(room, seq, s)
+        log.info("command applied", extra=context(room=room, seq=seq, command=command_type(command)))
         return dict(result)
 
     # ---------- real-time clock ----------

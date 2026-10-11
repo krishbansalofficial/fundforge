@@ -4,9 +4,11 @@ import asyncio
 import contextlib
 import logging
 import os
+import re
 import secrets
 import threading
 import time
+import uuid
 from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -16,16 +18,31 @@ from typing import Any
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import project
+from .observability import REJECTIONS, JsonFormatter, context, request_id
 from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
 from .terminal import snapshot
 
 log = logging.getLogger("fundforge.clock")
+access = logging.getLogger("fundforge.http")
+REQUEST_ID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+
+
+def configure_logging() -> None:
+    """JSON lines on stderr for every ``fundforge.*`` logger, unless FUNDFORGE_JSON_LOGS=0."""
+    root = logging.getLogger("fundforge")
+    if os.environ.get("FUNDFORGE_JSON_LOGS", "1") == "1" and not root.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(JsonFormatter())
+        root.addHandler(handler)
+        root.setLevel(logging.INFO)
+        root.propagate = False
 
 
 async def clock_loop() -> None:
@@ -41,6 +58,7 @@ async def clock_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    configure_logging()
     task = asyncio.create_task(clock_loop()) if os.environ.get("FUNDFORGE_CLOCK", "1") == "1" else None
     try:
         yield
@@ -73,10 +91,12 @@ class BodyLimit:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        too_large = _envelope(413, "body_too_large", f"request body over {self.limit} bytes")
+        def too_large() -> JSONResponse:
+            return _envelope(413, "body_too_large", f"request body over {self.limit} bytes")
+
         declared = dict(scope.get("headers", [])).get(b"content-length")
         if declared is not None and (not declared.isdigit() or int(declared) > self.limit):
-            await too_large(scope, receive, send)
+            await too_large()(scope, receive, send)
             return
         messages, seen = [], 0
         while True:
@@ -84,7 +104,7 @@ class BodyLimit:
             messages.append(message)
             seen += len(message.get("body", b""))
             if seen > self.limit:
-                await too_large(scope, receive, send)
+                await too_large()(scope, receive, send)
                 return
             if message["type"] != "http.request" or not message.get("more_body"):
                 break
@@ -121,6 +141,26 @@ room_creations = RateLimit(ROOMS_PER_IP)
 
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
 app.add_middleware(BodyLimit, limit=MAX_BODY_BYTES)
+
+
+@app.middleware("http")
+async def request_log(request: Request, call_next: Any) -> Response:
+    """Tag the request (and every log line it causes) with an id, echo it back and log one access line."""
+    given = request.headers.get("x-request-id", "")
+    token = request_id.set(given if REQUEST_ID.fullmatch(given) else uuid.uuid4().hex)
+    start = time.perf_counter()
+    status = 500
+    try:
+        response: Response = await call_next(request)
+        status = response.status_code
+        response.headers["X-Request-ID"] = request_id.get()
+        return response
+    finally:  # path only: seat tokens travel in headers, never in the logged line
+        parts = request.url.path.split("/")
+        room = parts[3] if len(parts) > 3 and parts[1:3] == ["api", "rooms"] else None
+        access.info("request", extra=context(method=request.method, path=request.url.path, status=status,
+                                             ms=round((time.perf_counter() - start) * 1000, 2), room=room))
+        request_id.reset(token)
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
                    allow_methods=["GET", "POST"], allow_headers=["Authorization", "Idempotency-Key", "Content-Type"])
 
@@ -138,6 +178,7 @@ class ApiError(HTTPException):
 
 
 def _envelope(status: int, code: str, message: str, headers: dict[str, str] | None = None) -> JSONResponse:
+    REJECTIONS.labels(code=code).inc()
     # ``detail`` mirrors ``message`` for clients written before the envelope.
     return JSONResponse(status_code=status, content={"code": code, "message": message, "detail": message},
                         headers=headers)
@@ -183,6 +224,12 @@ def seat(room_id: str, authorization: str = Header("")) -> str:
         return store().auth(room_id, token)
     except PermissionError as e:
         raise HTTPException(401, str(e)) from e
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics() -> Response:
+    """Prometheus scrape target. Operational counts only; keep it off the public proxy."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/api/health")

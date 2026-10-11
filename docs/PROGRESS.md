@@ -223,3 +223,23 @@ Validation: **262 backend tests passed with PostgreSQL** (new `test_abuse_limits
 Limitations: the rate limit is per process and uses the socket peer address. Behind the planned Caddy proxy, uvicorn must run with `--proxy-headers --forwarded-allow-ips=<proxy>`, or every client shares the proxy's address. There is no storage reclamation for expired rooms.
 
 **One next task:** P2 observability: JSON request logs with request id, room, seq and command type, plus Prometheus `command_seconds`, `replay_seconds` and `rejections_total{code}` on `/metrics` (via `prometheus-client`, a free dependency), with tests.
+
+## Observability: Prometheus metrics and JSON logs (P2), 11 October 2026
+
+Completed the prior next task. New `fundforge/observability.py` adds three metrics:
+
+- `fundforge_command_seconds{type}`: each `Store.apply`, including bot replies.
+- `fundforge_replay_seconds`: each session rebuild from the command log.
+- `fundforge_rejections_total{code}`: every HTTP error envelope.
+
+Command-type labels are limited to the command registry plus `tick`; anything else is `unknown`, so clients cannot create new series. The API exposes them on `GET /metrics`, which is unauthenticated and must stay off the public proxy.
+
+Every `fundforge.*` logger writes one JSON line to stderr (`FUNDFORGE_JSON_LOGS=0` disables). Each request gets a request id, taken from a valid `X-Request-ID` (≤64 characters of `[A-Za-z0-9._-]`) or generated, and echoed in the response. Access lines carry method, path, status, ms and room. Applied commands log room, seq and command type with the same request id. Paths only: seat tokens are headers and never logged (asserted).
+
+Dependency: `prometheus-client` 0.26.0 (wheel metadata: Apache-2.0 AND BSD-2-Clause), recorded in LIBRARY_RESEARCH; `uv.lock` updated.
+
+Validation: **263 backend tests passed with PostgreSQL** (new `test_metrics_and_json_request_logs`). Ruff and mypy (25 modules) passed. Real uvicorn run on port 8012 (stopped afterwards) printed JSON access lines with the supplied `smoke-1` request id and served `/metrics`. A bug caught before testing: the body-limit middleware built its 413 response eagerly, which would have counted a rejection on every request; it is now lazy.
+
+Limitations: the roadmap's Grafana JSON is not written (it can't be checked here without Grafana). Metrics are per process.
+
+**One next task:** P2 hygiene: a test rejecting real-listed tickers in fixtures needs a ticker rename, which changes tapes and goldens (rules bump). Ask the owner before renaming ALTO/BEAM/BOND/ELAN/JUNO. Meanwhile take P4 market generator: `generate(seed, gen_version, skeleton)` with a SHA-256-counter PRNG and Decimal-only shocks in the pure domain, with determinism tests.

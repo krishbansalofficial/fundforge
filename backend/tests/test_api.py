@@ -128,3 +128,34 @@ def test_rate_limit_window_slides_and_forgets_idle_clients():
     assert not rl.allow("a", 10.6)
     rl.allow("c", 100)
     assert set(rl._hits) == {"c"}
+
+
+def test_metrics_and_json_request_logs(client, caplog):
+    import json
+    import logging
+
+    from fundforge.observability import JsonFormatter
+
+    c = client
+    r = c.post("/api/rooms", json={"pm_name": "A", "mp_name": "B"}).json()
+    rid, pm = r["room_id"], r["tokens"]["pm"]
+    h = {"Authorization": f"Bearer {pm}", "X-Request-ID": "trace-123"}
+    with caplog.at_level(logging.INFO, logger="fundforge"):
+        ok = c.post(f"/api/rooms/{rid}/commands", headers={**h, "Idempotency-Key": "m1"}, json={"type": "ready"})
+        c.post(f"/api/rooms/{rid}/commands", headers={**h, "Idempotency-Key": "m2"}, json={"type": "no_such_thing"})
+    assert ok.headers["x-request-id"] == "trace-123"
+    assert c.get("/api/health", headers={"X-Request-ID": "bad id!"}).headers["x-request-id"] != "bad id!"
+    fmt = JsonFormatter()
+    lines = [json.loads(fmt.format(rec)) for rec in caplog.records]
+    applied = [x for x in lines if x["msg"] == "command applied"]
+    assert applied == [{**applied[0], "room": rid, "seq": 1, "command": "ready", "request_id": "trace-123"}]
+    hits = [x for x in lines if x["msg"] == "request" and x["room"] == rid]
+    assert [x["status"] for x in hits] == [200, 422] and all(x["request_id"] == "trace-123" for x in hits)
+    assert pm not in json.dumps(lines)  # seat tokens never reach the logs
+
+    text = c.get("/metrics").text
+    assert 'fundforge_command_seconds_count{type="ready"}' in text
+    assert 'fundforge_command_seconds_count{type="unknown"}' in text  # client-chosen types stay bounded
+    assert "no_such_thing" not in text
+    assert 'fundforge_rejections_total{code="rejected"}' in text
+    assert "fundforge_replay_seconds_count" in text
