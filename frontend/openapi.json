@@ -1,0 +1,2058 @@
+{
+  "components": {
+    "schemas": {
+      "Assignment": {
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "location"
+        ],
+        "title": "Assignment",
+        "type": "object"
+      },
+      "Attention": {
+        "additionalProperties": false,
+        "properties": {
+          "committed": {
+            "title": "Committed",
+            "type": "boolean"
+          },
+          "partners": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AttentionClaim"
+            },
+            "title": "Partners",
+            "type": "object"
+          },
+          "window": {
+            "title": "Window",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window",
+          "committed",
+          "partners"
+        ],
+        "title": "Attention",
+        "type": "object"
+      },
+      "AttentionClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "title": "Assignment",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "window": {
+            "title": "Window",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "window",
+          "location",
+          "assignment"
+        ],
+        "title": "AttentionClaim",
+        "type": "object"
+      },
+      "Chat": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "role",
+          "text"
+        ],
+        "title": "Chat",
+        "type": "object"
+      },
+      "Clock": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "finished": {
+            "title": "Finished",
+            "type": "boolean"
+          },
+          "next": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "date",
+          "phase",
+          "next",
+          "finished"
+        ],
+        "title": "Clock",
+        "type": "object"
+      },
+      "ClockState": {
+        "additionalProperties": false,
+        "properties": {
+          "paused": {
+            "title": "Paused",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "speed",
+          "paused",
+          "reason"
+        ],
+        "title": "ClockState",
+        "type": "object"
+      },
+      "DebriefRequest": {
+        "properties": {
+          "omit_seq": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Omit Seq"
+          },
+          "version": {
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "DebriefRequest",
+        "type": "object"
+      },
+      "Decision": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "role",
+          "type",
+          "detail"
+        ],
+        "title": "Decision",
+        "type": "object"
+      },
+      "Fill": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "qty",
+          "price",
+          "amount"
+        ],
+        "title": "Fill",
+        "type": "object"
+      },
+      "Firm": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "title": "Cash",
+            "type": "string"
+          },
+          "fee_receivable": {
+            "title": "Fee Receivable",
+            "type": "string"
+          },
+          "payroll_payable": {
+            "title": "Payroll Payable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cash",
+          "fee_receivable",
+          "payroll_payable"
+        ],
+        "title": "Firm",
+        "type": "object"
+      },
+      "Fund": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "title": "Cash",
+            "type": "string"
+          },
+          "collateral": {
+            "title": "Collateral",
+            "type": "string"
+          },
+          "credit_left": {
+            "title": "Credit Left",
+            "type": "string"
+          },
+          "debt": {
+            "title": "Debt",
+            "type": "string"
+          },
+          "gross": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross"
+          },
+          "initial_req": {
+            "title": "Initial Req",
+            "type": "string"
+          },
+          "long_mv": {
+            "title": "Long Mv",
+            "type": "string"
+          },
+          "maintenance_req": {
+            "title": "Maintenance Req",
+            "type": "string"
+          },
+          "margin_call": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Call"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "net": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net"
+          },
+          "reserve": {
+            "title": "Reserve",
+            "type": "string"
+          },
+          "short_mv": {
+            "title": "Short Mv",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nav",
+          "cash",
+          "collateral",
+          "debt",
+          "credit_left",
+          "reserve",
+          "long_mv",
+          "short_mv",
+          "gross",
+          "net",
+          "maintenance_req",
+          "initial_req",
+          "margin_call"
+        ],
+        "title": "Fund",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IncidentEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "amounts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Amounts",
+            "type": "object"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "refs": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Refs",
+            "type": "object"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "day",
+          "phase",
+          "refs",
+          "amounts",
+          "text"
+        ],
+        "title": "IncidentEvent",
+        "type": "object"
+      },
+      "JournalEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "entity": {
+            "title": "Entity",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "memo": {
+            "title": "Memo",
+            "type": "string"
+          },
+          "postings": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Postings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "entity",
+          "date",
+          "memo",
+          "postings"
+        ],
+        "title": "JournalEntry",
+        "type": "object"
+      },
+      "LeagueRow": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "return_bps": {
+            "title": "Return Bps",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "style": {
+            "title": "Style",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "style",
+          "status",
+          "return_bps",
+          "nav"
+        ],
+        "title": "LeagueRow",
+        "type": "object"
+      },
+      "LedgerPage": {
+        "additionalProperties": false,
+        "description": "``GET /api/rooms/{id}/ledger``: entries ``next - len(entries)`` up to ``next`` of one entity's journal.",
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "entity": {
+            "enum": [
+              "fund",
+              "firm"
+            ],
+            "title": "Entity",
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/JournalEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "next": {
+            "title": "Next",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "entity",
+          "entries",
+          "next",
+          "digest"
+        ],
+        "title": "LedgerPage",
+        "type": "object"
+      },
+      "LiquidityRequest": {
+        "properties": {
+          "horizon": {
+            "default": 5,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Horizon",
+            "type": "integer"
+          },
+          "long_shock": {
+            "default": "-0.15",
+            "maxLength": 12,
+            "pattern": "^-?\\d{1,2}(\\.\\d{1,6})?$",
+            "title": "Long Shock",
+            "type": "string"
+          },
+          "short_shock": {
+            "default": "0.10",
+            "maxLength": 12,
+            "pattern": "^-?\\d{1,2}(\\.\\d{1,6})?$",
+            "title": "Short Shock",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          },
+          "volume_scale": {
+            "default": "1",
+            "maxLength": 9,
+            "pattern": "^\\d(\\.\\d{1,6})?$",
+            "title": "Volume Scale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "LiquidityRequest",
+        "type": "object"
+      },
+      "NewRoom": {
+        "properties": {
+          "mp_name": {
+            "default": "",
+            "maxLength": 40,
+            "title": "Mp Name",
+            "type": "string"
+          },
+          "pm_name": {
+            "default": "",
+            "maxLength": 40,
+            "title": "Pm Name",
+            "type": "string"
+          },
+          "scenario": {
+            "default": "case1",
+            "title": "Scenario",
+            "type": "string"
+          },
+          "solo_role": {
+            "anyOf": [
+              {
+                "pattern": "^(pm|mp)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solo Role"
+          }
+        },
+        "title": "NewRoom",
+        "type": "object"
+      },
+      "NewRoomResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "bot_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bot Role"
+          },
+          "names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Names",
+            "type": "object"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "tokens": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Tokens",
+            "type": "object"
+          }
+        },
+        "required": [
+          "room_id",
+          "tokens",
+          "names",
+          "bot_role"
+        ],
+        "title": "NewRoomResponse",
+        "type": "object"
+      },
+      "NextEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "date"
+        ],
+        "title": "NextEvent",
+        "type": "object"
+      },
+      "Notice": {
+        "additionalProperties": false,
+        "description": "A typed event; ``text`` is rendered prose, ``code``/``refs`` are what logic should read.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "refs": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Refs",
+            "type": "object"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "day",
+          "date",
+          "phase",
+          "kind",
+          "refs",
+          "text"
+        ],
+        "title": "Notice",
+        "type": "object"
+      },
+      "Order": {
+        "additionalProperties": false,
+        "properties": {
+          "filled": {
+            "title": "Filled",
+            "type": "integer"
+          },
+          "fills": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Fill"
+                },
+                {
+                  "$ref": "#/components/schemas/RejectedFill"
+                }
+              ]
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "forced": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forced"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "sym",
+          "side",
+          "qty",
+          "filled",
+          "status",
+          "forced",
+          "fills"
+        ],
+        "title": "Order",
+        "type": "object"
+      },
+      "Outcome": {
+        "additionalProperties": false,
+        "properties": {
+          "benchmark_return_bps": {
+            "title": "Benchmark Return Bps",
+            "type": "string"
+          },
+          "excess_bps": {
+            "title": "Excess Bps",
+            "type": "string"
+          },
+          "forced": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Forced",
+            "type": "array"
+          },
+          "fund_return_bps": {
+            "title": "Fund Return Bps",
+            "type": "string"
+          },
+          "funds": {
+            "title": "Funds",
+            "type": "integer"
+          },
+          "journal_digest": {
+            "title": "Journal Digest",
+            "type": "string"
+          },
+          "label": {
+            "enum": [
+              "WIN",
+              "SURVIVAL",
+              "DISTRESS"
+            ],
+            "title": "Label",
+            "type": "string"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "recall_resolved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Resolved By"
+          },
+          "redemption_paid": {
+            "title": "Redemption Paid",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          },
+          "tape_digest": {
+            "title": "Tape Digest",
+            "type": "string"
+          },
+          "unpaid": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unpaid",
+            "type": "array"
+          },
+          "variant": {
+            "title": "Variant",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "nav",
+          "fund_return_bps",
+          "benchmark_return_bps",
+          "excess_bps",
+          "score",
+          "rank",
+          "funds",
+          "redemption_paid",
+          "forced",
+          "unpaid",
+          "recall_resolved_by",
+          "variant",
+          "journal_digest",
+          "tape_digest"
+        ],
+        "title": "Outcome",
+        "type": "object"
+      },
+      "Package": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/PackageOrder"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "package_id": {
+            "title": "Package Id",
+            "type": "string"
+          },
+          "proposer": {
+            "title": "Proposer",
+            "type": "string"
+          },
+          "signatures": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Signatures",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "package_id",
+          "proposer",
+          "digest",
+          "status",
+          "signatures",
+          "orders"
+        ],
+        "title": "Package",
+        "type": "object"
+      },
+      "PackageOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "sym",
+          "side",
+          "qty",
+          "limit"
+        ],
+        "title": "PackageOrder",
+        "type": "object"
+      },
+      "Position": {
+        "additionalProperties": false,
+        "properties": {
+          "borrowed": {
+            "title": "Borrowed",
+            "type": "integer"
+          },
+          "mark": {
+            "title": "Mark",
+            "type": "string"
+          },
+          "mv": {
+            "title": "Mv",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sym",
+          "qty",
+          "mark",
+          "mv",
+          "borrowed"
+        ],
+        "title": "Position",
+        "type": "object"
+      },
+      "Realtime": {
+        "additionalProperties": false,
+        "properties": {
+          "next_tick_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Tick At"
+          },
+          "next_tick_in": {
+            "title": "Next Tick In",
+            "type": "number"
+          },
+          "running": {
+            "title": "Running",
+            "type": "boolean"
+          },
+          "server_now": {
+            "title": "Server Now",
+            "type": "string"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "window_seconds": {
+            "title": "Window Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "running",
+          "speed",
+          "next_tick_at",
+          "server_now",
+          "next_tick_in",
+          "window_seconds"
+        ],
+        "title": "Realtime",
+        "type": "object"
+      },
+      "Recall": {
+        "additionalProperties": false,
+        "properties": {
+          "offer_visible": {
+            "title": "Offer Visible",
+            "type": "boolean"
+          },
+          "open": {
+            "title": "Open",
+            "type": "integer"
+          },
+          "replacement_accepted": {
+            "title": "Replacement Accepted",
+            "type": "boolean"
+          },
+          "resolved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved By"
+          }
+        },
+        "required": [
+          "open",
+          "resolved_by",
+          "offer_visible",
+          "replacement_accepted"
+        ],
+        "title": "Recall",
+        "type": "object"
+      },
+      "RejectedFill": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "rejected"
+        ],
+        "title": "RejectedFill",
+        "type": "object"
+      },
+      "Research": {
+        "additionalProperties": false,
+        "properties": {
+          "assignments": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "title": "Assignments",
+            "type": "object"
+          },
+          "budget": {
+            "title": "Budget",
+            "type": "integer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "shared": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Shared",
+            "type": "array"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topics",
+            "type": "array"
+          },
+          "used": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchUse"
+            },
+            "title": "Used",
+            "type": "array"
+          }
+        },
+        "required": [
+          "used",
+          "budget",
+          "shared",
+          "evidence",
+          "topics",
+          "assignments"
+        ],
+        "title": "Research",
+        "type": "object"
+      },
+      "ResearchUse": {
+        "additionalProperties": false,
+        "properties": {
+          "assigned_day": {
+            "title": "Assigned Day",
+            "type": "integer"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "reveal_day": {
+            "title": "Reveal Day",
+            "type": "integer"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "assigned_day",
+          "reveal_day"
+        ],
+        "title": "ResearchUse",
+        "type": "object"
+      },
+      "RoomView": {
+        "additionalProperties": false,
+        "description": "``GET /api/rooms/{id}/view``: the session view plus seat names and the real-time clock.",
+        "properties": {
+          "attention": {
+            "$ref": "#/components/schemas/Attention"
+          },
+          "bots": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Bots",
+            "type": "array"
+          },
+          "chat": {
+            "items": {
+              "$ref": "#/components/schemas/Chat"
+            },
+            "title": "Chat",
+            "type": "array"
+          },
+          "clock": {
+            "$ref": "#/components/schemas/Clock"
+          },
+          "clock_state": {
+            "$ref": "#/components/schemas/ClockState"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/Decision"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "firm": {
+            "$ref": "#/components/schemas/Firm"
+          },
+          "fund": {
+            "$ref": "#/components/schemas/Fund"
+          },
+          "incident_events": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentEvent"
+            },
+            "title": "Incident Events",
+            "type": "array"
+          },
+          "incidents": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Incidents",
+            "type": "array"
+          },
+          "league": {
+            "items": {
+              "$ref": "#/components/schemas/LeagueRow"
+            },
+            "title": "League",
+            "type": "array"
+          },
+          "marks": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Marks",
+            "type": "object"
+          },
+          "names": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Names",
+            "type": "object"
+          },
+          "notices": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Outcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "packages": {
+            "items": {
+              "$ref": "#/components/schemas/Package"
+            },
+            "title": "Packages",
+            "type": "array"
+          },
+          "partners": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Partners",
+            "type": "object"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/Position"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "ready": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ready",
+            "type": "array"
+          },
+          "realtime": {
+            "$ref": "#/components/schemas/Realtime"
+          },
+          "recall": {
+            "$ref": "#/components/schemas/Recall"
+          },
+          "research": {
+            "$ref": "#/components/schemas/Research"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "partners",
+          "clock",
+          "ready",
+          "clock_state",
+          "bots",
+          "chat",
+          "version",
+          "fund",
+          "positions",
+          "marks",
+          "series",
+          "firm",
+          "recall",
+          "research",
+          "attention",
+          "orders",
+          "packages",
+          "notices",
+          "league",
+          "incidents",
+          "incident_events",
+          "decisions",
+          "outcome",
+          "names",
+          "realtime"
+        ],
+        "title": "RoomView",
+        "type": "object"
+      },
+      "Series": {
+        "additionalProperties": false,
+        "properties": {
+          "hwm": {
+            "title": "Hwm",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "nav_per_unit": {
+            "title": "Nav Per Unit",
+            "type": "string"
+          },
+          "net": {
+            "title": "Net",
+            "type": "string"
+          },
+          "provision": {
+            "title": "Provision",
+            "type": "string"
+          },
+          "units": {
+            "title": "Units",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "units",
+          "net",
+          "provision",
+          "hwm",
+          "nav_per_unit"
+        ],
+        "title": "Series",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "FundForge",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Health Api Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "description": "Readiness: the schema is migrated and the database answers. Deploy healthchecks gate on this.",
+        "operationId": "ready_api_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Ready Api Ready Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready"
+      }
+    },
+    "/api/rooms": {
+      "post": {
+        "operationId": "create_room_api_rooms_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewRoom"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewRoomResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Room"
+      }
+    },
+    "/api/rooms/{room_id}/commands": {
+      "post": {
+        "operationId": "command_api_rooms__room_id__commands_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Body",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Command Api Rooms  Room Id  Commands Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Command"
+      }
+    },
+    "/api/rooms/{room_id}/debrief": {
+      "post": {
+        "operationId": "debrief_api_rooms__room_id__debrief_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebriefRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Debrief Api Rooms  Room Id  Debrief Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Debrief"
+      }
+    },
+    "/api/rooms/{room_id}/ledger": {
+      "get": {
+        "description": "The newest 1,000 entries, or with ``after`` the entries following that many (the previous ``next``).",
+        "operationId": "ledger_api_rooms__room_id__ledger_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entity",
+            "required": false,
+            "schema": {
+              "default": "fund",
+              "title": "Entity",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LedgerPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ledger"
+      }
+    },
+    "/api/rooms/{room_id}/liquidity": {
+      "post": {
+        "operationId": "liquidity_api_rooms__room_id__liquidity_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiquidityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Liquidity Api Rooms  Room Id  Liquidity Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Liquidity"
+      }
+    },
+    "/api/rooms/{room_id}/terminal": {
+      "get": {
+        "description": "Authenticated read-only analytics at one consistent room version.",
+        "operationId": "terminal_api_rooms__room_id__terminal_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Terminal Api Rooms  Room Id  Terminal Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Terminal"
+      }
+    },
+    "/api/rooms/{room_id}/verify": {
+      "get": {
+        "description": "Re-derive the whole room from tape + command log and compare with every stored row.",
+        "operationId": "verify_api_rooms__room_id__verify_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Verify Api Rooms  Room Id  Verify Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify"
+      }
+    },
+    "/api/rooms/{room_id}/view": {
+      "get": {
+        "operationId": "view_api_rooms__room_id__view_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "304": {
+            "description": "Unchanged since If-None-Match"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View"
+      }
+    }
+  }
+}

@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "test": "node --experimental-strip-types --test app/exclusive.test.ts app/seat.test.ts"
+    "test": "node --experimental-strip-types --test app/exclusive.test.ts app/seat.test.ts",
+    "types": "openapi-typescript openapi.json -o app/api-types.ts"
   },
   "dependencies": {
     "next": "^15.5.27",
@@ -17,6 +18,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "openapi-typescript": "7.13.0",
     "typescript": "^5"
   },
   "overrides": {

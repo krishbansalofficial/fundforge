@@ -361,3 +361,31 @@ Limitations:
 - The secondary web desk's journal does not use the cursor.
 
 **One next task:** owner decisions still block three items (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). The next unblocked item is P2 API v1: openapi-typescript types generated from the FastAPI schema to replace `View = any` in the web desk, with a CI check that the generated file is current.
+
+## Typed web desk from the API contract (P2 API v1), 11 October 2026
+
+Completed the prior next task. New `backend/src/fundforge/schemas.py` describes the player-facing responses as strict Pydantic models (`extra="forbid"`, decimals stay strings):
+- `SessionView` is what `Session.view` builds;
+- `RoomView` adds the endpoint's `names` and `realtime`;
+- `LedgerPage` and `NewRoomResponse` describe the ledger and room-creation responses.
+
+The view endpoint still returns its own ETag `JSONResponse` and only documents `RoomView` in OpenAPI; ledger and room creation declare `response_model`, so FastAPI validates them on the way out.
+
+`test_schemas.py` validates the JSON of every view both partners receive across whole games: Case1 base and rally, a busy script on Case1/controls/settlement, a generated seed, and solo bot games in both seats. The busy script covers research, sharing, chat with a ref, limit orders, a large purchase, a post-recall short refused at execution, and statement review. The test also asserts those paths actually reached the optional branches (filled and rejected fills, WIN and DISTRESS outcomes, margin calls, evidence, bots, chat refs, limits, attention claims, incidents). An extra field or a number where a decimal string belongs fails validation. Writing the contract found one real shape the sampling had missed: notice `refs` can hold integers (statement revisions).
+
+`scripts/export_openapi.py` writes `frontend/openapi.json`, and `npm run types` (openapi-typescript 7.13.0, MIT, pinned devDependency) generates `frontend/app/api-types.ts`. `lib.ts` now exports `View = RoomView` and named aliases. The desk has no `any` left: fills are a `Fill | RejectedFill` union narrowed with `"rejected" in x`, and evidence refs and command `detail` (which echoes the sent command) are read explicitly. The debrief now describes `visit` and `share_research` decisions instead of printing their raw type; its old `research` case predated assignments.
+
+Freshness: `test_openapi_file.py` fails while the committed JSON differs from the app (checked by editing it), and the frontend CI job regenerates the types and runs `git diff --exit-code`.
+
+Validation:
+- **284 backend tests passed with PostgreSQL**; Ruff and mypy (28 files) passed.
+- Frontend `tsc`, `npm test` (3 passed), `npm run build` and `npm audit --omit=dev` (0 vulnerabilities) passed.
+- A real Chromium run (Playwright 1.56.1 from a scratch directory, not a repo dependency) drove the production web desk against a local API through a full two-seat game. The MP shared evidence through the UI. The orders tab showed the filled cover, the broker's forced trades and "Rejected: no borrow inventory for BRIN". The ledger showed 346 rows with its hash, and the debrief listed the six decisions in words. There were no console errors.
+- Godot is unchanged in this slice.
+
+Limitations:
+- Request bodies are still untyped: commands are `dict`, so the desk's `send` takes `Record<string, unknown>`.
+- The terminal, debrief, liquidity and verify responses remain `dict[str, Any]`, because only the web desk's endpoints were contracted.
+- The Godot client does not use the generated types.
+
+**One next task:** P2 API v1 command contract: Pydantic discriminated-union command models in `schemas.py` for `POST /commands` (validated before `Session.handle`, with malformed bodies returning `invalid_command`), regenerate the types, and type the web desk's `send`.

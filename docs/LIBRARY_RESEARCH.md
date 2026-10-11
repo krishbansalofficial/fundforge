@@ -47,6 +47,7 @@ Effort in the profiles means relative integration/verification burden, not a tim
 | [mementum/backtrader](https://github.com/mementum/backtrader) | GPL-3.0-or-later | reject core dependency |
 | [every-app/open-seo](https://github.com/every-app/open-seo) | MIT; data rights separate | adapt patterns; defer service |
 | [prometheus/client_python](https://github.com/prometheus/client_python) | Apache-2.0 AND BSD-2-Clause (0.26.0 wheel metadata) | adopted 11 Oct 2026 for P2 `/metrics` only |
+| [openapi-ts/openapi-typescript](https://github.com/openapi-ts/openapi-typescript) | MIT (7.13.0 package.json) | adopted 11 Oct 2026 as a pinned frontend devDependency that generates `app/api-types.ts`; not shipped at runtime |
 
 ## Licenses and market-data rights are separate
 

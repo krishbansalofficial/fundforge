@@ -1,4 +1,16 @@
-export type View = any; // mirrors fundforge.governance.Session.view (server is the source of truth)
+import type { components } from "./api-types";
+
+// Generated from the server's OpenAPI document (fundforge.schemas); regenerate with `npm run types`.
+type Schemas = components["schemas"];
+export type View = Schemas["RoomView"];
+export type Order = Schemas["Order"];
+export type Fill = Schemas["Fill"];
+export type RejectedFill = Schemas["RejectedFill"];
+export type Package = Schemas["Package"];
+export type Outcome = Schemas["Outcome"];
+export type Decision = Schemas["Decision"];
+export type LedgerPage = Schemas["LedgerPage"];
+export type NewRoom = Schemas["NewRoomResponse"];
 
 export const money = (s: string | null | undefined, dp = 0) =>
   s == null ? "—" : Number(s).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: dp, maximumFractionDigits: dp });

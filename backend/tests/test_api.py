@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+from fundforge.schemas import RoomView
+
 pytestmark = pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="needs DATABASE_URL")
 
 
@@ -27,6 +29,7 @@ def test_two_seat_flow_over_http(client):
     assert c.get(f"/api/rooms/{rid}/view").status_code == 401
     assert c.get(f"/api/rooms/{rid}/view", headers=h("forged")).status_code == 401
     v = c.get(f"/api/rooms/{rid}/view", headers=h(pm)).json()
+    RoomView.model_validate(v)  # the published contract, including names and realtime
     assert v["role"] == "pm" and v["clock"]["day"] == 12
     bad = c.post(f"/api/rooms/{rid}/commands", headers=h(mp, "k1"),
                  json={"type": "ticket", "order_id": "x", "sym": "ALTO", "side": "SELL", "qty": 1})
@@ -173,3 +176,14 @@ def test_ready_requires_a_migrated_reachable_database(client, monkeypatch):
     r = client.get("/api/ready")
     assert r.status_code == 503 and r.json()["code"] == "unavailable"
     assert client.get("/api/health").json() == {"ok": True}  # liveness does not touch the database
+
+
+def test_openapi_publishes_the_view_ledger_and_room_contracts(client):
+    spec = client.get("/openapi.json").json()
+    paths, schemas = spec["paths"], spec["components"]["schemas"]
+    ref = lambda path, method="get", status="200": (  # noqa: E731
+        paths[path][method]["responses"][status]["content"]["application/json"]["schema"]["$ref"])
+    assert ref("/api/rooms/{room_id}/view").endswith("/RoomView")
+    assert ref("/api/rooms/{room_id}/ledger").endswith("/LedgerPage")
+    assert ref("/api/rooms", "post", "201").endswith("/NewRoomResponse")
+    assert schemas["RoomView"]["additionalProperties"] is False and "realtime" in schemas["RoomView"]["required"]

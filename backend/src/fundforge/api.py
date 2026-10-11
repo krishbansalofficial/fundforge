@@ -26,6 +26,7 @@ from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import project
 from .observability import REJECTIONS, JsonFormatter, context, request_id
+from .schemas import LedgerPage, NewRoomResponse, RoomView
 from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
 from .terminal import snapshot
 
@@ -248,7 +249,7 @@ def ready() -> dict[str, bool]:
     return {"ok": True}
 
 
-@app.post("/api/rooms", status_code=201)
+@app.post("/api/rooms", status_code=201, response_model=NewRoomResponse)
 def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
     if not room_creations.allow(request.client.host if request.client else "unknown"):
         raise ApiError(429, "rate_limited", f"at most {room_creations.per_window} new rooms per hour from one address")
@@ -269,7 +270,8 @@ def _etag(version: int, running: bool) -> str:
     return f'"{EPOCH}-v{version}-{int(running)}"'
 
 
-@app.get("/api/rooms/{room_id}/view", response_model=None)
+@app.get("/api/rooms/{room_id}/view", response_model=None,
+         responses={200: {"model": RoomView}, 304: {"description": "Unchanged since If-None-Match"}})
 def view(room_id: str, user: str = Depends(seat),
          if_none_match: str | None = Header(None)) -> dict[str, Any] | Response:
     headers = {"Cache-Control": "private, no-cache"}
@@ -283,7 +285,7 @@ def view(room_id: str, user: str = Depends(seat),
     return JSONResponse(body, headers={**headers, "ETag": _etag(version, info["running"])})
 
 
-@app.get("/api/rooms/{room_id}/ledger")
+@app.get("/api/rooms/{room_id}/ledger", response_model=LedgerPage)
 def ledger(room_id: str, entity: str = "fund", after: int | None = Query(None, ge=0),
            user: str = Depends(seat)) -> dict[str, Any]:
     """The newest 1,000 entries, or with ``after`` the entries following that many (the previous ``next``)."""

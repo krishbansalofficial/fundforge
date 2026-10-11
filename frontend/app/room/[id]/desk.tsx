@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
-import { api, fetchView, money, pct, type View } from "../../lib";
+import { api, fetchView, money, pct, type Decision, type LedgerPage, type View } from "../../lib";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
@@ -166,7 +166,7 @@ function Headroom({ nav, req }: { nav: number; req: number }) {
 function Ribbon({ v }: { v: View }) {
   const cur = v.clock;
   const nxt = cur.next;
-  const known = (text: string) => v.notices.some((n: any) => n.text.includes(text));
+  const known = (text: string) => v.notices.some((n) => n.text.includes(text));
   const marks: Record<number, string> = {};
   if (known("redemption")) { marks[20] = "Tactical dealing"; marks[21] = "Redemption payment"; }
   if (known("stressed margin")) marks[16] = "Stressed margin";
@@ -201,14 +201,14 @@ function Ribbon({ v }: { v: View }) {
 }
 
 function Positions({ v }: { v: View }) {
-  const rows = v.positions.filter((p: any) => p.qty !== 0 || p.borrowed);
+  const rows = v.positions.filter((p) => p.qty !== 0 || p.borrowed);
   return (
     <section className="panel positions" aria-labelledby="pos-h">
       <h2 id="pos-h">Book</h2>
       <table>
         <thead><tr><th>Name</th><th className="n">Shares</th><th className="n">Mark</th><th className="n">Value</th><th className="n">Borrowed</th></tr></thead>
         <tbody>
-          {rows.map((p: any) => (
+          {rows.map((p) => (
             <tr key={p.sym} className={p.qty < 0 ? "short" : ""}>
               <td>{p.sym}</td>
               <td className="n">{p.qty.toLocaleString()}</td>
@@ -234,7 +234,7 @@ function Feed({ v }: { v: View }) {
       <h2 id="feed-h">Desk feed</h2>
       {items.length === 0 ? <p className="muted">Nothing published yet.</p> : (
         <ul>
-          {items.map((n: any, i: number) => (
+          {items.map((n, i) => (
             <li key={i} className={n.kind}>
               <span className="when">Day {n.day}</span>
               <span>{n.text}</span>
@@ -290,7 +290,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
           <div className="row">
             <select aria-label="Research topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
               <option value="">Assign research ({v.research.budget - v.research.used.length} left)</option>
-              {v.research.topics.filter((t: string) => !v.research.used.some((u: any) => u.topic === t)).map((t: string) => (
+              {v.research.topics.filter((t) => !v.research.used.some((u) => u.topic === t)).map((t) => (
                 <option key={t} value={t}>{{ borrow: "BRIN borrow availability", debt_schedule: "BRIN debt schedule", demand_survey: "BRIN demand survey" }[t] ?? t}</option>
               ))}
             </select>
@@ -299,13 +299,14 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
                 "Attention committed; private evidence arrives at the next market open.").then(() => setTopic(""))}>Assign</button>
           </div>
           {v.attention?.committed ? <p>Your attention is committed for this window.</p> : null}
-          {(v.research.evidence ?? []).map((evidence: { text: string; refs: { topic: string; owner: string } }) => {
-            const shared = v.research.shared.includes(evidence.refs.topic);
-            return <article key={evidence.refs.topic}>
-              <h3>{shared ? "Shared" : "Private"}: {evidence.refs.topic.replaceAll("_", " ")}</h3>
+          {v.research.evidence.map((evidence) => {
+            const topic = String(evidence.refs.topic ?? ""), owner = String(evidence.refs.owner ?? "");
+            const shared = v.research.shared.includes(topic);
+            return <article key={topic}>
+              <h3>{shared ? "Shared" : "Private"}: {topic.replaceAll("_", " ")}</h3>
               <p>{evidence.text}</p>
-              {evidence.refs.owner === me && !shared ? <button type="button"
-                onClick={() => send({ type: "share_research", topic: evidence.refs.topic }, "Evidence shared with your partner.")}>
+              {owner === me && !shared ? <button type="button"
+                onClick={() => send({ type: "share_research", topic: topic }, "Evidence shared with your partner.")}>
                 Share evidence with partner
               </button> : null}
             </article>;
@@ -331,7 +332,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
 
 function Partners({ v, me, partner, send, flash }: { v: View; me: string; partner: string; send: Send; flash: string }) {
   const ready = v.ready.includes(me);
-  const waiting = v.packages.filter((p: any) => p.status === "PENDING_APPROVAL" && p.proposer === partner);
+  const waiting = v.packages.filter((p) => p.status === "PENDING_APPROVAL" && p.proposer === partner);
   return (
     <section className="panel partners" aria-labelledby="ptn-h">
       <h2 id="ptn-h">Committee</h2>
@@ -339,10 +340,10 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
         You are <strong>{v.names[me]}</strong>, {me === "pm" ? "portfolio manager" : "managing partner"}. {v.names[partner]} is{" "}
         {v.ready.includes(partner) ? "ready to move on" : "still deciding"}.
       </p>
-      {waiting.map((p: any) => (
+      {waiting.map((p) => (
         <div key={p.package_id} className="to-sign">
           <p>{v.names[partner]} asks you to approve:</p>
-          <ul>{p.orders.map((o: any) => <li key={o.order_id}>{o.side} {Number(o.qty).toLocaleString()} {o.sym}{o.limit ? ` limit ${o.limit}` : ""}</li>)}</ul>
+          <ul>{p.orders.map((o) => <li key={o.order_id}>{o.side} {Number(o.qty).toLocaleString()} {o.sym}{o.limit ? ` limit ${o.limit}` : ""}</li>)}</ul>
           <p className="digest" title="Your signature binds to this exact content hash">Contents hash {p.digest.slice(0, 12)}</p>
           <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, "Signed. The package executes at the next execution.")}>Sign package</button>
         </div>
@@ -364,13 +365,13 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
         <thead><tr><th>Order</th><th>Instruction</th><th className="n">Filled</th><th>Status</th><th>Fills</th><th /></tr></thead>
         <tbody>
           {v.orders.length === 0 && <tr><td colSpan={6} className="muted">No orders yet. Tickets and signed packages appear here.</td></tr>}
-          {[...v.orders].reverse().map((o: any) => (
+          {[...v.orders].reverse().map((o) => (
             <tr key={o.order_id} className={o.forced ? "forced" : ""}>
               <td>{o.forced ? `Broker forced (${o.forced})` : o.order_id}</td>
               <td>{o.side} {o.qty.toLocaleString()} {o.sym}</td>
               <td className="n">{o.filled.toLocaleString()}</td>
               <td>{o.status.replaceAll("_", " ").toLowerCase()}</td>
-              <td>{o.fills.map((x: any, i: number) => <div key={i}>{x.rejected ? `Rejected: ${x.rejected}` : `Day ${x.day} ${x.qty.toLocaleString()} @ ${x.price}`}</div>)}</td>
+              <td>{o.fills.map((x, i) => <div key={i}>{"rejected" in x ? `Rejected: ${x.rejected}` : `Day ${x.day} ${x.qty.toLocaleString()} @ ${x.price}`}</div>)}</td>
               <td>{["QUEUED", "PARTIALLY_FILLED"].includes(o.status) && !o.forced && <button type="button" className="link" onClick={() => send({ type: "cancel", order_id: o.order_id }, "Order canceled.")}>Cancel</button>}</td>
             </tr>
           ))}
@@ -380,11 +381,11 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
         <table>
           <thead><tr><th>Package</th><th>Proposed by</th><th>Contents</th><th>Signatures</th><th>Status</th></tr></thead>
           <tbody>
-            {v.packages.map((p: any) => (
+            {v.packages.map((p) => (
               <tr key={p.package_id}>
                 <td>{p.digest.slice(0, 10)}</td>
                 <td>{v.names[p.proposer]}{p.proposer === me ? " (you)" : ""}</td>
-                <td>{p.orders.map((o: any) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
+                <td>{p.orders.map((o) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
                 <td>{p.signatures.map((s: string) => v.names[s]).join(" and ")}</td>
                 <td>{p.status.replaceAll("_", " ").toLowerCase()}</td>
               </tr>
@@ -402,7 +403,7 @@ function Investors({ v }: { v: View }) {
       <table>
         <thead><tr><th>Series</th><th className="n">Units</th><th className="n">Net capital</th><th className="n">NAV per unit</th><th className="n">High-water mark</th><th className="n">Performance provision</th></tr></thead>
         <tbody>
-          {v.series.map((s: any) => (
+          {v.series.map((s) => (
             <tr key={s.id}><td>{s.id}</td><td className="n">{Number(s.units).toLocaleString()}</td><td className="n">{money(s.net, 2)}</td>
               <td className="n">{Number(s.nav_per_unit).toFixed(4)}</td><td className="n">{Number(s.hwm).toFixed(2)}</td><td className="n">{money(s.provision, 2)}</td></tr>
           ))}
@@ -415,9 +416,9 @@ function Investors({ v }: { v: View }) {
 
 function Ledger({ roomId, token, version }: { roomId: string; token: string; version: number }) {
   const [entity, setEntity] = useState<"fund" | "firm">("fund");
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<LedgerPage | null>(null);
   useEffect(() => {
-    api(`/api/rooms/${roomId}/ledger?entity=${entity}`, token).then(setData).catch(() => setData(null));
+    api(`/api/rooms/${roomId}/ledger?entity=${entity}`, token).then((page: LedgerPage) => setData(page)).catch(() => setData(null));
   }, [roomId, token, entity, version]);
   const entries = useMemo(() => (data ? [...data.entries].reverse() : []), [data]);
   return (
@@ -430,8 +431,8 @@ function Ledger({ roomId, token, version }: { roomId: string; token: string; ver
       <table>
         <thead><tr><th>Date</th><th>Entry</th><th>Account</th><th className="n">Debit</th><th className="n">Credit</th></tr></thead>
         <tbody>
-          {entries.slice(0, 150).flatMap((e: any) =>
-            e.postings.map(([acct, amt]: [string, string], i: number) => (
+          {entries.slice(0, 150).flatMap((e) =>
+            e.postings.map(([acct, amt], i) => (
               <tr key={e.id + i} className={i === 0 ? "entry-start" : ""}>
                 <td>{i === 0 ? e.date : ""}</td><td>{i === 0 ? e.memo : ""}</td><td>{acct}</td>
                 <td className="n">{Number(amt) > 0 ? money(amt, 2) : ""}</td><td className="n">{Number(amt) < 0 ? money(String(-Number(amt)), 2) : ""}</td>
@@ -473,7 +474,7 @@ function Debrief({ v, headroom }: { v: View; headroom: number }) {
       <h2>How you got here</h2>
       {v.decisions.length === 0 ? <p className="muted">Neither partner acted; the tape and the broker decided.</p> : (
         <ol className="decisions">
-          {v.decisions.map((d: any, i: number) => (
+          {v.decisions.map((d, i) => (
             <li key={i}>
               <span className="when">Day {d.day}</span>
               <span>{v.names[d.role]} {describe(d)}</span>
@@ -485,14 +486,22 @@ function Debrief({ v, headroom }: { v: View; headroom: number }) {
   );
 }
 
-function describe(d: any): string {
-  const x = d.detail;
+// `detail` echoes the command the partner sent, so its fields depend on `type`.
+type CommandDetail = {
+  side?: string; qty?: number; sym?: string; order_id?: string; topic?: string; assignment?: string; location?: string;
+  amount?: string;
+  orders?: { side: string; qty: number; sym: string }[];
+};
+
+function describe(d: Decision): string {
+  const x = d.detail as CommandDetail;
   switch (d.type) {
     case "ticket": return `sent a ticket: ${x.side} ${Number(x.qty).toLocaleString()} ${x.sym}`;
-    case "propose": return `proposed ${x.orders.map((o: any) => `${o.side} ${Number(o.qty).toLocaleString()} ${o.sym}`).join(", ")}`;
+    case "propose": return `proposed ${(x.orders ?? []).map((o) => `${o.side} ${Number(o.qty).toLocaleString()} ${o.sym}`).join(", ")}`;
     case "sign": return "countersigned the package";
     case "cancel": return `canceled ${x.order_id}`;
-    case "research": return `assigned research: ${x.topic.replace("_", " ")}`;
+    case "visit": return `took the ${(x.assignment ?? "").replaceAll("_", " ")} assignment at the ${x.location}`;
+    case "share_research": return `shared the ${(x.topic ?? "").replaceAll("_", " ")} evidence`;
     case "accept_replacement": return "accepted the 40% replacement borrow";
     case "set_reserve": return `set the treasury reserve to ${money(x.amount)}`;
     default: return d.type;
