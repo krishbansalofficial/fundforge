@@ -543,6 +543,8 @@ func _send_visitor() -> void:
 # ---------------- input and camera ----------------
 
 func _unhandled_input(event: InputEvent) -> void:
+	if get_viewport().get_meta("forge_terminal_open", false):
+		return
 	if me == null:
 		return
 	if event is InputEventMouseButton and event.pressed:
@@ -577,7 +579,7 @@ func _process(delta: float) -> void:
 	_t += delta
 	if me:
 		var input := Vector2(Input.get_axis("ui_left", "ui_right"), Input.get_axis("ui_up", "ui_down"))
-		if input != Vector2.ZERO:
+		if input != Vector2.ZERO and not get_viewport().get_meta("forge_terminal_open", false):
 			var fwd := Vector3(-sin(_cam_yaw), 0, -cos(_cam_yaw))
 			var right := Vector3(cos(_cam_yaw), 0, -sin(_cam_yaw))
 			var move := (right * input.x - fwd * input.y).normalized() * me.speed * 1.4 * delta

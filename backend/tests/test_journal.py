@@ -5,7 +5,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from fundforge.journal import Journal, JournalError, entry
-from fundforge.money import D, Accrual
+from fundforge.money import Accrual, D
 
 cents = st.integers(min_value=1, max_value=10**12).map(lambda c: Decimal(c) / 100)
 

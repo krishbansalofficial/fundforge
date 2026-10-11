@@ -1,6 +1,6 @@
 # Three scenario design contracts v2.2
 
-7 October 2026. These are complete bounded **authoring specifications**, not implemented scenarios, full compiled market tapes, demonstrated feasible engine paths or playtests. They tighten SEASON_SCENARIOS §8. Existing `scenario_cases.json` numbers remain isolated checkpoint oracles; full dated runs MUST include all subsequent accruals. If an oracle described below has not been independently calculated, mark it pending, never fill it from engine output.
+7 October 2026. These are bounded **authoring specifications**. Case1 is implemented as `fixtures/case1.json` (later extended with hidden variants and rival funds); Cases 2 and 3 are not. Real status is in [PROGRESS](PROGRESS.md). They tighten SEASON_SCENARIOS §8. Existing `scenario_cases.json` numbers remain isolated checkpoint oracles; full dated runs MUST include all subsequent accruals. If an oracle described below has not been independently calculated, mark it pending, never fill it from engine output.
 
 ## Shared contract and exhaustive defaults
 

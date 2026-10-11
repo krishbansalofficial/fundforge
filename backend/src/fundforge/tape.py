@@ -11,8 +11,12 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
+from .broker import validate_statements
 from .money import D
+
+Margin = dict[str, dict[str, Decimal]]  # {"initial"|"maintenance": {"long"|"short": rate}}
 
 PHASES = ("OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE")
 EXEC_PHASES = ("EXEC_A", "EXEC_B")
@@ -42,7 +46,7 @@ def business_date(day1: date, n: int) -> date:
     return d
 
 
-def _money(v, where):
+def _money(v: object, where: str) -> Decimal:
     if not isinstance(v, str):
         raise TapeError(f"{where}: money/rates must be decimal strings, got {v!r}")
     try:
@@ -56,15 +60,15 @@ def _money(v, where):
 
 @dataclass(frozen=True)
 class Tape:
-    raw: dict
+    raw: dict[str, Any]
     events: tuple[MarketEvent, ...]
     digest: str
 
     @property
     def instruments(self) -> list[str]:
-        return self.raw["instruments"]
+        return list(self.raw["instruments"])
 
-    def margin(self, day: int) -> dict:
+    def margin(self, day: int) -> Margin:
         row = [m for m in self.raw["margin_schedule"] if m["from_day"] <= day][-1]
         return {k: {s: D(v) for s, v in row[k].items()} for k in ("initial", "maintenance")}
 
@@ -73,11 +77,11 @@ def load(path: str | Path, variant: str | None = None) -> Tape:
     return compile_tape(json.loads(Path(path).read_text(encoding="utf-8")), variant)
 
 
-def variants(raw: dict) -> list[str]:
+def variants(raw: dict[str, Any]) -> list[str]:
     return ["base", *sorted(raw.get("variants", {}))]
 
 
-def compile_tape(raw: dict, variant: str | None = None) -> Tape:
+def compile_tape(raw: dict[str, Any], variant: str | None = None) -> Tape:
     """Materialize the tape. A variant replaces overrides that match its (day, event) keys and appends others;
     players never learn which variant they are in until the debrief."""
     if variant not in (None, "base"):
@@ -94,12 +98,40 @@ def compile_tape(raw: dict, variant: str | None = None) -> Tape:
     base_mark = _money(dflt["mark"], "defaults.mark")
     base_vol = dflt["volume"]
     cal = raw["calendar"]
+    try:
+        validate_statements(raw.get("broker_statements", []), cal["start_day"], cal["end_day"])
+    except ValueError as exc:
+        raise TapeError(f"broker_statements: {exc}") from exc
+    research = raw["research"]
+    assignments = research.get("assignments", {})
+    if (set(assignments) != set(research["topics"])
+            or any(a.get("role") not in ("pm", "mp") or a.get("location") not in
+                   ("research", "risk", "broker", "backoffice", "lp") for a in assignments.values())
+            or type(research.get("budget_per_role")) is not int or research["budget_per_role"] < 1):
+        raise TapeError("research requires role/location assignments and a positive per-role budget")
+    rc, off = raw["borrow"]["recall"], raw["borrow"]["replacement_offer"]
+    opening_loans = {f"L-open-{s}": s for s, q in raw["opening"]["fund"]["positions"].items() if q < 0}
+    if rc.get("loan_id") not in opening_loans or opening_loans[rc["loan_id"]] != rc["sym"]:
+        raise TapeError("recall must name an opening loan for its instrument")
+    if (off.get("old_loan_id") != rc["loan_id"] or off["sym"] != rc["sym"]
+            or not isinstance(off.get("new_loan_id"), str) or not off["new_loan_id"]
+            or off["new_loan_id"] in opening_loans):
+        raise TapeError("replacement must name the recalled loan and a unique new loan")
+    known_loans = {*opening_loans, off["new_loan_id"]}
+    rate_keys = set()
+    for change in raw["borrow"].get("rate_changes", []):
+        key = (change["day"], change["loan_id"])
+        if (change["loan_id"] not in known_loans or key in rate_keys
+                or not cal["start_day"] <= change["day"] < cal["end_day"]):
+            raise TapeError("invalid or duplicate loan rate change")
+        _money(change["rate"], "borrow.rate_changes.rate")
+        rate_keys.add(key)
     day1 = date.fromisoformat(cal["day1"])
     if day1.weekday() != 0:
         raise TapeError("day1 must be a Monday")
 
-    seen = set()
-    by_key = {}
+    seen: set[tuple[tuple[int, str], str, str]] = set()
+    by_key: dict[tuple[int, str], dict[str, Any]] = {}
     for i, o in enumerate(raw["overrides"]):
         key = (o["day"], o["event"])
         if o["event"] not in PHASES or not cal["start_day"] <= o["day"] < cal["end_day"]:
@@ -121,7 +153,7 @@ def compile_tape(raw: dict, variant: str | None = None) -> Tape:
             _money(v, f"defaults.{k}")
 
     marks = {s: base_mark for s in syms}
-    events = []
+    events: list[MarketEvent] = []
     for day in range(cal["start_day"], cal["end_day"]):
         dt = business_date(day1, day)
         for phase in PHASES:

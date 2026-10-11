@@ -268,8 +268,8 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
         </div>
       </form>
 
-      {me === "mp" && (
-        <div className="mp-tools">
+      <div className="mp-tools">
+          <p className="muted">One assignment per decision window. Evidence stays private until its owner shares it.</p>
           <div className="row">
             <select aria-label="Research topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
               <option value="">Assign research ({v.research.budget - v.research.used.length} left)</option>
@@ -277,8 +277,25 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
                 <option key={t} value={t}>{{ borrow: "BRIN borrow availability", debt_schedule: "BRIN debt schedule", demand_survey: "BRIN demand survey" }[t] ?? t}</option>
               ))}
             </select>
-            <button type="button" disabled={!topic || !atBarrier} onClick={() => send({ type: "research", topic }, "Research assigned; results arrive at the next market open.").then(() => setTopic(""))}>Assign</button>
+            <button type="button" disabled={!topic || !atBarrier || v.attention?.committed}
+              onClick={() => send({ type: "visit", location: v.research.assignments[topic].location, assignment: topic },
+                "Attention committed; private evidence arrives at the next market open.").then(() => setTopic(""))}>Assign</button>
           </div>
+          {v.attention?.committed ? <p>Your attention is committed for this window.</p> : null}
+          {(v.research.evidence ?? []).map((evidence: { text: string; refs: { topic: string; owner: string } }) => {
+            const shared = v.research.shared.includes(evidence.refs.topic);
+            return <article key={evidence.refs.topic}>
+              <h3>{shared ? "Shared" : "Private"}: {evidence.refs.topic.replaceAll("_", " ")}</h3>
+              <p>{evidence.text}</p>
+              {evidence.refs.owner === me && !shared ? <button type="button"
+                onClick={() => send({ type: "share_research", topic: evidence.refs.topic }, "Evidence shared with your partner.")}>
+                Share evidence with partner
+              </button> : null}
+            </article>;
+          })}
+      </div>
+      {me === "mp" && (
+        <div className="mp-tools">
           {v.recall.offer_visible && !v.recall.replacement_accepted && (
             <button type="button" disabled={!atBarrier} onClick={() => send({ type: "accept_replacement" }, "Replacement borrow accepted. It transfers day 15 at 40%.")}>
               Accept replacement borrow (1,250 BRIN at 40%)

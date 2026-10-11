@@ -8,8 +8,9 @@ import json
 import sys
 from pathlib import Path
 
-from fundforge.engine import RULES_VERSION
 from test_engine import S1, S2, run, s2_accept, s2_research
+
+from fundforge.engine import RULES_VERSION
 
 GOLDEN = Path(__file__).with_name("golden.json")
 PATHS = {

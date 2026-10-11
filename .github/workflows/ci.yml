@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync
+      - run: uv sync --locked --python 3.13
+      - run: uv run ruff check
+      - run: uv run mypy src
       - run: uv run pytest -q
   frontend:
     runs-on: ubuntu-latest

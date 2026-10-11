@@ -1,12 +1,12 @@
 # FundForge v2.1 — fund realism and decision-quality audit
 
-6 October 2026 · Design review of v2.0, with v2.1 document changes · All application behavior remains proposed/unimplemented.
+6 October 2026 · Design review of v2.0, with v2.1 document changes · Written before any code existed; for what is built now see [PROGRESS](PROGRESS.md).
 
 The product should teach two partners to preserve the ability to invest: portfolio conviction, investor obligations, financing and the management company's survival interact. v2.0 already had the right scope: outside LP capital, a separate company, long/short finance, delegated authority, fixed information cutoffs and deterministic records. Replacing that foundation with a larger trading terminal or many libraries would weaken the product. The highest-value changes are economic consistency, a few independent controls and scenarios whose choices actually alter claims, cash and risk.
 
 This review applies six professional lenses—portfolio manager, chief risk officer, chief operating officer, fund accountant, quant researcher and cooperative-game designer. These are review perspectives, not claims of professional appointment or regulatory certification. Primary sources were checked on 6 October 2026; exact URLs and limits are below. Calculations and game prescriptions are our analysis, not rules imposed by those sources.
 
-v2.2 supplement (7 October 2026): [DESIGN_REVIEW_V2_2](DESIGN_REVIEW_V2_2.md) adds the three independent reviews and disposition, including post-flow issuer error, settled replacement, retained collateral and termination policy. [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md) owns complete bounded authoring schedules. Retain the22 useful v2.1 findings below; current roadmap and handoff supersede the old next-task description. No economic implementation exists.
+v2.2 supplement (7 October 2026): [DESIGN_REVIEW_V2_2](archive/DESIGN_REVIEW_V2_2.md) adds the three independent reviews and disposition, including post-flow issuer error, settled replacement, retained collateral and termination policy. [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md) owns complete bounded authoring schedules. Retain the22 useful v2.1 findings below; current roadmap and handoff supersede the old next-task description. No economic implementation exists.
 
 ## 1. Prioritized audit and disposition
 

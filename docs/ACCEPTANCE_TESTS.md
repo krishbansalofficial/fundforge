@@ -1,6 +1,31 @@
 # Acceptance contracts v2.2
 
-v2.2 supplements below supersede ambiguous ordering/scenario-success assumptions. All application cases remain pending. See IMPLEMENTATION_HANDOFF for X01–X07 authoring/loader cases; none is a working test here.
+## Implemented invariant acceptance, 8 October 2026
+
+- Typed failures cover opening units, trial balances, holdings, series capital/provisions, NAV, cash, credit and collateral; diagnostics identify day and phase.
+- Normal and fresh `-O`/`-OO` child interpreters reject eleven injected accounting breaks; optimized probes also reject zero opening units using explicit exceptions.
+- The four committed valid scenario goldens match under both optimization modes; the rules version is unchanged for this enforcement-only fix.
+- Real failures during execution leave Session readiness/version/history intact and produce no failed command row or poisoned cache in PostgreSQL.
+- A valid book reconciles under a caller with only six Decimal digits without journal mutation.
+
+Evidence: `backend/tests/test_invariants.py` (20 cases), the existing golden test, and ENGINEERING §6. Latest full backend suite: **111 passed with PostgreSQL**, Ruff and mypy passed. The earlier terminal/client evidence below remains historical for that slice.
+
+## Implemented terminal acceptance, 8 October 2026
+
+| Contract | Evidence |
+|---|---|
+| Opening 10% sell-off: P&L -$2.25m, NAV $22.75m, maintenance $10.4625m | Independent hand-calculated assertions in `backend/tests/test_terminal.py` |
+| No unprocessed price, variant, unrevealed research or future margin coefficients | Future-data poisoning and before/after transfer/stress-date tests |
+| Reads neither mutate engine/cache nor log a command, clear readiness or change digest | Detached-state test and real PostgreSQL replay/verify test |
+| As-of history is deterministic for both variants and bounded to 512 output observations | Full-path repeated-run and history-limit tests |
+| Authentication is seat/room scoped; both current roles receive public data at one room version | HTTP route auth tests and two-seat local smoke |
+| Parser cannot trade or navigate unknown symbols; each of eight functions renders | Pure parser and actual Godot control tests |
+| Input survives refresh; stale data is labeled; recovery succeeds; old responses are ignored | Godot transport/control tests |
+| Partner approval remains necessary and execution is later than submission | `scripts/terminal_smoke.py`: self-sign refused, partner sign accepted, 1,250-share cover filled, books verified |
+
+Actual local results: 91 backend tests with Postgres, 61 Godot checks, backend Ruff and mypy passed. Screenshots/limitations: [TERMINAL](TERMINAL.md). These checks do not certify the later planned contracts below or replace human UAT.
+
+v2.2 supplements below supersede ambiguous ordering/scenario-success assumptions. Cases are contracts, not test results: which are covered by real tests is recorded in [PROGRESS](PROGRESS.md) and `backend/tests/`. The X01–X07 authoring/loader cases are in the archived [IMPLEMENTATION_HANDOFF](archive/IMPLEMENTATION_HANDOFF.md).
 
 Planning revision 2.2-M1: MILESTONE_PLANS maps these cases to all 20 full work packages. Required acceptance of an unavailable later subsystem is not claimed early: fee transformations atFF1b are primitives, actual Case1 dealing/payment/run composition atFF2c, pure authority atFF3a, real DB races atFF4a, authenticated two-user UI atFF5b and human release evaluation atFF5c/FF6c. Independent narrow Case1 controls precede arbitrary human action; fixed expected script records alone cannot certify another path. Winddown V31–V32 requires authored tail coverage and actual liquidation. Historical replay atFF7a requires a full shared-engine case, not schema-valid import.
 
@@ -144,3 +169,27 @@ Predeclared provisional release criteria: each partner makes at least two conseq
 Evaluate research usefulness with matched authored cards/public-only/wait scripts and observations of changed ex-ante choices; no bonus for hindsight correctness. Evaluate dominant strategies with versioned cash, diversified, liquidity-aware, concentrated gambler, trust spam, repeat gate and last-day exploit policies on identical tapes, then held-out versions. Report all outcomes, unpaid claims, fee/firm/LP effects and worst paths; no single-seed balance claim. Counterfactual replay changes one command under same tape and availability; it establishes mechanical model effect, not empirical causal skill.
 
 Evidence file per run records commit/runtime/command/schema/rules/tape/control hashes, expected/observed totals, source of oracle, pass/fail/pending, and limitations. Correctness/replay/race/information/scenario/human evidence are separate gates. No experiment in this section ran during planning.
+
+## Exact limit execution acceptance, 8 October 2026
+
+Implemented in `test_limit_execution.py`: independent exhaustive rounded-price sizing for BUY/COVER/SELL/SHORT, prior same-side flow, boundary microticks/midpoints and plateaus, zero/halted capacity, market orders, old 99-to-95 underfill regression, balanced actual fills, shared event capacity and reduce-only bounds. Latest full backend suite: **137 passed** with PostgreSQL, plus Ruff and mypy. Rules 2026.10.4; four existing path goldens unchanged except version tag; existing incompatible-room rejection test passes. No new Godot/client checks claimed. Loan-bound recall acceptance remains pending.
+
+## Loan identity and analysis acceptance, 9 October 2026
+
+Implemented: eleven loan tests (recall priority, exact returns across partial/failing settlements and transfers, loan-specific rerates, pending short identity, halted/accepted-but-unresolved deadlines, invalid IDs and corruption); fourteen liquidity tests (independent arithmetic, no mutation/lookahead, financing/settlement/capacity, stale drafts and API bounds/auth); eleven debrief tests (exact baseline, deterministic omission consequence, preserved signatures, versioned clocks, completion gate, typed classification and real Postgres reload). Full suite 173 passed. Godot 69 checks cover new page, lab result rendering, stale draft blocking and completed replay controls. Real HTTP smoke verifies unchanged live books around both analyses. No graphical two-player or human playtest completion is inferred.
+
+## Private evidence and valuation controls, 10 October 2026
+
+Ten `test_research_roles.py` cases cover role/window/location budgets, early and wrong-owner sharing, mandatory actions while committed, private evidence in views/terminal/clock, spoofed role query parameters and PostgreSQL reload before/after sharing. Nine `test_shadow.py` cases cover four full paths, independent numerical pricing, immutable confirmations, coherent phantom positions and pre-dealing refusal. Godot tests cover assignment avatar locations, owner sharing and attention-disabled controls. Total: 192 backend tests, 74 Godot checks; build/lint/types/import/boot and real HTTP smoke pass. Full external bank/loan-fee/LP certification and graphical human acceptance remain outstanding.
+
+## Broker controls, 11 October 2026
+
+`test_broker.py` adds 21 cases covering independently worked partial-return/weekend/rerate/rounding calculations; actual T+1 fee dates; caller precision; balanced wrong cash/debt/financing postings; date shifts with unchanged total liability; immutable original/corrected statements; future-data protection; stale/wrong-role/idempotent review; new-risk acceptance and execution gates; continued reductions/payments; dealing-close publication; unit preservation on blocked dealing; timely resolution; exact/omission replay; solo bot review; invalid authoring; and PostgreSQL reconstruction. `test_api.py` adds the real authenticated two-seat challenge flow. Three Godot checks cover MP review visibility, version/revision binding and absence of the action for PM.
+
+Full result: 214 backend tests with PostgreSQL, 77 Godot checks, import/boot, Ruff/mypy. `analysis_smoke.py --broker-challenge` passes against local HTTP/Postgres with exact baseline and unchanged live books; omitting review blocks dealing. No claim of independent LP/management-fee certification, live bank integration or a human graphical playtest.
+
+## Independent LP and management-fee controls, 11 October 2026
+
+Fourteen new administrator test cases cover four canonical paths, low caller precision, unequal participation with a reversible provision, independent fee/provision/redemption arithmetic, partial-exit HWM retention, weekend residuals, payment neutrality, reversal of only surviving provision, closed identities, immutable records, balanced doubled fees, unearned firm revenue/receivable, incorrect redemption payable/fee/units/HWM before mutation, and fee-date reclassification with unchanged balances. The existing database debrief test now compares reconstructed administrator closes/claims/report after cache eviction. Godot checks the new LP/claim panel. HTTP smoke requires 13 checked calendar closes and one checked redemption.
+
+Latest full result: 228 backend tests with PostgreSQL; 78 Godot checks; import/boot, lint/types and live HTTP passed. Rules 2026.10.8, fixture 4.2.0. No external-bank certification, independent settlement-delivery ledger, annual/subscription campaign or human graphical acceptance is inferred.

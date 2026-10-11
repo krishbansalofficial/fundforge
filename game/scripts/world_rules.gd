@@ -125,6 +125,9 @@ static func partner_location(view: Dictionary, role: String) -> String:
 	var decisions: Array = view.get("decisions", [])
 	for i in range(decisions.size() - 1, -1, -1):
 		if decisions[i].get("role", "") == role:
+			if decisions[i].get("type") == "visit":
+				var location: String = decisions[i].get("detail", {}).get("location", "committee")
+				return location if LOCATIONS.has(location) else "committee"
 			return COMMAND_LOCATION.get(decisions[i].get("type", ""), "committee")
 	return "trading" if role == "pm" else "risk"
 

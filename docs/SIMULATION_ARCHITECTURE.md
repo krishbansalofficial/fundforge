@@ -1,6 +1,6 @@
 # Simulation architecture — v2.2
 
-Proposed interfaces and ownership, not implemented services. The architecture is a **modular monolith with one economic authority**, not a network of trading platforms. [FUND_ACCOUNTING](FUND_ACCOUNTING.md) owns exact financial/event conventions; [GAME_SYSTEMS](GAME_SYSTEMS.md) owns player permissions and gameplay; this document owns software boundaries. Resolve conflicts explicitly before FF0 freezes schemas.
+Design-time interfaces and ownership. The as-built modules are in [ARCHITECTURE](ARCHITECTURE.md); real status is in [PROGRESS](PROGRESS.md). The architecture is a **modular monolith with one economic authority**, not a network of trading platforms. [FUND_ACCOUNTING](FUND_ACCOUNTING.md) owns exact financial/event conventions; [GAME_SYSTEMS](GAME_SYSTEMS.md) owns player permissions and gameplay; this document owns software boundaries. Resolve conflicts explicitly before FF0 freezes schemas.
 
 ## Ownership and interfaces
 

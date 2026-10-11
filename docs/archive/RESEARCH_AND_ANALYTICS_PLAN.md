@@ -1,6 +1,6 @@
 # Research and analytics plan
 
-7 October 2026. Planning document; nothing here is installed or implemented. It assigns pandas, exchange_calendars, DuckDB, CVXPY and statsmodels to concrete features in [FULL_GAME_PLAN](FULL_GAME_PLAN.md) milestones. It reuses the 6 October repository and license reviews in [LIBRARY_RESEARCH](LIBRARY_RESEARCH.md) and adds current release facts checked on 7 October 2026. This plan supersedes LIBRARY_RESEARCH's "defer until licensed historical data" decision for pandas and exchange_calendars only; that document should be updated to match (FULL_GAME_PLAN §9).
+7 October 2026. Planning document; nothing here is installed or implemented. It assigns pandas, exchange_calendars, DuckDB, CVXPY and statsmodels to concrete features in [FULL_GAME_PLAN](FULL_GAME_PLAN.md) milestones. It reuses the 6 October repository and license reviews in [LIBRARY_RESEARCH](../LIBRARY_RESEARCH.md) and adds current release facts checked on 7 October 2026. This plan supersedes LIBRARY_RESEARCH's "defer until licensed historical data" decision for pandas and exchange_calendars only; that document should be updated to match (FULL_GAME_PLAN §9).
 
 ## 1. The boundary rule
 

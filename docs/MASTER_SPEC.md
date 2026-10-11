@@ -1,8 +1,8 @@
 # FundForge — hedge fund management game
 
-Version 2.2 · Bounded plan strengthening · 7 October 2026 · Specification, not implemented software
+Version 2.2 · 7 October 2026 · Product specification. What is built is in [PROGRESS](PROGRESS.md); the active plan is [ROADMAP](ROADMAP.md).
 
-Planning revision 2.2-M1 adds full task-level packages for every phase through FF8 in [MILESTONE_PLANS](MILESTONE_PLANS.md), indexed by IMPLEMENTATION_PLAN. [PLAN_REVIEW_AND_DECISIONS](PLAN_REVIEW_AND_DECISIONS.md) records due decisions and corrections. Release boundaries unchanged: internal prototype FF3b, first playable FF5c, full initial game FF6c, optional research FF7 and selected-extension planning FF8. No feature implementation is claimed.
+Planning revision 2.2-M1 adds full task-level packages for every phase through FF8 in [MILESTONE_PLANS](archive/MILESTONE_PLANS.md), indexed by IMPLEMENTATION_PLAN. [PLAN_REVIEW_AND_DECISIONS](archive/PLAN_REVIEW_AND_DECISIONS.md) records due decisions and corrections. Release boundaries unchanged: internal prototype FF3b, first playable FF5c, full initial game FF6c, optional research FF7 and selected-extension planning FF8. No feature implementation is claimed.
 
 ## 1. The game we are building
 

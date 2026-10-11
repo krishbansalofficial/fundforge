@@ -12,8 +12,10 @@ whose NAV goes negative is liquidated over subsequent events (contagion through 
 
 from dataclasses import dataclass, field
 from decimal import Decimal, localcontext
+from typing import Any
 
 from .money import CTX, D
+from .tape import Margin
 
 CAP = Decimal("0.15")  # max cumulative impact either way
 
@@ -25,27 +27,27 @@ class Rival:
     style: str
     cash: Decimal
     pos: dict[str, int]
-    params: dict = field(default_factory=dict)
+    params: dict[str, str] = field(default_factory=dict)
     status: str = "active"  # active | deleveraging | liquidating | closed
     start_nav: Decimal = Decimal(0)
 
-    def mv(self, marks):
+    def mv(self, marks: dict[str, Decimal]) -> Decimal:
         return sum((q * marks[s] for s, q in self.pos.items()), Decimal(0))
 
-    def nav(self, marks) -> Decimal:
+    def nav(self, marks: dict[str, Decimal]) -> Decimal:
         with localcontext(CTX):
             return self.cash + self.mv(marks)
 
 
 class Market:
-    def __init__(self, raw: dict | None, instruments: list[str]):
+    def __init__(self, raw: dict[str, Any] | None, instruments: list[str]):
         raw = raw or {}
         self.impact = D(raw.get("impact", "0"))
         self.resilience = D(raw.get("resilience", "0.25"))
         self.max_participation = D(raw.get("max_participation", "0.10"))
         self.mult: dict[str, Decimal] = {s: Decimal(1) for s in instruments}
-        self.rivals = [Rival(r["id"], r["name"], r["style"], D(r["cash"]), dict(r["positions"]), dict(r.get("params", {})))
-                       for r in raw.get("funds", [])]
+        self.rivals = [Rival(r["id"], r["name"], r["style"], D(r["cash"]), dict(r["positions"]),
+                             dict(r.get("params", {}))) for r in raw.get("funds", [])]
         self.last_flow: dict[str, int] = {}
 
     # ---------- prices ----------
@@ -53,12 +55,12 @@ class Market:
         with localcontext(CTX):
             return {s: (m * self.mult[s]).quantize(Decimal("0.000001")) for s, m in tape_marks.items()}
 
-    def decay(self):
+    def decay(self) -> None:
         with localcontext(CTX):
             for s, m in self.mult.items():
                 self.mult[s] = m + (1 - m) * self.resilience
 
-    def push(self, flow: dict[str, int], volume: dict[str, int]):
+    def push(self, flow: dict[str, int], volume: dict[str, int]) -> None:
         """Permanent impact from signed share flow (buys positive)."""
         with localcontext(CTX):
             for s, q in flow.items():
@@ -68,15 +70,15 @@ class Market:
                     self.mult[s] = min(max(m, 1 - CAP), 1 + CAP)
 
     # ---------- rival behaviour ----------
-    def init_navs(self, marks):
+    def init_navs(self, marks: dict[str, Decimal]) -> None:
         for r in self.rivals:
             r.start_nav = r.nav(marks)
 
     def trade(self, marks: dict[str, Decimal], prev: dict[str, Decimal], volume: dict[str, int],
-              margin: dict) -> tuple[dict[str, int], list[dict]]:
+              margin: Margin) -> tuple[dict[str, int], list[dict[str, str]]]:
         """Each rival decides from public marks; returns total signed flow and notices."""
         flow: dict[str, int] = {}
-        notices: list[dict] = []
+        notices: list[dict[str, str]] = []
         caps = {s: int(v * self.max_participation) for s, v in volume.items()}
         with localcontext(CTX):
             for r in self.rivals:
@@ -93,12 +95,13 @@ class Market:
                     flow[s] = flow.get(s, 0) + q
                 if r.status == "liquidating" and all(q == 0 for q in r.pos.values()):
                     r.status = "closed"
-                    notices.append({"code": "rival_closed", "rival": r.name,
-                                    "text": f"{r.name} has finished liquidating and returned what was left to investors."})
+                    notices.append({"code": "rival_closed", "rival": r.name, "text": f"{r.name} has finished "
+                                    "liquidating and returned what was left to investors."})
         self.last_flow = flow
         return flow, notices
 
-    def _decide(self, r: Rival, marks, prev, margin, notices) -> list[tuple[str, int]]:
+    def _decide(self, r: Rival, marks: dict[str, Decimal], prev: dict[str, Decimal], margin: Margin,
+                notices: list[dict[str, str]]) -> list[tuple[str, int]]:
         nav = r.nav(marks)
         long_mv = sum((q * marks[s] for s, q in r.pos.items() if q > 0), Decimal(0))
         short_mv = sum((-q * marks[s] for s, q in r.pos.items() if q < 0), Decimal(0))
@@ -141,7 +144,7 @@ class Market:
         return out
 
     # ---------- public information ----------
-    def league(self, marks) -> list[dict]:
+    def league(self, marks: dict[str, Decimal]) -> list[dict[str, str]]:
         with localcontext(CTX):
             rows = []
             for r in self.rivals:
@@ -151,7 +154,7 @@ class Market:
                              "return_bps": str(ret.quantize(Decimal("0.1"))), "nav": str(nav.quantize(Decimal("1")))})
             return rows
 
-    def crowding_report(self, marks, own_pos: dict[str, int]) -> str:
+    def crowding_report(self, marks: dict[str, Decimal], own_pos: dict[str, int]) -> str:
         """Prime-broker crowding report: who is short what (published only when the research is assigned)."""
         lines = []
         with localcontext(CTX):

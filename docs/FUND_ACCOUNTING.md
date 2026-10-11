@@ -1,6 +1,6 @@
 # Fund accounting, treasury and deterministic resolution
 
-Version 2.1 · Proposed launch contract · Not implemented and not universal fund accounting, law or prime-broker terms.
+Version 2.1 · Financial contract (house rules, not universal fund accounting, law or prime-broker terms). The Case1 subset is implemented in `backend/src/fundforge`; real status is in [PROGRESS](PROGRESS.md).
 
 ## 1. Boundaries, calendar and precision
 

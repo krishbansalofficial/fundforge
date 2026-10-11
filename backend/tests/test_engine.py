@@ -74,7 +74,7 @@ def test_s2_replacement_borrow_and_cure_wins():
     out = e.outcome()
     assert out["label"] == "WIN", out
     assert out["recall_resolved_by"] == "replacement borrow"
-    assert any(l.rate == D("0.40") for l in e.loans)
+    assert any(ln.rate == D("0.40") for ln in e.loans)
 
 
 def test_f1_inaction_triggers_forced_buy_in_but_stays_solvent():
@@ -100,7 +100,8 @@ def test_fund_cash_never_pays_firm_payroll():
     firm = e.j.balances("firm")
     # days 12-20 accrue 9 x $4,000; both $20,000 weekly bills (days 15, 20) are paid from firm cash only
     assert firm["payroll_expense"] == D("36000") and "payroll_payable" not in firm
-    cross = [x for x in e.j.entries if x.entity == "firm" and "opening" not in x.memo and any(p.account == "cash" and p.amount > 0 for p in x.postings)]
+    cross = [x for x in e.j.entries if x.entity == "firm" and "opening" not in x.memo
+             and any(p.account == "cash" and p.amount > 0 for p in x.postings)]
     assert cross and all("fee" in x.memo for x in cross)
 
 
@@ -132,7 +133,7 @@ def test_replacement_after_voluntary_cover_does_not_create_expensive_loan():
         e_.submit_order("c", "BRIN", "COVER", 1250)
         e_.accept_replacement()  # recall still open at the barrier, cover fills later at EXEC_A
     e = run({(12, "EXEC_A"): s2_research, (14, "EXEC_A"): accept_and_cover})
-    assert not any(l.rate == D("0.40") for l in e.loans)
+    assert not any(ln.rate == D("0.40") for ln in e.loans)
     assert e.borrowed("BRIN") == 11250
 
 

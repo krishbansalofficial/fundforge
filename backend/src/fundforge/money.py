@@ -13,7 +13,7 @@ CTX = Context(prec=40, rounding=ROUND_HALF_EVEN)
 
 def D(value: str | int | Decimal) -> Decimal:
     """Parse money/rates from str/int only; floats are rejected at the boundary."""
-    if isinstance(value, float) or isinstance(value, bool):
+    if isinstance(value, float | bool):
         raise TypeError(f"binary float/bool not allowed for money: {value!r}")
     d = Decimal(value)
     if not d.is_finite():

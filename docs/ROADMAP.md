@@ -1,6 +1,6 @@
 # FundForge roadmap (v4)
 
-8 October 2026. This is the **single active plan**. It supersedes REPLAN_V3, FULL_GAME_PLAN, MILESTONE_PLANS and IMPLEMENTATION_PLAN, which are kept only as reference for mechanics. The domain contracts are unchanged: FUND_ACCOUNTING, GAME_SYSTEMS and SCENARIO_CONTRACTS. The graphical layer is specified in [WORLD_GAME_PLAN](WORLD_GAME_PLAN.md), with the amendments below.
+8 October 2026. This is the **single active plan**. It supersedes REPLAN_V3, FULL_GAME_PLAN, MILESTONE_PLANS and IMPLEMENTATION_PLAN, which are kept in [archive/](archive/README.md) only as reference for mechanics. Current status is in [PROGRESS](PROGRESS.md). The domain contracts are unchanged: FUND_ACCOUNTING, GAME_SYSTEMS and SCENARIO_CONTRACTS. The graphical layer is specified in [WORLD_GAME_PLAN](WORLD_GAME_PLAN.md), with the amendments below.
 
 ## How this plan was made
 
@@ -69,7 +69,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
   - every order over 5% of NAV carries the other partner's signature;
   - replaying the log gives the same digest.
 - **Typed events and incidents:** `{code, day, phase, refs, amounts}`. Prose is rendered from templates, and the ribbon and outcome read codes, never text.
-- **Engine hygiene:** `reconcile` raises `InvariantError` instead of using `assert`. Every ratio is computed under `localcontext(CTX)`.
+- **Invariant enforcement done, 8 October:** financial checks raise typed `InvariantError` and run under `localcontext(CTX)`, including under `-O`/`-OO`. Valid-path goldens are unchanged; injected failures roll back both Session and Postgres. Broader hygiene and typed incidents remain separate items.
 - **Tooling:** Python pinned to 3.13 everywhere. Ruff, plus mypy strict on the domain modules.
 
 ### P1: Make it a game, not a puzzle with one answer (weeks 2–3)
@@ -87,7 +87,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 - **Real co-op.** The view is filtered by role. The PM privately holds research cards and capacity estimates; the MP privately holds the LP inbox, prime-broker offers and treasury forecasts. Each partner has their own research budget, and the only way to share is to tell the other partner. This resolves GAME_SYSTEMS §1's "ownership is not secrecy" in favour of asymmetric information, with mandatory notices still shared.
 - **Practice mode.** A deterministic partner bot (`bot:v1`) signs within the limits and refuses outside them, giving a reason. These rooms are unranked. Recruiters can then play alone.
 - **Causal debrief.** The chain is cause → state delta → consequence → counterfactual ("had you covered on day 14 …"), built from typed events.
-- **Execution fixes.** Exact bisection for limit fills. Recalls and rerates bound to `loan_id`.
+- **Execution fixes.** Exact bisection for limit fills completed 8 Oct 2026 (26 tests; rules 2026.10.4). Recalls, replacement transfers, exact cover returns and rerates bound to `loan_id` completed 9 Oct 2026 (rules 2026.10.5).
 
 ### P2: Ship and prove (week 4)
 
@@ -178,4 +178,31 @@ Only numbers produced by tests or measurements are ever stated.
 
 ## Next task
 
-P0: golden digests, the stateful Session property test, typed events, and the Python 3.13 pin with ruff and mypy.
+P0 invariant enforcement and P1 exact maximal limit fills are implemented. Loan-bound recalls, typed outcomes, liquidity/cure drafts, completed-run omission replay, private role research and per-window assignments are implemented. Broker cash/loan-fee checks, the statement-break challenge and independent LP/management-fee/redemption calculations are implemented at rules 2026.10.8. Next: independently reconstruct dated settlement obligations and receipts from execution identities. Full external administrator certification and release gates remain open. Current implementation handoff: [HANDOFF](HANDOFF.md).
+
+## Owner-requested terminal and complexity amendment, 8 October 2026
+
+The owner requested continued implementation and a professional financial terminal inside the game. This adds a concrete product surface to P3/P4 while preserving the Python/Postgres authority, fictional data, deterministic agents and no-LLM decision. It does not certify P0-P5 as complete or replace shipping/playtest gates.
+
+**Implemented:** Forge Terminal's market monitor, observed price graphs, signed portfolio exposure, static stress, public news, accepted-order blotter, league and command directory. Eight functions are available from the HUD/trading floor and T/F1-F8 keyboard controls. Observations are recorded after event processing and rebuilt by replay; GET analytics does not authorize trades or alter the journal. See [TERMINAL](TERMINAL.md) for scope, formulas, screenshots and actual checks.
+
+**Ordered depth work:**
+
+| Slice | Player capability / engineering boundary | Technology and acceptance evidence |
+|---|---|---|
+| Integrity closeout | Financial checks cannot disappear with `python -O`; exact limit quantities and loan-bound recalls | Existing Python/Decimal kernel, typed errors, optimized-process checks, independent execution oracles and unchanged/bumped goldens according to rule compatibility |
+| Liquidity and cure lab | Compare hypothetical margin-cure plans with event capacity, spread/impact, financing and collateral constraints; turn a chosen plan into a governed draft | Decimal simulation on a detached hypothetical book. Public assumptions are explicit; never use undisclosed future tape as a player forecast. CVXPY is an optional test oracle, not economic authority. Tests compare independently worked paths and prove the live room stays unchanged. |
+| Replay and causal debrief | Select a past decision, branch one alternative, and inspect exposure, financing and claim consequences under identical scenario inputs | Existing command sourcing and pinned rules/tape; separate branch IDs; as-of player information remains filtered. Re-run a known branch to the same digest; compare one-action alternatives and label them simulated counterfactuals. |
+| Co-op attention and research | PM/MP divide simultaneous crises and share evidence found through location assignments | Engine-side attention budgets, role-filtered views, explicit evidence availability and deterministic posterior/Brier scoring from P4. Test all terminal/query boundaries for hidden-information leaks. Human playtests verify both roles have agency. |
+| Independent controls | Administrator certifies NAV; broker breaks block appropriate risk/dealing actions | Separate shadow implementation and authored external records. Inject an internally balanced but economically wrong posting and require certification to fail. Terminal displays pending/certified/broken status. |
+| Live presence and measured operations | Partner movement and reconnect feel live while economics remain serialized and verifiable | Authenticated FastAPI WebSockets for ephemeral presence and view nudges, polling fallback, then P2's Prometheus/Grafana and load tests. Prove movement never changes the journal and test reconnect/expired auth. Add Redis only if more than one process needs a shared presence boundary. |
+
+Kafka, ClickHouse, Temporal, Ray, Kubernetes, external providers and an LLM are **not implemented or required by this amendment**. Revisit a component only when an explicit feature/workload justifies it. The complexity comes from connected market, fund, LP, firm, research and control mechanics plus measurable recovery/concurrency behavior. Deployment and exported builds remain P2/P3 work; any external publication or paid provider still needs the owner's authorization.
+
+### 9 October implementation checkpoint
+
+Loan identities, typed outcome incidents, RISK liquidity/cure comparison and REPLAY/F9 completed-run omission branches are implemented and verified locally (173 backend tests, 69 Godot checks). The lab is greedy with frozen public assumptions; no global-optimum claim. Branches are reproducible read results, not persistent alternate rooms. Private evidence/attention is next; independent certification, v1 campaign and P2/P3 release gates remain open.
+
+### 10 October checkpoint
+
+Role-specific evidence/sharing and per-window location assignments are implemented in both clients, with backend leak/auth/replay tests. Independent execution/holdings valuation controls block dealing on a break; full cash/loan-fee/LP certification and authored broker-break resolution remain open. Rules 2026.10.6 / fixture 4.1.0. Evidence: 192 backend tests, 74 Godot checks, web build, types/lint and two-seat HTTP smoke. No claim that P0-P5, persisted arbitrary branches, v1 campaign, live presence or shipping/playtest work is complete.

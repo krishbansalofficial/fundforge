@@ -1,5 +1,7 @@
 # Precise implementation handoff: FF0a only
 
+> Historical handoff. Current implementation and next task: [HANDOFF](../HANDOFF.md), [PROGRESS](../PROGRESS.md) and ROADMAP v4. The FF0a-only instructions below are superseded.
+
 > **Superseded 7 October 2026 by [REPLAN_V3](REPLAN_V3.md).** FF0a's hand-built full dated oracle is replaced by FUND_ACCOUNTING §6 oracle tests + property tests; implementation follows M0–M6. Content below is retained as v2.2 history.
 
 7 October 2026; source plan v2.2. No feature implementation occurred in this planning update.

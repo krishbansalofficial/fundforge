@@ -1,6 +1,8 @@
 # Claude handoff: FundForge v2.2
 
-> **Current state: see [PROGRESS](PROGRESS.md) and [ENGINEERING](ENGINEERING.md); M0–M4 implemented, M5 frontend next.**
+> Historical handoff. Current implementation and next task: [HANDOFF](../HANDOFF.md), [PROGRESS](../PROGRESS.md) and ROADMAP v4. The old FF0a/M5 continuation statements below are superseded.
+
+> **Current state: see [PROGRESS](../PROGRESS.md) and [ENGINEERING](../ENGINEERING.md); M0–M4 implemented, M5 frontend next.**
 >
 > **Superseded 7 October 2026 by [REPLAN_V3](REPLAN_V3.md).** FF0a's hand-built full dated oracle is replaced by FUND_ACCOUNTING §6 oracle tests + property tests; implementation follows M0–M6. Content below is retained as v2.2 history.
 

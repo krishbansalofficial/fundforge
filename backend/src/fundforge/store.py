@@ -15,19 +15,25 @@ import os
 import secrets
 import threading
 from collections import OrderedDict
+from collections.abc import Sequence
 from importlib import resources
 from pathlib import Path
+from typing import Any
 
+from psycopg import Connection
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
 from . import bot
 from .engine import RULES_VERSION, CommandRejected, Engine
 from .governance import CLOCK, Session, canonical
-from .tape import load, variants
+from .journal import Entry
+from .tape import Tape, compile_tape, load, variants
+
+Conn = Connection[tuple[Any, ...]]
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
-SCENARIOS = {"case1": "case1.json"}
+SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json"}
 CACHE_ROOMS = 256
 SECONDS_PER_WINDOW = float(os.environ.get("FUNDFORGE_SECONDS_PER_WINDOW", "8"))
 
@@ -48,9 +54,17 @@ def _h(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def _tape(scenario: str, variant: str = "base"):
+def _tape(scenario: str, variant: str = "base") -> Tape:
     if scenario not in SCENARIOS:
         raise CommandRejected(f"unknown scenario {scenario!r}")
+    if scenario != "case1":
+        raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))
+        raw["scenario_id"] = scenario
+        if scenario == "case1-controls":
+            raw["broker_statements"] = json.loads((FIXTURES / "broker_break_example.json").read_text(encoding="utf-8"))
+        else:  # $100k above the $2.5m opening debt: a large purchase fails until sale proceeds arrive
+            raw["defaults"]["credit_limit"] = "2600000"
+        return compile_tape(raw, variant)
     return load(FIXTURES / SCENARIOS[scenario], variant)
 
 
@@ -58,7 +72,7 @@ def _variants(scenario: str) -> list[str]:
     return variants(json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8")))
 
 
-def chain(prev: str, seq: int, key: str, user: str, command: dict, result, digest_after: str) -> str:
+def chain(prev: str, seq: int, key: str, user: str, command: dict, result: object, digest_after: str) -> str:
     blob = canonical([prev, seq, key, user, command, result, digest_after])
     return hashlib.sha256(blob.encode()).hexdigest()
 
@@ -74,13 +88,14 @@ class Store:
         self._cache: OrderedDict[str, tuple[int, Session]] = OrderedDict()
         self._lock = threading.Lock()
 
-    def close(self):
+    def close(self) -> None:
         self.pool.close()
 
     # ---------- schema ----------
-    def init(self):
+    def init(self) -> None:
         with self.pool.connection() as c:
-            c.execute("create table if not exists schema_migrations (name text primary key, applied_at timestamptz default now())")
+            c.execute("create table if not exists schema_migrations"
+                      " (name text primary key, applied_at timestamptz default now())")
             done = {r[0] for r in c.execute("select name from schema_migrations")}
             for f in sorted(resources.files("fundforge.migrations").iterdir(), key=lambda p: p.name):
                 if f.name.endswith(".sql") and f.name not in done:
@@ -99,7 +114,7 @@ class Store:
                 return hit[1]
         return None
 
-    def _cache_put(self, room: str, version: int, s: Session):
+    def _cache_put(self, room: str, version: int, s: Session) -> None:
         with self._lock:
             hit = self._cache.get(room)
             if hit is None or hit[0] < version:
@@ -141,19 +156,20 @@ class Store:
 
     def auth(self, room: str, token: str) -> str:
         with self.pool.connection() as c:
-            row = c.execute("select user_id from seats where token_hash=%s and room_id=%s", (_h(token), room)).fetchone()
+            row = c.execute("select user_id from seats where token_hash=%s and room_id=%s",
+                            (_h(token), room)).fetchone()
         if not row:
             raise PermissionError("invalid seat token for this room")
-        return row[0]
+        return str(row[0])
 
     # ---------- replay ----------
     @staticmethod
-    def _fresh(tape, partners, bot_role: str | None = None) -> Session:
+    def _fresh(tape: Tape, partners: dict[str, str], bot_role: str | None = None) -> Session:
         e = Engine(tape)
         e.advance()
         return Session(e, partners, bots=frozenset({bot_role}) if bot_role else frozenset())
 
-    def _room(self, c, room: str, lock: bool = False):
+    def _room(self, c: Conn, room: str, lock: bool = False) -> tuple[int, Tape, dict[str, str], dict, str | None]:
         row = c.execute("select version, scenario, partners, names, rules_version, tape_digest, variant, bot_role"
                         " from rooms where id=%s"
                         + (" for update" if lock else ""), (room,)).fetchone()
@@ -167,10 +183,11 @@ class Store:
             raise RoomIncompatible("room's scenario tape changed since it was created")
         return version, tape, partners, names, bot_role
 
-    def _replay(self, c, room: str, version: int, tape, partners, bot_role=None) -> Session:
+    def _replay(self, c: Conn, room: str, version: int, tape: Tape, partners: dict[str, str],
+                bot_role: str | None = None) -> Session:
         s = self._fresh(tape, partners, bot_role)
-        for uid, key, cmd in c.execute(
-                "select user_id, idem_key, command from commands where room_id=%s and seq<=%s order by seq", (room, version)):
+        for uid, key, cmd in c.execute("select user_id, idem_key, command from commands"
+                                       " where room_id=%s and seq<=%s order by seq", (room, version)):
             s.handle(uid, key, cmd)
         return s
 
@@ -192,7 +209,7 @@ class Store:
             if prior:
                 if (prior[0], prior[1]) != (user, json.loads(json.dumps(command))):
                     raise KeyReused(f"idempotency key {key!r} reused for a different command")
-                return prior[2]
+                return dict(prior[2])
             base = self._cache_get(room, version) or self._replay(c, room, version, tape, partners, bot_role)
             s = copy.deepcopy(base, {id(base.e.tape): base.e.tape})
             lo = len(s.e.j.entries)
@@ -202,29 +219,31 @@ class Store:
                 # the bot answers inside the same transaction; its commands are ordinary logged rows
                 for k, cmd, res, span in bot.act(s, bot_role, bot.BOT_VERSION, f"bot-{version + 1}"):
                     steps.append((bot.BOT_VERSION, k, cmd, json.loads(json.dumps(res)), span))
-            prev_row = c.execute("select chain_hash from commands where room_id=%s and seq=%s", (room, version)).fetchone()
+            prev_row = c.execute("select chain_hash from commands where room_id=%s and seq=%s",
+                                 (room, version)).fetchone()
             prev = prev_row[0] if prev_row and prev_row[0] else GENESIS
             seq = version
             for uid, k, cmd, res, (jlo, jhi, digest) in steps:
                 seq += 1
                 link = chain(prev, seq, k, uid, cmd, res, digest)
-                c.execute("insert into commands (room_id, seq, idem_key, user_id, command, result, journal_digest_after,"
-                          " chain_hash) values (%s,%s,%s,%s,%s,%s,%s,%s)",
+                c.execute("insert into commands (room_id, seq, idem_key, user_id, command, result,"
+                          " journal_digest_after, chain_hash) values (%s,%s,%s,%s,%s,%s,%s,%s)",
                           (room, seq, k, uid, Jsonb(cmd), Jsonb(res), digest, link))
                 self._append_journal(c, room, s.e.j.entries[jlo:jhi], seq)
                 prev = link
-            speed = s.clock["speed"] or 1
+            speed: int = s.clock["speed"] or 1
             c.execute("update rooms set version=%s, running=%s, speed=%s,"
                       " next_tick_at = now() + make_interval(secs => %s) where id=%s",
                       (seq, s.running(), s.clock["speed"], SECONDS_PER_WINDOW / speed, room))
         self._cache_put(room, seq, s)
-        return result
+        return dict(result)
 
     # ---------- real-time clock ----------
     def due_rooms(self, limit: int = 50) -> list[tuple[str, int]]:
         with self.pool.connection() as c:
-            return c.execute("select id, version from rooms where running and next_tick_at <= now()"
+            rows = c.execute("select id, version from rooms where running and next_tick_at <= now()"
                              " order by next_tick_at limit %s", (limit,)).fetchall()
+        return [(str(r[0]), int(r[1])) for r in rows]
 
     def tick(self, room: str, version: int) -> dict | None:
         """Log one clock tick; idempotent per version, so duplicate schedulers cannot double-advance."""
@@ -242,19 +261,23 @@ class Store:
             row = c.execute("select running, speed, next_tick_at, now(),"
                             " greatest(0, extract(epoch from next_tick_at - now()))::float from rooms where id=%s",
                             (room,)).fetchone()
+        if row is None:
+            raise KeyError(room)
         return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
                 "server_now": row[3].isoformat(), "next_tick_in": row[4],
                 "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1)}
 
     @staticmethod
-    def _append_journal(c, room, entries, seq):
+    def _append_journal(c: Conn, room: str, entries: Sequence[Entry], seq: int) -> None:
         with c.cursor() as cur:
             cur.executemany(
                 "insert into journal_entries values (%s,%s,%s,%s,%s,%s,%s)",
                 [(room, x.entry_id, x.entity, x.date, x.memo, Jsonb(x.canonical()["postings"]), seq) for x in entries])
             cur.executemany(
-                "insert into journal_lines (room_id, entry_id, line_no, entity, account, amount) values (%s,%s,%s,%s,%s,%s)",
-                [(room, x.entry_id, i, x.entity, p.account, p.amount) for x in entries for i, p in enumerate(x.postings)])
+                "insert into journal_lines (room_id, entry_id, line_no, entity, account, amount)"
+                " values (%s,%s,%s,%s,%s,%s)",
+                [(room, x.entry_id, i, x.entity, p.account, p.amount)
+                 for x in entries for i, p in enumerate(x.postings)])
 
     # ---------- audit ----------
     def verify(self, room: str) -> dict:

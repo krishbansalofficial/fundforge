@@ -91,7 +91,7 @@ Success is improved research decisions in a blind playtest and correct informati
 
 ## v2.1 cross-review
 
-The same upstream snapshot and domain-overview module were rechecked on 6 October 2026; no new integration was implemented. See [LIBRARY_RESEARCH](LIBRARY_RESEARCH.md) and [library_review.json](../fixtures/library_review.json) for the 17-candidate comparison, exact repository/commit/license evidence and recommendation. OpenBB's provider framework is a separate candidate and is not OpenSEO.
+The same upstream snapshot and domain-overview module were rechecked on 6 October 2026; no new integration was implemented. See [LIBRARY_RESEARCH](../LIBRARY_RESEARCH.md) and [library_review.json](../../fixtures/library_review.json) for the 17-candidate comparison, exact repository/commit/license evidence and recommendation. OpenBB's provider framework is a separate candidate and is not OpenSEO.
 
 Alternative-data relevance depends on the issuer's business, domain mapping and a falsifiable question; an industrial company with little direct consumer search exposure may gain no useful evidence from these tools. A real provider cannot be attached just to make the research room look sophisticated. Fixture evidence and its uncertainty already support the game's decision. Marketing-site SEO remains a separate deferred use.
 

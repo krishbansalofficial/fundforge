@@ -1,6 +1,6 @@
 # Game systems and balance contract
 
-Version 2.1 · Proposed, unimplemented defaults · Read with MASTER_SPEC and FUND_ACCOUNTING.
+Version 2.1 · Game-rule contract · Read with MASTER_SPEC and FUND_ACCOUNTING. Only part of it is implemented; real status is in [PROGRESS](PROGRESS.md).
 
 ## 1. Time, attention and cooperation
 

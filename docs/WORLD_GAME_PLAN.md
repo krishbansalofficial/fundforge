@@ -1,6 +1,6 @@
 # World game plan: two partners in a fund office
 
-8 October 2026. Planning document, not a record of completed work. It adds a graphical, shared-world layer (milestones W1–W7) on top of the deterministic game described in [FULL_GAME_PLAN](FULL_GAME_PLAN.md). Money, time and outcomes stay with `engine.py`, `governance.py` and the Postgres command log (`store.py`). Game rules stay with [GAME_SYSTEMS](GAME_SYSTEMS.md), Case1 schedule with [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md). Nothing in this plan changes an economic rule. Where it touches one, §9 lists it.
+8 October 2026. Planning document, not a record of completed work. It was written for a 2D Phaser client; the owner later chose a Godot 4 3D desktop client (see [DECISIONS](DECISIONS.md) and [ROADMAP](ROADMAP.md) P3), so read the places and rules here, not the rendering choices. It adds a graphical, shared-world layer (milestones W1–W7) on top of the deterministic game described in [FULL_GAME_PLAN](archive/FULL_GAME_PLAN.md). Money, time and outcomes stay with `engine.py`, `governance.py` and the Postgres command log (`store.py`). Game rules stay with [GAME_SYSTEMS](GAME_SYSTEMS.md), Case1 schedule with [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md). Nothing in this plan changes an economic rule. Where it touches one, §9 lists it.
 
 Owner request: "I need a graphical game, not just a very basic game. I need two players playing a game in a world." Constraint: no AI wrapper, real engineering, one builder at about 15 h/week.
 

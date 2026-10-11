@@ -4,6 +4,7 @@ extends CanvasLayer
 
 var role := "pm"
 var view: Dictionary = {}
+var caption := ""  # when set (the --demo trailer), shown instead of the clock's pause reason
 
 var _clock: Label
 var _reason: Label
@@ -18,6 +19,10 @@ var _panel_title: Label
 var _panel_body: VBoxContainer
 var _open_location := ""
 var _debrief: PanelContainer
+var terminal: ForgeTerminal
+var _cure_draft: Array = []
+var _cure_version := -1
+var _cure_sending := false
 
 
 func _ready() -> void:
@@ -32,6 +37,10 @@ func _ready() -> void:
 	title.text = "  FundForge"
 	title.add_theme_font_size_override("font_size", 20)
 	row.add_child(title)
+	var terminal_button := Button.new()
+	terminal_button.text = "Terminal [T]"
+	terminal_button.pressed.connect(open_terminal)
+	row.add_child(terminal_button)
 	_clock = Label.new()
 	_clock.add_theme_font_size_override("font_size", 18)
 	_clock.custom_minimum_size = Vector2(330, 0)
@@ -125,6 +134,13 @@ func _ready() -> void:
 	scroll.add_child(_panel_body)
 
 	Api.command_failed.connect(func(msg): _show_toast(msg))
+	terminal = ForgeTerminal.new()
+	add_child(terminal)
+	terminal.trading_requested.connect(func(): open_panel("trading"))
+	terminal.cure_draft_requested.connect(func(orders, source_version):
+		_cure_draft = orders
+		_cure_version = source_version
+		open_panel("trading"))
 
 
 func _style(bg: Color, border := Color(0, 0, 0, 0)) -> StyleBoxFlat:
@@ -139,6 +155,12 @@ func _style(bg: Color, border := Color(0, 0, 0, 0)) -> StyleBoxFlat:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if terminal.is_open():
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_T:
+		open_terminal()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel") and _panel.visible:
 		close_panel()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not _panel.visible:
@@ -185,11 +207,14 @@ func set_near(location: String) -> void:
 func apply_view(v: Dictionary) -> void:
 	view = v
 	role = v.get("role", role)
+	terminal.set_view(v)
 	var cs: Dictionary = v.get("clock_state", {})
 	var speed := 0 if cs.get("paused", true) else int(cs.get("speed", 0))
 	for s in _speed_buttons:
 		_speed_buttons[s].button_pressed = (s == speed)
 	_reason.text = str(cs.get("reason", "")) if cs.get("paused", true) and cs.get("reason") != null else ""
+	if caption != "":
+		_reason.text = caption
 	var f: Dictionary = v.get("fund", {})
 	var firm: Dictionary = v.get("firm", {})
 	_stats.text = "NAV  %s\nGross / net  %s%% / %s%%\nCash  %s   Debt  %s\nCredit left  %s\nFirm cash (not fund money)  %s" % [
@@ -224,6 +249,8 @@ func _pct(s: Variant) -> String:
 # ---------------- location terminals ----------------
 
 func open_panel(location: String) -> void:
+	if terminal.is_open():
+		return
 	_open_location = location
 	_panel.visible = true
 	_render_panel(location)
@@ -232,6 +259,11 @@ func open_panel(location: String) -> void:
 func close_panel() -> void:
 	_panel.visible = false
 	_open_location = ""
+
+
+func open_terminal() -> void:
+	close_panel()
+	terminal.open()
 
 
 func _clear() -> void:
@@ -273,6 +305,17 @@ func _render_panel(location: String) -> void:
 
 
 func _trading() -> void:
+	_button("Open Forge Terminal: quotes, charts, risk and news [T]", open_terminal)
+	if not _cure_draft.is_empty():
+		_text("HYPOTHETICAL CURE DRAFT / review before proposing", 18)
+		for leg in _cure_draft:
+			_text("%s %s shares of %s" % [leg["side"], leg["qty"], leg["sym"]])
+		_text("Market orders at the next live event. Simulated prices are not guaranteed; live mandate and partner approval still apply.", 12)
+		if _cure_version != int(view.get("version", -1)):
+			_text("Fund changed since analysis. Rerun the liquidity lab before proposing.")
+		elif not _cure_sending:
+			_button("Propose this cure package to partner", _propose_cure)
+		_button("Discard cure draft", func(): _cure_draft = []; open_panel("trading"))
 	var rows := ""
 	for p in view.get("positions", []):
 		if int(p.get("qty", 0)) != 0:
@@ -301,6 +344,20 @@ func _trading() -> void:
 	_button("Propose package to partner", func():
 		Api.command({"type": "propose", "package_id": "pkg-" + Api.new_key().substr(0, 8), "orders": [order.call()]}))
 	_text("Orders fill at the next execution window with market impact, never at a price you have already seen.", 12, Color("#4d5e72"))
+
+
+func _propose_cure() -> void:
+	if _cure_sending or _cure_draft.is_empty(): return
+	_cure_sending = true
+	var orders := _cure_draft.duplicate(true)
+	for leg in orders:
+		leg["order_id"] = "cure-" + Api.new_key()
+	var result: Dictionary = await Api.command({"type": "propose", "package_id": "cure-" + Api.new_key(),
+			"source_version": _cure_version, "orders": orders})
+	_cure_sending = false
+	if result.get("ok", false):
+		_cure_draft = []
+		open_panel("committee")
 
 
 func _committee() -> void:
@@ -348,12 +405,25 @@ func _research() -> void:
 	var r: Dictionary = view.get("research", {})
 	var used: Array = r.get("used", []).map(func(u): return u["topic"])
 	_text("Assignments left: %d. Findings arrive at the next market open." % (int(r.get("budget", 0)) - used.size()))
+	var attention: Dictionary = view.get("attention", {})
+	_text("One assignment per decision window. Findings stay private until you share them.", 12)
+	if attention.get("committed", false):
+		_text("Your attention is committed for this window. Orders, signatures and mandatory notices remain available.", 12)
 	var names := {"borrow": "BRIN borrow availability", "debt_schedule": "BRIN debt schedule", "demand_survey": "BRIN demand survey",
 			"crowding": "Prime broker crowding report"}
 	for t in r.get("topics", []):
 		var topic: String = t
-		_button(names.get(topic, topic) + ("  (assigned)" if topic in used else ""),
-				func(): Api.command({"type": "research", "topic": topic}), not topic in used)
+		var location: String = r.get("assignments", {}).get(topic, {}).get("location", "research")
+		_button(names.get(topic, topic) + " / " + location + ("  (assigned)" if topic in used else ""),
+				func(): Api.command({"type": "visit", "location": location, "assignment": topic}),
+				not topic in used and not attention.get("committed", false))
+	for evidence in r.get("evidence", []):
+		var topic: String = evidence.get("refs", {}).get("topic", "")
+		var shared: bool = topic in r.get("shared", [])
+		_text(("SHARED / " if shared else "PRIVATE / ") + topic.replace("_", " "), 16)
+		_text(evidence["text"], 14)
+		if evidence.get("refs", {}).get("owner") == role and not shared:
+			_button("Share this evidence with partner", func(): Api.command({"type": "share_research", "topic": topic}))
 
 
 func _backoffice() -> void:

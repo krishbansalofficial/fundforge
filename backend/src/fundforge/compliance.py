@@ -10,6 +10,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from decimal import Decimal, localcontext
+from typing import Any
 
 from .money import CTX, D
 
@@ -26,7 +27,7 @@ class Ruleset:
     restricted: frozenset[str]
 
     @classmethod
-    def from_raw(cls, raw: dict) -> "Ruleset":
+    def from_raw(cls, raw: dict[str, Any]) -> "Ruleset":
         return cls(raw["version"], D(raw["gross_min"]), D(raw["gross_max"]), D(raw["net_min"]), D(raw["net_max"]),
                    D(raw["issuer_max"]), frozenset(raw.get("issuer_exempt", [])), frozenset(raw.get("restricted", [])))
 
@@ -67,11 +68,13 @@ def evaluate(pos: dict[str, int], marks: dict[str, Decimal], nav: Decimal,
         after[sym] = after.get(sym, 0) + (qty if side in ("BUY", "COVER") else -qty)
     pre, post = _measures(pos, marks, nav, rs), _measures(after, marks, nav, rs)
     for key, lo, hi in (("gross", rs.gross_min, rs.gross_max), ("net", rs.net_min, rs.net_max)):
-        if post[key] > hi and post[key] > pre[key]:
-            breaches.append(Breach(f"{key}_max", f"{key} exposure {post[key]:.1%} would exceed the {hi:.0%} mandate cap"))
-        if post[key] < lo and post[key] < pre[key]:
-            breaches.append(Breach(f"{key}_min", f"{key} exposure {post[key]:.1%} would fall below the {lo:.0%} mandate floor"))
+        x = post[key]
+        if x > hi and x > pre[key]:
+            breaches.append(Breach(f"{key}_max", f"{key} exposure {x:.1%} would exceed the {hi:.0%} mandate cap"))
+        if x < lo and x < pre[key]:
+            breaches.append(Breach(f"{key}_min", f"{key} exposure {x:.1%} would fall below the {lo:.0%} mandate floor"))
     for key, val in post.items():
         if key.startswith("issuer:") and val > rs.issuer_max and val > pre.get(key, Decimal(0)):
-            breaches.append(Breach("issuer_max", f"{key[7:]} would be {val:.1%} of NAV, above the {rs.issuer_max:.0%} cap"))
+            cap = rs.issuer_max
+            breaches.append(Breach("issuer_max", f"{key[7:]} would be {val:.1%} of NAV, above the {cap:.0%} cap"))
     return breaches

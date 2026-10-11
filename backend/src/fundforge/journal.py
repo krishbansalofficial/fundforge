@@ -11,6 +11,7 @@ import json
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Any
 
 from .money import CENT
 
@@ -35,7 +36,7 @@ class Entry:
     memo: str
     postings: tuple[Posting, ...]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.entity not in ENTITIES:
             raise JournalError(f"unknown entity {self.entity!r}")
         if len(self.postings) < 2:
@@ -48,7 +49,7 @@ class Entry:
         if sum(p.amount for p in self.postings) != 0:
             raise JournalError(f"{self.entry_id}: unbalanced entry")
 
-    def canonical(self) -> dict:
+    def canonical(self) -> dict[str, Any]:
         return {
             "id": self.entry_id,
             "entity": self.entity,
@@ -63,14 +64,14 @@ def entry(entry_id: str, entity: str, date: str, memo: str, *legs: tuple[str, De
 
 
 class Journal:
-    def __init__(self):
+    def __init__(self) -> None:
         self._entries: list[Entry] = []
         self._by_id: dict[str, Entry] = {}
         self._balances: dict[tuple[str, str], Decimal] = defaultdict(Decimal)
 
     def post_many(self, entries: list[Entry]) -> bool:
         """Atomically post entries; returns False if all were already posted."""
-        fresh = []
+        fresh: list[Entry] = []
         for e in entries:
             prior = self._by_id.get(e.entry_id) or next((f for f in fresh if f.entry_id == e.entry_id), None)
             if prior is None:

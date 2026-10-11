@@ -1,6 +1,6 @@
 # Season scenarios and playable arc
 
-Version 2.1 · Authored design, not a complete playable tape or measured balance result.
+Version 2.1 · Authored design. Only Case1 is playable; the full season has no tape or measured balance result yet. Real status is in [PROGRESS](PROGRESS.md).
 
 v2.2 authority: [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md) supplies complete bounded authoring schedules and supersedes conflicting challenge text below. These designs still have no compiled tape, full dated numerical path oracle or simulator. The ordinary day1–21 opening campaign remains separately to be authored. The old checkpoint values deliberately hold additional daily charges fixed.
 

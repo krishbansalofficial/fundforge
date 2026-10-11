@@ -129,7 +129,7 @@ def test_clock_runs_only_when_played_and_auto_pauses_on_news():
     s.handle("ana", "go", {"type": "set_speed", "speed": 2})
     paused_at = None
     for _ in range(60):
-        out = tick(s)
+        tick(s)
         if s.clock["paused"]:
             paused_at = (s.e.ev.day, s.clock["reason"])
             break

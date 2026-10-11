@@ -1,6 +1,6 @@
 # Full game plan: from the Case1 slice to the 60-day season
 
-7 October 2026. Planning document, not a record of completed work. It extends [REPLAN_V3](REPLAN_V3.md) past M6 with milestones G1–G11. Accounting authority stays with [FUND_ACCOUNTING](FUND_ACCOUNTING.md), game rules with [GAME_SYSTEMS](GAME_SYSTEMS.md), challenge schedules with [SCENARIO_CONTRACTS](SCENARIO_CONTRACTS.md), and product boundaries with [MASTER_SPEC](MASTER_SPEC.md). Where this plan disagrees with one of those, the conflict is listed in §9 and must be resolved in the owning document before the milestone starts. Analytics libraries are planned in [RESEARCH_AND_ANALYTICS_PLAN](RESEARCH_AND_ANALYTICS_PLAN.md).
+7 October 2026. Planning document, not a record of completed work. It extends [REPLAN_V3](REPLAN_V3.md) past M6 with milestones G1–G11. Accounting authority stays with [FUND_ACCOUNTING](../FUND_ACCOUNTING.md), game rules with [GAME_SYSTEMS](../GAME_SYSTEMS.md), challenge schedules with [SCENARIO_CONTRACTS](../SCENARIO_CONTRACTS.md), and product boundaries with [MASTER_SPEC](../MASTER_SPEC.md). Where this plan disagrees with one of those, the conflict is listed in §9 and must be resolved in the owning document before the milestone starts. Analytics libraries are planned in [RESEARCH_AND_ANALYTICS_PLAN](RESEARCH_AND_ANALYTICS_PLAN.md).
 
 ## 1. Starting point (what exists today)
 

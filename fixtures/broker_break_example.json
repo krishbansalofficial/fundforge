@@ -1,0 +1,22 @@
+[
+  {
+    "id": "opening-cash",
+    "revision": 1,
+    "source": "Synthetic prime broker / opening cash statement",
+    "account": "cash",
+    "as_of": {"day": 12, "phase": "OPEN_ADMIN"},
+    "available_at": {"day": 12, "phase": "OPEN_ADMIN"},
+    "balance": "100.00"
+  },
+  {
+    "id": "opening-cash",
+    "revision": 2,
+    "source": "Synthetic prime broker / opening cash statement",
+    "account": "cash",
+    "as_of": {"day": 12, "phase": "OPEN_ADMIN"},
+    "available_at": {"day": 13, "phase": "PUBLIC_MARK"},
+    "balance": "0.00",
+    "supersedes": 1,
+    "reason": "Broker removed a duplicate $100 credit from its statement; fund books were correct."
+  }
+]

@@ -1,7 +1,18 @@
 {
   "scenario_id": "case1",
   "title": "The borrow is not the thesis",
-  "version": "4.0.0",
+  "version": "4.2.0",
+  "broker_statements": [
+    {
+      "id": "opening-cash",
+      "revision": 1,
+      "source": "Synthetic prime broker / opening cash statement",
+      "account": "cash",
+      "as_of": {"day": 12, "phase": "OPEN_ADMIN"},
+      "available_at": {"day": 12, "phase": "OPEN_ADMIN"},
+      "balance": "0.00"
+    }
+  ],
   "source": "docs/SCENARIO_CONTRACTS.md#case1-the-borrow-is-not-the-thesis",
   "calendar": {
     "day1": "2026-01-05",
@@ -156,6 +167,7 @@
   ],
   "borrow": {
     "recall": {
+      "loan_id": "L-open-BRIN",
       "announce_day": 13,
       "sym": "BRIN",
       "qty": 1250,
@@ -167,6 +179,8 @@
       "from_day": 13
     },
     "replacement_offer": {
+      "old_loan_id": "L-open-BRIN",
+      "new_loan_id": "L-replacement-BRIN",
       "sym": "BRIN",
       "qty": 1250,
       "rate": "0.40",
@@ -177,6 +191,13 @@
   },
   "research": {
     "budget": 2,
+    "budget_per_role": 2,
+    "assignments": {
+      "borrow": {"role": "mp", "location": "broker"},
+      "debt_schedule": {"role": "mp", "location": "backoffice"},
+      "demand_survey": {"role": "pm", "location": "research"},
+      "crowding": {"role": "pm", "location": "risk"}
+    },
     "topics": {
       "borrow": "Desk check on BRIN lending: one agent can transfer up to 1,250 shares at 40% annual, no upfront fee. Accept before day 14 EXEC_B; transfer day 15 opening.",
       "debt_schedule": "BRIN's term debt matures within the next quarter and refinancing is unresolved.",

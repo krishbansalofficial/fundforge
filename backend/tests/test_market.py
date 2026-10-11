@@ -2,11 +2,12 @@
 
 from decimal import Decimal
 
+from test_engine import CASE1
+
 from fundforge.engine import Engine
 from fundforge.governance import Session
 from fundforge.market import CAP, Market
 from fundforge.tape import load
-from test_engine import CASE1
 
 
 def play(variant="base", script=None, each=None):
@@ -36,7 +37,8 @@ def test_crowded_short_unwinds_after_the_selloff_and_squeezes_brin_only_in_base(
     base = play("base")
     hits = deleveraged(base)
     assert hits and all(n["day"] >= 16 for n in hits)
-    halcyon = lambda e: next(r for r in e.market.rivals if r.rival_id == "halcyon")
+    def halcyon(e):
+        return next(r for r in e.market.rivals if r.rival_id == "halcyon")
     assert halcyon(base).pos["BRIN"] > -40000  # forced covering
     assert base.marks["BRIN"] > base.ev.marks["BRIN"]  # effective mark still above the tape: the squeeze
     rally = play("rally")
@@ -46,7 +48,8 @@ def test_crowded_short_unwinds_after_the_selloff_and_squeezes_brin_only_in_base(
 
 
 def test_crowding_report_is_revealed_only_after_it_is_assigned():
-    crowding = lambda e: [n for n in e.notices if n["refs"].get("topic") == "crowding"]
+    def crowding(e):
+        return [n for n in e.notices if n["refs"].get("topic") == "crowding"]
     seen = []
     e = play(script={(12, "EXEC_A"): lambda e_: e_.assign_research("crowding")},
              each=lambda e_: seen.append((e_.ev.day, len(crowding(e_)))))

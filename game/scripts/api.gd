@@ -60,9 +60,9 @@ func request(method: int, path: String, body: Variant = null, key := "") -> Dict
 			"status": status, "data": data, "network_error": res[0] != HTTPRequest.RESULT_SUCCESS}
 
 
-func create_room(url: String, pm_name: String, mp_name: String, solo_role := "") -> Dictionary:
+func create_room(url: String, pm_name: String, mp_name: String, solo_role := "", scenario := "case1") -> Dictionary:
 	base_url = url.trim_suffix("/")
-	var body := {"scenario": "case1", "pm_name": pm_name, "mp_name": mp_name}
+	var body := {"scenario": scenario, "pm_name": pm_name, "mp_name": mp_name}
 	if solo_role != "":
 		body["solo_role"] = solo_role
 	return await request(HTTPClient.METHOD_POST, "/api/rooms", body)
@@ -91,6 +91,18 @@ func ledger(entity: String) -> Dictionary:
 
 func verify() -> Dictionary:
 	return await request(HTTPClient.METHOD_GET, "/api/rooms/%s/verify" % room_id)
+
+
+func liquidity(assumptions: Dictionary) -> Dictionary:
+	return await request(HTTPClient.METHOD_POST, "/api/rooms/%s/liquidity" % room_id, assumptions)
+
+
+func debrief(options: Dictionary) -> Dictionary:
+	return await request(HTTPClient.METHOD_POST, "/api/rooms/%s/debrief" % room_id, options)
+
+
+func terminal() -> Dictionary:
+	return await request(HTTPClient.METHOD_GET, "/api/rooms/%s/terminal" % room_id)
 
 
 func _poll() -> void:

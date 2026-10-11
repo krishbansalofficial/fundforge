@@ -6,6 +6,7 @@ actions are logged like any other command: replay never re-runs this policy.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from .engine import CommandRejected
 from .governance import TICKET_NAV_LIMIT, Session
@@ -23,9 +24,10 @@ def _open_orders(s: Session, sym: str, side: str) -> int:
                if o.sym == sym and o.side == side and o.status in ("QUEUED", "PARTIALLY_FILLED"))
 
 
-def plan(s: Session, role: str) -> list[dict]:
+def plan(s: Session, role: str) -> list[dict[str, Any]]:
     """Commands the bot wants to send now, in order. Pure function of the session state."""
-    e, out = s.e, []
+    e = s.e
+    out: list[dict[str, Any]] = []
     if e.finished():
         return out
     at_barrier = e.at_barrier()
@@ -35,10 +37,19 @@ def plan(s: Session, role: str) -> list[dict]:
             out.append({"type": "sign", "package_id": p.package_id, "digest": p.digest,
                         "_ref": f"pkg:{p.package_id}"})
     if role == "mp" and at_barrier:
+        for issue in e.broker.queue(e.ev.date):
+            if issue["can_resolve"]:
+                out.append({"type": "resolve_statement", "statement_id": issue["id"],
+                            "revision": issue["revision"], "version": s.version,
+                            "_ref": f"statement:{issue['id']}:{issue['revision']}",
+                            "_say": "I reviewed the broker correction. The original statement remains in RISK."})
         # 2. operating partner: check the borrow before the recall bites
-        if not e.research_used and not _said(s, "research:borrow"):
+        if not any(r["topic"] == "borrow" for r in e.research_used) and not _said(s, "research:borrow"):
             out.append({"type": "research", "topic": "borrow", "_ref": "research:borrow",
                         "_say": "I've asked the desk to check BRIN lending; results at tomorrow's open."})
+        if e.offer_visible and "borrow" not in e.shared_research:
+            out.append({"type": "share_research", "topic": "borrow", "_ref": "share:borrow",
+                        "_say": "I've shared the borrow evidence; you can read it at the research desk."})
         brin_cover = _open_orders(s, "BRIN", "COVER")
         if (e.offer_visible and not e.replacement_accepted and e.recall_open > brin_cover
                 and not _said(s, "accept:replacement")):
@@ -77,7 +88,7 @@ def act(s: Session, role: str, user: str, key_prefix: str) -> list[tuple]:
     (key, command, result, (journal_lo, journal_hi, journal_digest_after))."""
     done: list[tuple] = []
 
-    def run(key: str, cmd: dict) -> dict:
+    def run(key: str, cmd: dict[str, Any]) -> dict[str, Any]:
         lo = len(s.e.j.entries)
         result = s.handle(user, key, cmd)
         done.append((key, cmd, result, (lo, len(s.e.j.entries), s.e.j.digest())))
@@ -90,7 +101,7 @@ def act(s: Session, role: str, user: str, key_prefix: str) -> list[tuple]:
         acted = False
         for i, c in enumerate(cmds):
             ref, say = c.pop("_ref", None), c.pop("_say", None)
-            if c["type"] == "ready":
+            if c["type"] in ("ready", "resolve_statement"):
                 c["version"] = s.version
             key = f"{key_prefix}-{_round}-{i}"
             try:

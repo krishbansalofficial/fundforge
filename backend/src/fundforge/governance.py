@@ -13,11 +13,15 @@
 import copy
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import Decimal, localcontext
+from typing import Any
 
 from .engine import CommandRejected, Engine
-from .money import D, cents
+from .money import CTX, D, cents
+
+Cmd = dict[str, Any]
 
 POLICY_VERSION = "case1-authority-v1"
 CLOCK = "clock"  # system actor for logged time ticks
@@ -39,17 +43,17 @@ class Package:
     status: str = "PENDING_APPROVAL"
 
 
-def canonical(obj) -> str:
+def canonical(obj: object) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str)
 
 
 class Session:
-    def __init__(self, engine: Engine, partners: dict[str, str], bots: frozenset[str] = frozenset()):
+    def __init__(self, engine: Engine, partners: dict[str, str], bots: frozenset[str] = frozenset()) -> None:
         if set(partners) != set(ROLES) or len(set(partners.values())) != 2:
             raise ValueError("exactly two distinct human partners are required")
         self.e = engine
         self.partners = partners  # role -> user id
-        self.results: dict[str, tuple[str, object]] = {}
+        self.results: dict[str, tuple[str, Cmd]] = {}
         self.packages: dict[str, Package] = {}
         self.ready: set[str] = set()
         self.turnover = Decimal(0)
@@ -58,7 +62,7 @@ class Session:
         self.bots = frozenset(bots)  # roles played by the deterministic partner bot (solo mode)
         self.chat: list[dict] = []
         # Real-time clock: wall time only decides WHEN the server sends a logged `tick`; economics never see it.
-        self.clock = {"speed": 0, "paused": True, "reason": "Opening: review the book and press play."}
+        self.clock: dict[str, Any] = {"speed": 0, "paused": True, "reason": "Opening: review the book and press play."}
 
     def role_of(self, user: str) -> str:
         if user == CLOCK:
@@ -69,7 +73,7 @@ class Session:
         raise CommandRejected("not a partner in this fund")
 
     # ---------- single entry point ----------
-    def handle(self, user: str, key: str, command: dict):
+    def handle(self, user: str, key: str, command: Cmd) -> Cmd:
         """Apply ``command`` once per idempotency ``key``. All-or-nothing: a rejection leaves no trace."""
         fp = hashlib.sha256(canonical([user, command]).encode()).hexdigest()
         if key in self.results:
@@ -82,7 +86,7 @@ class Session:
             raise CommandRejected("the clock can only tick")
         if role != "system" and command.get("type") == "tick":
             raise CommandRejected("only the clock ticks")
-        handler = COMMANDS.get(command.get("type"))
+        handler = COMMANDS.get(str(command.get("type")))
         if handler is None:
             raise CommandRejected(f"unknown command type {command.get('type')!r}")
         # ponytail: snapshot by deepcopy (tape shared via memo); per-entity undo log if profiling says so
@@ -106,7 +110,7 @@ class Session:
         return len(self.log)
 
     # ---------- commands ----------
-    def _cmd_ticket(self, role, c):
+    def _cmd_ticket(self, role: str, c: Cmd) -> Cmd:
         if role != "pm":
             raise CommandRejected("independent tickets belong to the portfolio manager")
         notional = self._notional(c)
@@ -120,7 +124,9 @@ class Session:
         self.turnover += notional
         return {"order_id": o.order_id, "status": o.status}
 
-    def _cmd_propose(self, role, c):
+    def _cmd_propose(self, role: str, c: Cmd) -> Cmd:
+        if "source_version" in c and c["source_version"] != self.version:
+            raise CommandRejected("analysis is stale; refresh and review the draft again")
         orders = tuple(sorted((o["order_id"], o["sym"], o["side"], int(o["qty"]), o.get("limit")) for o in c["orders"]))
         if not orders:
             raise CommandRejected("empty package")
@@ -132,7 +138,7 @@ class Session:
         self.packages[c["package_id"]] = Package(c["package_id"], role, orders, expires, digest, {role})
         return {"package_id": c["package_id"], "digest": digest}
 
-    def _cmd_sign(self, role, c):
+    def _cmd_sign(self, role: str, c: Cmd) -> Cmd:
         p = self.packages.get(c["package_id"])
         if p is None or p.status != "PENDING_APPROVAL":
             raise CommandRejected("no pending package")
@@ -150,27 +156,43 @@ class Session:
             self.e.submit_order(oid, sym, side, qty, D(limit) if limit else None)
         return {"package_id": p.package_id, "status": p.status}
 
-    def _cmd_cancel(self, role, c):
+    def _cmd_cancel(self, role: str, c: Cmd) -> Cmd:
         self.e.cancel_order(c["order_id"])
         return {"order_id": c["order_id"], "status": "CANCELED"}
 
-    def _cmd_research(self, role, c):
-        self.e.assign_research(c["topic"])
+    def _cmd_research(self, role: str, c: Cmd) -> Cmd:
+        self.e.assign_research(c["topic"], role)
         return {"topic": c["topic"]}
 
-    def _cmd_accept_replacement(self, role, c):
+    def _cmd_visit(self, role: str, c: Cmd) -> Cmd:
+        self.e.assign_research(c["assignment"], role, c["location"])
+        return {"location": c["location"], "assignment": c["assignment"]}
+
+    def _cmd_share_research(self, role: str, c: Cmd) -> Cmd:
+        self.e.share_research(role, c["topic"])
+        return {"shared": c["topic"]}
+
+    def _cmd_accept_replacement(self, role: str, c: Cmd) -> Cmd:
         if role != "mp":
             raise CommandRejected("replacement borrow is the managing partner's decision")
         self.e.accept_replacement()
         return {"accepted": True}
 
-    def _cmd_set_reserve(self, role, c):
+    def _cmd_set_reserve(self, role: str, c: Cmd) -> Cmd:
         if role != "mp":
             raise CommandRejected("treasury reserve is the managing partner's decision")
         self.e.set_reserve(D(c["amount"]))
         return {"reserve": c["amount"]}
 
-    def _cmd_ready(self, role, c):
+    def _cmd_resolve_statement(self, role: str, c: Cmd) -> Cmd:
+        if role != "mp":
+            raise CommandRejected("statement resolution belongs to the managing partner")
+        if c.get("version") != self.version or type(c.get("revision")) is not int:
+            raise CommandRejected("stale statement review: refresh the current version and revision")
+        self.e.resolve_statement(c["statement_id"], c["revision"], role)
+        return {"resolved": c["statement_id"], "revision": c["revision"]}
+
+    def _cmd_ready(self, role: str, c: Cmd) -> Cmd:
         if "version" in c and c["version"] != self.version:
             raise CommandRejected("stale: the plan changed since you looked; review it before marking ready")
         self.ready.add(role)
@@ -184,7 +206,7 @@ class Session:
         return {"advanced": False, "waiting_for": sorted(set(ROLES) - self.ready)}
 
     # ---------- real-time clock ----------
-    def _cmd_set_speed(self, role, c):
+    def _cmd_set_speed(self, role: str, c: Cmd) -> Cmd:
         speed = c.get("speed")
         if speed not in SPEEDS:
             raise CommandRejected(f"speed must be one of {SPEEDS}")
@@ -193,7 +215,7 @@ class Session:
         self.clock = {"speed": speed, "paused": False, "reason": None}
         return {"clock": self.clock}
 
-    def _cmd_say(self, role, c):
+    def _cmd_say(self, role: str, c: Cmd) -> Cmd:
         text = str(c.get("text", "")).strip()
         if not text or len(text) > 240:
             raise CommandRejected("messages must be 1-240 characters")
@@ -201,11 +223,11 @@ class Session:
                           "ref": c.get("ref")})
         return {"said": True}
 
-    def _cmd_pause(self, role, c):
+    def _cmd_pause(self, role: str, c: Cmd) -> Cmd:
         self.clock = {**self.clock, "paused": True, "reason": f"Paused by the {ROLE_NAMES[role]}."}
         return {"clock": self.clock}
 
-    def _cmd_tick(self, role, c):
+    def _cmd_tick(self, role: str, c: Cmd) -> Cmd:
         """Advance one execution window. Auto-pauses on anything a partner should see before time moves on."""
         if c.get("expected_version") != self.version:
             raise CommandRejected("stale tick")
@@ -220,7 +242,9 @@ class Session:
         if self.e.finished():
             self.clock = {"speed": 0, "paused": True, "reason": "Season complete."}
         elif self.e.incidents[n_incidents:] or any(n["kind"] in ("alert", "market", "research") for n in new):
-            self.clock = {**self.clock, "paused": True, "reason": (new[-1]["text"] if new else self.e.incidents[-1])}
+            reason = ("A partner's research has arrived." if new and new[-1]["refs"].get("owner")
+                      else new[-1]["text"] if new else self.e.incidents[-1])
+            self.clock = {**self.clock, "paused": True, "reason": reason}
         elif new:
             self.clock = {**self.clock, "paused": True, "reason": new[-1]["text"]}
         return {"advanced": True, "next": self._next(), "clock": self.clock}
@@ -229,7 +253,7 @@ class Session:
         return not self.clock["paused"] and not self.e.finished()
 
     # ---------- helpers ----------
-    def _mandate(self, orders):
+    def _mandate(self, orders: list[tuple[str, str, int]]) -> None:
         for sym, side, qty in orders:
             if sym not in self.e.marks or side not in ("BUY", "SELL", "SHORT", "COVER") or qty <= 0:
                 raise CommandRejected(f"invalid order {side} {qty} {sym}")
@@ -237,15 +261,15 @@ class Session:
         if breaches:
             raise CommandRejected("mandate: " + "; ".join(b.detail for b in breaches))
 
-    def _limit(self, c):
+    def _limit(self, c: Cmd) -> Decimal | None:
         return D(c["limit"]) if c.get("limit") else None
 
-    def _notional(self, c) -> Decimal:
+    def _notional(self, c: Cmd) -> Decimal:
         if c.get("sym") not in self.e.marks:
             raise CommandRejected(f"unknown instrument {c.get('sym')!r}")
         return cents(int(c["qty"]) * self.e.marks[c["sym"]])
 
-    def _next(self):
+    def _next(self) -> dict[str, Any] | None:
         n = self.e.next_event()
         return None if n is None else {"day": n.day, "phase": n.phase, "date": n.date.isoformat()}
 
@@ -256,6 +280,10 @@ class Session:
         e = self.e
         nav = e.nav()
         lm, sm = e.long_mv(), e.short_mv()
+        with localcontext(CTX):  # ratios are display values but must not depend on the caller's context
+            gross = ((lm + sm) / nav).quantize(D("0.0001")) if nav > 0 else None
+            net = ((lm - sm) / nav).quantize(D("0.0001")) if nav > 0 else None
+            per_unit = {s.series_id: (s.net / s.units).quantize(D("0.0001")) if s.units else None for s in e.series}
         return {
             "role": role,
             "partners": self.partners,
@@ -270,8 +298,8 @@ class Session:
                 "nav": str(nav), "cash": str(e.bal("cash")), "collateral": str(e.bal("collateral")),
                 "debt": str(-e.bal("debt")), "credit_left": str(e.credit_left()), "reserve": str(e.buffer()),
                 "long_mv": str(lm), "short_mv": str(sm),
-                "gross": str(((lm + sm) / nav).quantize(D("0.0001"))) if nav > 0 else None,
-                "net": str(((lm - sm) / nav).quantize(D("0.0001"))) if nav > 0 else None,
+                "gross": None if gross is None else str(gross),
+                "net": None if net is None else str(net),
                 "maintenance_req": str(e.margin()), "initial_req": str(e.margin("initial")),
                 "margin_call": str(e.margin_call) if e.margin_call else None,
             },
@@ -279,23 +307,35 @@ class Session:
                            "borrowed": e.borrowed(s)} for s, q in e.pos.items()],
             "marks": {s: str(m) for s, m in e.marks.items()},
             "series": [{"id": s.series_id, "units": str(s.units), "net": str(s.net), "provision": str(s.provision),
-                        "hwm": str(s.hwm), "nav_per_unit": str((s.net / s.units).quantize(D("0.0001")))}
+                        "hwm": str(s.hwm), "nav_per_unit": str(per_unit[s.series_id])}
                        for s in e.series],
             "firm": {"cash": str(e.bal("cash", "firm")), "fee_receivable": str(e.bal("fee_receivable", "firm")),
                      "payroll_payable": str(-e.bal("payroll_payable", "firm"))},
             "recall": {"open": e.recall_open, "resolved_by": e.recall_resolved_by,
-                       "offer_visible": e.offer_visible, "replacement_accepted": e.replacement_accepted},
-            "research": {"used": e.research_used, "budget": e.tape.raw["research"]["budget"],
-                         "topics": sorted(e.tape.raw["research"]["topics"])},
+                       "offer_visible": e.offer_visible and (role == "mp" or "borrow" in e.shared_research),
+                       "replacement_accepted": e.replacement_accepted},
+            "research": {"used": [dict(r) for r in e.research_used if r.get("owner") in (None, role)],
+                         "budget": e.tape.raw["research"]["budget_per_role"],
+                         "shared": sorted(e.shared_research),
+                         "evidence": copy.deepcopy([n for n in e.visible_notices(role)
+                                                    if n["code"] == "research_reveal"]),
+                         "topics": sorted(t for t, a in e.tape.raw["research"]["assignments"].items()
+                                          if a["role"] == role),
+                         "assignments": {t: dict(a) for t, a in e.tape.raw["research"]["assignments"].items()
+                                         if a["role"] == role}},
+            "attention": {"window": e.cursor, "committed": e.attention.get(role, {}).get("window") == e.cursor,
+                          "partners": copy.deepcopy(e.attention)},
             "orders": [{"order_id": o.order_id, "sym": o.sym, "side": o.side, "qty": o.qty, "filled": o.filled,
                         "status": o.status, "forced": o.forced, "fills": o.fills} for o in e.orders],
             "packages": [{"package_id": p.package_id, "proposer": p.proposer, "digest": p.digest, "status": p.status,
                           "signatures": sorted(p.signatures),
-                          "orders": [dict(zip(("order_id", "sym", "side", "qty", "limit"), o)) for o in p.orders]}
+                          "orders": [dict(zip(("order_id", "sym", "side", "qty", "limit"), o, strict=True))
+                                     for o in p.orders]}
                          for p in self.packages.values()],
-            "notices": e.notices,
+            "notices": copy.deepcopy(e.visible_notices(role)),
             "league": e.league(),  # rival returns come from public marks only
             "incidents": e.incidents,
+            "incident_events": copy.deepcopy(e.incident_events),
             "decisions": [{"day": x["day"], "phase": x["phase"], "role": x["role"], "type": x["command"]["type"],
                            "detail": {k: v for k, v in x["command"].items() if k != "type"}}
                           for x in self.log if x["command"]["type"] not in ("ready", "tick", "say")],
@@ -306,4 +346,5 @@ class Session:
         return [x.canonical() for x in self.e.j.entries if x.entity == entity][-limit:]
 
 
-COMMANDS = {name[len("_cmd_"):]: fn for name, fn in vars(Session).items() if name.startswith("_cmd_")}
+COMMANDS: dict[str, Callable[[Session, str, Cmd], Cmd]] = {
+    name[len("_cmd_"):]: fn for name, fn in vars(Session).items() if name.startswith("_cmd_")}

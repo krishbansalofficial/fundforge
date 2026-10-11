@@ -30,7 +30,7 @@ def race(fns):
         barrier.wait()
         try:
             out[i] = ("ok", f())
-        except Exception as e:  # noqa: BLE001 - we classify outcomes below
+        except Exception as e:
             out[i] = ("err", e)
 
     ts = [threading.Thread(target=go, args=(i, f)) for i, f in enumerate(fns)]
@@ -88,9 +88,8 @@ def test_journal_is_append_only_and_replay_matches_db(room):
     st, rid, u = room
     st.apply(rid, u["pm"], "r1", {"type": "ready"})
     st.apply(rid, u["mp"], "r2", {"type": "ready"})
-    with psycopg.connect(DSN) as c:
-        with pytest.raises(psycopg.errors.RaiseException):
-            c.execute("delete from journal_entries where room_id=%s", (rid,))
+    with psycopg.connect(DSN) as c, pytest.raises(psycopg.errors.RaiseException):
+        c.execute("delete from journal_entries where room_id=%s", (rid,))
     with psycopg.connect(DSN) as c:
         n = c.execute("select count(*) from journal_entries where room_id=%s", (rid,)).fetchone()[0]
     _, s, _ = fresh(st).session(rid)
@@ -127,19 +126,17 @@ def test_verify_detects_a_tampered_command(room):
 
 
 def test_database_refuses_unbalanced_entry_at_commit(room):
-    st, rid, _ = room
-    with pytest.raises(psycopg.errors.RaiseException, match="unbalanced"):
-        with psycopg.connect(DSN) as c:
-            c.execute("insert into journal_entries values (%s,'bad','fund','2026-01-20','x','[]',0)", (rid,))
-            c.execute("insert into journal_lines values (%s,'bad',0,'fund','cash',10.00)", (rid,))
-            c.execute("insert into journal_lines values (%s,'bad',1,'fund','capital',-9.99)", (rid,))
-            c.commit()
+    _, rid, _ = room
+    with pytest.raises(psycopg.errors.RaiseException, match="unbalanced"), psycopg.connect(DSN) as c:
+        c.execute("insert into journal_entries values (%s,'bad','fund','2026-01-20','x','[]',0)", (rid,))
+        c.execute("insert into journal_lines values (%s,'bad',0,'fund','cash',10.00)", (rid,))
+        c.execute("insert into journal_lines values (%s,'bad',1,'fund','capital',-9.99)", (rid,))
+        c.commit()
 
 
 def test_truncate_is_refused(room):
-    with pytest.raises(psycopg.errors.RaiseException):
-        with psycopg.connect(DSN) as c:
-            c.execute("truncate journal_lines")
+    with pytest.raises(psycopg.errors.RaiseException), psycopg.connect(DSN) as c:
+        c.execute("truncate journal_lines")
 
 
 def test_room_from_other_rules_version_is_refused(room):
