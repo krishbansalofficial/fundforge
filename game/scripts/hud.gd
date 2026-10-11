@@ -438,18 +438,31 @@ func _backoffice() -> void:
 	_button("Verify the books (replay everything from the log)", _verify)
 
 
-func _show_ledger(entity: String) -> void:
-	var res: Dictionary = await Api.ledger(entity)
+const LEDGER_PAGE := 15
+
+
+## One journal page, newest first, ending before entry `end` (-1 = the newest entries).
+func _show_ledger(entity: String, end := -1) -> void:
+	if end < 0:
+		var head: Dictionary = await Api.ledger(entity)
+		if not head["ok"]:
+			return
+		end = int(head["data"]["next"])
+	var page := WorldRules.ledger_page(end, LEDGER_PAGE)
+	var res: Dictionary = await Api.ledger(entity, page["after"])
 	if not res["ok"]:
 		return
-	var lines := "%s journal (latest first), hash %s\n" % [entity.capitalize(), str(res["data"]["digest"]).substr(0, 16)]
+	var lines := "%s journal entries %d-%d of %d (latest first), hash %s\n" % [entity.capitalize(), page["after"] + 1,
+			end, int(res["data"]["next"]), str(res["data"]["digest"]).substr(0, 16)]
 	var entries: Array = res["data"]["entries"]
-	for i in range(entries.size() - 1, maxi(-1, entries.size() - 15), -1):
+	for i in range(mini(page["count"], entries.size()) - 1, -1, -1):
 		var e: Dictionary = entries[i]
 		lines += "%s  %s\n" % [e["date"], e["memo"]]
 		for p in e["postings"]:
 			lines += "      %-26s %14s\n" % [p[0], p[1]]
 	_text(lines, 12)
+	if page["after"] > 0:
+		_button("Older %s entries" % entity, func(): _show_ledger(entity, page["after"]))
 
 
 func _verify() -> void:

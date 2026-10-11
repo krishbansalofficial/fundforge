@@ -139,6 +139,12 @@ static func partner_location(view: Dictionary, role: String) -> String:
 	return "trading" if role == "pm" else "risk"
 
 
+## Journal page ending (exclusive) at entry index `end`: {"after": first index, "count": entries shown}.
+static func ledger_page(end: int, size: int) -> Dictionary:
+	var after := maxi(0, end - size)
+	return {"after": after, "count": maxi(0, end - after)}
+
+
 ## Value of an HTTP response header (case-insensitive name), or "" when absent.
 static func header_value(headers: PackedStringArray, name: String) -> String:
 	var want := name.to_lower() + ":"

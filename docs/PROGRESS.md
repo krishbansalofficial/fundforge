@@ -312,3 +312,11 @@ Validation: **278 backend tests passed with PostgreSQL** (2 new in `test_investo
 Not wired into the debrief or outcome: SCENARIO_CONTRACTS says LP concern transitions are recorded in cases, but it does not state Case1's opening confidences. Using the season-launch roster values (72/80/65) would be an invented assumption, so it waits for the owner or a contract update.
 
 **One next task:** owner decisions recorded above (generator gate rule; Case1 opening LP confidences; renaming real-listed tickers). Without them, the next unblocked item is P3/P2 Godot ledger paging with the new `after` cursor in the HUD journal, with Godot checks.
+
+## Godot journal paging with the ledger cursor, 11 October 2026
+
+The HUD back-office journal now pages: `Api.ledger(entity, after)` passes the cursor, and `_show_ledger(entity, end)` shows 15 entries newest first, with the range and total, plus an "Older entries" button while earlier entries remain. The page arithmetic is the pure `WorldRules.ledger_page(end, size)`.
+
+Validation: Godot **83 checks, 0 failures** (2 new page checks), headless boot clean. A headless Godot probe against a live local API (port 8000, stopped afterwards) fetched the newest page, then `after=0`, and matched the tail entry. That room had only its opening fund entry (total 1), so it is a minimal round trip, not a multi-page run. Backend unchanged in this slice.
+
+**One next task:** owner decisions (generator gate rule; Case1 opening LP confidences; real-listed ticker rename). Otherwise: P2 Grafana dashboard JSON for the three metrics, validated by a test that every panel query names an exported metric.

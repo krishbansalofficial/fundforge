@@ -67,6 +67,8 @@ func _initialize() -> void:
 	var hdrs := PackedStringArray(["content-type: application/json", "ETag: \"v7-1\""])
 	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
 	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
+	check(WorldRules.ledger_page(40, 15) == {"after": 25, "count": 15}, "journal page before the newest entries")
+	check(WorldRules.ledger_page(10, 15) == {"after": 0, "count": 10}, "first journal page is short, never negative")
 	check(WorldRules.headroom_ratio({"nav": "110", "maintenance_req": "100"}) > 1.09, "headroom ratio")
 
 	# rival funds: league table and tower beacons

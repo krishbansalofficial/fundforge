@@ -90,8 +90,10 @@ func command(cmd: Dictionary) -> Dictionary:
 	return res
 
 
-func ledger(entity: String) -> Dictionary:
-	return await request(HTTPClient.METHOD_GET, "/api/rooms/%s/ledger?entity=%s" % [room_id, entity])
+## Newest entries, or with `after` >= 0 the entries following that many (the server's `next` cursor).
+func ledger(entity: String, after := -1) -> Dictionary:
+	var query := "entity=%s" % entity + ("&after=%d" % after if after >= 0 else "")
+	return await request(HTTPClient.METHOD_GET, "/api/rooms/%s/ledger?%s" % [room_id, query])
 
 
 func verify() -> Dictionary:
