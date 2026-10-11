@@ -280,3 +280,19 @@ Validation: **276 backend tests passed with PostgreSQL**. New tests: an end-to-e
 Limitations: each gate attempt plays five full policies (about 1–2 s here), so room creation can take several seconds and fails after 12 rejected seeds. With the measured 3-of-6 acceptance, failing 12 in a row is unlikely, but that is not a measured rate. Generated rooms reuse Case1's research texts, notices and debrief, which describe the authored path. The secondary web desk does not offer the scenario.
 
 **One next task:** calibrate the generator `Spec` (or add a calm-before-crisis regime) so the minimal `cover_recall_only` line wins more often. Measure acceptance over a fixed seed list in a test-time benchmark script, not as a claim, and record the numbers.
+
+## Generator acceptance measurement, 11 October 2026
+
+New `scripts/generator_acceptance.py` (run from `backend/`) measures gate acceptance over the fixed seeds `bench-0..bench-(N-1)` for three candidate specs. Measured once with N=20 (58 s):
+
+| Spec | Bounds (factor / idio bp, stress ×) | Accepted | Failures |
+|---|---|---|---|
+| default | 150 / 100, ×3 | 7/20 | `cover_recall_only_does_not_win` ×13 |
+| calmer | 100 / 75, ×2 | 10/20 | same ×10 |
+| quiet | 60 / 50, ×2 | 11/20 | same ×9 |
+
+Diagnosis on the quiet spec, seeds 0–5: 5 WIN; seed 2 ends SURVIVAL with day-16 EXEC_A forced margin sales (2,106 BEAM, 2,185 IONA). The recall-only policy sizes its cure at 2× the announced deficit, and on some generated pre-crisis paths the endogenous squeeze makes that insufficient. Lower volatility helps only modestly, so the rejections are mostly about cure sizing against the authored crisis, not raw volatility.
+
+No spec was changed: whether the minimal recall-only line must win in every generated world, or the gate should require only that some recall-handling line wins, is a balance-design decision for the owner (GAME_SYSTEMS/ROADMAP). The current gate is conservative; with the default spec, 12 attempts make an all-reject room creation unlikely, though that is not a measured rate.
+
+**One next task:** owner decision on the gate rule above. Meanwhile, P4 LP agents in play: compute `lp.chapter_close` facts from the engine at a chapter boundary (return per series, breaches, certification) in a pure adapter with tests, without changing Case1 economics.
