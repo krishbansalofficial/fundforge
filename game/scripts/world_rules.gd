@@ -20,6 +20,12 @@ const LOCATIONS := {
 	"broker": {"label": "Prime broker", "rect": Rect2i(5, 18, 7, 4), "spot": Vector2(8.5, 18), "color": Color("#29404a")},
 	"street": {"label": "Street view", "rect": Rect2i(0, 14, 5, 1), "spot": Vector2(2.5, 14.5), "color": Color("#3a4450")},
 }
+## Menu scenarios: [Store scenario key, label]. Keys must match backend store.SCENARIOS.
+const SCENARIOS := [
+	["case1", "Case 1: standard crisis"],
+	["case1-controls", "Broker review challenge: investigate a cash statement error in Terminal RISK"],
+	["case1-settlement", "Settlement failure: a tight credit line fails a BUY settlement; follow the retry in RISK"],
+]
 const STREET := Rect2i(0, 15, 24, 2)
 const WORLD := Rect2i(0, 0, 24, 23)
 

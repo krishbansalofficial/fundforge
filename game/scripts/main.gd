@@ -79,9 +79,10 @@ func _build_menu() -> void:
 	var server := _field(v, "Server", _server)
 	var pm := _field(v, "Portfolio manager's name", "Ana")
 	var mp := _field(v, "Managing partner's name", "Ben")
-	var controls := CheckBox.new()
-	controls.text = "Broker review challenge: investigate a cash statement error in Terminal RISK"
-	v.add_child(controls)
+	var scenario := OptionButton.new()
+	for spec in WorldRules.SCENARIOS:
+		scenario.add_item(spec[1])
+	v.add_child(scenario)
 	var status := Label.new()
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var solo_pm := Button.new()
@@ -103,7 +104,7 @@ func _build_menu() -> void:
 		(spec[0] as Button).pressed.connect(func():
 			status.text = "Opening..."
 			var res: Dictionary = await Api.create_room(server.text, pm.text, mp.text, role,
-					"case1-controls" if controls.button_pressed else "case1")
+					WorldRules.SCENARIOS[scenario.selected][0])
 			if not res["ok"]:
 				status.text = "Couldn't reach the server at %s. Start it with: docker compose up" % server.text
 				return
@@ -112,7 +113,7 @@ func _build_menu() -> void:
 	open.pressed.connect(func():
 		status.text = "Opening..."
 		var res: Dictionary = await Api.create_room(server.text, pm.text, mp.text, "",
-				"case1-controls" if controls.button_pressed else "case1")
+				WorldRules.SCENARIOS[scenario.selected][0])
 		if not res["ok"]:
 			status.text = "Couldn't reach the server at %s. Start it with: docker compose up" % server.text
 			return

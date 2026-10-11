@@ -89,6 +89,8 @@ func _initialize() -> void:
 	check(TerminalRules.prices([{"marks": {"BRIN": "100"}}, {"marks": {"BRIN": "102.5"}}], "BRIN") == PackedFloat32Array([100, 102.5]), "chart uses only supplied observations")
 	check(TerminalRules.prices([], "BRIN").is_empty(), "empty chart safe")
 	check(TerminalRules.pct(null) == "--" and TerminalRules.bps("-12.5") == "-12.5", "undefined and negative analytics formatting")
+	var keys := WorldRules.SCENARIOS.map(func(sc): return sc[0])
+	check(keys == ["case1", "case1-controls", "case1-settlement"], "menu offers standard, broker and settlement scenarios")
 	_ui_checks.call_deferred()
 
 

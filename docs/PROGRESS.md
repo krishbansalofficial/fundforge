@@ -117,3 +117,9 @@ Completed the prior next task. New Store scenario `case1-settlement` overlays Ca
 Validation: **231 backend tests passed with PostgreSQL**, including a new end-to-end test that drives real propose/sign/ready commands through Store, checks `X1` failed days `[13, 14]`, clears the cache, reconstructs from the database, compares the identical control report and runs `verify`. Ruff and mypy (21 modules) passed. Godot test script: 0 failures; headless boot clean. No new screenshot, HTTP smoke or 8011 restart; the Godot menu has no button for this scenario yet (create it through the API).
 
 **One next task:** add a menu option for `case1-settlement` and capture a RISK screenshot showing the failed/retried obligation, then return to the P2 gates (exported builds, deployment plan, recorded two-client run).
+
+## Settlement scenario menu option, 11 October 2026
+
+Completed the menu half of the prior next task. The Godot menu's broker checkbox is now a scenario dropdown driven by `WorldRules.SCENARIOS` (`case1`, `case1-controls`, `case1-settlement`); solo and two-player creation both send the selected key. A new Godot check pins the three keys to backend `store.SCENARIOS`.
+
+Validation: **231 backend tests passed with PostgreSQL** (baseline, unchanged code), Ruff and mypy (21 modules) passed; Godot 4.7.2 editor import passed, **79 Godot checks, 0 failures**, headless boot clean. No screenshot captured (needs a rendered window and running API); no HTTP smoke. No rules change.
