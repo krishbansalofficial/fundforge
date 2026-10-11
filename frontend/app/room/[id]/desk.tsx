@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { exclusive } from "../../exclusive";
 import { api, money, pct, type View } from "../../lib";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
@@ -55,16 +56,24 @@ export default function Desk({ roomId }: { roomId: string }) {
     if (v?.outcome) setTab("debrief");
   }, [v?.outcome]);
 
+  // One command in flight per desk: a double-click must not send a second order with a new id and key.
+  const inFlight = useRef(false);
+  const [busy, setBusy] = useState(false);
   const send = useCallback(
     async (cmd: Record<string, unknown>, done?: string) => {
       if (!token) return;
-      try {
-        await api(`/api/rooms/${roomId}/commands`, token, cmd);
-        setFlash(done ?? "");
-        await refresh();
-      } catch (e) {
-        setFlash(`Not done: ${(e as Error).message}`);
-      }
+      await exclusive(inFlight, async () => {
+        setBusy(true);
+        try {
+          await api(`/api/rooms/${roomId}/commands`, token, cmd);
+          setFlash(done ?? "");
+          await refresh();
+        } catch (e) {
+          setFlash(`Not done: ${(e as Error).message}`);
+        } finally {
+          setBusy(false);
+        }
+      });
     },
     [roomId, token, refresh],
   );
@@ -106,8 +115,10 @@ export default function Desk({ roomId }: { roomId: string }) {
       <div className="grid">
         <Positions v={v} />
         <Feed v={v} />
-        <Actions v={v} me={me} send={send} />
-        <Partners v={v} me={me} partner={partner} send={send} flash={flash} />
+        <fieldset className="contents" disabled={busy} aria-busy={busy}>
+          <Actions v={v} me={me} send={send} />
+          <Partners v={v} me={me} partner={partner} send={send} flash={flash} />
+        </fieldset>
       </div>
 
       <nav className="tabs" aria-label="Records">
@@ -117,7 +128,7 @@ export default function Desk({ roomId }: { roomId: string }) {
           </button>
         ))}
       </nav>
-      {tab === "orders" && <Orders v={v} me={me} send={send} />}
+      {tab === "orders" && <fieldset className="contents" disabled={busy}><Orders v={v} me={me} send={send} /></fieldset>}
       {tab === "investors" && <Investors v={v} />}
       {tab === "ledger" && token && <Ledger roomId={roomId} token={token} version={v.version} />}
       {tab === "debrief" && <Debrief v={v} headroom={headroom} />}

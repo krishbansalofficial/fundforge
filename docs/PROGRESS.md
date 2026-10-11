@@ -172,4 +172,14 @@ Validation: **259 backend tests passed with PostgreSQL** (5 new in `test_researc
 
 Limitations: not connected to the existing role research assignments, thesis tickets or the debrief; no authored question/card fixture yet; the hidden true state must come from the scenario tape/generator and stay server-side until the debrief.
 
-**One next task:** author a Case1 research question fixture (priors, two cards per role keyed to existing assignment findings) and surface per-role exact posteriors in the role-filtered view, with leak tests showing the other role's unshared cards never move a partner's posterior.
+**One next task:** (superseded below) author a research question fixture and surface per-role posteriors. Not done in Case1: its contract says reveals disclose no future price and the case ends before BRIN's refinancing resolves, so a hidden true state there would be invented content. It belongs to the authored v1 campaign scenario.
+
+## Secondary web desk: no duplicate commands (P2), 11 October 2026
+
+Fixes the ROADMAP defect "the frontend sent duplicate orders on double-click". `frontend/app/exclusive.ts` is a single-flight guard on a ref, so a second click in the same tick is dropped before React re-renders. The desk's `send` runs every command through it and sets `busy`, which disables the action, partner and orders controls through `<fieldset class="contents" disabled>` (no layout change) until the request and refresh finish. Each accepted submission therefore sends one order id and one idempotency key. `npm test` (Node `node:test` with type stripping) is new and runs in CI.
+
+Validation: `npm test` **2 passed** (removing the in-flight check makes one fail); `npx tsc --noEmit`, `npm run build` and `npm audit --omit=dev --audit-level=high` (0 vulnerabilities) passed with Node 22.22. `allowImportingTsExtensions` was enabled for the `.ts` test import (`noEmit` was already set). No browser double-click run was recorded; backend and Godot unchanged.
+
+Limitations: `View = any` and openapi-typescript types, the `{code, message}` error envelope and the Playwright two-browser run remain open P2 items.
+
+**One next task:** P2 API v1 slice: `{code, message}` error envelope for rejected commands, with the stored outcome returned for a reused rejected key, and tests. Coordinate with the parallel session's abuse-limits work in `api.py` (fetch before starting).
