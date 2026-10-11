@@ -117,3 +117,27 @@ def redemption_request(p: Profile, confidence: Decimal, held_units: Decimal, cut
     with localcontext(CTX):
         by_confidence = (held_units * fraction).quantize(UNITS, rounding=ROUND_DOWN)
     return min(held_units, max(by_confidence, external_units))
+
+
+GATE_FRACTION = Decimal("0.20")
+
+
+def allocate_gate(nav: Decimal, requests: dict[str, Decimal], unit_price: dict[str, Decimal],
+                  gated: bool) -> tuple[dict[str, Decimal], dict[str, Decimal]]:
+    """Split each LP's requested units (new plus carried) into dealt and carried-forward units.
+
+    ``nav`` is the fund's pre-flow, post-fee NAV at the window. With a gate elected, the dealt
+    value is at most 20% of it, allocated by one common pro-rata fraction of each request's value,
+    so no LP is preferred. Units round down to 8dp, so rounding can only leave value undealt.
+    Without a gate, or when requests fit under the cap, everything is dealt.
+    """
+    if nav <= 0:
+        raise ValueError("gate needs a positive NAV")
+    if any(u < 0 for u in requests.values()) or any(unit_price[k] <= 0 for k in requests):
+        raise ValueError("requests must be non-negative with positive unit prices")
+    with localcontext(CTX):
+        wanted = sum((u * unit_price[k] for k, u in requests.items()), ZERO)
+        cap = GATE_FRACTION * nav
+        fraction = min(Decimal(1), cap / wanted) if gated and wanted > 0 else Decimal(1)
+        dealt = {k: (u * fraction).quantize(UNITS, rounding=ROUND_DOWN) for k, u in requests.items()}
+    return dealt, {k: requests[k] - dealt[k] for k in requests}

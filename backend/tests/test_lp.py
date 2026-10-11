@@ -80,3 +80,28 @@ def test_notice_requests_by_band_lock_and_external_need():
 def test_negative_incident_counts_are_rejected():
     with pytest.raises(ValueError):
         chapter_close(SEED, State(D(72)), ChapterFacts(D(0), avoidable_breaches=-1))
+
+
+def test_gate_allocates_one_pro_rata_fraction_and_carries_the_rest():
+    from fundforge.lp import allocate_gate
+    price = {"seed": D("1.10"), "tactical": D("0.95")}
+    req = {"seed": D(1_000_000), "tactical": D(3_000_000)}  # $1.1m + $2.85m = $3.95m wanted
+    dealt, carried = allocate_gate(D(10_000_000), req, price, gated=True)  # cap $2m
+    frac = D(2_000_000) / D(3_950_000)
+    for k in req:
+        assert dealt[k] == (req[k] * frac).quantize(D("0.00000001"), rounding="ROUND_DOWN")
+        assert dealt[k] + carried[k] == req[k] and carried[k] > 0
+    assert sum(dealt[k] * price[k] for k in req) <= D(2_000_000)
+    assert D(2_000_000) - sum(dealt[k] * price[k] for k in req) < D("0.0000001")
+    # Same fraction for every LP: nobody is preferred.
+    assert abs(dealt["seed"] / req["seed"] - dealt["tactical"] / req["tactical"]) < D("1e-14")
+
+
+def test_no_gate_or_small_requests_deal_everything():
+    from fundforge.lp import allocate_gate
+    price = {"a": D(1)}
+    assert allocate_gate(D(100), {"a": D(50)}, price, gated=False) == ({"a": D(50)}, {"a": D(0)})
+    assert allocate_gate(D(100), {"a": D(20)}, price, gated=True) == ({"a": D(20)}, {"a": D(0)})
+    assert allocate_gate(D(100), {"a": D(0)}, price, gated=True) == ({"a": D(0)}, {"a": D(0)})
+    with pytest.raises(ValueError):
+        allocate_gate(D(0), {"a": D(1)}, price, gated=True)

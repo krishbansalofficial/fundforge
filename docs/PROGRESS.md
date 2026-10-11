@@ -153,3 +153,13 @@ Validation: **252 backend tests passed with PostgreSQL** (14 new in `test_lp.py`
 Limitations and interpretations: not wired into any scenario (Case1's contract replaces confidence-generated requests). "Documented concern" is modeled as any chapter-close fall in confidence; the meeting cap is applied after the chapter's other components. Seed's dollar-denominated $3m need must be converted to units at dealing by the caller. Herding after gates, preference terms beyond the rulebook and series statements are not specified numerically in GAME_SYSTEMS, so they are not invented here.
 
 **One next task:** pro-rata gate allocation (20% of pre-flow post-fee NAV across eligible and carried requests, undealt units roll forward) in the pure domain with tests, so LP requests from `lp.py` have a deterministic dealing path.
+
+## Pro-rata redemption gate allocation (P4), 11 October 2026
+
+Completed the prior next task. `lp.allocate_gate(nav, requests, unit_price, gated)` splits each LP's requested units (new plus carried) into dealt and carried-forward units. With a gate elected, dealt value is at most 20% of the supplied pre-flow, post-fee NAV, using one common fraction of each request's value so no LP is preferred; units round down to 8dp, so rounding only leaves value undealt. Without a gate, or when requests fit under the cap, everything is dealt.
+
+Validation: **254 backend tests passed with PostgreSQL** (2 new in `test_lp.py`: exact per-LP dealt units, dealt + carried = requested, dealt value ≤ cap and within 1e-7 of it, equal fractions; ungated/small/zero/invalid-NAV cases). Ignoring the `gated` flag makes the allocation test fail. Ruff and mypy (23 modules) passed. Not wired into the engine; Case1 has no gate election, so no rules bump.
+
+Limitations: the caller supplies NAV and per-series unit prices (from the administrator strike) and the two-partner gate election; the payable/fee per dealt unit still comes from `series.redeem`. Gate confidence penalty is applied via `ChapterFacts.gate_deferred` only when carried units are non-zero for that LP.
+
+**One next task:** P4 research-as-skill pure domain: hidden discrete states with published priors, evidence cards with authored likelihood ratios, exact Decimal Bayes posterior and Brier scoring of thesis tickets, with tests.
