@@ -8,6 +8,8 @@
   signs the same digest. Edits produce a new digest, so old signatures never carry over.
 * Replacement borrow and treasury reserve belong to the managing partner.
 * Time advances only when both partners are ready; any state change clears readiness.
+  If both vote ``skip``, time keeps advancing through quiet windows until a notice,
+  incident, open order or the end (refused while a package awaits a signature).
 """
 
 import copy
@@ -55,7 +57,7 @@ class Session:
         self.partners = partners  # role -> user id
         self.results: dict[str, tuple[str, Cmd]] = {}
         self.packages: dict[str, Package] = {}
-        self.ready: set[str] = set()
+        self.ready: dict[str, bool] = {}  # role -> voted to skip quiet windows
         self.turnover = Decimal(0)
         self.opening_nav = engine.nav()
         self.log: list[dict] = []
@@ -195,15 +197,28 @@ class Session:
     def _cmd_ready(self, role: str, c: Cmd) -> Cmd:
         if "version" in c and c["version"] != self.version:
             raise CommandRejected("stale: the plan changed since you looked; review it before marking ready")
-        self.ready.add(role)
-        if self.ready == set(ROLES) and not self.e.finished():
+        skip = c.get("skip") is True
+        if skip and any(p.status == "PENDING_APPROVAL" for p in self.packages.values()):
+            raise CommandRejected("a package is waiting for a signature: sign or let it expire before skipping ahead")
+        self.ready[role] = skip
+        if set(self.ready) == set(ROLES) and not self.e.finished():
+            skip = all(self.ready.values())  # both partners must vote to skip
             self.ready.clear()
             for p in self.packages.values():
                 if p.status == "PENDING_APPROVAL":
                     p.status = "EXPIRED"
-            self.e.advance()
-            return {"advanced": True, "next": self._next()}
-        return {"advanced": False, "waiting_for": sorted(set(ROLES) - self.ready)}
+            windows = 0
+            while True:
+                n_notices, n_incidents = len(self.e.notices), len(self.e.incident_events)
+                self.e.advance()
+                windows += 1
+                # Skipping only replays the same advance() calls, so the journal equals stepping each barrier.
+                if (not skip or self.e.finished() or self.e.notices[n_notices:]
+                        or self.e.incident_events[n_incidents:]
+                        or any(o.status in ("QUEUED", "PARTIALLY_FILLED") for o in self.e.orders)):
+                    break
+            return {"advanced": True, "next": self._next()} | ({"windows": windows} if skip else {})
+        return {"advanced": False, "waiting_for": sorted(set(ROLES) - set(self.ready))}
 
     # ---------- real-time clock ----------
     def _cmd_set_speed(self, role: str, c: Cmd) -> Cmd:

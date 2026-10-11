@@ -79,7 +79,7 @@ def plan(s: Session, role: str) -> list[dict[str, Any]]:
                             "_say": f"Margin call: selling {qty:,} {sym} to restore headroom."})
     # 5. keep pace: ready whenever the human partner is
     if (set(s.ready) - {role}) and role not in s.ready:
-        out.append({"type": "ready", "version": None})
+        out.append({"type": "ready", "version": None} | ({"skip": True} if all(s.ready.values()) else {}))
     return out
 
 

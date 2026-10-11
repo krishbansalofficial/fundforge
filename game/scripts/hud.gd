@@ -378,6 +378,8 @@ func _committee() -> void:
 	var ready: Array = view.get("ready", [])
 	_button("Waiting for partner" if role in ready else "I'm ready to move on",
 			func(): Api.command({"type": "ready", "version": int(view.get("version", 0))}), not role in ready)
+	_button("Skip quiet windows (stops at the next notice, incident or open order)",
+			func(): Api.command({"type": "ready", "version": int(view.get("version", 0)), "skip": true}), not role in ready)
 
 
 func _risk() -> void:

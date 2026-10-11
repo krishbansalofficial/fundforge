@@ -102,7 +102,7 @@ def test_invariant_failure_rolls_back_session_and_preserves_readiness(monkeypatc
     with pytest.raises(InvariantError, match="long_securities"):
         s.handle("ben", "mp-ready", {"type": "ready", "version": 1})
     assert s.view("ana") == before and s.e.j.digest() == digest and s.e.observations == history
-    assert s.version == 1 and s.ready == {"pm"} and "mp-ready" not in s.results
+    assert s.version == 1 and set(s.ready) == {"pm"} and "mp-ready" not in s.results
     s.e.reconcile()
 
 

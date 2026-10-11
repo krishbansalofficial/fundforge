@@ -123,3 +123,13 @@ Validation: **231 backend tests passed with PostgreSQL**, including a new end-to
 Completed the menu half of the prior next task. The Godot menu's broker checkbox is now a scenario dropdown driven by `WorldRules.SCENARIOS` (`case1`, `case1-controls`, `case1-settlement`); solo and two-player creation both send the selected key. A new Godot check pins the three keys to backend `store.SCENARIOS`.
 
 Validation: **231 backend tests passed with PostgreSQL** (baseline, unchanged code), Ruff and mypy (21 modules) passed; Godot 4.7.2 editor import passed, **79 Godot checks, 0 failures**, headless boot clean. No screenshot captured (needs a rendered window and running API); no HTTP smoke. No rules change.
+
+## Skip-ahead pacing (P1), 11 October 2026
+
+Both partners can vote `{"type": "ready", "skip": true}`. When both votes are skip, `Session._cmd_ready` keeps calling `Engine.advance()` until a new notice or incident, an open (queued/partially filled) order, or the end. One skip vote plus one plain ready advances one window. Skip is refused while a package awaits a signature (it blocks instead of expiring). Because skipping only repeats the same `advance()` calls, the journal digest and NAV equal stepping through every barrier. The solo bot mirrors the human's skip vote; the Godot HUD committee panel has a "Skip quiet windows" button. No economic rule changed, so no `RULES_VERSION` bump; non-skip results keep their exact shape.
+
+Measured: passive Case1 finishes in **6 skip rounds versus 18** stepped rounds (same with one early ALTO ticket), identical digest and NAV (`test_skip_ahead_reaches_same_journal_in_fewer_rounds`).
+
+Validation: **234 backend tests passed with PostgreSQL** (3 new; two tests now compare `set(s.ready)` because readiness records each vote), Ruff and mypy (21 modules) passed; Godot test script 0 failures; headless boot clean. Secondary Next.js desk has no skip button.
+
+**One next task:** P2 backups: a `pg_dump` script plus a restore-and-`verify` check that proves a restored database reproduces the same room digests.

@@ -168,3 +168,32 @@ def test_full_game_on_the_clock_matches_replay():
     for x in s.log:  # ticks are ordinary logged commands, so replay is exact
         r.handle({"pm": "ana", "mp": "ben", "system": "clock"}[x["role"]], x["key"], x["command"])
     assert r.e.j.digest() == s.e.j.digest()
+
+
+def _play(skip: bool, ticket: bool = False) -> tuple[Session, int]:
+    s, rounds = session(), 0
+    if ticket:
+        s.handle("ana", "t", {"type": "ticket", "order_id": "t1", "sym": "ALTO", "side": "SELL", "qty": 1000})
+    while not s.e.finished():
+        s.handle("ana", f"a{rounds}", {"type": "ready", "skip": skip})
+        assert s.handle("ben", f"b{rounds}", {"type": "ready", "skip": skip})["advanced"]
+        rounds += 1
+    return s, rounds
+
+
+@pytest.mark.parametrize("ticket", [False, True])
+def test_skip_ahead_reaches_same_journal_in_fewer_rounds(ticket):
+    stepped, every = _play(False, ticket)
+    skipped, fewer = _play(True, ticket)
+    assert skipped.e.j.digest() == stepped.e.j.digest() and skipped.e.nav() == stepped.e.nav()
+    assert fewer <= 8 < every
+
+
+def test_skip_needs_both_votes_and_no_pending_package():
+    s = session()
+    s.handle("ana", "r1", {"type": "ready", "skip": True})
+    assert "windows" not in s.handle("ben", "r2", {"type": "ready"})  # one vote: a single window
+    s.handle("ana", "k", {"type": "propose", "package_id": "p",
+                          "orders": [{"order_id": "o", "sym": "BEAM", "side": "SELL", "qty": 20000}]})
+    with pytest.raises(CommandRejected, match="waiting for a signature"):
+        s.handle("ben", "r3", {"type": "ready", "skip": True})

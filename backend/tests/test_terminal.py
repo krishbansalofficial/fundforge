@@ -72,7 +72,7 @@ def test_terminal_is_detached_and_does_not_change_authority_or_journal():
     assert s.view("ana") == before and e.j.digest() == digest
     assert snapshot(e)["history"][0]["marks"]["BRIN"] != "0"
     assert "tampered" not in e.notices[0]["refs"]
-    assert s.ready == {"pm"} and s.version == 1
+    assert set(s.ready) == {"pm"} and s.version == 1
 
 
 def test_analytics_use_fixed_context_and_zero_nav_has_no_weight():
