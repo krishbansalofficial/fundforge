@@ -211,3 +211,26 @@ def test_solo_room_bot_rows_are_chained_and_verifiable():
     assert names["mp"] == "Morgan (bot)" and s.view(me)["bots"] == ["mp"]
     assert any(m["role"] == "mp" for m in s.view(me)["chat"])
     assert rep["version"] == s.version
+
+
+def test_rejected_key_keeps_its_outcome_after_state_changes(room):
+    """A retry with a rejected key gets the same rejection, even once the command would now succeed."""
+    st, rid, u = room
+    st.apply(rid, u["mp"], "borrow", {"type": "visit", "location": "broker", "assignment": "borrow"})
+    share = {"type": "share_research", "topic": "borrow"}
+    with pytest.raises(CommandRejected) as early:
+        st.apply(rid, u["mp"], "share", share)
+    with pytest.raises(CommandRejected, match="different command"):
+        st.apply(rid, u["mp"], "share", {"type": "ready"})
+    _, s, _ = st.session(rid)
+    while s.e.ev.day < 13:
+        for role in ("pm", "mp"):
+            version, s, _ = st.session(rid)
+            st.apply(rid, u[role], f"ready-{version}", {"type": "ready", "version": version})
+        _, s, _ = st.session(rid)
+    with pytest.raises(CommandRejected) as again:
+        st.apply(rid, u["mp"], "share", share)
+    assert str(again.value) == str(early.value)
+    version = st.session(rid)[0]
+    assert st.apply(rid, u["mp"], "share-2", share) is not None  # a new key is a new decision
+    assert st.session(rid)[0] == version + 1 and st.verify(rid)["version"] == version + 1

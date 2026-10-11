@@ -183,3 +183,15 @@ Validation: `npm test` **2 passed** (removing the in-flight check makes one fail
 Limitations: `View = any` and openapi-typescript types, the `{code, message}` error envelope and the Playwright two-browser run remain open P2 items.
 
 **One next task:** P2 API v1 slice: `{code, message}` error envelope for rejected commands, with the stored outcome returned for a reused rejected key, and tests. Coordinate with the parallel session's abuse-limits work in `api.py` (fetch before starting).
+
+## API error envelope and stored rejected keys (P2), 11 October 2026
+
+Completed the prior next task. Every HTTP error now returns `{code, message, detail}` (`detail` mirrors `message` so the existing Godot and web clients keep working). Codes: `unauthorized`, `not_found`, `conflict`, `rejected` (a valid command the rules refused), `invalid_command` (malformed), `key_reused`, `room_incompatible`. Clients can branch on `code` rather than wording. Engine rejections still carry one generic `rejected` code; per-rule codes would need the 56 `CommandRejected` raise sites typed.
+
+Migration `0006_rejected_keys.sql` adds append-only `rejected_commands`. `Store.apply` records a rejected command's key, user, command, message and room version after its own transaction rolls back. A retry with the same key and command returns the same rejection even after state changes that would now let it succeed; a different command under that key is `key_reused`. Rejections are outside the replayed log and change no economics, so `verify`, goldens and rules are unchanged (no `RULES_VERSION` bump). The clock's stale ticks are not recorded.
+
+Validation: **260 backend tests passed with PostgreSQL** (new `test_rejected_key_keeps_its_outcome_after_state_changes` and envelope assertions in `test_api.py`). Skipping the rejection insert makes the store test fail. Ruff and mypy (24 modules) passed. Godot 4.7.2 (SHA512-checked official build): editor import exit 0, **79 checks, 0 failures**, headless boot with no errors. No HTTP smoke against a long-running server and no Next.js change in this slice.
+
+Limitations: malformed commands (`invalid_command`) are not bound to their key; FastAPI request-validation errors keep their default list-shaped `detail`; ETag/304, ledger cursor and Pydantic command unions remain open API v1 items.
+
+**One next task:** P2 API v1: `ETag: <room version>` on `/view` with `If-None-Match` returning 304, and a ledger cursor (`after_seq`), with tests; then update the Godot/web pollers to use them.

@@ -202,6 +202,20 @@ class Store:
 
     # ---------- commands ----------
     def apply(self, room: str, user: str, key: str, command: dict) -> dict:
+        try:
+            return self._apply(room, user, key, command)
+        except KeyReused:
+            raise
+        except CommandRejected as e:
+            if user == CLOCK:  # a stale tick can never succeed later; nothing to bind
+                raise
+            with self.pool.connection() as c:  # the command's own transaction rolled back
+                c.execute("insert into rejected_commands (room_id, idem_key, user_id, command, message, room_version)"
+                          " select %s,%s,%s,%s,%s,version from rooms where id=%s on conflict do nothing",
+                          (room, key, user, Jsonb(command), str(e), room))
+            raise
+
+    def _apply(self, room: str, user: str, key: str, command: dict) -> dict:
         with self.pool.connection() as c, c.transaction():
             version, tape, partners, _, bot_role = self._room(c, room, lock=True)
             prior = c.execute("select user_id, command, result from commands where room_id=%s and idem_key=%s",
@@ -210,6 +224,12 @@ class Store:
                 if (prior[0], prior[1]) != (user, json.loads(json.dumps(command))):
                     raise KeyReused(f"idempotency key {key!r} reused for a different command")
                 return dict(prior[2])
+            rejected = c.execute("select user_id, command, message from rejected_commands"
+                                 " where room_id=%s and idem_key=%s", (room, key)).fetchone()
+            if rejected:
+                if (rejected[0], rejected[1]) != (user, json.loads(json.dumps(command))):
+                    raise KeyReused(f"idempotency key {key!r} reused for a different command")
+                raise CommandRejected(rejected[2])
             base = self._cache_get(room, version) or self._replay(c, room, version, tape, partners, bot_role)
             s = copy.deepcopy(base, {id(base.e.tape): base.e.tape})
             lo = len(s.e.j.entries)

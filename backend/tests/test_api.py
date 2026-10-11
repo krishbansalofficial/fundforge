@@ -30,11 +30,17 @@ def test_two_seat_flow_over_http(client):
     assert v["role"] == "pm" and v["clock"]["day"] == 12
     bad = c.post(f"/api/rooms/{rid}/commands", headers=h(mp, "k1"),
                  json={"type": "ticket", "order_id": "x", "sym": "ALTO", "side": "SELL", "qty": 1})
-    assert bad.status_code == 422
+    assert bad.status_code == 422 and bad.json()["code"] == "rejected"
+    assert bad.json()["message"] == bad.json()["detail"]
+    retry = c.post(f"/api/rooms/{rid}/commands", headers=h(mp, "k1"),
+                   json={"type": "ticket", "order_id": "x", "sym": "ALTO", "side": "SELL", "qty": 1})
+    assert retry.status_code == 422 and retry.json() == bad.json()
+    assert c.get(f"/api/rooms/{rid}/view", headers=h("forged")).json()["code"] == "unauthorized"
+    assert c.post(f"/api/rooms/{rid}/commands", headers=h(pm, "k0"), json={}).json()["code"] == "invalid_command"
     assert c.post(f"/api/rooms/{rid}/commands", headers=h(pm, "k2"), json={"type": "ready"}).json()["advanced"] is False
     assert c.post(f"/api/rooms/{rid}/commands", headers=h(mp, "k3"), json={"type": "ready"}).json()["advanced"] is True
     reuse = c.post(f"/api/rooms/{rid}/commands", headers=h(mp, "k3"), json={"type": "research", "topic": "borrow"})
-    assert reuse.status_code == 409
+    assert reuse.status_code == 409 and reuse.json()["code"] == "key_reused"
     led = c.get(f"/api/rooms/{rid}/ledger?entity=firm", headers=h(mp)).json()
     assert led["entries"][0]["memo"] == "Management company opening book"
 

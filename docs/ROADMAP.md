@@ -101,7 +101,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
   - one Grafana JSON
 
   No OpenTelemetry.
-- **API v1:** Pydantic discriminated-union commands, a `{code, message}` error envelope, a stored outcome for rejected keys, `ETag: version` with a 304 response, a ledger cursor, and openapi-typescript types replacing `View = any`.
+- **API v1:** Pydantic discriminated-union commands, a `{code, message}` error envelope, a stored outcome for rejected keys (both done 11 Oct 2026, migration 0006), `ETag: version` with a 304 response, a ledger cursor, and openapi-typescript types replacing `View = any`.
 - **Frontend fixes:** one `order_id` and idempotency key per form submission, and buttons disabled while a request is in flight. (Done 11 Oct 2026: `frontend/app/exclusive.ts`, `npm test`.)
 - **Playwright end-to-end test:** two browser contexts play S2 to a WIN, with axe checks on the desk. The same run records the README GIF.
 - **Hygiene:**

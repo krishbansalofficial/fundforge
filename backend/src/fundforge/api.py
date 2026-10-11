@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .debrief import replay
 from .engine import CommandRejected
@@ -54,9 +55,32 @@ app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", 
                    allow_methods=["GET", "POST"], allow_headers=["Authorization", "Idempotency-Key", "Content-Type"])
 
 
+CODES = {401: "unauthorized", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 422: "rejected"}
+
+
+class ApiError(HTTPException):
+    """An HTTP error with a stable machine-readable code; clients branch on ``code``, never on wording."""
+
+    def __init__(self, status: int, code: str, message: str):
+        super().__init__(status, message)
+        self.code = code
+
+
+def _envelope(status: int, code: str, message: str, headers: dict[str, str] | None = None) -> JSONResponse:
+    # ``detail`` mirrors ``message`` for clients written before the envelope.
+    return JSONResponse(status_code=status, content={"code": code, "message": message, "detail": message},
+                        headers=headers)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error(_request: Request, error: StarletteHTTPException) -> JSONResponse:
+    code = getattr(error, "code", None) or CODES.get(error.status_code, "error")
+    return _envelope(error.status_code, code, str(error.detail), getattr(error, "headers", None))
+
+
 @app.exception_handler(RoomIncompatible)
 async def incompatible_room(_request: Request, error: RoomIncompatible) -> JSONResponse:
-    return JSONResponse(status_code=409, content={"detail": str(error)})
+    return _envelope(409, "room_incompatible", str(error))
 
 
 @lru_cache
@@ -170,15 +194,17 @@ def liquidity(room_id: str, body: LiquidityRequest, user: str = Depends(seat)) -
 def command(room_id: str, body: dict[str, Any], user: str = Depends(seat),
             idempotency_key: str = Header(..., max_length=100)) -> dict[str, Any]:
     if not isinstance(body.get("type"), str):
-        raise HTTPException(422, "command type required")
+        raise ApiError(422, "invalid_command", "command type required")
     try:
         return store().apply(room_id, user, idempotency_key, body)
     except RoomIncompatible as e:
-        raise HTTPException(409, str(e)) from e
+        raise ApiError(409, "room_incompatible", str(e)) from e
     except KeyReused as e:
-        raise HTTPException(409, str(e)) from e
-    except (CommandRejected, KeyError, TypeError, ValueError) as e:
-        raise HTTPException(422, str(e) or "invalid command") from e
+        raise ApiError(409, "key_reused", str(e)) from e
+    except CommandRejected as e:
+        raise ApiError(422, "rejected", str(e) or "command rejected") from e
+    except (KeyError, TypeError, ValueError) as e:
+        raise ApiError(422, "invalid_command", str(e) or "invalid command") from e
 
 
 @app.get("/api/rooms/{room_id}/verify")
