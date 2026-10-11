@@ -23,6 +23,11 @@ var terminal: ForgeTerminal
 var _cure_draft: Array = []
 var _cure_version := -1
 var _cure_sending := false
+const LEDGER_PAGE := 15
+var _ledger_entity := ""  # journal shown in the back office, "" for none
+var _ledger_offset := 0  # newest entries skipped (paging back)
+var _ledgers := {}  # entity -> WorldRules.merge_ledger cache plus the room/version it was fetched at
+var _ledger_loading := false
 
 
 func _ready() -> void:
@@ -436,20 +441,64 @@ func _backoffice() -> void:
 	_button("Show the firm's journal", func(): _show_ledger("firm"))
 	_button("Show the fund's journal", func(): _show_ledger("fund"))
 	_button("Verify the books (replay everything from the log)", _verify)
+	if _ledger_entity != "":
+		_render_ledger()
 
 
 func _show_ledger(entity: String) -> void:
-	var res: Dictionary = await Api.ledger(entity)
-	if not res["ok"]:
+	_ledger_entity = entity
+	_ledger_offset = 0
+	_render_panel(_open_location)
+
+
+## Draws the cached journal page and, when the room has moved on, fetches only the new entries.
+func _render_ledger() -> void:
+	var cache: Dictionary = _ledgers.get(_ledger_entity, {})
+	var stale: bool = cache.get("room") != Api.room_id or int(cache.get("version", -1)) != int(view.get("version", -2))
+	if stale and not _ledger_loading:
+		_refresh_ledger(_ledger_entity, cache)
+	if cache.get("room") != Api.room_id:
+		_text("Loading the %s journal..." % _ledger_entity, 12, Color("#4d5e72"))
 		return
-	var lines := "%s journal (latest first), hash %s\n" % [entity.capitalize(), str(res["data"]["digest"]).substr(0, 16)]
-	var entries: Array = res["data"]["entries"]
-	for i in range(entries.size() - 1, maxi(-1, entries.size() - 15), -1):
-		var e: Dictionary = entries[i]
+	var shown := WorldRules.ledger_window(cache, _ledger_offset, LEDGER_PAGE)
+	var total := int(cache.get("next", 0))
+	var lines := "%s journal (latest first), hash %s\n" % [_ledger_entity.capitalize(), str(cache.get("digest", "")).substr(0, 16)]
+	if not shown.is_empty():
+		lines += "entries %d-%d of %d\n" % [total - _ledger_offset - shown.size() + 1, total - _ledger_offset, total]
+	for e in shown:
 		lines += "%s  %s\n" % [e["date"], e["memo"]]
 		for p in e["postings"]:
 			lines += "      %-26s %14s\n" % [p[0], p[1]]
 	_text(lines, 12)
+	var cached: int = cache.get("entries", []).size()
+	_button("Newer entries", func(): _page_ledger(-LEDGER_PAGE), _ledger_offset > 0)
+	_button("Older entries", func(): _page_ledger(LEDGER_PAGE), _ledger_offset + LEDGER_PAGE < cached)
+
+
+func _page_ledger(delta: int) -> void:
+	_ledger_offset = maxi(0, _ledger_offset + delta)
+	_render_panel(_open_location)
+
+
+func _refresh_ledger(entity: String, cache: Dictionary) -> void:
+	_ledger_loading = true
+	var room := Api.room_id
+	var version := int(view.get("version", -1))
+	var after: int = int(cache.get("next", -1)) if cache.get("room") == room else -1
+	var res: Dictionary = await Api.ledger(entity, after)
+	_ledger_loading = false
+	if not res["ok"] or not res["data"] is Dictionary or room != Api.room_id:
+		return
+	var merged := WorldRules.merge_ledger(cache if after >= 0 else {}, res["data"], after)
+	merged["room"] = room
+	merged["version"] = version
+	if after >= 0 and _ledger_offset > 0:  # keep the same entries in view while new ones arrive on top
+		_ledger_offset += int(merged["next"]) - after
+	elif after < 0:
+		_ledger_offset = 0
+	_ledgers[entity] = merged
+	if _panel.visible and entity == _ledger_entity:
+		_render_panel(_open_location)
 
 
 func _verify() -> void:

@@ -148,6 +148,42 @@ static func header_value(headers: PackedStringArray, name: String) -> String:
 	return ""
 
 
+## Most journal entries the HUD keeps per entity; older ones are dropped from the front.
+const LEDGER_CACHE := 1000
+
+
+## /ledger query for one entity. `after` < 0 asks for the newest page, otherwise the entries after the cursor.
+static func ledger_path(room: String, entity: String, after: int) -> String:
+	var path := "/api/rooms/%s/ledger?entity=%s" % [room, entity]
+	return path if after < 0 else path + "&after=%d" % after
+
+
+## Cache after one /ledger page fetched with cursor `after` (-1 for the newest page). The journal is
+## append-only, so a page continuing the cache is appended; anything else replaces it.
+## The cache is {entries, start, next, digest}: entries[i] is journal entry start + i.
+static func merge_ledger(cache: Dictionary, page: Dictionary, after: int) -> Dictionary:
+	var entries: Array = page.get("entries", []) if page.get("entries") is Array else []
+	var nxt := int(page.get("next", 0))
+	var out := {"entries": entries.duplicate(), "start": nxt - entries.size(), "next": nxt, "digest": str(page.get("digest", ""))}
+	if after >= 0 and cache.get("entries") is Array and after == int(cache.get("next", -1)):
+		out["entries"] = cache["entries"] + entries
+		out["start"] = int(cache["start"])
+	var extra: int = out["entries"].size() - LEDGER_CACHE
+	if extra > 0:
+		out["entries"] = out["entries"].slice(extra)
+		out["start"] += extra
+	return out
+
+
+## Up to `count` cached entries, newest first, skipping the `offset` newest.
+static func ledger_window(cache: Dictionary, offset: int, count: int) -> Array:
+	var entries: Array = cache.get("entries", []) if cache.get("entries") is Array else []
+	var out: Array = []
+	for i in range(entries.size() - 1 - maxi(offset, 0), maxi(-1, entries.size() - 1 - maxi(offset, 0) - count), -1):
+		out.append(entries[i])
+	return out
+
+
 static func money(s: Variant) -> String:
 	var v := float(str(s))
 	var neg := v < 0.0

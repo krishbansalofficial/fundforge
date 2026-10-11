@@ -67,6 +67,30 @@ func _initialize() -> void:
 	var hdrs := PackedStringArray(["content-type: application/json", "ETag: \"v7-1\""])
 	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
 	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
+
+	# journal paging with the /ledger `after` cursor
+	check(WorldRules.ledger_path("r1", "fund", -1) == "/api/rooms/r1/ledger?entity=fund", "newest ledger page has no cursor")
+	check(WorldRules.ledger_path("r1", "firm", 7) == "/api/rooms/r1/ledger?entity=firm&after=7", "ledger cursor in query")
+	var e := func(n: int) -> Dictionary: return {"date": "d%d" % n, "memo": "m%d" % n, "postings": []}
+	var first := WorldRules.merge_ledger({}, {"entries": [e.call(3), e.call(4)], "next": 5, "digest": "a"}, -1)
+	check(first["start"] == 3 and first["next"] == 5 and first["entries"].size() == 2, "newest page starts the cache at its offset")
+	var more := WorldRules.merge_ledger(first, {"entries": [e.call(5)], "next": 6, "digest": "b"}, 5)
+	check(more["entries"].map(func(x): return x["memo"]) == ["m3", "m4", "m5"] and more["start"] == 3 and more["digest"] == "b",
+			"page after the cursor is appended")
+	check(WorldRules.merge_ledger(more, {"entries": [], "next": 6, "digest": "b"}, 6)["entries"].size() == 3, "empty delta keeps the cache")
+	var gap := WorldRules.merge_ledger(first, {"entries": [e.call(9)], "next": 10, "digest": "c"}, 9)
+	check(gap["entries"].size() == 1 and gap["start"] == 9, "a page that does not continue the cache replaces it")
+	check(first["entries"].size() == 2, "merging never mutates the previous cache")
+	var big: Array = []
+	for i in WorldRules.LEDGER_CACHE:
+		big.append(e.call(i))
+	var capped := WorldRules.merge_ledger({"entries": big, "start": 0, "next": big.size()}, {"entries": [e.call(1000), e.call(1001)],
+			"next": 1002}, big.size())
+	check(capped["entries"].size() == WorldRules.LEDGER_CACHE and capped["start"] == 2 and capped["entries"][0]["memo"] == "m2",
+			"cache is bounded, dropping the oldest entries")
+	check(WorldRules.ledger_window(more, 0, 2).map(func(x): return x["memo"]) == ["m5", "m4"], "window is newest first")
+	check(WorldRules.ledger_window(more, 2, 15).map(func(x): return x["memo"]) == ["m3"], "older page after an offset")
+	check(WorldRules.ledger_window(more, 3, 15).is_empty() and WorldRules.ledger_window({}, 0, 5).is_empty(), "window past the cache is empty")
 	check(WorldRules.headroom_ratio({"nav": "110", "maintenance_req": "100"}) > 1.09, "headroom ratio")
 
 	# rival funds: league table and tower beacons

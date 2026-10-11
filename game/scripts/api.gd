@@ -90,8 +90,9 @@ func command(cmd: Dictionary) -> Dictionary:
 	return res
 
 
-func ledger(entity: String) -> Dictionary:
-	return await request(HTTPClient.METHOD_GET, "/api/rooms/%s/ledger?entity=%s" % [room_id, entity])
+## One journal page: the newest entries, or with `after` >= 0 only those following that cursor.
+func ledger(entity: String, after := -1) -> Dictionary:
+	return await request(HTTPClient.METHOD_GET, WorldRules.ledger_path(room_id, entity, after))
 
 
 func verify() -> Dictionary:

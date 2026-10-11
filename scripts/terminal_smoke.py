@@ -37,8 +37,9 @@ def main() -> None:
         raise AssertionError("terminal accepted an unauthenticated read")
     except HTTPError as error:
         assert error.code == 401
-    initial = request(prefix + "/terminal", pm)
-    assert initial == request(prefix + "/terminal", mp)
+    initial, initial_mp = request(prefix + "/terminal", pm), request(prefix + "/terminal", mp)
+    assert (initial.pop("role"), initial_mp.pop("role")) == ("pm", "mp")
+    assert initial == initial_mp  # nothing private exists before any research assignment
     proposed = request(prefix + "/commands", pm, {"type": "propose", "package_id": "smoke-package",
                        "orders": [{"order_id": "smoke-cover", "sym": "BRIN", "side": "COVER", "qty": 1250}]}, "propose")
     assert request(prefix + "/terminal", pm)["orders"] == []
