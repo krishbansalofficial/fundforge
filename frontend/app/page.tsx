@@ -26,7 +26,7 @@ export default function Home() {
   }
 
   const link = (role: "pm" | "mp") =>
-    room ? `${typeof window === "undefined" ? "" : window.location.origin}/room/${room.room_id}?t=${room.tokens[role]}` : "";
+    room ? `${typeof window === "undefined" ? "" : window.location.origin}/room/${room.room_id}#t=${room.tokens[role]}` : "";
 
   return (
     <main className="landing">

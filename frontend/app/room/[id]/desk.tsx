@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
+import { seatTokenFromUrl } from "../../seat";
 import { api, fetchView, money, pct, type View } from "../../lib";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
@@ -15,7 +16,7 @@ function useSeatToken(roomId: string) {
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
     const key = `ff-seat-${roomId}`;
-    const fromUrl = new URLSearchParams(window.location.search).get("t");
+    const fromUrl = seatTokenFromUrl(window.location.hash, window.location.search);
     try {
       if (fromUrl) {
         sessionStorage.setItem(key, fromUrl);

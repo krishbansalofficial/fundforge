@@ -5,6 +5,9 @@ import contextlib
 import logging
 import os
 import secrets
+import threading
+import time
+from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
@@ -19,7 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import project
-from .store import KeyReused, ReplayDivergence, RoomIncompatible, Store
+from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
 from .terminal import snapshot
 
 log = logging.getLogger("fundforge.clock")
@@ -51,12 +54,79 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
             store.cache_clear()
 
 
+MAX_BODY_BYTES = int(os.environ.get("FUNDFORGE_MAX_BODY_BYTES", str(64 * 1024)))
+ROOMS_PER_IP = int(os.environ.get("FUNDFORGE_ROOMS_PER_IP", "20"))
+ROOM_WINDOW_SECONDS = 3600.0
+
+
+class BodyLimit:
+    """ASGI middleware: refuse request bodies over ``limit`` bytes, declared or streamed (chunked).
+
+    The body is read up to the limit before the app runs (at most ``limit`` bytes are held), then
+    replayed; FastAPI would turn an error raised mid-parse into a generic 400.
+    """
+
+    def __init__(self, app: Any, limit: int):
+        self.app, self.limit = app, limit
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        too_large = _envelope(413, "body_too_large", f"request body over {self.limit} bytes")
+        declared = dict(scope.get("headers", [])).get(b"content-length")
+        if declared is not None and (not declared.isdigit() or int(declared) > self.limit):
+            await too_large(scope, receive, send)
+            return
+        messages, seen = [], 0
+        while True:
+            message = await receive()
+            messages.append(message)
+            seen += len(message.get("body", b""))
+            if seen > self.limit:
+                await too_large(scope, receive, send)
+                return
+            if message["type"] != "http.request" or not message.get("more_body"):
+                break
+
+        async def replay() -> Any:
+            return messages.pop(0) if messages else await receive()
+
+        await self.app(scope, replay, send)
+
+
+class RateLimit:
+    """Sliding one-hour window of room creations per client address (one process, in memory)."""
+
+    def __init__(self, per_window: int, window: float = ROOM_WINDOW_SECONDS):
+        self.per_window, self.window = per_window, window
+        self._hits: dict[str, deque[float]] = {}
+        self._lock = threading.Lock()
+
+    def allow(self, client: str, now: float | None = None) -> bool:
+        now = time.monotonic() if now is None else now
+        with self._lock:
+            for ip in [ip for ip, q in self._hits.items() if not q or q[-1] <= now - self.window]:
+                del self._hits[ip]  # forget idle clients so the table stays bounded by recent traffic
+            q = self._hits.setdefault(client, deque())
+            while q and q[0] <= now - self.window:
+                q.popleft()
+            if len(q) >= self.per_window:
+                return False
+            q.append(now)
+            return True
+
+
+room_creations = RateLimit(ROOMS_PER_IP)
+
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
+app.add_middleware(BodyLimit, limit=MAX_BODY_BYTES)
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(","),
                    allow_methods=["GET", "POST"], allow_headers=["Authorization", "Idempotency-Key", "Content-Type"])
 
 
-CODES = {401: "unauthorized", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 422: "rejected"}
+CODES = {401: "unauthorized", 404: "not_found", 405: "method_not_allowed", 409: "conflict", 410: "room_expired",
+         413: "body_too_large", 422: "rejected", 429: "rate_limited"}
 
 
 class ApiError(HTTPException):
@@ -77,6 +147,11 @@ def _envelope(status: int, code: str, message: str, headers: dict[str, str] | No
 async def http_error(_request: Request, error: StarletteHTTPException) -> JSONResponse:
     code = getattr(error, "code", None) or CODES.get(error.status_code, "error")
     return _envelope(error.status_code, code, str(error.detail), getattr(error, "headers", None))
+
+
+@app.exception_handler(RoomExpired)
+async def expired_room(_request: Request, error: RoomExpired) -> JSONResponse:
+    return _envelope(410, "room_expired", str(error))
 
 
 @app.exception_handler(RoomIncompatible)
@@ -116,7 +191,9 @@ def health() -> dict[str, bool]:
 
 
 @app.post("/api/rooms", status_code=201)
-def create_room(body: NewRoom) -> dict[str, Any]:
+def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
+    if not room_creations.allow(request.client.host if request.client else "unknown"):
+        raise ApiError(429, "rate_limited", f"at most {room_creations.per_window} new rooms per hour from one address")
     try:
         return store().create_room(body.scenario, body.pm_name, body.mp_name, solo_role=body.solo_role)
     except CommandRejected as e:

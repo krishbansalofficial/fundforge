@@ -36,6 +36,7 @@ FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().pa
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json"}
 CACHE_ROOMS = 256
 SECONDS_PER_WINDOW = float(os.environ.get("FUNDFORGE_SECONDS_PER_WINDOW", "8"))
+ROOM_TTL_HOURS = float(os.environ.get("FUNDFORGE_ROOM_TTL_HOURS", "72"))  # a game is a 60-90 minute sitting
 
 
 class KeyReused(CommandRejected):
@@ -44,6 +45,10 @@ class KeyReused(CommandRejected):
 
 class RoomIncompatible(RuntimeError):
     """The room was created under rules or a tape this server no longer runs; never silently re-derive it."""
+
+
+class RoomExpired(RuntimeError):
+    """The room outlived its TTL: it stays readable and verifiable but accepts no new commands."""
 
 
 class ReplayDivergence(RuntimeError):
@@ -83,6 +88,7 @@ GENESIS = "0" * 64
 class Store:
     def __init__(self, dsn: str):
         self.dsn = dsn
+        self.ttl_hours = ROOM_TTL_HOURS
         self.pool = ConnectionPool(dsn, min_size=1, max_size=10, open=True)
         # Cached sessions are only ever read; apply() works on a private deep copy.
         self._cache: OrderedDict[str, tuple[int, Session]] = OrderedDict()
@@ -218,6 +224,10 @@ class Store:
     def _apply(self, room: str, user: str, key: str, command: dict) -> dict:
         with self.pool.connection() as c, c.transaction():
             version, tape, partners, _, bot_role = self._room(c, room, lock=True)
+            expired = c.execute("select created_at < now() - make_interval(secs => %s) from rooms where id=%s",
+                                (self.ttl_hours * 3600, room)).fetchone()
+            if expired and expired[0]:
+                raise RoomExpired(f"room expired {self.ttl_hours:g} hours after creation; it is now read-only")
             prior = c.execute("select user_id, command, result from commands where room_id=%s and idem_key=%s",
                               (room, key)).fetchone()
             if prior:
@@ -262,7 +272,8 @@ class Store:
     def due_rooms(self, limit: int = 50) -> list[tuple[str, int]]:
         with self.pool.connection() as c:
             rows = c.execute("select id, version from rooms where running and next_tick_at <= now()"
-                             " order by next_tick_at limit %s", (limit,)).fetchall()
+                             " and created_at >= now() - make_interval(secs => %s)"
+                             " order by next_tick_at limit %s", (self.ttl_hours * 3600, limit)).fetchall()
         return [(str(r[0]), int(r[1])) for r in rows]
 
     def tick(self, room: str, version: int) -> dict | None:
@@ -271,7 +282,7 @@ class Store:
             return self.apply(room, CLOCK, f"tick-{version}", {"type": "tick", "expected_version": version})
         except CommandRejected:
             return None
-        except RoomIncompatible:  # park rooms from older rules/tapes instead of retrying forever
+        except (RoomIncompatible, RoomExpired):  # park old-rules or expired rooms instead of retrying forever
             with self.pool.connection() as c:
                 c.execute("update rooms set running=false where id=%s", (room,))
             return None

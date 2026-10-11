@@ -207,3 +207,19 @@ Validation: **260 backend tests passed with PostgreSQL** (ETag/304/version-chang
 Limitations: with several API processes each has its own epoch, so polls alternating between processes mostly get 200; acceptable for the single-process deployment target. The Godot HUD journal and web ledger tab do not use the cursor yet.
 
 **One next task:** P2 abuse limits (body size cap, per-IP room-creation limit, room TTL, bounded cache) if the parallel session has not landed them; otherwise P2 observability: JSON logs with request/room/seq/command type and Prometheus `command_seconds`, `replay_seconds`, `rejections_total{code}`.
+
+## Abuse limits and seat token in the fragment (P2), 11 October 2026
+
+The parallel session had not landed this task after about 25 minutes of silence, so this session took it (fetched before pushing; no conflict).
+
+- **Body cap:** ASGI `BodyLimit` refuses bodies over `FUNDFORGE_MAX_BODY_BYTES` (64 KiB) with 413 `body_too_large`, whether declared by Content-Length or streamed chunked. It buffers at most the limit before the app runs, because FastAPI turns errors raised mid-parse into a generic 400 (first attempt, found by the test).
+- **Room creation:** an in-memory sliding one-hour window per client address (`FUNDFORGE_ROOMS_PER_IP`, default 20) returns 429 `rate_limited`. Idle addresses are forgotten so the table stays bounded.
+- **Room TTL:** `FUNDFORGE_ROOM_TTL_HOURS` (default 72) after creation a room becomes read-only. Commands get 410 `room_expired` (checked inside the locked command transaction); view, ledger, debrief and verify still work; the clock skips and parks it. The append-only log is never deleted, so the TTL bounds work, not storage.
+- **Bounded cache:** already in place (`CACHE_ROOMS = 256` LRU).
+- **Seat token:** web seat links are now `/room/<id>#t=<token>`. The fragment never reaches servers, proxies or Referer headers; old `?t=` links still work and both are stripped from the address bar after loading (`frontend/app/seat.ts`).
+
+Validation: **262 backend tests passed with PostgreSQL** (new `test_abuse_limits_body_size_room_rate_and_ttl` covering declared and chunked 413, 201/201/429, 410 while view/verify still work and the clock skips the room; plus `test_rate_limit_window_slides_and_forgets_idle_clients`). Ruff and mypy (24 modules) passed. Frontend `tsc`, `npm test` **3 passed**, `npm run build` passed. Godot code unchanged in this slice.
+
+Limitations: the rate limit is per process and uses the socket peer address. Behind the planned Caddy proxy, uvicorn must run with `--proxy-headers --forwarded-allow-ips=<proxy>`, or every client shares the proxy's address. There is no storage reclamation for expired rooms.
+
+**One next task:** P2 observability: JSON request logs with request id, room, seq and command type, plus Prometheus `command_seconds`, `replay_seconds` and `rejections_total{code}` on `/metrics` (via `prometheus-client`, a free dependency), with tests.

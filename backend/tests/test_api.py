@@ -86,3 +86,45 @@ def test_broker_challenge_authenticated_correction_flow(client):
     assert reviewed["risk"]["controls"]["status"] == "checked"
     assert len(reviewed["risk"]["controls"]["statement_queue"][0]["history"]) == 2
     assert c.get(path + "/verify", headers=headers["mp"]).status_code == 200
+
+
+def test_abuse_limits_body_size_room_rate_and_ttl(client, monkeypatch):
+    import fundforge.api as api
+
+    c = client
+    huge = {"type": "ready", "pad": "x" * api.MAX_BODY_BYTES}
+    big = c.post("/api/rooms/any/commands", json=huge)
+    assert big.status_code == 413 and big.json()["code"] == "body_too_large"
+
+    def chunks():  # no Content-Length: the streamed byte count still trips the cap
+        yield b'{"pad": "'
+        for _ in range(api.MAX_BODY_BYTES // 1024 + 1):
+            yield b"x" * 1024
+        yield b'"}'
+    streamed = c.post("/api/rooms", content=chunks(), headers={"Content-Type": "application/json"})
+    assert streamed.status_code == 413
+
+    monkeypatch.setattr(api, "room_creations", api.RateLimit(2))
+    made = [c.post("/api/rooms", json={"pm_name": "A", "mp_name": "B"}) for _ in range(3)]
+    assert [r.status_code for r in made] == [201, 201, 429] and made[2].json()["code"] == "rate_limited"
+
+    rid, pm = made[0].json()["room_id"], made[0].json()["tokens"]["pm"]
+    h = {"Authorization": f"Bearer {pm}", "Idempotency-Key": "late"}
+    monkeypatch.setattr(api.store(), "ttl_hours", 0)
+    gone = c.post(f"/api/rooms/{rid}/commands", headers=h, json={"type": "ready"})
+    assert gone.status_code == 410 and gone.json()["code"] == "room_expired"
+    assert c.get(f"/api/rooms/{rid}/view", headers=h).status_code == 200  # still readable
+    assert c.get(f"/api/rooms/{rid}/verify", headers=h).json()["ok"] is True
+    assert rid not in {r for r, _ in api.store().due_rooms(limit=10_000)}
+
+
+def test_rate_limit_window_slides_and_forgets_idle_clients():
+    from fundforge.api import RateLimit
+
+    rl = RateLimit(2, window=10)
+    assert rl.allow("a", 0) and rl.allow("a", 1) and not rl.allow("a", 2)
+    assert rl.allow("b", 2)  # per address
+    assert rl.allow("a", 10.5)  # the first hit left the window
+    assert not rl.allow("a", 10.6)
+    rl.allow("c", 100)
+    assert set(rl._hits) == {"c"}
