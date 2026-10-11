@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from fundforge.balance import cure_qty
 from fundforge.engine import CommandRejected, Engine
 from fundforge.money import D
 from fundforge.tape import load
@@ -38,17 +39,6 @@ def s2_research(e_):
 
 def s2_accept(e_):
     e_.accept_replacement()
-
-
-def cure_qty(e_, sym="ALTO", k=5):
-    """Shares of a long to sell so maintenance relief is k x the announced deficit.
-
-    Rival funds trade first at each execution event (market.py): in the base world Halcyon's
-    forced unwind squeezes BRIN and knocks BEAM before our cure fills, roughly quadrupling the
-    day-16 deficit, so a cure sized to the notice alone is forced out. ALTO is not crowded.
-    """
-    rate = e_.tape.margin(e_.next_event().day)["maintenance"]["long"]
-    return int(e_.margin_call * k / (rate * e_.marks[sym])) + 1
 
 
 def s2_cure(e_):

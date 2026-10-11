@@ -260,3 +260,13 @@ Validation: **271 backend tests passed with PostgreSQL** (8 new in `test_generat
 Limitations: not yet exposed as a scenario. Rooms still choose authored variants. Acceptance through the balance runner (`test_balance.py` policy grid) is not wired; that gate decides whether a generated tape is fair and must pass before any room uses one. Generated marks live in `tape.raw`, which the server already treats as hidden.
 
 **One next task:** gate generated tapes with the balance policy grid (`tests/policy_grid.py` → a reusable `fundforge` function), then offer `case1-generated` rooms whose seed is stored server-side and revealed with its commitment in the debrief. Separately, ask the owner before renaming real-listed tickers (ALTO/BEAM/BOND/ELAN/JUNO).
+
+## Balance gate for generated tapes (P4), 11 October 2026
+
+The knowledge-free policy grid moved from `tests/policy_grid.py` into `fundforge/balance.py` (with `cure_qty`), unchanged in behavior. `tests/policy_grid.py` is now a thin wrapper and `test_balance.py` is untouched. New `balance.accept(tape) -> (ok, report)` checks a single world: flattening on day 12 must be refused (same journal as passive), passive must not win, and all three recall-handling lines must win. Cross-world dominance stays a tape-family property in `test_balance.py`.
+
+Validation: **274 backend tests passed with PostgreSQL** (3 new in `test_generated_balance.py`: authored base and rally pass; an authored crash to 60/140 is rejected with `*_does_not_win`; the gate is deterministic for a generated seed). Goldens unchanged (`test_golden.py` passes). Ruff and mypy (27 modules) passed.
+
+Measured once with the default `Spec`: of seeds `probe-0` to `probe-5`, **3 accepted and 3 rejected**, all three for `cover_recall_only_does_not_win`. The default shock bounds are therefore harsh for the minimal recall-only line; the spec needs calibration, or seed retry, before generated rooms ship. This is one small sample, not a rate estimate.
+
+**One next task:** `case1-generated` rooms. Draw a server-side seed, retry with a counter suffix until `accept` passes (bounded attempts, all logged), store the seed and commitment with the room (new migration, pinned like variants), reveal both in the debrief, and add a test that `verify` re-derives the generated tape from the stored seed.
