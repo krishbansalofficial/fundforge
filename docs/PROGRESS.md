@@ -163,3 +163,13 @@ Validation: **254 backend tests passed with PostgreSQL** (2 new in `test_lp.py`:
 Limitations: the caller supplies NAV and per-series unit prices (from the administrator strike) and the two-partner gate election; the payable/fee per dealt unit still comes from `series.redeem`. Gate confidence penalty is applied via `ChapterFacts.gate_deferred` only when carried units are non-zero for that LP.
 
 **One next task:** P4 research-as-skill pure domain: hidden discrete states with published priors, evidence cards with authored likelihood ratios, exact Decimal Bayes posterior and Brier scoring of thesis tickets, with tests.
+
+## Research-as-skill pure domain (P4), 11 October 2026
+
+Completed the prior next task. New `backend/src/fundforge/research.py`: a `Question` has published priors over discrete hidden states (positive, summing to exactly 1); a `Card` carries authored likelihoods P(evidence | state) and an `available_at` day. `posterior(question, cards, day)` is exact Bayes in `fractions.Fraction` (Decimal division would round), order-independent, uses only cards available by `day`, rejects double-counted cards, incomplete or out-of-range likelihoods and evidence impossible under every state. `shown()` renders 6dp HALF_EVEN Decimals for display; the fractions stay authoritative. `brier(forecast, true_state)` is the exact multi-state Brier score (0 perfect, 2 certain and wrong).
+
+Validation: **259 backend tests passed with PostgreSQL** (5 new in `test_research.py`, including hand-derived 4/5 and 8/15 posteriors, all card permutations, future-card exclusion and Brier values). Dropping the `available_at` filter makes the future-evidence test fail. Ruff and mypy (24 modules) passed. No engine wiring, so no rules bump.
+
+Limitations: not connected to the existing role research assignments, thesis tickets or the debrief; no authored question/card fixture yet; the hidden true state must come from the scenario tape/generator and stay server-side until the debrief.
+
+**One next task:** author a Case1 research question fixture (priors, two cards per role keyed to existing assignment findings) and surface per-role exact posteriors in the role-filtered view, with leak tests showing the other role's unshared cards never move a partner's posterior.
