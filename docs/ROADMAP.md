@@ -123,7 +123,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 - WebSocket presence for live partner movement. (Done 12 Oct 2026: `fundforge/presence.py`, `/api/rooms/{id}/presence`, Godot client with polling fallback; tests prove presence traffic never changes the journal. A two-client Playwright/trailer run is still open.)
 - Kenney CC0 art pass, with provenance recorded in CREDITS.md.
 - Engine-enforced location assignments (below).
-- Audio.
+- Audio. (Effects done 12 Oct 2026: synthesized in code by `game/scripts/sfx.gd`, no files or licences, mute on M and persisted. Music is open; an in-game Spotify integration would need an external service, OAuth secrets and the owner's authorization.)
 - Exported builds attached to GitHub releases: Windows, macOS, Linux, and a web export.
 - A scripted two-client end-to-end run that records the trailer.
 

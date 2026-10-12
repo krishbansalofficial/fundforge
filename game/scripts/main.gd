@@ -4,6 +4,7 @@ extends Node
 var office: Office3D
 var hud: Hud
 var _seen_notices := 0
+var _seen_fills := -1  # -1 until the first view, so joining a room does not replay its history as sound
 var _joined := false
 var _menu: Control
 var _args := {}
@@ -166,6 +167,12 @@ func _on_view(view: Dictionary) -> void:
 	var notices: Array = view.get("notices", [])
 	var effects := WorldRules.new_effects(notices, _seen_notices)
 	_seen_notices = notices.size()
+	var fills := Sfx.fill_count(view)
+	if _seen_fills >= 0:
+		hud.sfx.play_effects(effects)
+		if fills > _seen_fills:
+			hud.sfx.play("fill")
+	_seen_fills = fills
 	office.apply_view(view, effects)
 	hud.apply_view(view)
 

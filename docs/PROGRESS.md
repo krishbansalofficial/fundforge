@@ -478,3 +478,26 @@ The hub is per process. That fits the single-process deployment target; several 
 - The secondary web desk does not use presence; its Next.js dev proxy does not carry WebSockets, though production Caddy does.
 
 **One next task:** the owner decisions are still open: the MIT `LICENSE` (a legal choice, so ask), the generator gate rule, Case1's opening LP confidences, the ticker rename, and deployment authorization. The next unblocked item is P3 audio: CC0 sound effects for typed engine events (fill, margin call, recall, halt) with provenance in `game/CREDITS.md` and a mute setting, checked headlessly by event-to-sound mapping tests.
+
+## Sound effects (P3 audio), 12 October 2026
+
+New `game/scripts/sfx.gd`. Nine cues are synthesized at runtime into 16-bit 22.05 kHz `AudioStreamWAV`s from sine and square tones plus fixed-seed LCG noise, with a 5 ms attack and 10 ms release so nothing clicks: alarm, crash, rally, bell, halt, chime, cash, rival and fill. There are no audio files, downloads or licences; provenance is recorded in `game/CREDITS.md`.
+
+- **Triggers:** existing world effects map to cues (margin call → alarm, market shock → crash, rally → rally, recall and LP letters → bell, halt → halt, research → chime, redemption → cash, rival distress → rival). At most three distinct cues play per batch of notices, and a soft tick plays when new non-rejected fills appear on our orders.
+- **Joining:** the first view after joining plays nothing, so entering a room doesn't replay its history.
+- **Mute:** a HUD "Sound on/off [M]" button and the `M` key, persisted in `user://settings.cfg`.
+- **Logic:** none. Sounds follow typed notices and fills and drive nothing.
+
+**Validation:**
+- Godot: **141 checks, 0 failures** (40 new), and headless boot is clean. The checks cover:
+  - every cue is audible, within 16-bit range and click-free at the start;
+  - synthesis is deterministic, and an unknown cue is silent;
+  - every mapped effect points to a real cue;
+  - batches are deduplicated and capped;
+  - the fill count ignores rejected fills.
+- Live: a headless Godot client stayed joined through a full solo game against a local API (SURVIVAL, 11 notices, 3 fills, 69 view polls) with no script errors in the HUD or sound paths. Headless audio is a dummy driver, so audible output was checked separately: each cue was rendered to WAV from the same synthesis code and shared with the owner.
+- Backend unchanged.
+
+**Owner question (12 Oct):** can Spotify play in the app? Players can already run Spotify alongside the game; the OS mixes it, and the game's effects can be muted. Playing Spotify *inside* the Godot client isn't practical: Spotify's playback SDK runs in web browsers and needs Premium. What is feasible is remote-controlling the player's own Spotify app through the Web API, which needs a registered app, per-player OAuth, server-side secrets, a review of Spotify's developer terms, and the owner's authorization under CLAUDE.md's external-service rule. Not built. An original in-game soundtrack generated like the effects is the dependency-free alternative.
+
+**One next task:** the owner's choice on music (generated soundtrack, Spotify remote control, or none), plus the earlier open decisions (license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked item is P3 exported builds: Godot export presets for Linux/Windows/web built in CI as workflow artifacts (not releases, which publish), with a headless boot of the Linux export.

@@ -68,6 +68,24 @@ func _initialize() -> void:
 	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
 	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
 
+	# sound: synthesized cues, effect mapping and fill detection
+	for cue in Sfx.CUES:
+		var pcm := Sfx.synth(cue)
+		var peak := 0
+		for i in range(0, pcm.size(), 2):
+			peak = maxi(peak, absi(pcm.decode_s16(i)))
+		check(pcm.size() > 0 and pcm.size() % 2 == 0 and peak > 1000 and peak <= 32767, "cue %s is audible, 16-bit, not clipped" % cue)
+		check(abs(pcm.decode_s16(0)) < 2000, "cue %s starts without a click" % cue)
+	check(Sfx.synth("crash") == Sfx.synth("crash"), "synthesis is deterministic")
+	check(Sfx.synth("nope").is_empty(), "unknown cue is silent")
+	for effects in WorldRules.EFFECTS.values():
+		for e in effects:
+			check(Sfx.EFFECT_CUES.get(e, "") == "" or Sfx.CUES.has(Sfx.EFFECT_CUES[e]), "effect %s maps to a real cue" % e)
+	check(Sfx.cues_for(["screens_red", "panic", "shake", "alarm", "courier", "letter_committee", "research_glow"])
+			== ["crash", "alarm", "bell"], "one sound per cue, at most three per batch")
+	var fv := {"orders": [{"fills": [{"qty": 5}, {"rejected": "no borrow"}]}, {"fills": [{"qty": 2}]}]}
+	check(Sfx.fill_count(fv) == 2 and Sfx.fill_count({}) == 0, "fill count ignores rejected fills")
+
 	# live presence (cosmetic): URLs, frames, throttling, backoff and the frame handler
 	check(WorldRules.presence_url("http://127.0.0.1:8011/", "r1") == "ws://127.0.0.1:8011/api/rooms/r1/presence", "presence ws url")
 	check(WorldRules.presence_url("https://ff.example", "r1") == "wss://ff.example/api/rooms/r1/presence", "presence wss url")

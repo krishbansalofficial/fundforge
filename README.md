@@ -141,5 +141,5 @@ FundForge is a playable vertical slice, not a finished game. See [PROGRESS](docs
 - The other partner's avatar moves live over an authenticated WebSocket (cosmetic only; it never touches the books). Without the socket it falls back to walking to the place of their last decision.
 - Research assignments now enforce role, location, per-role budgets and one assignment per decision window. Physical proximity is not required; signatures and mandatory remedies remain reachable.
 - In progress: an independent shadow NAV, plus ruff and mypy tooling; exported builds; and a recorded trailer run.
-- Not done: a public deployment (the production stack is written and smoke-tested locally and in CI, but nothing is hosted), audio, recorded playtests.
+- Not done: a public deployment (the production stack is written and smoke-tested locally and in CI, but nothing is hosted), music (sound effects exist and can be muted with M), recorded playtests.
 - Everything is fictional. The tickers are invented (some collide with real symbols; renaming them is on the roadmap). There is no brokerage connection, no real money and no investment advice.

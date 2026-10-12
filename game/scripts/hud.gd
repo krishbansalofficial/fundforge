@@ -20,6 +20,8 @@ var _panel_body: VBoxContainer
 var _open_location := ""
 var _debrief: PanelContainer
 var terminal: ForgeTerminal
+var sfx: Sfx
+var _mute_button: Button
 var _cure_draft: Array = []
 var _cure_version := -1
 var _cure_sending := false
@@ -46,6 +48,12 @@ func _ready() -> void:
 	terminal_button.text = "Terminal [T]"
 	terminal_button.pressed.connect(open_terminal)
 	row.add_child(terminal_button)
+	sfx = Sfx.new()
+	add_child(sfx)
+	_mute_button = Button.new()
+	_mute_button.pressed.connect(toggle_mute)
+	row.add_child(_mute_button)
+	_show_mute()
 	_clock = Label.new()
 	_clock.add_theme_font_size_override("font_size", 18)
 	_clock.custom_minimum_size = Vector2(330, 0)
@@ -171,6 +179,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not _panel.visible:
 		var paused: bool = view.get("clock_state", {}).get("paused", true)
 		_set_speed(1 if paused else 0)
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
+		toggle_mute()
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
 		if _open_location == "street":
 			close_panel()
@@ -259,6 +269,15 @@ func open_panel(location: String) -> void:
 	_open_location = location
 	_panel.visible = true
 	_render_panel(location)
+
+
+func toggle_mute() -> void:
+	sfx.set_muted(not sfx.muted)
+	_show_mute()
+
+
+func _show_mute() -> void:
+	_mute_button.text = "Sound off [M]" if sfx.muted else "Sound on [M]"
 
 
 func close_panel() -> void:

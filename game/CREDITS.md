@@ -26,3 +26,7 @@ All third-party art in this game is public domain (CC0 1.0). Each pack's licence
 | Desk Lamp Arm 01 (1k glTF) | Poly Haven | https://polyhaven.com/a/desk_lamp_arm_01 | CC0 1.0 | Research and back-office desk lamps |
 
 Kenney packs downloaded 8 October 2026, vendored under `assets/kenney/`. Poly Haven assets fetched through the public API (`api.polyhaven.com/files/<id>`) on 8 October 2026, under `assets/polyhaven/<id>/`. Quaternius models fetched from the author's Poly Pizza listings (each states CC0 1.0) on 8 October 2026, under `assets/quaternius/` (the author's Google Drive mirror was over its download quota).
+
+## Sound
+
+There are no audio files. Every sound effect (margin-call alarm, market crash, rally, door bell, trading halt, research chime, cash out, rival blow-up, trade fill) is synthesized at runtime from sine and square tones plus fixed-seed noise by `scripts/sfx.gd`, written for this project. There are no third-party samples, so there is nothing to license.
