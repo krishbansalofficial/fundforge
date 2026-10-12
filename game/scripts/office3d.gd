@@ -55,6 +55,7 @@ var _research_light: OmniLight3D
 var _letter: Node3D
 var _floor_mats := {}
 var _near := ""
+var _partner_live := false  # presence frames are arriving for the partner
 var _t := 0.0
 var _shake := 0.0
 var _mode := ""  # "", "red", "green"
@@ -471,8 +472,20 @@ func apply_view(view: Dictionary, effects: Array) -> void:
 	_apply_league(view)
 	var other := "mp" if role == "pm" else "pm"
 	var dest := _spot(WorldRules.partner_location(view, other)) + Vector3(0.7, 0, 0.5)
-	if partner and partner.position.distance_to(dest) > 1.0 and not partner.is_moving():
+	if partner and not _partner_live and partner.position.distance_to(dest) > 1.0 and not partner.is_moving():
 		partner.follow(_route(partner.position, dest))
+
+
+## Live presence: the partner's avatar follows their real position while frames arrive.
+func partner_presence(pos: Vector3) -> void:
+	_partner_live = true
+	if partner:
+		partner.walk_to(pos)
+
+
+## Presence stopped (they left or the socket dropped): go back to placing them where they last decided.
+func partner_gone() -> void:
+	_partner_live = false
 
 
 ## Rival towers mirror the league table: name, live return, beacon status; a red flash when one turns.

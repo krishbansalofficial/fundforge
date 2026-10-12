@@ -49,6 +49,11 @@ outcome, verified = call(prefix + "/view", pm)["outcome"], call(prefix + "/verif
 assert outcome is not None and verified["ok"], verified
 print(f"game: {outcome['label']} in {i} rounds, version {verified['version']} verified")
 EOF
+# Live presence is a WebSocket: Caddy must pass the upgrade through (the server then waits for a hello).
+upgrade=$($curl --http1.1 -o /dev/null -w '%{http_code}' --max-time 3 -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
+    -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+    https://localhost/api/rooms/none/presence || true)
+[ "$upgrade" = 101 ] || fail "presence WebSocket upgrade through Caddy (got $upgrade)"
 backup=$($compose ps -q backup)
 for _ in $(seq 60); do docker logs "$backup" 2>&1 | grep -q '^backup: verified' && break; sleep 1; done
 docker logs "$backup" 2>&1 | grep -q '^backup: verified' || fail "startup backup was not restored and verified"

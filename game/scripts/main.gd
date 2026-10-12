@@ -158,6 +158,10 @@ func _on_view(view: Dictionary) -> void:
 		hud.terminal.open_changed.connect(func(is_open): get_viewport().set_meta("forge_terminal_open", is_open))
 		office.interact.connect(hud.open_panel)
 		office.near_location.connect(hud.set_near)
+		var partner_role := "mp" if role == "pm" else "pm"
+		Api.partner_moved.connect(func(r: String, pos: Vector3, _loc: String):
+			if r == partner_role: office.partner_presence(pos))
+		Api.partner_left.connect(func(r: String): if r == partner_role or r == "": office.partner_gone())
 		_seen_notices = 0
 	var notices: Array = view.get("notices", [])
 	var effects := WorldRules.new_effects(notices, _seen_notices)
@@ -171,6 +175,7 @@ func _process(delta: float) -> void:
 		return
 	if _args.has("demo"):
 		office._cam_yaw += delta * 0.06  # slow cinematic orbit
+	Api.send_move(office.me.position, office._near)  # throttled; a no-op until presence is live
 	var h := WorldRules.clock_hour(Api.view, Time.get_ticks_msec() / 1000.0 - Api.view_received_at)
 	office.set_hour(h)
 	hud.update_clock(h)

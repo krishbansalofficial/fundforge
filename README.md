@@ -138,7 +138,7 @@ Engineering write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md).
 FundForge is a playable vertical slice, not a finished game. See [PROGRESS](docs/PROGRESS.md) for the live state and [ROADMAP](docs/ROADMAP.md) for the plan.
 
 - Only one scenario exists: Case1, days 12–21. The 30-day v1 campaign, research cards, LP agents and five endings are planned (ROADMAP P4).
-- The other partner's avatar walks to the location of their last decision. There is no live presence yet.
+- The other partner's avatar moves live over an authenticated WebSocket (cosmetic only; it never touches the books). Without the socket it falls back to walking to the place of their last decision.
 - Research assignments now enforce role, location, per-role budgets and one assignment per decision window. Physical proximity is not required; signatures and mandatory remedies remain reachable.
 - In progress: an independent shadow NAV, plus ruff and mypy tooling; exported builds; and a recorded trailer run.
 - Not done: a public deployment (the production stack is written and smoke-tested locally and in CI, but nothing is hosted), audio, recorded playtests.

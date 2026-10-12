@@ -428,3 +428,53 @@ All of these now return 422 `invalid_command` and change nothing.
 - The view's chat `ref` stays `Any`, because rooms recorded before this change may hold other shapes.
 
 **One next task:** P2 hygiene that needs no owner decision: an MIT `LICENSE` is listed in the roadmap, but adding a license is the owner's legal call, so ask first. Without that, the next unblocked engineering item is P3 live presence: an authenticated FastAPI WebSocket for partner avatar positions, with polling fallback and a test proving presence traffic never changes the journal digest.
+
+## Live partner presence (P3), 12 October 2026
+
+The partner's avatar now moves live instead of jumping to the place of their last decision. New stdlib-only `backend/src/fundforge/presence.py` and `WS /api/rooms/{id}/presence`.
+
+**Protocol:** the first frame is `{"type": "hello", "token"}`, sent within 5 s. Tokens never go in URLs, which get logged. Wrong token, wrong room, a malformed hello or silence closes with `4401`; a fifth socket for one seat closes with `4429`.
+
+After that, `move` frames `{x, z, location}` are validated:
+- finite numbers (Python's `json` accepts `NaN`/`Infinity`, so those are checked explicitly), not booleans;
+- inside the 24×23 world and a known location;
+- under 1 KB, rounded to centimetres;
+- rate-limited by a token bucket (10/s, burst 20).
+
+A bad frame gets an `error` frame, and the socket stays open.
+
+**Relay:** the hub relays `presence` to the other seat, gives a late joiner the partner's last position in `welcome`, and sends `left` when a seat's last socket closes. After each successful command and each clock tick it sends `version` nudges, and clients poll `/view` at once.
+
+**Bounds:** outbound queues are bounded (64; a slow reader loses presence frames, never the session), and empty rooms are forgotten.
+
+**Separation from the game:** positions are cosmetic. They are never logged or replayed, and nothing in the engine reads them; research assignments stay `visit` commands checked by the rules. `Store.seat_role` adds a single indexed lookup for authentication.
+
+**Godot client:** `Api` runs a `WebSocketPeer`:
+- `ws(s)://` comes from the server URL;
+- the hello is sent on open;
+- moves are sent at most every 0.15 s and only after a 5 cm step;
+- reconnects back off 1/2/4/8/15 s.
+
+Polling continues regardless, so with no socket the game runs exactly as before. The office makes the partner avatar follow live positions while frames arrive, and returns to last-decision placement when they stop or the socket drops.
+
+The hub is per process. That fits the single-process deployment target; several API processes would need a shared broker, which isn't built.
+
+**Validation:**
+- **295 backend tests passed with PostgreSQL**; Ruff and mypy (29 files) passed.
+- `test_presence.py` (7 tests) covers:
+  - frame validation, the token bucket, hub relay, cleanup and bounds;
+  - over a real WebSocket: four bad-auth cases, the hello timeout, relay, an error frame without disconnect, the late-joiner welcome, a `version` nudge after an HTTP command, and `left`;
+  - 200 moves leaving the room version, journal digest and chain head unchanged;
+  - a check that the server's world bounds and locations match `game/scripts/world_rules.gd` (changing the Godot world size makes it fail).
+- Mutation checks: relaying to self, dropping the command nudge, dropping `left`, sending `left` while another tab remains, removing bounds, and removing the hello deadline each made tests fail within about 7 s.
+- Every receive has a 5 s deadline, and a fixture closes sockets even when a test fails, so a regression fails instead of hanging CI. The first version of the tests hung until killed; that's how this was found.
+- Godot: **101 checks, 0 failures** (9 new: URLs, frames, throttling, backoff, frame handling), and headless boot is clean.
+- Live run: a headless Godot client joined as PM against a local API and walked to the risk room. A Python client in the MP seat received the welcome, 30 throttled `presence` frames from (6.0, 7.0) to (19.5, 6.0, `risk`), and `left` when Godot quit. The room then verified at version 0.
+- `deploy/smoke.sh` now also requires `101 Switching Protocols` for the presence socket through Caddy, and passed on freshly built images. Through the same stack, a full `wss://` exchange over Caddy's TLS authenticated both seats, relayed a move, and closed a forged token with 4401.
+
+**Limitations:**
+- No recorded two-client graphical run; the partner's motion was not visually captured.
+- Godot's receive direction is covered by the unit-tested handler, not observed on screen.
+- The secondary web desk does not use presence; its Next.js dev proxy does not carry WebSockets, though production Caddy does.
+
+**One next task:** the owner decisions are still open: the MIT `LICENSE` (a legal choice, so ask), the generator gate rule, Case1's opening LP confidences, the ticker rename, and deployment authorization. The next unblocked item is P3 audio: CC0 sound effects for typed engine events (fill, margin call, recall, halt) with provenance in `game/CREDITS.md` and a mute setting, checked headlessly by event-to-sound mapping tests.

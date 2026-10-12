@@ -4,6 +4,9 @@ extends Node
 
 signal view_changed(view: Dictionary)
 signal command_failed(message: String)
+## Live presence (cosmetic): the partner's avatar position, or that their last connection closed.
+signal partner_moved(role: String, pos: Vector3, location: String)
+signal partner_left(role: String)
 
 const POLL_SECONDS := 0.5
 
@@ -16,6 +19,15 @@ var view_etag := ""  # sent as If-None-Match; a 304 keeps the view and its arriv
 
 var _polling := false
 var _poll_timer: Timer
+
+# Presence socket. Optional: if it never connects, polling alone runs the game exactly as before.
+var presence_live := false
+var _ws: WebSocketPeer
+var _ws_hello := false
+var _ws_attempt := 0
+var _ws_retry_at := 0.0
+var _last_sent := Vector3(-1, -1, -1)
+var _last_sent_at := 0.0
 
 
 func _ready() -> void:
@@ -30,6 +42,9 @@ func join(url: String, room: String, seat_token: String) -> void:
 	room_id = room
 	token = seat_token
 	view_etag = ""
+	_close_presence()
+	_ws_attempt = 0
+	_ws_retry_at = 0.0
 	_poll_timer.start()
 	_poll()
 
@@ -122,3 +137,80 @@ func _poll() -> void:
 		view = res["data"]
 		view_received_at = Time.get_ticks_msec() / 1000.0
 		view_changed.emit(view)
+
+
+# ---------------- live presence ----------------
+
+func _process(_delta: float) -> void:
+	if room_id == "" or token == "":
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	if _ws == null:
+		if now >= _ws_retry_at:
+			_ws = WebSocketPeer.new()
+			_ws_hello = false
+			if _ws.connect_to_url(WorldRules.presence_url(base_url, room_id)) != OK:
+				_presence_closed(now)
+		return
+	_ws.poll()
+	match _ws.get_ready_state():
+		WebSocketPeer.STATE_OPEN:
+			if not _ws_hello:
+				_ws_hello = true
+				_ws.send_text(JSON.stringify({"type": "hello", "token": token}))
+			while _ws.get_available_packet_count() > 0:
+				var msg: Variant = JSON.parse_string(_ws.get_packet().get_string_from_utf8())
+				if msg is Dictionary:
+					handle_presence(msg)
+		WebSocketPeer.STATE_CLOSED:
+			_presence_closed(now)
+
+
+## Applies one server frame. Public so headless tests can drive it without a socket.
+func handle_presence(msg: Dictionary) -> void:
+	match str(msg.get("type", "")):
+		"welcome":
+			presence_live = true
+			_ws_attempt = 0
+			var partners: Dictionary = msg.get("partners", {}) if msg.get("partners") is Dictionary else {}
+			for r in partners:
+				_emit_move(str(r), partners[r])
+		"presence":
+			_emit_move(str(msg.get("role", "")), msg)
+		"left":
+			partner_left.emit(str(msg.get("role", "")))
+		"version":  # the room changed: fetch the view now instead of at the next poll tick
+			if int(msg.get("version", -1)) != int(view.get("version", -1)):
+				_poll()
+
+
+func _emit_move(role: String, p: Variant) -> void:
+	if p is Dictionary:
+		partner_moved.emit(role, Vector3(float(p.get("x", 0.0)), 0.0, float(p.get("z", 0.0))), str(p.get("location", "")))
+
+
+## Called every frame with the local avatar; sends only real steps, at most every PRESENCE_SEND_SECONDS.
+func send_move(pos: Vector3, location: String) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if not presence_live or not WorldRules.should_send_move(_last_sent, pos, now - _last_sent_at):
+		return
+	_last_sent = pos
+	_last_sent_at = now
+	_ws.send_text(JSON.stringify(WorldRules.move_frame(pos, location)))
+
+
+func _presence_closed(now: float) -> void:
+	var was_live := presence_live
+	presence_live = false
+	_ws = null
+	_ws_attempt += 1
+	_ws_retry_at = now + WorldRules.reconnect_delay(_ws_attempt)
+	if was_live:  # the partner may still be there; fall back to the view's last-decision placement
+		partner_left.emit("")
+
+
+func _close_presence() -> void:
+	if _ws:
+		_ws.close()
+	_ws = null
+	presence_live = false

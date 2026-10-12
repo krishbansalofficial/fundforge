@@ -148,6 +148,35 @@ static func header_value(headers: PackedStringArray, name: String) -> String:
 	return ""
 
 
+## Live presence (backend fundforge/presence.py): cosmetic partner positions, never economic state.
+const PRESENCE_SEND_SECONDS := 0.15  # under the server's 10 moves/s budget
+const PRESENCE_MIN_STEP := 0.05  # world units; smaller moves are not worth a frame
+
+
+## ws(s):// URL of the room's presence socket for an http(s):// server base URL.
+static func presence_url(base: String, room: String) -> String:
+	var b := base.trim_suffix("/")
+	b = "wss://" + b.substr(8) if b.begins_with("https://") else ("ws://" + b.substr(7) if b.begins_with("http://") else b)
+	return "%s/api/rooms/%s/presence" % [b, room]
+
+
+## The move frame for an avatar position: rounded to centimetres and clamped to the world the server accepts.
+static func move_frame(pos: Vector3, location: String) -> Dictionary:
+	var g := Vector2(clampf(pos.x, 0.0, WORLD.size.x), clampf(pos.z, 0.0, WORLD.size.y))
+	return {"type": "move", "x": snappedf(g.x, 0.01), "z": snappedf(g.y, 0.01),
+			"location": location if LOCATIONS.has(location) else ""}
+
+
+## Whether a new position is worth sending: rate-limited and only after a real step.
+static func should_send_move(last: Vector3, now: Vector3, seconds_since: float) -> bool:
+	return seconds_since >= PRESENCE_SEND_SECONDS and last.distance_to(now) >= PRESENCE_MIN_STEP
+
+
+## Seconds before reconnect attempt `n` (1, 2, 4 ... up to 15); polling carries the game meanwhile.
+static func reconnect_delay(attempt: int) -> float:
+	return minf(15.0, pow(2.0, maxi(attempt - 1, 0)))
+
+
 ## Most journal entries the HUD keeps per entity; older ones are dropped from the front.
 const LEDGER_CACHE := 1000
 

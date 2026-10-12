@@ -120,7 +120,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 - Headless Godot tests in CI.
 
 **Remaining (W2–W5, re-targeted from Phaser to Godot):**
-- WebSocket presence for live partner movement. Today the partner avatar walks to the place of their last decision.
+- WebSocket presence for live partner movement. (Done 12 Oct 2026: `fundforge/presence.py`, `/api/rooms/{id}/presence`, Godot client with polling fallback; tests prove presence traffic never changes the journal. A two-client Playwright/trailer run is still open.)
 - Kenney CC0 art pass, with provenance recorded in CREDITS.md.
 - Engine-enforced location assignments (below).
 - Audio.

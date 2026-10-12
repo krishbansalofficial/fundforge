@@ -68,6 +68,29 @@ func _initialize() -> void:
 	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
 	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
 
+	# live presence (cosmetic): URLs, frames, throttling, backoff and the frame handler
+	check(WorldRules.presence_url("http://127.0.0.1:8011/", "r1") == "ws://127.0.0.1:8011/api/rooms/r1/presence", "presence ws url")
+	check(WorldRules.presence_url("https://ff.example", "r1") == "wss://ff.example/api/rooms/r1/presence", "presence wss url")
+	check(WorldRules.move_frame(Vector3(5.123, 0, 4.256), "trading") == {"type": "move", "x": 5.12, "z": 4.26, "location": "trading"},
+			"move frame rounds to centimetres")
+	var edge := WorldRules.move_frame(Vector3(-3, 0, 99), "vault")
+	check(edge["x"] == 0.0 and edge["z"] == float(WorldRules.WORLD.size.y) and edge["location"] == "", "move frame stays in the world")
+	check(not WorldRules.should_send_move(Vector3.ZERO, Vector3(1, 0, 0), 0.05), "moves are rate limited")
+	check(not WorldRules.should_send_move(Vector3.ZERO, Vector3(0.01, 0, 0), 1.0), "tiny steps are not sent")
+	check(WorldRules.should_send_move(Vector3.ZERO, Vector3(1, 0, 0), 0.2), "a real step after the interval is sent")
+	check([1, 2, 3, 4, 9].map(func(n): return WorldRules.reconnect_delay(n)) == [1.0, 2.0, 4.0, 8.0, 15.0], "reconnect backoff caps at 15 s")
+	var api: Node = load("res://scripts/api.gd").new()
+	var seen: Array = []
+	api.partner_moved.connect(func(r, pos, loc): seen.append([r, pos, loc]))
+	api.partner_left.connect(func(r): seen.append(["left", r]))
+	api.handle_presence({"type": "welcome", "role": "mp", "version": 0, "partners": {"pm": {"x": 2.5, "z": 3.0, "location": "risk"}}})
+	api.handle_presence({"type": "presence", "role": "pm", "x": 6.0, "z": 7.5, "location": "trading"})
+	api.handle_presence({"type": "left", "role": "pm"})
+	api.handle_presence({"type": "error", "message": "ignored"})
+	check(api.presence_live and seen == [["pm", Vector3(2.5, 0, 3.0), "risk"], ["pm", Vector3(6.0, 0, 7.5), "trading"], ["left", "pm"]],
+			"welcome, presence and left frames reach the world")
+	api.free()
+
 	# journal paging with the /ledger `after` cursor
 	check(WorldRules.ledger_path("r1", "fund", -1) == "/api/rooms/r1/ledger?entity=fund", "newest ledger page has no cursor")
 	check(WorldRules.ledger_path("r1", "firm", 7) == "/api/rooms/r1/ledger?entity=firm&after=7", "ledger cursor in query")

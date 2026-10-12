@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import json
 import logging
 import os
 import re
@@ -15,7 +16,7 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import Any
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -23,10 +24,12 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import presence as presence_rules
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import project
 from .observability import REJECTIONS, JsonFormatter, context, request_id
+from .presence import hub
 from .schemas import COMMAND_TAGS, DECIMAL_PATTERN, CommandBody, LedgerPage, NewRoomResponse, RoomView
 from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
 from .terminal import snapshot
@@ -52,7 +55,8 @@ async def clock_loop() -> None:
     while True:
         try:
             for room, version in await asyncio.to_thread(store().due_rooms):
-                await asyncio.to_thread(store().tick, room, version)
+                if await asyncio.to_thread(store().tick, room, version) is not None:
+                    hub.nudge(room, version + 1)
         except Exception:  # keep the clock alive; a failed tick is retried next loop
             log.exception("clock loop error")
         await asyncio.sleep(0.25)
@@ -61,6 +65,7 @@ async def clock_loop() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
+    hub.loop = asyncio.get_running_loop()
     task = asyncio.create_task(clock_loop()) if os.environ.get("FUNDFORGE_CLOCK", "1") == "1" else None
     try:
         yield
@@ -382,7 +387,7 @@ def command(room_id: str, body: CommandBody, user: str = Depends(seat),
     # client's 1250.0 and a web client's 1250 are the same command (and the same idempotency fingerprint).
     cmd = body.root.model_dump(mode="json", exclude_unset=True)
     try:
-        return store().apply(room_id, user, idempotency_key, cmd)
+        result = store().apply(room_id, user, idempotency_key, cmd)
     except RoomIncompatible as e:
         raise ApiError(409, "room_incompatible", str(e)) from e
     except KeyReused as e:
@@ -391,6 +396,57 @@ def command(room_id: str, body: CommandBody, user: str = Depends(seat),
         raise ApiError(422, "rejected", str(e) or "command rejected") from e
     except (KeyError, TypeError, ValueError) as e:
         raise ApiError(422, "invalid_command", str(e) or "invalid command") from e
+    if room_id in hub.rooms:  # tell live clients to poll now; the bot's replies are already in this version
+        hub.nudge_threadsafe(room_id, store().clock_info(room_id)["version"])
+    return result
+
+
+@app.websocket("/api/rooms/{room_id}/presence")
+async def presence(ws: WebSocket, room_id: str) -> None:
+    """Ephemeral partner positions and version nudges; see fundforge.presence. Never touches the journal."""
+    await ws.accept()
+    try:
+        hello = json.loads(await asyncio.wait_for(ws.receive_text(), presence_rules.HELLO_SECONDS))
+        token = hello.get("token") if isinstance(hello, dict) and hello.get("type") == "hello" else None
+        if not isinstance(token, str):
+            raise PermissionError("send {type: hello, token} first")
+        role = await asyncio.to_thread(store().seat_role, room_id, token)
+        version = (await asyncio.to_thread(store().clock_info, room_id))["version"]
+        conn = hub.join(room_id, role)
+    except (TimeoutError, PermissionError, json.JSONDecodeError, KeyError) as e:
+        await ws.close(presence_rules.UNAUTHORIZED, str(e)[:100] or "unauthorized")
+        return
+    except presence_rules.PresenceError as e:
+        await ws.close(presence_rules.TOO_MANY, str(e))
+        return
+    except WebSocketDisconnect:
+        return
+    conn.send({"type": "welcome", "role": role, "version": version, "partners": hub.partners(conn)})
+
+    async def pump() -> None:
+        while True:
+            await ws.send_json(await conn.queue.get())
+
+    sender = asyncio.create_task(pump())
+    try:
+        while True:
+            text = await ws.receive_text()
+            try:
+                pos = presence_rules.parse_move(text)
+            except presence_rules.PresenceError as e:
+                conn.send({"type": "error", "message": str(e)})
+                continue
+            if conn.bucket.take():
+                hub.move(conn, pos)
+            else:
+                conn.dropped += 1
+    except WebSocketDisconnect:
+        pass
+    finally:
+        sender.cancel()
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await sender
+        hub.leave(conn)
 
 
 @app.get("/api/rooms/{room_id}/verify")

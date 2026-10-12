@@ -195,6 +195,15 @@ class Store:
             raise PermissionError("invalid seat token for this room")
         return str(row[0])
 
+    def seat_role(self, room: str, token: str) -> str:
+        """The seat's role (``pm``/``mp``) for a valid token; one indexed lookup, no replay."""
+        with self.pool.connection() as c:
+            row = c.execute("select role from seats where token_hash=%s and room_id=%s",
+                            (_h(token), room)).fetchone()
+        if not row:
+            raise PermissionError("invalid seat token for this room")
+        return str(row[0])
+
     # ---------- replay ----------
     @staticmethod
     def _fresh(tape: Tape, partners: dict[str, str], bot_role: str | None = None) -> Session:
