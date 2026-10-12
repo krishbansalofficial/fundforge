@@ -41,7 +41,7 @@ def play(scenario: str, variant: str = "base", script=None) -> list[SessionView]
 def busy(s: Session, k: int) -> None:
     """Exercise research, sharing, chat, packages with limits, a large purchase and a statement review."""
     if k == 0:
-        s.handle("ana", "say", {"type": "say", "text": "covering", "ref": {"sym": "BRIN"}})
+        s.handle("ana", "say", {"type": "say", "text": "covering", "ref": "BRIN"})
         s.handle("ana", "visit-pm", {"type": "visit", "location": "research", "assignment": "demand_survey"})
         s.handle("ben", "visit-mp", {"type": "visit", "location": "broker", "assignment": "borrow"})
         orders = [{"order_id": "cover", "sym": "BRIN", "side": "COVER", "qty": 1250},
@@ -111,3 +111,79 @@ def test_contract_rejects_an_undeclared_field():
         SessionView.model_validate_json(json.dumps({**view, "hidden_tape": {}}))
     with pytest.raises(ValidationError):
         SessionView.model_validate_json(json.dumps({**view, "fund": {**view["fund"], "nav": 1}}))
+
+
+def test_command_union_covers_every_player_command():
+    from typing import get_args
+
+    from fundforge.governance import COMMANDS
+    from fundforge.schemas import Command
+
+    union = get_args(get_args(Command)[0])
+    tags = {get_args(m.model_fields["type"].annotation)[0] for m in union}
+    assert tags == set(COMMANDS) - {"tick"}  # the clock's tick is server-only
+
+
+def test_every_command_logged_in_whole_games_validates():
+    from pydantic import TypeAdapter
+
+    from fundforge.schemas import Command
+
+    adapter = TypeAdapter(Command)
+    logged = []
+    for human in ("pm", "mp"):  # bot and human commands, as Session.handle received them
+        bot_role = "mp" if human == "pm" else "pm"
+        e = Engine(_tape("case1"))
+        e.advance()
+        s = Session(e, {human: "me", bot_role: bot.BOT_VERSION}, bots=frozenset({bot_role}))
+        for k in range(200):
+            if s.e.finished():
+                break
+            bot.act(s, bot_role, bot.BOT_VERSION, f"b{k}")
+            s.handle("me", f"ready{k}", {"type": "ready", "version": s.version})
+        logged += [x["command"] for x in s.log]
+    for scenario in ("case1", "case1-controls"):
+        e = Engine(_tape(scenario))
+        e.advance()
+        s = Session(e, P)
+        k = 0
+        while not s.e.finished():
+            busy(s, k)
+            for user in P.values():
+                s.handle(user, f"ready-{k}-{user}", {"type": "ready", "version": s.version})
+            k += 1
+        logged += [x["command"] for x in s.log]
+    assert {c["type"] for c in logged} >= {"propose", "sign", "visit", "share_research", "say", "ready",
+                                           "resolve_statement"}
+    for c in logged:
+        adapter.validate_python(c)
+
+
+def test_client_command_shapes_validate_and_normalize():
+    from pydantic import TypeAdapter
+
+    from fundforge.schemas import Command
+
+    adapter = TypeAdapter(Command)
+    godot = [  # Godot parses JSON numbers as floats, so values read back from a view arrive as 1250.0 or 7.0
+        {"type": "propose", "package_id": "cure-1", "source_version": 7.0,
+         "orders": [{"sym": "BRIN", "side": "COVER", "qty": 1250.0, "order_id": "cure-a"}]},
+        {"type": "ticket", "order_id": "pm-1", "sym": "BRIN", "side": "COVER", "qty": 1250},
+        {"type": "ready", "version": 3, "skip": True}, {"type": "set_speed", "speed": 2}, {"type": "pause"},
+        {"type": "resolve_statement", "statement_id": "opening-cash", "revision": 2.0, "version": 9.0},
+        {"type": "visit", "location": "broker", "assignment": "borrow"}, {"type": "share_research", "topic": "borrow"},
+        {"type": "sign", "package_id": "p", "digest": "ab12"}, {"type": "set_reserve", "amount": "250000"},
+        {"type": "accept_replacement"}, {"type": "cancel", "order_id": "pm-1"},
+        {"type": "ticket", "order_id": "w", "sym": "ALTO", "side": "BUY", "qty": 10, "limit": "95.25"},
+    ]
+    dumped = [adapter.validate_python(c).model_dump(mode="json", exclude_unset=True) for c in godot]
+    assert dumped[0]["orders"][0]["qty"] == 1250 and type(dumped[0]["orders"][0]["qty"]) is int
+    assert type(dumped[5]["revision"]) is int and "skip" not in dumped[3]  # absent stays absent
+    for bad in [{"type": "set_reserve", "amount": "lots"}, {"type": "set_reserve", "amount": 250000},
+                {"type": "ticket", "order_id": "x", "sym": "A", "side": "BUY", "qty": 10, "limit": "1e"},
+                {"type": "ticket", "order_id": "x", "sym": "A", "side": "LONG", "qty": 10},
+                {"type": "ticket", "order_id": "x", "sym": "A", "side": "BUY", "qty": 10.5},
+                {"type": "ready", "version": 2, "extra": 1}, {"type": "say", "text": {"a": 1}},
+                {"type": "tick", "expected_version": 1}, {"type": "no_such_thing"}, {}]:
+        with pytest.raises(ValidationError):
+            adapter.validate_python(bad)

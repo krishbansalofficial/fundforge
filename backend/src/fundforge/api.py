@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -26,7 +27,7 @@ from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import project
 from .observability import REJECTIONS, JsonFormatter, context, request_id
-from .schemas import LedgerPage, NewRoomResponse, RoomView
+from .schemas import COMMAND_TAGS, DECIMAL_PATTERN, CommandBody, LedgerPage, NewRoomResponse, RoomView
 from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
 from .terminal import snapshot
 
@@ -191,6 +192,28 @@ async def http_error(_request: Request, error: StarletteHTTPException) -> JSONRe
     return _envelope(error.status_code, code, str(error.detail), getattr(error, "headers", None))
 
 
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request: Request, error: RequestValidationError) -> JSONResponse:
+    """Malformed input gets the same envelope as every other error, with the first problem spelled out."""
+    first = error.errors()[0] if error.errors() else {}
+    loc = [str(x) for x in first.get("loc", ()) if x != "body"]
+    if loc and loc[0] in COMMAND_TAGS:  # the command type is already known; the field path is what matters
+        loc = loc[1:]
+    kind, ctx = first.get("type", ""), first.get("ctx") or {}
+    if kind == "string_pattern_mismatch" and ctx.get("pattern") == DECIMAL_PATTERN:
+        msg = 'must be a plain decimal number sent as a string, such as "95.25"'
+    elif kind == "union_tag_invalid":
+        msg = f"unknown command type {ctx.get('tag')!r}"
+    elif kind == "union_tag_not_found":
+        msg = "command type required"
+    else:
+        msg = str(first.get("msg", "invalid request"))
+    where = ".".join(loc)
+    message = f"{where}: {msg}" if where else msg
+    code = "invalid_command" if request.url.path.endswith("/commands") else "invalid_request"
+    return _envelope(422, code, message)
+
+
 @app.exception_handler(RoomExpired)
 async def expired_room(_request: Request, error: RoomExpired) -> JSONResponse:
     return _envelope(410, "room_expired", str(error))
@@ -353,12 +376,13 @@ def liquidity(room_id: str, body: LiquidityRequest, user: str = Depends(seat)) -
 
 
 @app.post("/api/rooms/{room_id}/commands")
-def command(room_id: str, body: dict[str, Any], user: str = Depends(seat),
+def command(room_id: str, body: CommandBody, user: str = Depends(seat),
             idempotency_key: str = Header(..., max_length=100)) -> dict[str, Any]:
-    if not isinstance(body.get("type"), str):
-        raise ApiError(422, "invalid_command", "command type required")
+    # The validated shape, not the raw body, is what the log stores: whole floats become ints, so a Godot
+    # client's 1250.0 and a web client's 1250 are the same command (and the same idempotency fingerprint).
+    cmd = body.root.model_dump(mode="json", exclude_unset=True)
     try:
-        return store().apply(room_id, user, idempotency_key, body)
+        return store().apply(room_id, user, idempotency_key, cmd)
     except RoomIncompatible as e:
         raise ApiError(409, "room_incompatible", str(e)) from e
     except KeyReused as e:

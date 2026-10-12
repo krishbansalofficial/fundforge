@@ -389,3 +389,42 @@ Limitations:
 - The Godot client does not use the generated types.
 
 **One next task:** P2 API v1 command contract: Pydantic discriminated-union command models in `schemas.py` for `POST /commands` (validated before `Session.handle`, with malformed bodies returning `invalid_command`), regenerate the types, and type the web desk's `send`.
+
+## Command contract at the API boundary (P2 API v1), 12 October 2026
+
+Completed the prior next task. `schemas.py` now also defines every player command as a strict model in one discriminated union on `type`: `Ticket`, `Propose`, `Sign`, `Cancel`, `ResearchCommand` (legacy), `Visit`, `ShareResearch`, `AcceptReplacement`, `SetReserve`, `ResolveStatement`, `Ready`, `SetSpeed`, `Say` and `Pause`. `tick` is excluded because only the server clock issues it.
+
+`POST /commands` validates the body as `CommandBody` before the store or engine runs. It wraps the union in a `RootModel` because FastAPI's `Body()` dropped the discriminator, and that run reported every malformed command as `order_id: Field required`. The models check shapes only: roles, limits, deadlines and the mandate stay with the versioned rules.
+- Decimal inputs (`limit`, `amount`) must be plain decimal strings, never JSON numbers.
+- Integers accept whole JSON numbers, because Godot parses every number as a float. The log stores the validated dump, so a Godot `1250.0` and a web `1250` are the same command and the same idempotency fingerprint.
+
+**Defects fixed (reproduced first over HTTP):**
+- `set_reserve` with amount `"lots"` and a ticket with limit `"abc"` returned **500** (`decimal.InvalidOperation` escaped the handler).
+- A package with limit `"1e"` was **accepted**, binding an unusable price into an approval digest and the command log until the partner signed.
+- `say` accepted an object as text.
+
+All of these now return 422 `invalid_command` and change nothing.
+
+**Request validation:** errors on every route now use the `{code, message, detail}` envelope (`invalid_command` on commands, `invalid_request` elsewhere) instead of FastAPI's list. Messages name the field and say what to do, for example `orders.0.limit: must be a plain decimal number sent as a string, such as "95.25"`, `unknown command type 'tick'`, or `command type required`. Authentication is still checked first.
+
+**Web desk:** `send` takes the generated `Command` type, and `SIDES` is typed `Side[]`. The Ready button now sends `version`; before, the web desk's Ready was not bound to the state the player saw. In Chromium, a partner whose page was stale was refused ("the plan changed since you looked"), and the same click after the page refreshed advanced the game and filled the ticket. Types are generated with `--default-non-nullable false`, so fields with server defaults (`skip`) are optional in requests.
+
+**Tests:**
+- The union's tags must equal `governance.COMMANDS` minus `tick`, so a new command cannot ship untyped.
+- Every command logged in solo bot games (both seats) and the busy Case1/controls scripts validates. That test caught one wrong guess: the bot's chat `ref` is a string such as `"research:borrow"`, not an object.
+- Client shapes, including Godot floats, validate and normalise; ten malformed shapes are refused.
+- An HTTP test covers the reproduced defects, the exact messages, 401 before body validation, an unchanged room version, and the same key resubmitted with `1250.0` and `1250` returning the same result.
+- The metrics test now asserts the unknown type is refused at the boundary (`invalid_command`) and never becomes a label.
+
+**Validation:**
+- **288 backend tests passed with PostgreSQL**; Ruff and mypy (28 files) passed.
+- Frontend `tsc`, `npm test` (3 passed) and `npm run build` passed.
+- Godot: **0 failures**, boot clean (client code unchanged).
+- On the final code, against a live API: `analysis_smoke.py` (standard and broker challenge), `terminal_smoke.py`, and two Chromium runs of the production web desk. One drove the full game; the other sent a ticket with a malformed and then a valid limit, plus both partners' Ready, through the UI. There were no console errors.
+
+**Limitations:**
+- The terminal, debrief, liquidity and verify responses are still untyped.
+- The Godot client doesn't use the generated types; its command shapes are covered by the tests above.
+- The view's chat `ref` stays `Any`, because rooms recorded before this change may hold other shapes.
+
+**One next task:** P2 hygiene that needs no owner decision: an MIT `LICENSE` is listed in the roadmap, but adding a license is the owner's legal call, so ask first. Without that, the next unblocked engineering item is P3 live presence: an authenticated FastAPI WebSocket for partner avatar positions, with polling fallback and a test proving presence traffic never changes the journal digest.

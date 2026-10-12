@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
-import { api, fetchView, money, pct, type Decision, type LedgerPage, type View } from "../../lib";
+import { api, fetchView, money, pct, type Command, type Decision, type LedgerPage, type Side, type View } from "../../lib";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
 const PHASE_LABEL: Record<string, string> = {
   OPEN_ADMIN: "Opening admin", PUBLIC_MARK: "Market open", EXEC_A: "10:00 execution", EXEC_B: "15:00 execution", CLOSE: "Close",
 };
-const SIDES = ["SELL", "COVER", "BUY", "SHORT"];
+const SIDES: Side[] = ["SELL", "COVER", "BUY", "SHORT"];
 
 function useSeatToken(roomId: string) {
   const [token, setToken] = useState<string | null>(null);
@@ -66,7 +66,7 @@ export default function Desk({ roomId }: { roomId: string }) {
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
   const send = useCallback(
-    async (cmd: Record<string, unknown>, done?: string) => {
+    async (cmd: Command, done?: string) => {
       if (!token) return;
       await exclusive(inFlight, async () => {
         setBusy(true);
@@ -246,11 +246,11 @@ function Feed({ v }: { v: View }) {
   );
 }
 
-type Send = (cmd: Record<string, unknown>, done?: string) => Promise<void>;
+type Send = (cmd: Command, done?: string) => Promise<void>;
 
 function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
   const [sym, setSym] = useState("BEAM");
-  const [side, setSide] = useState("SELL");
+  const [side, setSide] = useState<Side>("SELL");
   const [qty, setQty] = useState("");
   const [limit, setLimit] = useState("");
   const [reserve, setReserve] = useState("");
@@ -265,7 +265,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
       <h2 id="act-h">{me === "pm" ? "Trade" : "Liquidity and borrow"}</h2>
       {!atBarrier && <p className="muted">Orders open at the next decision point.</p>}
       <form className="ticket" onSubmit={(e) => { e.preventDefault(); }}>
-        <label>Side<select value={side} onChange={(e) => setSide(e.target.value)}>{SIDES.map((s) => <option key={s}>{s}</option>)}</select></label>
+        <label>Side<select value={side} onChange={(e) => setSide(e.target.value as Side)}>{SIDES.map((s) => <option key={s}>{s}</option>)}</select></label>
         <label>Name<select value={sym} onChange={(e) => setSym(e.target.value)}>{Object.keys(v.marks).map((s) => <option key={s}>{s}</option>)}</select></label>
         <label>Shares<input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} placeholder="0" /></label>
         <label>Limit (optional)<input inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value.replace(/[^\d.]/g, ""))} placeholder="Market" /></label>
@@ -349,7 +349,7 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
         </div>
       ))}
       {!v.clock.finished && (
-        <button type="button" className="ready" disabled={ready} onClick={() => send({ type: "ready" }, "")}>
+        <button type="button" className="ready" disabled={ready} onClick={() => send({ type: "ready", version: v.version }, "")}>
           {ready ? `Waiting for ${v.names[partner]}` : `Ready: advance to ${v.clock.next ? PHASE_LABEL[v.clock.next.phase].toLowerCase() : "the end"}`}
         </button>
       )}

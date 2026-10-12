@@ -1,4 +1,4 @@
-import type { components } from "./api-types";
+import type { components, paths } from "./api-types";
 
 // Generated from the server's OpenAPI document (fundforge.schemas); regenerate with `npm run types`.
 type Schemas = components["schemas"];
@@ -11,6 +11,9 @@ export type Outcome = Schemas["Outcome"];
 export type Decision = Schemas["Decision"];
 export type LedgerPage = Schemas["LedgerPage"];
 export type NewRoom = Schemas["NewRoomResponse"];
+/** Any command `POST /api/rooms/{id}/commands` accepts; `type` selects the shape. */
+export type Command = NonNullable<paths["/api/rooms/{room_id}/commands"]["post"]["requestBody"]>["content"]["application/json"];
+export type Side = Schemas["OrderSpec"]["side"];
 
 export const money = (s: string | null | undefined, dp = 0) =>
   s == null ? "—" : Number(s).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: dp, maximumFractionDigits: dp });

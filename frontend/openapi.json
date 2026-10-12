@@ -1,6 +1,21 @@
 {
   "components": {
     "schemas": {
+      "AcceptReplacement": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "accept_replacement",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "AcceptReplacement",
+        "type": "object"
+      },
       "Assignment": {
         "additionalProperties": false,
         "properties": {
@@ -69,6 +84,28 @@
           "assignment"
         ],
         "title": "AttentionClaim",
+        "type": "object"
+      },
+      "Cancel": {
+        "additionalProperties": false,
+        "properties": {
+          "order_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Order Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "cancel",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "order_id"
+        ],
+        "title": "Cancel",
         "type": "object"
       },
       "Chat": {
@@ -173,6 +210,73 @@
         ],
         "title": "ClockState",
         "type": "object"
+      },
+      "CommandBody": {
+        "description": "The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop.",
+        "discriminator": {
+          "mapping": {
+            "accept_replacement": "#/components/schemas/AcceptReplacement",
+            "cancel": "#/components/schemas/Cancel",
+            "pause": "#/components/schemas/Pause",
+            "propose": "#/components/schemas/Propose",
+            "ready": "#/components/schemas/Ready",
+            "research": "#/components/schemas/ResearchCommand",
+            "resolve_statement": "#/components/schemas/ResolveStatement",
+            "say": "#/components/schemas/Say",
+            "set_reserve": "#/components/schemas/SetReserve",
+            "set_speed": "#/components/schemas/SetSpeed",
+            "share_research": "#/components/schemas/ShareResearch",
+            "sign": "#/components/schemas/Sign",
+            "ticket": "#/components/schemas/Ticket",
+            "visit": "#/components/schemas/Visit"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Ticket"
+          },
+          {
+            "$ref": "#/components/schemas/Propose"
+          },
+          {
+            "$ref": "#/components/schemas/Sign"
+          },
+          {
+            "$ref": "#/components/schemas/Cancel"
+          },
+          {
+            "$ref": "#/components/schemas/ResearchCommand"
+          },
+          {
+            "$ref": "#/components/schemas/Visit"
+          },
+          {
+            "$ref": "#/components/schemas/ShareResearch"
+          },
+          {
+            "$ref": "#/components/schemas/AcceptReplacement"
+          },
+          {
+            "$ref": "#/components/schemas/SetReserve"
+          },
+          {
+            "$ref": "#/components/schemas/ResolveStatement"
+          },
+          {
+            "$ref": "#/components/schemas/Ready"
+          },
+          {
+            "$ref": "#/components/schemas/SetSpeed"
+          },
+          {
+            "$ref": "#/components/schemas/Say"
+          },
+          {
+            "$ref": "#/components/schemas/Pause"
+          }
+        ],
+        "title": "CommandBody"
       },
       "DebriefRequest": {
         "properties": {
@@ -840,6 +944,57 @@
         "title": "Order",
         "type": "object"
       },
+      "OrderSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "order_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Order Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "BUY",
+              "SELL",
+              "SHORT",
+              "COVER"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "sym": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "sym",
+          "side",
+          "qty"
+        ],
+        "title": "OrderSpec",
+        "type": "object"
+      },
       "Outcome": {
         "additionalProperties": false,
         "properties": {
@@ -1028,6 +1183,21 @@
         "title": "PackageOrder",
         "type": "object"
       },
+      "Pause": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "pause",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Pause",
+        "type": "object"
+      },
       "Position": {
         "additionalProperties": false,
         "properties": {
@@ -1060,6 +1230,79 @@
           "borrowed"
         ],
         "title": "Position",
+        "type": "object"
+      },
+      "Propose": {
+        "additionalProperties": false,
+        "properties": {
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/OrderSpec"
+            },
+            "maxItems": 50,
+            "title": "Orders",
+            "type": "array"
+          },
+          "package_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Package Id",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "type": {
+            "const": "propose",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "package_id",
+          "orders"
+        ],
+        "title": "Propose",
+        "type": "object"
+      },
+      "Ready": {
+        "additionalProperties": false,
+        "properties": {
+          "skip": {
+            "default": false,
+            "title": "Skip",
+            "type": "boolean"
+          },
+          "type": {
+            "const": "ready",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Ready",
         "type": "object"
       },
       "Realtime": {
@@ -1222,6 +1465,29 @@
         "title": "Research",
         "type": "object"
       },
+      "ResearchCommand": {
+        "additionalProperties": false,
+        "description": "Legacy engine-script assignment; players use ``visit``.",
+        "properties": {
+          "topic": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          },
+          "type": {
+            "const": "research",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "topic"
+        ],
+        "title": "ResearchCommand",
+        "type": "object"
+      },
       "ResearchUse": {
         "additionalProperties": false,
         "properties": {
@@ -1255,6 +1521,38 @@
           "reveal_day"
         ],
         "title": "ResearchUse",
+        "type": "object"
+      },
+      "ResolveStatement": {
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "statement_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Statement Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "resolve_statement",
+            "title": "Type",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "type",
+          "statement_id",
+          "revision",
+          "version"
+        ],
+        "title": "ResolveStatement",
         "type": "object"
       },
       "RoomView": {
@@ -1440,6 +1738,40 @@
         "title": "RoomView",
         "type": "object"
       },
+      "Say": {
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          },
+          "text": {
+            "maxLength": 240,
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "const": "say",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "Say",
+        "type": "object"
+      },
       "Series": {
         "additionalProperties": false,
         "properties": {
@@ -1477,6 +1809,155 @@
           "nav_per_unit"
         ],
         "title": "Series",
+        "type": "object"
+      },
+      "SetReserve": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "type": {
+            "const": "set_reserve",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "amount"
+        ],
+        "title": "SetReserve",
+        "type": "object"
+      },
+      "SetSpeed": {
+        "additionalProperties": false,
+        "properties": {
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "type": {
+            "const": "set_speed",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "speed"
+        ],
+        "title": "SetSpeed",
+        "type": "object"
+      },
+      "ShareResearch": {
+        "additionalProperties": false,
+        "properties": {
+          "topic": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          },
+          "type": {
+            "const": "share_research",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "topic"
+        ],
+        "title": "ShareResearch",
+        "type": "object"
+      },
+      "Sign": {
+        "additionalProperties": false,
+        "properties": {
+          "digest": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Package Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "sign",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "package_id",
+          "digest"
+        ],
+        "title": "Sign",
+        "type": "object"
+      },
+      "Ticket": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "order_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Order Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "side": {
+            "enum": [
+              "BUY",
+              "SELL",
+              "SHORT",
+              "COVER"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "sym": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Sym",
+            "type": "string"
+          },
+          "type": {
+            "const": "ticket",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "sym",
+          "side",
+          "qty",
+          "type"
+        ],
+        "title": "Ticket",
         "type": "object"
       },
       "ValidationError": {
@@ -1517,6 +1998,35 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "Visit": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Assignment",
+            "type": "string"
+          },
+          "location": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Location",
+            "type": "string"
+          },
+          "type": {
+            "const": "visit",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "location",
+          "assignment"
+        ],
+        "title": "Visit",
         "type": "object"
       }
     }
@@ -1648,9 +2158,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
-                "title": "Body",
-                "type": "object"
+                "$ref": "#/components/schemas/CommandBody"
               }
             }
           },

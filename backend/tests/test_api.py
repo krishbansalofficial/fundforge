@@ -158,9 +158,8 @@ def test_metrics_and_json_request_logs(client, caplog):
 
     text = c.get("/metrics").text
     assert 'fundforge_command_seconds_count{type="ready"}' in text
-    assert 'fundforge_command_seconds_count{type="unknown"}' in text  # client-chosen types stay bounded
-    assert "no_such_thing" not in text
-    assert 'fundforge_rejections_total{code="rejected"}' in text
+    assert "no_such_thing" not in text  # client-chosen types never become labels: refused before the store
+    assert 'fundforge_rejections_total{code="invalid_command"}' in text
     assert "fundforge_replay_seconds_count" in text
 
 
@@ -187,3 +186,39 @@ def test_openapi_publishes_the_view_ledger_and_room_contracts(client):
     assert ref("/api/rooms/{room_id}/ledger").endswith("/LedgerPage")
     assert ref("/api/rooms", "post", "201").endswith("/NewRoomResponse")
     assert schemas["RoomView"]["additionalProperties"] is False and "realtime" in schemas["RoomView"]["required"]
+
+
+def test_malformed_commands_are_refused_before_the_engine(client):
+    c = client
+    r = c.post("/api/rooms", json={"pm_name": "Ana", "mp_name": "Ben"}).json()
+    rid, pm, mp = r["room_id"], r["tokens"]["pm"], r["tokens"]["mp"]
+    h = lambda t, k: {"Authorization": f"Bearer {t}", "Idempotency-Key": k}  # noqa: E731
+    path = f"/api/rooms/{rid}/commands"
+    # Each of these used to be a 500, or (the "1e" limit) an accepted package bound to an unusable price.
+    for token, cmd in [(mp, {"type": "set_reserve", "amount": "lots"}),
+                       (pm, {"type": "ticket", "order_id": "x", "sym": "ALTO", "side": "BUY", "qty": 10,
+                             "limit": "abc"}),
+                       (pm, {"type": "propose", "package_id": "p", "orders": [
+                           {"order_id": "o", "sym": "ALTO", "side": "BUY", "qty": 10, "limit": "1e"}]}),
+                       (pm, {"type": "say", "text": {"a": 1}}), (pm, {"type": "tick", "expected_version": 0}),
+                       (pm, {"type": "no_such_thing"})]:
+        res = c.post(path, headers=h(token, "bad-" + cmd["type"]), json=cmd)
+        assert res.status_code == 422 and res.json()["code"] == "invalid_command", (cmd, res.json())
+        assert isinstance(res.json()["message"], str) and isinstance(res.json()["detail"], str)
+    messages = {cmd: c.post(path, headers=h(pm, "msg-" + cmd), json=body).json()["message"] for cmd, body in [
+        ("ticket", {"type": "ticket", "order_id": "x", "sym": "ALTO", "side": "BUY", "qty": 10, "limit": "9.5.1"}),
+        ("propose", {"type": "propose", "package_id": "p", "orders": [
+            {"order_id": "o", "sym": "ALTO", "side": "BUY", "qty": 10, "limit": "1e"}]}),
+        ("tick", {"type": "tick", "expected_version": 0}), ("none", {"qty": 1})]}
+    decimal = 'must be a plain decimal number sent as a string, such as "95.25"'
+    assert messages == {"ticket": f"limit: {decimal}", "propose": f"orders.0.limit: {decimal}",
+                        "tick": "unknown command type 'tick'", "none": "command type required"}
+    assert c.post(path, headers={"Idempotency-Key": "k"}, json={"type": "no_such_thing"}).status_code == 401
+    assert c.get(f"/api/rooms/{rid}/view", headers={"Authorization": f"Bearer {pm}"}).json()["version"] == 0
+    # A Godot client's whole floats are the same command as a web client's integers.
+    cover = {"order_id": "c", "sym": "BRIN", "side": "COVER", "qty": 1250.0}
+    p = c.post(path, headers=h(pm, "godot"), json={"type": "propose", "package_id": "g", "orders": [cover]}).json()
+    again = {**cover, "qty": 1250}
+    assert c.post(path, headers=h(pm, "godot"), json={"type": "propose", "package_id": "g",
+                                                       "orders": [again]}).json() == p  # same key, same command
+    assert c.get(f"/api/rooms/{rid}/ledger?after=-1", headers=h(pm, "x")).json()["code"] == "invalid_request"

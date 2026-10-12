@@ -101,7 +101,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
   - one Grafana JSON
 
   No OpenTelemetry. (Logs, metrics and `deploy/grafana/fundforge.json` done 11 Oct 2026.)
-- **API v1:** Pydantic discriminated-union commands, a `{code, message}` error envelope, a stored outcome for rejected keys (both done 11 Oct 2026, migration 0006), `ETag: version` with a 304 response, a ledger cursor (both done 11 Oct 2026), and openapi-typescript types replacing `View = any` (done 11 Oct 2026: strict `fundforge/schemas.py` contract tested against whole games; generated `frontend/app/api-types.ts` with freshness checks). Pydantic command unions remain open.
+- **API v1:** Pydantic discriminated-union commands, a `{code, message}` error envelope, a stored outcome for rejected keys (both done 11 Oct 2026, migration 0006), `ETag: version` with a 304 response, a ledger cursor (both done 11 Oct 2026), and openapi-typescript types replacing `View = any` (done 11 Oct 2026: strict `fundforge/schemas.py` contract tested against whole games; generated `frontend/app/api-types.ts` with freshness checks). Pydantic discriminated-union commands done 11–12 Oct 2026, validated before the engine.
 - **Frontend fixes:** one `order_id` and idempotency key per form submission, and buttons disabled while a request is in flight. (Done 11 Oct 2026: `frontend/app/exclusive.ts`, `npm test`.)
 - **Playwright end-to-end test:** two browser contexts play S2 to a WIN, with axe checks on the desk. The same run records the README GIF.
 - **Hygiene:**

@@ -9,9 +9,9 @@ them into binary floats for arithmetic.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal, get_args
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, RootModel, StringConstraints
 
 Dec = str  # a decimal number serialized as a string
 
@@ -288,3 +288,113 @@ class NewRoomResponse(Strict):
     tokens: dict[str, str]
     names: dict[str, str]
     bot_role: str | None
+
+
+# ---------- commands (POST /api/rooms/{id}/commands) ----------
+# Shapes only. Whether a command is allowed (role, limits, deadlines, mandate) stays with the versioned rules
+# in governance/engine. Decimal inputs must be plain decimal strings, never JSON numbers, so money never
+# passes through a binary float; integers accept whole JSON numbers (Godot parses every number as a float).
+
+DECIMAL_PATTERN = r"^-?\d{1,15}(\.\d{1,6})?$"
+DecIn = Annotated[str, StringConstraints(pattern=DECIMAL_PATTERN)]
+Id = Annotated[str, StringConstraints(min_length=1, max_length=100)]
+Side = Literal["BUY", "SELL", "SHORT", "COVER"]
+
+
+class OrderSpec(Strict):
+    order_id: Id
+    sym: Id
+    side: Side
+    qty: int
+    limit: DecIn | None = None
+
+
+class Ticket(OrderSpec):
+    type: Literal["ticket"]
+
+
+class Propose(Strict):
+    type: Literal["propose"]
+    package_id: Id
+    orders: list[OrderSpec] = Field(max_length=50)
+    source_version: int | None = None
+
+
+class Sign(Strict):
+    type: Literal["sign"]
+    package_id: Id
+    digest: Id
+
+
+class Cancel(Strict):
+    type: Literal["cancel"]
+    order_id: Id
+
+
+class ResearchCommand(Strict):
+    """Legacy engine-script assignment; players use ``visit``."""
+    type: Literal["research"]
+    topic: Id
+
+
+class Visit(Strict):
+    type: Literal["visit"]
+    location: Id
+    assignment: Id
+
+
+class ShareResearch(Strict):
+    type: Literal["share_research"]
+    topic: Id
+
+
+class AcceptReplacement(Strict):
+    type: Literal["accept_replacement"]
+
+
+class SetReserve(Strict):
+    type: Literal["set_reserve"]
+    amount: DecIn
+
+
+class ResolveStatement(Strict):
+    type: Literal["resolve_statement"]
+    statement_id: Id
+    revision: int
+    version: int
+
+
+class Ready(Strict):
+    type: Literal["ready"]
+    version: int | None = None  # the room version the partner reviewed; clients should always send it
+    skip: bool = False
+
+
+class SetSpeed(Strict):
+    type: Literal["set_speed"]
+    speed: int
+
+
+class Say(Strict):
+    type: Literal["say"]
+    text: Annotated[str, StringConstraints(max_length=240)]
+    ref: Id | None = None  # what the message is about, e.g. the bot's "research:borrow"
+
+
+class Pause(Strict):
+    type: Literal["pause"]
+
+
+# ``tick`` is not here: only the server's clock issues it, never an HTTP client.
+Command = Annotated[
+    Ticket | Propose | Sign | Cancel | ResearchCommand | Visit | ShareResearch | AcceptReplacement | SetReserve
+    | ResolveStatement | Ready | SetSpeed | Say | Pause,
+    Field(discriminator="type"),
+]
+
+
+class CommandBody(RootModel[Command]):
+    """The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop."""
+
+
+COMMAND_TAGS = {get_args(m.model_fields["type"].annotation)[0] for m in get_args(get_args(Command)[0])}

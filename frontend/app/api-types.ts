@@ -190,6 +190,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcceptReplacement */
+        AcceptReplacement: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "accept_replacement";
+        };
         /** Assignment */
         Assignment: {
             /** Location */
@@ -216,6 +224,16 @@ export interface components {
             location: string;
             /** Window */
             window: number;
+        };
+        /** Cancel */
+        Cancel: {
+            /** Order Id */
+            order_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "cancel";
         };
         /** Chat */
         Chat: {
@@ -251,6 +269,11 @@ export interface components {
             /** Speed */
             speed: number;
         };
+        /**
+         * CommandBody
+         * @description The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop.
+         */
+        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"];
         /** DebriefRequest */
         DebriefRequest: {
             /** Omit Seq */
@@ -402,24 +425,24 @@ export interface components {
              * Horizon
              * @default 5
              */
-            horizon: number;
+            horizon?: number;
             /**
              * Long Shock
              * @default -0.15
              */
-            long_shock: string;
+            long_shock?: string;
             /**
              * Short Shock
              * @default 0.10
              */
-            short_shock: string;
+            short_shock?: string;
             /** Version */
             version: number;
             /**
              * Volume Scale
              * @default 1
              */
-            volume_scale: string;
+            volume_scale?: string;
         };
         /** NewRoom */
         NewRoom: {
@@ -427,17 +450,17 @@ export interface components {
              * Mp Name
              * @default
              */
-            mp_name: string;
+            mp_name?: string;
             /**
              * Pm Name
              * @default
              */
-            pm_name: string;
+            pm_name?: string;
             /**
              * Scenario
              * @default case1
              */
-            scenario: string;
+            scenario?: string;
             /** Solo Role */
             solo_role?: string | null;
         };
@@ -506,6 +529,22 @@ export interface components {
             /** Sym */
             sym: string;
         };
+        /** OrderSpec */
+        OrderSpec: {
+            /** Limit */
+            limit?: string | null;
+            /** Order Id */
+            order_id: string;
+            /** Qty */
+            qty: number;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "BUY" | "SELL" | "SHORT" | "COVER";
+            /** Sym */
+            sym: string;
+        };
         /** Outcome */
         Outcome: {
             /** Benchmark Return Bps */
@@ -570,6 +609,14 @@ export interface components {
             /** Sym */
             sym: string;
         };
+        /** Pause */
+        Pause: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "pause";
+        };
         /** Position */
         Position: {
             /** Borrowed */
@@ -582,6 +629,35 @@ export interface components {
             qty: number;
             /** Sym */
             sym: string;
+        };
+        /** Propose */
+        Propose: {
+            /** Orders */
+            orders: components["schemas"]["OrderSpec"][];
+            /** Package Id */
+            package_id: string;
+            /** Source Version */
+            source_version?: number | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "propose";
+        };
+        /** Ready */
+        Ready: {
+            /**
+             * Skip
+             * @default false
+             */
+            skip?: boolean;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ready";
+            /** Version */
+            version?: number | null;
         };
         /** Realtime */
         Realtime: {
@@ -635,6 +711,19 @@ export interface components {
             /** Used */
             used: components["schemas"]["ResearchUse"][];
         };
+        /**
+         * ResearchCommand
+         * @description Legacy engine-script assignment; players use ``visit``.
+         */
+        ResearchCommand: {
+            /** Topic */
+            topic: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "research";
+        };
         /** ResearchUse */
         ResearchUse: {
             /** Assigned Day */
@@ -645,6 +734,20 @@ export interface components {
             reveal_day: number;
             /** Topic */
             topic: string;
+        };
+        /** ResolveStatement */
+        ResolveStatement: {
+            /** Revision */
+            revision: number;
+            /** Statement Id */
+            statement_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "resolve_statement";
+            /** Version */
+            version: number;
         };
         /**
          * RoomView
@@ -701,6 +804,18 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** Say */
+        Say: {
+            /** Ref */
+            ref?: string | null;
+            /** Text */
+            text: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "say";
+        };
         /** Series */
         Series: {
             /** Hwm */
@@ -716,6 +831,69 @@ export interface components {
             /** Units */
             units: string;
         };
+        /** SetReserve */
+        SetReserve: {
+            /** Amount */
+            amount: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_reserve";
+        };
+        /** SetSpeed */
+        SetSpeed: {
+            /** Speed */
+            speed: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "set_speed";
+        };
+        /** ShareResearch */
+        ShareResearch: {
+            /** Topic */
+            topic: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "share_research";
+        };
+        /** Sign */
+        Sign: {
+            /** Digest */
+            digest: string;
+            /** Package Id */
+            package_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "sign";
+        };
+        /** Ticket */
+        Ticket: {
+            /** Limit */
+            limit?: string | null;
+            /** Order Id */
+            order_id: string;
+            /** Qty */
+            qty: number;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "BUY" | "SELL" | "SHORT" | "COVER";
+            /** Sym */
+            sym: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ticket";
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -728,6 +906,18 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** Visit */
+        Visit: {
+            /** Assignment */
+            assignment: string;
+            /** Location */
+            location: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "visit";
         };
     };
     responses: never;
@@ -829,9 +1019,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["CommandBody"];
             };
         };
         responses: {

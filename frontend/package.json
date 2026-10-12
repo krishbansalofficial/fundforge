@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "test": "node --experimental-strip-types --test app/exclusive.test.ts app/seat.test.ts",
-    "types": "openapi-typescript openapi.json -o app/api-types.ts"
+    "types": "openapi-typescript openapi.json --default-non-nullable false -o app/api-types.ts"
   },
   "dependencies": {
     "next": "^15.5.27",
