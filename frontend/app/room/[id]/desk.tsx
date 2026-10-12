@@ -183,7 +183,7 @@ function Ribbon({ v }: { v: View }) {
           {nxt && <> &ndash; next: {PHASE_LABEL[nxt.phase]}</>}
         </span>
       </div>
-      <ol className="days">
+      <ol className="days" tabIndex={0} aria-label="Season calendar">
         {DAYS.map((d) => (
           <li key={d} className={nxt && d === nxt.day ? "today" : ""}>
             <span className="day-n">Day {d}</span>
@@ -233,7 +233,7 @@ function Feed({ v }: { v: View }) {
     <section className="panel feed" aria-labelledby="feed-h" aria-live="polite">
       <h2 id="feed-h">Desk feed</h2>
       {items.length === 0 ? <p className="muted">Nothing published yet.</p> : (
-        <ul>
+        <ul tabIndex={0} aria-label="Published notices, newest first">
           {items.map((n, i) => (
             <li key={i} className={n.kind}>
               <span className="when">Day {n.day}</span>

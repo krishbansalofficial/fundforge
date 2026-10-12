@@ -17,6 +17,8 @@ dist/
 game/export/
 templates.tpz
 coverage/
+test-results/
+playwright-report/
 .DS_Store
 Thumbs.db
 # Data/model outputs require separate licensing and reproducibility decisions

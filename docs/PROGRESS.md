@@ -557,3 +557,35 @@ It writes a JSON evidence log (room, routes, timings, assignment window, package
 - It uses Godot clients rather than the roadmap's browser contexts, because the Godot client is the primary player surface.
 
 **One next task:** the owner decisions are unchanged. The next unblocked item is P2 Playwright end-to-end for the secondary web desk: two browser contexts play S2 to a WIN with axe accessibility checks, committed as a test (Playwright as a dev dependency), run in CI.
+
+## Browser end-to-end: two partners play S2 to a Win, with axe (P2), 12 October 2026
+
+New `frontend/e2e/s2.spec.ts` (Playwright 1.56.1 and `@axe-core/playwright` 4.13.0, pinned dev dependencies; the axe release was chosen because it had been out for two months). Two browser contexts open their seat links and play the designed S2 line entirely through the web desk:
+- **Day 12:** the MP assigns the borrow research.
+- **Day 14:** the MP accepts the replacement borrow.
+- **Day 16:** if a margin call is announced, the PM proposes an ALTO sale sized like the designed line (5× the deficit at the fixture's stressed maintenance rate) and the MP signs it.
+- **Day 18:** the PM proposes selling 20,000 BEAM and the MP signs.
+
+Both then mark Ready to the end. The test reads the API only to know the clock.
+
+**Assertions:** the outcome is WIN with the recall resolved by replacement borrow, both debriefs show "Win", and axe finds no serious or critical WCAG 2 A/AA violations on either desk at the start or either debrief at the end. Ready is version-bound, so a page that hasn't polled since its partner acted is refused as stale; the helper waits a poll interval and clicks again, as a player would.
+
+**Accessibility fixes (found by the test):**
+- Amber text when headroom is tight was 3.16:1 on the light background. New `--amber-text` `#875510` measures 5.34:1 and is also used for the Survival verdict; dark mode is unchanged at 7.82:1.
+- The scrolling desk feed and season calendar were not keyboard-scrollable; both now take focus and have a label.
+
+**Dependency note:** npm had auto-installed axe's `playwright-core` peer at the newest 1.64.0, a second, unpinned Playwright with incompatible types. An `overrides` entry pins it to 1.56.1. Licences are recorded in LIBRARY_RESEARCH; axe is MPL-2.0 and dev-only.
+
+**CI:** new `e2e` job with Postgres, the API, a production `next build` and `next start`, and Chromium from `npx playwright install --with-deps`; it uploads the Playwright trace on failure.
+
+**Validation:**
+- Passed four times locally, all drawing the base market (a uniform random draw); the first run failed only on the two axe violations above.
+- The rally path wasn't drawn. The test's decision logic was checked separately in the engine for both markets: base WIN with the cure, rally WIN without one (no margin call is announced there).
+- Frontend `tsc`, `npm test` (3 passed), `npm audit --omit=dev` (0 vulnerabilities) and `npm run build` passed.
+
+**Limitations:**
+- The README GIF isn't recorded.
+- The variant is random per room, so any one CI run covers one market.
+- My local runner initially left a `next-server` holding the port (fixed with a process group); that affected only the local harness.
+
+**One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked items are a server-side test hook to pin a room's variant for deterministic end-to-end coverage of both markets (test-only, so it needs care not to leak the variant), or the web desk's journal using the ledger cursor.

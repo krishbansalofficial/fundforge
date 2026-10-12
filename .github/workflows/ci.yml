@@ -52,6 +52,33 @@ jobs:
       - run: deploy/smoke.sh --build
       - if: failure()
         run: FUNDFORGE_DOMAIN=localhost POSTGRES_PASSWORD=unused docker compose -f deploy/compose.prod.yaml logs --no-color
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env: { POSTGRES_USER: fundforge, POSTGRES_PASSWORD: fundforge, POSTGRES_DB: fundforge }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U fundforge" --health-interval 2s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://fundforge:fundforge@localhost:5432/fundforge
+      API_URL: http://127.0.0.1:8011
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: cd backend && uv sync --locked --python 3.13
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: cd frontend && npm ci && npx playwright install --with-deps chromium && npm run build
+      - name: two browser contexts play S2 to a Win, with axe checks
+        run: |
+          (cd backend && FUNDFORGE_CLOCK=0 uv run uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1 &)
+          (cd frontend && npx next start -p 3011 > ../web.log 2>&1 &)
+          for i in $(seq 60); do curl -sf http://127.0.0.1:8011/api/ready && curl -sf -o /dev/null http://127.0.0.1:3011/ && break; sleep 1; done
+          cd frontend && npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: e2e-trace, path: frontend/test-results, retention-days: 7 }
   export:
     runs-on: ubuntu-latest
     services:  # for the co-op acceptance run against the exported build
