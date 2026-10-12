@@ -124,7 +124,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 - Kenney CC0 art pass, with provenance recorded in CREDITS.md.
 - Engine-enforced location assignments (below).
 - Audio. (Effects done 12 Oct 2026: synthesized in code by `game/scripts/sfx.gd`, no files or licences, mute on M and persisted. Music is open; an in-game Spotify integration would need an external service, OAuth secrets and the owner's authorization.)
-- Exported builds attached to GitHub releases: Windows, macOS, Linux, and a web export.
+- Exported builds attached to GitHub releases: Windows, macOS, Linux, and a web export. (12 Oct 2026: Linux and Windows test builds export and the Linux build boots in CI via `scripts/export_game.sh`, uploaded only on manual runs. Releases publish, so they wait for the owner; macOS needs signing and notarization; web needs the Compatibility renderer.)
 - A scripted two-client end-to-end run that records the trailer.
 
 **Amendment (from the world-design and world-tech skeptics).** The world's meaningful rules are engine-side, keyed by location rather than by pixel position:

@@ -13,6 +13,9 @@ __pycache__/
 node_modules/
 .next/
 dist/
+/export/
+game/export/
+templates.tpz
 coverage/
 .DS_Store
 Thumbs.db

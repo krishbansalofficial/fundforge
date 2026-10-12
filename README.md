@@ -104,6 +104,8 @@ All numbers below were observed at commit `7b066f2` on 8 October 2026.
 | Backend, with Postgres | `DATABASE_URL=postgresql://fundforge:fundforge@localhost:5432/fundforge uv run pytest -q` | 81 passed |
 | Game client, headless | `godot --headless --path game --script res://tests/run_tests.gd` | 35 checks ok, 0 failed |
 
+Desktop builds (12 October 2026): `scripts/export_game.sh GODOT_BINARY Godot_v4.7.2-stable_export_templates.tpz [OUT_DIR]` verifies the official templates' SHA-512, exports self-contained Linux and Windows executables, and boots the Linux build headless. CI runs it on every push; running the workflow by hand also uploads both builds as artifacts for 3 days. Run a build against a server with `FundForge.x86_64 --server=https://your-host`. These are unsigned test builds: macOS needs signing and notarization, and a web build needs the Compatibility renderer, so neither exists yet.
+
 What the tests cover:
 
 - accounting oracles (HWM crystallization, provision reversal, cohort allocation, partial redemption, residual rounding);

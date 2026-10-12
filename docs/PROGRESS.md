@@ -501,3 +501,28 @@ New `game/scripts/sfx.gd`. Nine cues are synthesized at runtime into 16-bit 22.0
 **Owner question (12 Oct):** can Spotify play in the app? Players can already run Spotify alongside the game; the OS mixes it, and the game's effects can be muted. Playing Spotify *inside* the Godot client isn't practical: Spotify's playback SDK runs in web browsers and needs Premium. What is feasible is remote-controlling the player's own Spotify app through the Web API, which needs a registered app, per-player OAuth, server-side secrets, a review of Spotify's developer terms, and the owner's authorization under CLAUDE.md's external-service rule. Not built. An original in-game soundtrack generated like the effects is the dependency-free alternative.
 
 **One next task:** the owner's choice on music (generated soundtrack, Spotify remote control, or none), plus the earlier open decisions (license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked item is P3 exported builds: Godot export presets for Linux/Windows/web built in CI as workflow artifacts (not releases, which publish), with a headless boot of the Linux export.
+
+## Desktop builds in CI (P3), 12 October 2026
+
+New `scripts/export_game.sh GODOT TEMPLATES.tpz [OUT_DIR]`:
+- checks the official `Godot_v4.7.2-stable_export_templates.tpz` (1.28 GB) against the release's published SHA-512 before extracting anything;
+- installs only the Linux and Windows release templates;
+- exports the existing presets to self-contained `FundForge.x86_64` and `FundForge.exe` (the presets embed the `.pck`);
+- boots the **exported** Linux binary headless, failing on any script, parse or load error.
+
+New CI job `export`: the templates are cached, the export and boot run on every push and pull request, and the binaries (about 290 MB per run) upload as artifacts only on a manual `workflow_dispatch`, with 3-day retention. That avoids a storage quota the owner hasn't approved. `.gitignore` now covers export output and the templates file.
+
+**Validation (local, sandbox):**
+- The templates' checksum verified.
+- Both exports succeeded: Linux 127 MB, Windows 163 MB.
+- The exported Linux build booted with no errors.
+- The exported Linux binary, not the editor, joined a live local API and stayed connected through a full solo game: SURVIVAL, 11 notices, 3 fills, 70 view polls, 0 errors.
+- My first run of the script wrongly required separate `.pck` files; fixed after reading the presets.
+- The CI job's first real run is the push of this commit.
+
+**Limitations:**
+- The builds are unsigned test builds, not releases (publishing waits for the owner).
+- There's no macOS build (it needs signing and notarization) and no web build (it needs the Compatibility renderer, and the office uses Forward+ effects).
+- The Windows build was exported but not run; there's no Windows runner here.
+
+**One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked item is P3 acceptance: a scripted two-client run where both partners split across two simultaneous crises (broker recall and LP redemption) and then meet to present a package. Drive two headless Godot clients plus presence, assert both sets of assignments and the joint package through the API, and record the log as evidence.
