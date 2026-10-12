@@ -54,7 +54,14 @@ jobs:
         run: FUNDFORGE_DOMAIN=localhost POSTGRES_PASSWORD=unused docker compose -f deploy/compose.prod.yaml logs --no-color
   export:
     runs-on: ubuntu-latest
+    services:  # for the co-op acceptance run against the exported build
+      postgres:
+        image: postgres:17-alpine
+        env: { POSTGRES_USER: fundforge, POSTGRES_PASSWORD: fundforge, POSTGRES_DB: fundforge }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U fundforge" --health-interval 2s --health-retries 20
     env:
+      DATABASE_URL: postgresql://fundforge:fundforge@localhost:5432/fundforge
       GODOT_URL: "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip"
       TEMPLATES_URL: "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz"
     steps:
@@ -64,6 +71,18 @@ jobs:
       - run: test -f templates.tpz || curl -sSL "$TEMPLATES_URL" -o templates.tpz
       - run: curl -sSL "$GODOT_URL" -o godot.zip && unzip -q godot.zip && mv Godot_v4.7.2-stable_linux.x86_64 godot
       - run: scripts/export_game.sh "$PWD/godot" templates.tpz export  # exports both, boots the Linux build
+      - uses: astral-sh/setup-uv@v5
+      - run: cd backend && uv sync --locked --python 3.13
+      - name: co-op acceptance with two exported clients (split across two crises, meet, sign a package)
+        run: |
+          cd backend
+          FUNDFORGE_CLOCK=0 uv run uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1 &
+          for i in $(seq 30); do curl -sf http://127.0.0.1:8011/api/ready && break; sleep 1; done
+          uv run python ../scripts/coop_acceptance.py --server http://127.0.0.1:8011 \
+            --godot "$GITHUB_WORKSPACE/export/linux/FundForge.x86_64" --exported --output ../coop-acceptance.json
+      - if: always()
+        uses: actions/upload-artifact@v4  # small: the evidence log, no seat tokens
+        with: { name: coop-acceptance, path: coop-acceptance.json, retention-days: 7, if-no-files-found: ignore }
       # Binaries are about 290 MB per run: upload only when someone runs the workflow by hand, and keep them briefly.
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4

@@ -24,7 +24,7 @@ func _ready() -> void:
 	_dev_flags()
 
 
-## Dev/CI flags: --server=URL --join=room:token --goto=location --terminal=MON --shot=path.png --shot-after=SECONDS --demo
+## Dev/CI flags: --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --shot=path.png --shot-after=SECONDS --demo
 ## (env FUNDFORGE_SERVER also sets the default server)
 func _dev_flags() -> void:
 	var args := _args
@@ -33,11 +33,16 @@ func _dev_flags() -> void:
 	if args.has("join"):
 		var parts: PackedStringArray = args["join"].split(":")
 		_enter(_server, parts[0], parts[1])
-	if args.has("goto"):
+	if args.has("goto"):  # "risk", or a timed route such as "research@1,committee@15" (seconds after joining)
 		await get_tree().create_timer(1.5).timeout
-		if office:
-			var spot: Vector2 = WorldRules.LOCATIONS[args["goto"]]["spot"]
-			office.me.walk_to(Vector3(spot.x, 0.0, spot.y))
+		var elapsed := 0.0
+		for step in WorldRules.parse_route(str(args["goto"])):
+			if float(step[1]) > elapsed:
+				await get_tree().create_timer(float(step[1]) - elapsed).timeout
+				elapsed = float(step[1])
+			if office:
+				var spot: Vector2 = WorldRules.LOCATIONS[step[0]]["spot"]
+				office.me.walk_to(Vector3(spot.x, 0.0, spot.y))
 	if args.has("terminal"):
 		# Screenshot/smoke option: waits for a real room view before opening the terminal.
 		for _attempt in range(100):

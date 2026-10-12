@@ -135,7 +135,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
 Mandatory notices, already-authorized orders and emergency remediation stay reachable from anywhere. Signing does not require proximity. The committee room is where packages are presented, but desk mode stays fully playable.
 
 Acceptance:
-- A two-context Playwright run where both partners split up across two crises and then meet to present a package.
+- A two-context Playwright run where both partners split up across two crises and then meet to present a package. (12 Oct 2026: done with two exported Godot clients instead of browsers, `scripts/coop_acceptance.py`, in CI; no video recorded.)
 - A WebSocket test proving that avatar traffic never changes the journal digest.
 - A 60 fps budget on mid hardware, and a bundle-size budget.
 

@@ -526,3 +526,34 @@ New CI job `export`: the templates are cached, the export and boot run on every 
 - The Windows build was exported but not run; there's no Windows runner here.
 
 **One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked item is P3 acceptance: a scripted two-client run where both partners split across two simultaneous crises (broker recall and LP redemption) and then meet to present a package. Drive two headless Godot clients plus presence, assert both sets of assignments and the joint package through the API, and record the log as evidence.
+
+## Co-op acceptance: split across two crises, then meet (P3), 12 October 2026
+
+New `scripts/coop_acceptance.py`. Two real headless Godot clients join one room. The PM walks to the research library (the BRIN demand survey) and the MP crosses the street to the prime broker (the recall borrow); at 14 s both walk to the committee room. Each seat has an extra presence socket that observes the other avatar's actual position, so the evidence comes from the clients, not from the script's intentions.
+
+**Assertions:**
+1. The partners stand in different crisis locations at the same moment.
+2. Both `visit` assignments are accepted and recorded in the same decision window.
+3. Both reach the committee room; the PM proposes the BRIN cover package and the MP countersigns it (`AUTHORIZED_QUEUED`).
+4. The room verifies at exactly version 4.
+5. Neither client printed a script or engine error.
+
+It writes a JSON evidence log (room, routes, timings, assignment window, package digest, verify heads, and the observed location timeline; no seat tokens).
+
+**Client change:** `--goto` now accepts a timed route such as `research@1,committee@14`, parsed by `WorldRules.parse_route`; plain `--goto=risk` still works. The script keeps HTTP off its event loop so the observers' sockets stay serviced.
+
+**CI:** the `export` job now starts Postgres and the API and runs the acceptance with the **exported** Linux build it just produced, then uploads the small evidence log.
+
+**Validation:**
+- Passed locally with editor clients (split at 10.1 s, met at 21.8 s) and with exported clients (split at 9.5 s, met at 21.2 s).
+- The observed timeline is physically plausible: the MP walks risk → LP lounge → back office → broker; the PM walks trading → research.
+- Negative check: a scratch copy where the MP follows the PM to research fails with "timed out after 25 s waiting for the partners to split up", for both client kinds.
+- No client processes were left behind.
+- Godot: **144 checks, 0 failures** (3 new route checks).
+
+**Limitations:**
+- Headless, so no video or GIF was recorded.
+- It is scripted movement, not a human playtest.
+- It uses Godot clients rather than the roadmap's browser contexts, because the Godot client is the primary player surface.
+
+**One next task:** the owner decisions are unchanged. The next unblocked item is P2 Playwright end-to-end for the secondary web desk: two browser contexts play S2 to a WIN with axe accessibility checks, committed as a test (Playwright as a dev dependency), run in CI.

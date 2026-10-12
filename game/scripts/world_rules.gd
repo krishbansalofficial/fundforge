@@ -148,6 +148,19 @@ static func header_value(headers: PackedStringArray, name: String) -> String:
 	return ""
 
 
+## Dev/CI walking route for --goto: "risk" or "research@1,committee@15" -> [[location, seconds after join], ...].
+## Unknown locations are dropped; steps come back in time order.
+static func parse_route(text: String) -> Array:
+	var out: Array = []
+	for part in text.split(",", false):
+		var bits := part.strip_edges().split("@")
+		var loc := bits[0]
+		if LOCATIONS.has(loc):
+			out.append([loc, float(bits[1]) if bits.size() > 1 and bits[1].is_valid_float() else 0.0])
+	out.sort_custom(func(a, b): return a[1] < b[1])
+	return out
+
+
 ## Live presence (backend fundforge/presence.py): cosmetic partner positions, never economic state.
 const PRESENCE_SEND_SECONDS := 0.15  # under the server's 10 moves/s budget
 const PRESENCE_MIN_STEP := 0.05  # world units; smaller moves are not worth a frame

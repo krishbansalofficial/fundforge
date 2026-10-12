@@ -68,6 +68,12 @@ func _initialize() -> void:
 	check(WorldRules.header_value(hdrs, "etag") == "\"v7-1\"", "etag header read case-insensitively")
 	check(WorldRules.header_value(hdrs, "x-missing") == "", "absent header is empty")
 
+	# --goto routes for scripted runs
+	check(WorldRules.parse_route("risk") == [["risk", 0.0]], "plain goto is an immediate route")
+	check(WorldRules.parse_route("committee@15, research@1,vault@3,broker@x") == [["broker", 0.0], ["research", 1.0], ["committee", 15.0]],
+			"route sorted by time, unknown places dropped, bad time means now")
+	check(WorldRules.parse_route("").is_empty(), "empty route")
+
 	# sound: synthesized cues, effect mapping and fill detection
 	for cue in Sfx.CUES:
 		var pcm := Sfx.synth(cue)
