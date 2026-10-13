@@ -11,12 +11,30 @@ export type Outcome = Schemas["Outcome"];
 export type Decision = Schemas["Decision"];
 export type LedgerPage = Schemas["LedgerPage"];
 export type NewRoom = Schemas["NewRoomResponse"];
+export type TerminalView = Schemas["TerminalView"];
+export type Debrief = Schemas["Debrief"];
+export type Forecast = Schemas["Forecast"];
 /** Any command `POST /api/rooms/{id}/commands` accepts; `type` selects the shape. */
 export type Command = NonNullable<paths["/api/rooms/{room_id}/commands"]["post"]["requestBody"]>["content"]["application/json"];
 export type Side = Schemas["OrderSpec"]["side"];
 
 export const money = (s: string | null | undefined, dp = 0) =>
   s == null ? "—" : Number(s).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: dp, maximumFractionDigits: dp });
+
+/** Every count in the desk goes through here: a fixed locale, so no reader sees "1,00,000". */
+export const num = (n: number | string | null | undefined) => (n == null ? "—" : Number(n).toLocaleString("en-US"));
+
+/** 1 - p as an exact decimal string, for p in [0, 1] with at most 6 decimals; null if p is not one.
+ *  Integer micro-units, never float arithmetic: 1 - "0.3" is "0.7", not "0.7000000000000001". */
+export function complement(p: string): string | null {
+  const m = /^(0|1)(?:\.(\d{1,6}))?$/.exec(p.trim());
+  if (!m) return null;
+  const micro = Number(m[1]) * 1_000_000 + Number((m[2] ?? "").padEnd(6, "0"));
+  if (micro > 1_000_000) return null;
+  const rest = 1_000_000 - micro;
+  const frac = String(rest % 1_000_000).padStart(6, "0").replace(/0+$/, "");
+  return `${Math.floor(rest / 1_000_000)}${frac ? `.${frac}` : ""}`;
+}
 
 export const pct = (s: string | null | undefined) => (s == null ? "—" : `${(Number(s) * 100).toFixed(1)}%`);
 

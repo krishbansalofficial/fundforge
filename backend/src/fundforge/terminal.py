@@ -10,7 +10,9 @@ from decimal import Decimal, localcontext
 from typing import Any
 
 from .engine import Engine, Loan
+from .generator import MACRO_SERIES, Spec
 from .money import CTX, D, cents
+from .research import regime_question
 
 TERMINAL_VERSION = "forge-terminal-v1"
 HISTORY_LIMIT = 512
@@ -101,4 +103,9 @@ def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
                         "filled": o.filled, "remaining": o.remaining, "status": o.status,
                         "forced": o.forced, "fills": [dict(f) for f in o.fills]} for o in e.orders[-100:]],
             "league": [dict(r) for r in e.league()],
+            # Indicator prints published by today; a later revision stays hidden until its own day.
+            "macro": [{"series": o.instrument, "period_day": o.event_time, "published_day": o.available_at,
+                       "revision": o.revision, "value": str(o.value)} for o in e.tape.macro.known(e.ev.day)],
+            # Generated markets only: the live regime question from the same published prints (rooms use Spec()).
+            "regime": regime_question(e.tape.macro.known(e.ev.day, MACRO_SERIES), Spec()),
         }

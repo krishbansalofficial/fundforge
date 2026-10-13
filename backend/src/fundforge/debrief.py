@@ -2,14 +2,42 @@
 
 import copy
 import hashlib
+from decimal import Decimal
+from fractions import Fraction
 from typing import Any
 
+from . import investors
 from .engine import RULES_VERSION, CommandRejected, Engine
-from .governance import CLOCK, Session, canonical
+from .governance import CLOCK, ROLES, Session, canonical
 from .money import D, cents
+from .research import brier, shown
 
 OMITTABLE = {"ticket", "propose", "cancel", "research", "visit", "share_research", "accept_replacement", "set_reserve",
-            "resolve_statement"}
+            "resolve_statement", "contact_lp", "propose_gate"}
+
+
+def research_scores(source: Session) -> dict[str, Any]:
+    """Each seat's latest thesis per question against the revealed regime, Brier-scored beside P&L, never in it."""
+    truth = {day: regime for day, regime in source.e.tape.raw.get("generator", {}).get("regimes", [])}
+    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    for item in source.log:
+        if item["command"]["type"] == "thesis":
+            latest[(item["role"], item["result"]["question"])] = item
+    theses = []
+    for (role, question), item in sorted(latest.items()):
+        day = int(question.split(":")[1])
+        forecast = item["result"]["forecast"]
+        theses.append({"role": role, "question": question, "period_day": day, "recorded_day": item["day"],
+                       "forecast": forecast, "true_regime": truth[day],
+                       "brier": brier({s: Decimal(v) for s, v in forecast.items()}, truth[day])})
+    seats = {}
+    for role in ROLES:
+        mine = [t["brier"] for t in theses if t["role"] == role]
+        seats[role] = {"theses": len(mine),
+                       "mean_brier": str(shown({"m": sum(mine, Fraction(0)) / len(mine)})["m"]) if mine else None}
+    return {"theses": [{**t, "brier": str(shown({"b": t["brier"]})["b"])} for t in theses], "seats": seats,
+            "policy": "Multi-state Brier score (0 perfect, 2 certain and wrong) of each seat's latest thesis per "
+                      "question. Reported beside P&L; it never changes NAV, score or rank."}
 
 
 def _state(e: Engine) -> dict[str, Any]:
@@ -69,6 +97,8 @@ def replay(source: Session, omit_seq: int | None = None) -> dict[str, Any]:
             "omitted_seq": omit_seq, "finished": branch.e.finished(), "state": _state(branch.e),
             "outcome": branch.e.outcome(), "source_outcome": source.e.outcome(),
             "nav_difference": str(cents(branch.e.nav() - source.e.nav())),
+            "research": research_scores(source),
+            **({"investors": investors.debrief(source.e)} if source.e.lp else {}),
             "timeline": timeline, "rejected": rejected, "incidents": copy.deepcopy(branch.e.incident_events),
             "policy": "Completed-run counterfactual. Omit one decision, retry the original suffix, "
             "rebind ready/tick/review versions, preserve signatures and report rejected commands. "

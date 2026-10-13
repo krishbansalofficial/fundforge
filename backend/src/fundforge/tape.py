@@ -13,6 +13,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from .asof import AsOfError, AsOfTape, Observation
 from .broker import validate_statements
 from .money import D
 
@@ -68,9 +69,22 @@ class Tape:
     def instruments(self) -> list[str]:
         return list(self.raw["instruments"])
 
+    @property
+    def macro(self) -> AsOfTape:
+        """Published indicator prints with revisions; times are scenario days."""
+        return macro_tape(self.raw)
+
     def margin(self, day: int) -> Margin:
         row = [m for m in self.raw["margin_schedule"] if m["from_day"] <= day][-1]
         return {k: {s: D(v) for s, v in row[k].items()} for k in ("initial", "maintenance")}
+
+
+def macro_tape(raw: dict[str, Any]) -> AsOfTape:
+    try:
+        return AsOfTape(tuple(Observation(o["instrument"], o["event_time"], o["available_at"], o["revision"],
+                                          _money(o["value"], "macro.value")) for o in raw.get("macro", [])))
+    except (AsOfError, KeyError, TypeError) as exc:
+        raise TapeError(f"macro: {exc}") from exc
 
 
 def load(path: str | Path, variant: str | None = None) -> Tape:
@@ -102,6 +116,7 @@ def compile_tape(raw: dict[str, Any], variant: str | None = None) -> Tape:
         validate_statements(raw.get("broker_statements", []), cal["start_day"], cal["end_day"])
     except ValueError as exc:
         raise TapeError(f"broker_statements: {exc}") from exc
+    macro_tape(raw)
     research = raw["research"]
     assignments = research.get("assignments", {})
     if (set(assignments) != set(research["topics"])

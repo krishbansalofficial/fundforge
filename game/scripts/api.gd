@@ -26,6 +26,7 @@ var _ws: WebSocketPeer
 var _ws_hello := false
 var _ws_attempt := 0
 var _ws_retry_at := 0.0
+var _ws_opened := false  # a socket reached OPEN since join; until then, handshakes are limited
 var _last_sent := Vector3(-1, -1, -1)
 var _last_sent_at := 0.0
 
@@ -45,6 +46,7 @@ func join(url: String, room: String, seat_token: String) -> void:
 	_close_presence()
 	_ws_attempt = 0
 	_ws_retry_at = 0.0
+	_ws_opened = false
 	_poll_timer.start()
 	_poll()
 
@@ -146,7 +148,7 @@ func _process(_delta: float) -> void:
 		return
 	var now := Time.get_ticks_msec() / 1000.0
 	if _ws == null:
-		if now >= _ws_retry_at:
+		if now >= _ws_retry_at and WorldRules.presence_retry(_ws_attempt, _ws_opened):
 			_ws = WebSocketPeer.new()
 			_ws_hello = false
 			if _ws.connect_to_url(WorldRules.presence_url(base_url, room_id)) != OK:
@@ -157,6 +159,7 @@ func _process(_delta: float) -> void:
 		WebSocketPeer.STATE_OPEN:
 			if not _ws_hello:
 				_ws_hello = true
+				_ws_opened = true
 				_ws.send_text(JSON.stringify({"type": "hello", "token": token}))
 			while _ws.get_available_packet_count() > 0:
 				var msg: Variant = JSON.parse_string(_ws.get_packet().get_string_from_utf8())

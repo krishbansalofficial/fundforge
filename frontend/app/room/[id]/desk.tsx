@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
-import { api, fetchView, money, pct, type Command, type Decision, type LedgerPage, type Side, type View } from "../../lib";
+import { api, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
+import { Terminal, type Send, type Thesis } from "./terminal";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
@@ -35,7 +36,7 @@ export default function Desk({ roomId }: { roomId: string }) {
   const [v, setV] = useState<View | null>(null);
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
-  const [tab, setTab] = useState<"orders" | "investors" | "ledger" | "debrief">("orders");
+  const [tab, setTab] = useState<"orders" | "terminal" | "investors" | "ledger" | "debrief">("orders");
 
   const etag = useRef("");
   const refresh = useCallback(async () => {
@@ -113,7 +114,7 @@ export default function Desk({ roomId }: { roomId: string }) {
       )}
       {v.recall.open > 0 && (
         <p className="alert soft" role="status">
-          {v.recall.open.toLocaleString()} BRIN recalled. Cover by day 15 15:00
+          {num(v.recall.open)} BRIN recalled. Cover by day 15 15:00
           {v.recall.offer_visible ? ", or accept the replacement borrow before day 14 15:00." : "."} Otherwise a forced buy-in executes.
         </p>
       )}
@@ -128,16 +129,18 @@ export default function Desk({ roomId }: { roomId: string }) {
       </div>
 
       <nav className="tabs" aria-label="Records">
-        {(["orders", "investors", "ledger", "debrief"] as const).map((t) => (
+        {(["orders", "terminal", "investors", "ledger", "debrief"] as const).map((t) => (
           <button key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => setTab(t)}>
-            {{ orders: "Orders and packages", investors: "Investors", ledger: "Ledger", debrief: "Debrief" }[t]}
+            {{ orders: "Orders and packages", terminal: "Terminal", investors: "Investors", ledger: "Ledger", debrief: "Debrief" }[t]}
           </button>
         ))}
       </nav>
       {tab === "orders" && <fieldset className="contents" disabled={busy}><Orders v={v} me={me} send={send} /></fieldset>}
-      {tab === "investors" && <Investors v={v} />}
+      {tab === "terminal" && token && <Terminal roomId={roomId} token={token} version={v.version} send={send} busy={busy}
+        theses={v.decisions.filter((d) => d.type === "thesis" && d.role === me).map((d) => d.detail as Thesis)} />}
+      {tab === "investors" && <fieldset className="contents" disabled={busy}><Investors v={v} send={send} /></fieldset>}
       {tab === "ledger" && token && <Ledger roomId={roomId} token={token} version={v.version} />}
-      {tab === "debrief" && <Debrief v={v} headroom={headroom} />}
+      {tab === "debrief" && <Debrief v={v} headroom={headroom} roomId={roomId} token={token} />}
     </main>
   );
 }
@@ -211,10 +214,10 @@ function Positions({ v }: { v: View }) {
           {rows.map((p) => (
             <tr key={p.sym} className={p.qty < 0 ? "short" : ""}>
               <td>{p.sym}</td>
-              <td className="n">{p.qty.toLocaleString()}</td>
+              <td className="n">{num(p.qty)}</td>
               <td className="n">{Number(p.mark).toFixed(2)}</td>
               <td className="n">{money(p.mv)}</td>
-              <td className="n">{p.borrowed ? p.borrowed.toLocaleString() : ""}</td>
+              <td className="n">{p.borrowed ? num(p.borrowed) : ""}</td>
             </tr>
           ))}
         </tbody>
@@ -246,7 +249,6 @@ function Feed({ v }: { v: View }) {
   );
 }
 
-type Send = (cmd: Command, done?: string) => Promise<void>;
 
 function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
   const [sym, setSym] = useState("BEAM");
@@ -343,9 +345,10 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
       {waiting.map((p) => (
         <div key={p.package_id} className="to-sign">
           <p>{v.names[partner]} asks you to approve:</p>
-          <ul>{p.orders.map((o) => <li key={o.order_id}>{o.side} {Number(o.qty).toLocaleString()} {o.sym}{o.limit ? ` limit ${o.limit}` : ""}</li>)}</ul>
+          <ul>{p.orders.map((o) => <li key={o.order_id}>{o.side} {num(o.qty)} {o.sym}{o.limit ? ` limit ${o.limit}` : ""}</li>)}</ul>
+          {p.kind === "gate" && <p>{gateText(p.terms)}</p>}
           <p className="digest" title="Your signature binds to this exact content hash">Contents hash {p.digest.slice(0, 12)}</p>
-          <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, "Signed. The package executes at the next execution.")}>Sign package</button>
+          <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, p.kind === "gate" ? "Signed. Both partners elected the redemption gate." : "Signed. The package executes at the next execution.")}>Sign package</button>
         </div>
       ))}
       {!v.clock.finished && (
@@ -368,10 +371,10 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
           {[...v.orders].reverse().map((o) => (
             <tr key={o.order_id} className={o.forced ? "forced" : ""}>
               <td>{o.forced ? `Broker forced (${o.forced})` : o.order_id}</td>
-              <td>{o.side} {o.qty.toLocaleString()} {o.sym}</td>
-              <td className="n">{o.filled.toLocaleString()}</td>
+              <td>{o.side} {num(o.qty)} {o.sym}</td>
+              <td className="n">{num(o.filled)}</td>
               <td>{o.status.replaceAll("_", " ").toLowerCase()}</td>
-              <td>{o.fills.map((x, i) => <div key={i}>{"rejected" in x ? `Rejected: ${x.rejected}` : `Day ${x.day} ${x.qty.toLocaleString()} @ ${x.price}`}</div>)}</td>
+              <td>{o.fills.map((x, i) => <div key={i}>{"rejected" in x ? `Rejected: ${x.rejected}` : `Day ${x.day} ${num(x.qty)} @ ${x.price}`}</div>)}</td>
               <td>{["QUEUED", "PARTIALLY_FILLED"].includes(o.status) && !o.forced && <button type="button" className="link" onClick={() => send({ type: "cancel", order_id: o.order_id }, "Order canceled.")}>Cancel</button>}</td>
             </tr>
           ))}
@@ -385,7 +388,7 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
               <tr key={p.package_id}>
                 <td>{p.digest.slice(0, 10)}</td>
                 <td>{v.names[p.proposer]}{p.proposer === me ? " (you)" : ""}</td>
-                <td>{p.orders.map((o) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
+                <td>{p.kind === "gate" ? gateText(p.terms) : p.orders.map((o) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
                 <td>{p.signatures.map((s: string) => v.names[s]).join(" and ")}</td>
                 <td>{p.status.replaceAll("_", " ").toLowerCase()}</td>
               </tr>
@@ -397,14 +400,47 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
   );
 }
 
-function Investors({ v }: { v: View }) {
+function gateText(terms: Record<string, unknown>): string {
+  const requests = (terms.requests ?? {}) as Record<string, string>;
+  return `Gate for the day ${terms.deal_day} dealing close, binding requests: ${Object.entries(requests).sort(([a], [b]) => a.localeCompare(b)).map(([id, units]) => `${id} ${units} units`).join(", ")}. At most 20% of pre-flow NAV is dealt, pro rata; undealt units stay invested and carry forward.`;
+}
+
+function Investors({ v, send }: { v: View; send: (c: Command, done?: string) => Promise<void> }) {
+  const inbox = v.role === "mp" ? v.investors : null;
+  const requests = Object.fromEntries((inbox?.lps ?? []).filter((lp) => lp.requested_units != null).map((lp) => [lp.id, lp.requested_units]));
+  const pendingGates = v.packages.filter((p) => p.kind === "gate" && p.status === "PENDING_APPROVAL");
+  const openGate = pendingGates.some((p) => {
+    const bound = (p.terms.requests ?? {}) as Record<string, string>;
+    return p.terms.deal_day === inbox?.deal_day && Object.keys(bound).length === Object.keys(requests).length &&
+      Object.entries(bound).every(([id, units]) => requests[id] === units);
+  });
+  const canGate = inbox && !v.clock.finished && !inbox.gate_elected && inbox.deal_day != null && v.clock.day <= inbox.deal_day && Object.keys(requests).length > 0;
   return (
     <section className="panel wide">
+      <h2>Investor relationships</h2>
+      {inbox ? <>
+        <p>{inbox.policy}</p>
+        {inbox.lps.map((lp) => {
+          const reason = v.clock.finished ? "The run has ended." : v.attention?.committed ? "Attention already committed for this window." : v.clock.day > 15 ? "No LP review remains in this window." : lp.contacted ? "Already contacted before the next review." : "";
+          return <article key={lp.id}>
+            <h3>{lp.id}: {lp.band.replaceAll("_", " ")}</h3>
+            {lp.requested_units != null && <p>Redemption request {lp.requested_units} units, dealt at the day {inbox.deal_day} close, payable day {Number(inbox.deal_day) + 1}.</p>}
+            {lp.carried_units != null && <p>Carried by a gate: {lp.carried_units} units, still invested.</p>}
+            <button type="button" disabled={Boolean(reason)} onClick={() => send({ type: "contact_lp", lp: lp.id }, `Contacted ${lp.id}; attention committed for this window.`)}>Contact {lp.id}</button>
+            {reason && <p className="muted">{reason}</p>}
+          </article>;
+        })}
+        {canGate && <p>{gateText({ deal_day: inbox.deal_day, requests })}</p>}
+        <button type="button" disabled={!canGate || openGate} onClick={() => send({ type: "propose_gate", package_id: crypto.randomUUID() }, "Gate proposed for your partner's signature.")}>Propose gate</button>
+        {inbox.gate_elected && <p>Both partners elected the gate for day {inbox.deal_day}.</p>}
+        {openGate && <p>A gate proposal awaits your partner's signature.</p>}
+        {canGate && !openGate && pendingGates.length > 0 && <p role="status">The pending gate binds earlier requests. Propose a fresh gate for the current requests; the previous package stays in the record.</p>}
+      </> : <p className="muted">The private investor inbox belongs to the managing partner in generated-market rooms. Published redemption notices and gate packages are shared.</p>}
       <table>
         <thead><tr><th>Series</th><th className="n">Units</th><th className="n">Net capital</th><th className="n">NAV per unit</th><th className="n">High-water mark</th><th className="n">Performance provision</th></tr></thead>
         <tbody>
           {v.series.map((s) => (
-            <tr key={s.id}><td>{s.id}</td><td className="n">{Number(s.units).toLocaleString()}</td><td className="n">{money(s.net, 2)}</td>
+            <tr key={s.id}><td>{s.id}</td><td className="n">{num(s.units)}</td><td className="n">{money(s.net, 2)}</td>
               <td className="n">{Number(s.nav_per_unit).toFixed(4)}</td><td className="n">{Number(s.hwm).toFixed(2)}</td><td className="n">{money(s.provision, 2)}</td></tr>
           ))}
         </tbody>
@@ -414,26 +450,95 @@ function Investors({ v }: { v: View }) {
   );
 }
 
+const JOURNAL_WINDOW = 100; // entries in the DOM at once; search still covers every loaded entry
+
 function Ledger({ roomId, token, version }: { roomId: string; token: string; version: number }) {
   const [entity, setEntity] = useState<"fund" | "firm">("fund");
+  const [search, setSearch] = useState("");
   const [data, setData] = useState<LedgerPage | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const cache = useRef<{ roomId: string; token: string; entity: string; page: LedgerPage } | null>(null);
   useEffect(() => {
-    api(`/api/rooms/${roomId}/ledger?entity=${entity}`, token).then((page: LedgerPage) => setData(page)).catch(() => setData(null));
-  }, [roomId, token, entity, version]);
-  const entries = useMemo(() => (data ? [...data.entries].reverse() : []), [data]);
+    let cancelled = false;
+    const previous = cache.current;
+    const sameJournal = previous?.roomId === roomId && previous.token === token && previous.entity === entity;
+    if (!sameJournal) setData(null);
+    setError(null);
+    async function refresh() {
+      let cursor = sameJournal ? previous.page.next : 0;
+      const entries = sameJournal ? [...previous.page.entries] : [];
+      // A full page may have a successor. An empty page still refreshes the digest.
+      while (!cancelled) {
+        const page: LedgerPage = await api(`/api/rooms/${roomId}/ledger?entity=${entity}&after=${cursor}`, token);
+        if (cancelled) return;
+        if (page.next !== cursor + page.entries.length) throw new Error("Invalid journal cursor");
+        entries.push(...page.entries);
+        cursor = page.next;
+        if (page.entries.length < 1000) {
+          const complete = { ...page, entries };
+          cache.current = { roomId, token, entity, page: complete };
+          setData(complete);
+          return;
+        }
+      }
+    }
+    refresh().catch((e: unknown) => {
+      if (!cancelled) setError(e instanceof Error ? e.message : "Journal unavailable");
+    });
+    return () => { cancelled = true; };
+  }, [roomId, token, entity, version, retry]);
+  const entries = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return (data ? [...data.entries].reverse() : []).filter((entry) => !query ||
+      [entry.date, entry.id, entry.memo, ...entry.postings.map(([account]) => account)]
+        .some((value) => value.toLowerCase().includes(query)));
+  }, [data, search]);
+  // Render one window of the newest-first matches. A reader on an older window keeps the same entries
+  // when new ones arrive; switching journal or search returns to the newest.
+  const [start, setStart] = useState(0);
+  const seen = useRef({ view: "", count: 0 });
+  useEffect(() => {
+    const view = `${roomId}|${entity}|${search}`;
+    const grew = seen.current.view === view ? entries.length - seen.current.count : 0;
+    const changed = seen.current.view !== view;
+    seen.current = { view, count: entries.length };
+    setStart((s) => (changed ? 0 : s > 0 && grew > 0 ? s + grew : s));
+  }, [entries, roomId, entity, search]);
+  const first = start < entries.length ? start : Math.max(0, entries.length - JOURNAL_WINDOW);
+  const visible = entries.slice(first, first + JOURNAL_WINDOW);
   return (
     <section className="panel wide ledger">
       <div className="row">
-        <button type="button" className={entity === "fund" ? "on" : "secondary"} onClick={() => setEntity("fund")}>Fund journal</button>
-        <button type="button" className={entity === "firm" ? "on" : "secondary"} onClick={() => setEntity("firm")}>Management company journal</button>
+        <button type="button" aria-pressed={entity === "fund"} className={entity === "fund" ? "on" : "secondary"} onClick={() => setEntity("fund")}>Fund journal</button>
+        <button type="button" aria-pressed={entity === "firm"} className={entity === "firm" ? "on" : "secondary"} onClick={() => setEntity("firm")}>Management company journal</button>
         {data && <span className="digest" title="SHA-256 over every entry; identical inputs replay to the same hash">Journal hash {data.digest.slice(0, 16)}</span>}
       </div>
+      <label>Search journal
+        <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Date, entry or account" />
+      </label>
+      {!data && !error && <p role="status">Loading journal entries…</p>}
+      {data && entries.length > 0 && <div className="row">
+        <p className="muted" role="status">
+          Showing {num(first + 1)}–{num(first + visible.length)} of {num(entries.length)}{" "}
+          {search.trim() ? `matching entries (${num(data.entries.length)} loaded)` : "journal entries"}, newest first.
+        </p>
+        <button type="button" className="secondary" disabled={first === 0}
+          onClick={() => setStart(Math.max(0, first - JOURNAL_WINDOW))}>Newer entries</button>
+        <button type="button" className="secondary" disabled={first + JOURNAL_WINDOW >= entries.length}
+          onClick={() => setStart(first + JOURNAL_WINDOW)}>Older entries</button>
+      </div>}
+      {data && entries.length === 0 && <p role="status">{search.trim() ? "No journal entries match your search." : "No journal entries yet."}</p>}
+      {error && <div>
+        <p role="alert">{error}. {data ? "Showing previously loaded entries." : "Journal could not be loaded."}</p>
+        <button type="button" onClick={() => setRetry((value) => value + 1)}>Retry journal</button>
+      </div>}
       <table>
         <thead><tr><th>Date</th><th>Entry</th><th>Account</th><th className="n">Debit</th><th className="n">Credit</th></tr></thead>
         <tbody>
-          {entries.slice(0, 150).flatMap((e) =>
+          {visible.flatMap((e) =>
             e.postings.map(([acct, amt], i) => (
-              <tr key={e.id + i} className={i === 0 ? "entry-start" : ""}>
+              <tr key={`${e.id}:${i}`} className={i === 0 ? "entry-start" : ""}>
                 <td>{i === 0 ? e.date : ""}</td><td>{i === 0 ? e.memo : ""}</td><td>{acct}</td>
                 <td className="n">{Number(amt) > 0 ? money(amt, 2) : ""}</td><td className="n">{Number(amt) < 0 ? money(String(-Number(amt)), 2) : ""}</td>
               </tr>
@@ -445,7 +550,7 @@ function Ledger({ roomId, token, version }: { roomId: string; token: string; ver
   );
 }
 
-function Debrief({ v, headroom }: { v: View; headroom: number }) {
+function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; roomId: string; token: string | null }) {
   const o = v.outcome;
   if (!o) {
     return (
@@ -465,12 +570,21 @@ function Debrief({ v, headroom }: { v: View; headroom: number }) {
       <p>{verdict[o.label]}</p>
       <dl>
         <dt>Ending NAV</dt><dd>{money(o.nav, 2)}</dd>
+        <dt>Scenario</dt><dd>{o.scenario}</dd>
+        <dt>Maximum drawdown</dt><dd>{(Number(o.max_drawdown) * 100).toFixed(4)}% of NAV per unit, measured at business-day closes</dd>
+        {o.generated_days != null && o.stressed_days != null && <>
+          <dt>Generated market</dt><dd>{num(o.stressed_days)} stressed days out of {num(o.generated_days)} generated days</dd>
+        </>}
+        {o.seed_commitment && <>
+          <dt>Seed SHA-256</dt><dd className="digest">{o.seed_commitment}</dd>
+        </>}
         <dt>Tactical redemption paid</dt><dd>{money(o.redemption_paid, 2)}</dd>
         <dt>Recall resolved by</dt><dd>{o.recall_resolved_by ?? "unresolved"}</dd>
         <dt>Forced actions</dt><dd>{o.forced.length ? o.forced.join("; ") : "none"}</dd>
         <dt>Unpaid or failed</dt><dd>{o.unpaid.length ? o.unpaid.join("; ") : "none"}</dd>
         <dt>Replay proof</dt><dd className="digest">tape {o.tape_digest.slice(0, 12)}, journal {o.journal_digest.slice(0, 12)}</dd>
       </dl>
+      {token && <ResearchScores v={v} roomId={roomId} token={token} />}
       <h2>How you got here</h2>
       {v.decisions.length === 0 ? <p className="muted">Neither partner acted; the tape and the broker decided.</p> : (
         <ol className="decisions">
@@ -489,21 +603,61 @@ function Debrief({ v, headroom }: { v: View; headroom: number }) {
 // `detail` echoes the command the partner sent, so its fields depend on `type`.
 type CommandDetail = {
   side?: string; qty?: number; sym?: string; order_id?: string; topic?: string; assignment?: string; location?: string;
-  amount?: string;
+  amount?: string; question?: string; forecast?: { calm: string; stressed: string };
   orders?: { side: string; qty: number; sym: string }[];
 };
 
 function describe(d: Decision): string {
   const x = d.detail as CommandDetail;
   switch (d.type) {
-    case "ticket": return `sent a ticket: ${x.side} ${Number(x.qty).toLocaleString()} ${x.sym}`;
-    case "propose": return `proposed ${(x.orders ?? []).map((o) => `${o.side} ${Number(o.qty).toLocaleString()} ${o.sym}`).join(", ")}`;
+    case "ticket": return `sent a ticket: ${x.side} ${num(x.qty)} ${x.sym}`;
+    case "propose": return `proposed ${(x.orders ?? []).map((o) => `${o.side} ${num(o.qty)} ${o.sym}`).join(", ")}`;
     case "sign": return "countersigned the package";
     case "cancel": return `canceled ${x.order_id}`;
     case "visit": return `took the ${(x.assignment ?? "").replaceAll("_", " ")} assignment at the ${x.location}`;
     case "share_research": return `shared the ${(x.topic ?? "").replaceAll("_", " ")} evidence`;
     case "accept_replacement": return "accepted the 40% replacement borrow";
     case "set_reserve": return `set the treasury reserve to ${money(x.amount)}`;
+    case "thesis": return `filed a thesis on ${x.question}: calm ${x.forecast?.calm}, stressed ${x.forecast?.stressed}`;
     default: return d.type;
   }
+}
+
+// POST /debrief's research record, generated from the server contract (fundforge.schemas.Debrief).
+type Scores = DebriefResponse["research"];
+
+/** Forecast skill, scored beside P&L and kept out of it. Fetched once per finished room version. */
+function ResearchScores({ v, roomId, token }: { v: View; roomId: string; token: string }) {
+  const [r, setR] = useState<Scores | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    api(`/api/rooms/${roomId}/debrief`, token, { version: v.version })
+      .then((d: DebriefResponse) => { if (!cancelled) { setR(d.research); setError(""); } })
+      .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Research scores unavailable"); });
+    return () => { cancelled = true; };
+  }, [roomId, token, v.version]);
+  if (error) return <p role="alert">Research scores unavailable: {error}</p>;
+  if (!r || r.theses.length === 0) return null; // authored markets, or no thesis filed
+  return (
+    <section className="research-scores" aria-labelledby="rs-h">
+      <h2 id="rs-h">Research record (separate from P&amp;L)</h2>
+      <p className="muted">{r.policy}</p>
+      <table aria-label="Regime theses and Brier scores">
+        <thead><tr><th scope="col">Question</th><th scope="col">True regime</th><th scope="col">Seat</th>
+          <th scope="col" className="n">Calm</th><th scope="col" className="n">Stressed</th><th scope="col" className="n">Brier</th></tr></thead>
+        <tbody>
+          {r.theses.map((t) => (
+            <tr key={`${t.role}:${t.question}`}><th scope="row">{t.question}</th><td>{t.true_regime}</td><td>{v.names[t.role] ?? t.role}</td>
+              <td className="n">{t.forecast.calm}</td><td className="n">{t.forecast.stressed}</td><td className="n">{t.brier}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <dl>
+        {Object.entries(r.seats).map(([role, s]) => (
+          <div key={role}><dt>{v.names[role] ?? role} mean Brier</dt><dd>{s.mean_brier ?? "no theses"} ({s.theses} {s.theses === 1 ? "question" : "questions"})</dd></div>
+        ))}
+      </dl>
+    </section>
+  );
 }

@@ -66,6 +66,7 @@ var _towers := {}  # rival id -> {beacon, label, sign, light, status, flash}
 var _look := Vector3.ZERO
 var _high := OS.get_environment("FF_QUALITY").to_lower() != "low"
 var _cam_attr: CameraAttributesPractical  # null on low quality
+var _warm_scenes: Array = []  # keeps event-only character scenes loaded (see _prewarm)
 var _mats := {}  # cache: texture id + tint -> StandardMaterial3D
 
 
@@ -77,6 +78,21 @@ func _ready() -> void:
 	_camera = Camera3D.new()
 	_camera.fov = 38.0
 	add_child(_camera)
+	_prewarm()
+
+
+## Event-only visitors (broker courier with a letter, tactical LP) first appear mid-crisis. Instancing them at
+## load, below the office slab where the depth test hides them, compiles their materials and pipelines now
+## instead of freezing the first crisis frame; their scenes stay cached for the real arrivals.
+func _prewarm() -> void:
+	for model in ["k", "m"]:
+		_warm_scenes.append(load(Actor3D.MODELS[model][0]))
+		var a := Actor3D.new()
+		add_child(a)
+		a.setup(model, "warm-up")
+		a.carry_letter(true)
+		a.place(Vector3(12.0, -1.5, 7.5))
+		get_tree().create_timer(3.0).timeout.connect(a.queue_free)
 
 
 # ---------------- scene construction ----------------
@@ -615,8 +631,9 @@ func _process(delta: float) -> void:
 			_camera.position += Vector3(randf_range(-0.08, 0.08), randf_range(-0.05, 0.05), 0)
 		_camera.look_at(_look)
 		if _cam_attr:  # tilt-shift: focus on what the camera looks at, blur only what is well behind it
-			_cam_attr.dof_blur_far_distance = _camera.position.distance_to(_look) + 8.0
-			_cam_attr.dof_blur_far_enabled = _near != "street"  # keep rival tower labels sharp
+			# Street view keeps tower labels sharp by pushing the blur out of range, not by toggling DOF off:
+			# a toggle switches the post-process variant at runtime.
+			_cam_attr.dof_blur_far_distance = 10000.0 if _near == "street" else _camera.position.distance_to(_look) + 8.0
 	# world effects
 	for i in _screens.size():
 		var c := Color("#1d6b8f")
@@ -630,9 +647,8 @@ func _process(delta: float) -> void:
 	_board.emission = Color("#3a0505") if _halt else Color("#1f8f3a")
 	_glow_research = maxf(0.0, _glow_research - delta)
 	_research_light.light_energy = _glow_research * 0.6
-	for key in _floor_mats:
-		_floor_mats[key].emission_enabled = key == _near
-		_floor_mats[key].emission = Color("#ffcf8a") * 0.07
+	for key in _floor_mats:  # emission stays enabled (see _build_rooms): only its colour changes
+		_floor_mats[key].emission = Color("#ffcf8a") * 0.07 if key == _near else Color.BLACK
 	for id in _towers:
 		var tw: Dictionary = _towers[id]
 		var flash: float = maxf(0.0, float(tw["flash"]) - delta)

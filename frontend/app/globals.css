@@ -171,3 +171,15 @@ tr.entry-start td { border-top: 1px solid var(--ink-soft); }
 @media (prefers-reduced-motion: reduce) {
   * { scroll-behavior: auto !important; transition: none !important; }
 }
+.terminal dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1.2rem; margin: 0; }
+.terminal dd { margin: 0; text-align: right; }
+.terminal button.link[aria-pressed="true"] { font-weight: 700; text-decoration: none; color: var(--ink); }
+.terminal .grid { align-items: start; }
+.terminal .chart { margin: 0 0 0.6rem; }
+.terminal caption { text-align: left; }
+
+/* Regime research ticket (terminal) and the debrief's separate research record. */
+.terminal .regime { border-top: 1px solid var(--rule); margin-top: 0.8rem; padding-top: 0.6rem; }
+.terminal .regime form { align-items: end; gap: 0.6rem; }
+.hint.error { color: var(--breach); }
+.research-scores { border-top: 1px solid var(--rule); margin-top: 1rem; padding-top: 0.6rem; }

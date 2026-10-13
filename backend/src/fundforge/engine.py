@@ -10,14 +10,16 @@ barrier execute at the next execution event, never at an already-published mark.
 
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from decimal import Decimal, localcontext
+from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from typing import Any, Literal, get_args
 
+from . import investors
 from .administrator import Administrator, Capital
 from .broker import Borrow, Broker
 from .compliance import Breach, Ruleset, evaluate
 from .execution import BUY_SIDES, capacity, fill_price, limit_quantity
 from .journal import Journal, entry
+from .lp import Book
 from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
@@ -30,7 +32,7 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.8"
+RULES_VERSION = "case1-rules-2026.10.10"
 
 
 class CommandRejected(ValueError):
@@ -133,6 +135,10 @@ class Engine:
         self._prev_exec_marks = dict(self.marks)
         self._open()
         self.administrator = Administrator(r["opening"]["fund"]["series"], self._administrator_wealth())
+        # Fund NAV per unit at the warm start, then after every business close; derived, never posted.
+        self.close_values: list[Decimal] = [self.unit_nav()]
+        # LP agents run only when the tape asks for them (generated rooms); authored scenarios keep their contracts.
+        self.lp: Book | None = investors.open_book(self) if r.get("lp_agents") else None
 
     # ---------- journal helpers ----------
     def _eid(self) -> str:
@@ -463,11 +469,13 @@ class Engine:
         if self.ev.day % 20 == 0:
             self._invoice()
         self._deal()
+        investors.on_close(self)
         nxt = self.next_event_after_close()
         d = self.ev.date + timedelta(days=1)
         while nxt and d < nxt:
             self._accrue_date(d)
             d += timedelta(days=1)
+        self.close_values.append(self.unit_nav())
 
     def next_event_after_close(self) -> date | None:
         i = self.cursor + 1
@@ -759,7 +767,13 @@ class Engine:
 
     def _deal(self) -> None:
         self._observe_broker()  # close statements are available before the dealing gate
-        if any(r["deal_day"] == self.ev.day for r in self.tape.raw["redemptions"]):
+        if self.lp is not None:
+            dealt, carried = investors.dealing(self)
+            due = [(k, u, str(u)) for k, u in dealt.items() if u > 0]
+        else:
+            due = [(r["series"], D(r["units"]), r["units"]) for r in self.tape.raw["redemptions"]
+                   if r["deal_day"] == self.ev.day]
+        if due:
             report = self.control_report()
             self._require(report["execution_status"] == "checked", "administrator_controls",
                           "independent execution/valuation break blocks dealing")
@@ -768,26 +782,26 @@ class Engine:
                 self._notice("Dealing withheld: resolve broker controls before the dealing close.", "alert",
                              code="dealing_blocked")
                 return
-        for r in self.tape.raw["redemptions"]:
-            if r["deal_day"] != self.ev.day:
-                continue
-            idx = next(i for i, s in enumerate(self.series) if s.series_id == r["series"])
-            s, payable, fee = redeem(self.series[idx], D(r["units"]))
-            claim = self.administrator.preview(self.ev.date.isoformat(), r["series"], D(r["units"]))
+        for sid, units, label in due:
+            idx = next(i for i, s in enumerate(self.series) if s.series_id == sid)
+            s, payable, fee = redeem(self.series[idx], units)
+            claim = self.administrator.preview(self.ev.date.isoformat(), sid, units)
             self._require((payable, fee, s.units, s.hwm, s.net, s.provision) == (
                 claim.payable, claim.crystallized_fee, claim.surviving.units, claim.surviving.hwm,
                 claim.surviving.net, claim.surviving.provision), "administrator_claim",
                 "independent redemption calculation differs; no units or claims changed")
             self.administrator.deal(claim)
             self.series[idx] = s
-            self._post(f"Deal redemption {r['units']} units {r['series']}", (f"capital:{r['series']}", payable),
+            self._post(f"Deal redemption {label} units {sid}", (f"capital:{sid}", payable),
                        ("redemption_payable", -payable))
             if fee:
-                self._post_pair(f"Crystallize redeemed performance fee {r['series']}",
-                                [(f"provision:{r['series']}", fee), ("perf_fee_payable", -fee)],
+                self._post_pair(f"Crystallize redeemed performance fee {sid}",
+                                [(f"provision:{sid}", fee), ("perf_fee_payable", -fee)],
                                 [("fee_receivable", fee), ("fee_revenue", -fee)])
-            self._notice(f"Dealt {r['series']} redemption of {r['units']} units: ${payable:,.2f} payable next "
-                         "business day.", code="redemption_dealt", series=r["series"], payable=str(payable))
+            self._notice(f"Dealt {sid} redemption of {label} units: ${payable:,.2f} payable next "
+                         "business day.", code="redemption_dealt", series=sid, payable=str(payable))
+        if self.lp is not None and self.lp.deal_day == self.ev.day and self.lp.requests:
+            investors.dealt(self, carried)
 
     def _pay_due(self) -> None:
         """Treasury sweep priority: redemptions, then fixed fees, then interest (collateral already trued up)."""
@@ -943,11 +957,27 @@ class Engine:
                 self._require(self.borrowed(sym) + pending_short - pending_cover == max(0, -qty),
                               "borrow_position", f"{sym} loans do not reconcile to economic short")
 
+    def unit_nav(self) -> Decimal:
+        """Fund NAV per unit across every series (net of provisions); flows leave it unchanged."""
+        with localcontext(CTX):
+            units = sum((x.units for x in self.series), Decimal(0))
+            return sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
+
+    def max_drawdown(self) -> str:
+        """Largest peak-to-trough fall of fund NAV per unit over the warm start and each business close, as a
+        fraction of the running peak, 6dp HALF_EVEN (GAME_SYSTEMS outcome facts)."""
+        worst, peak = Decimal(0), Decimal(0)
+        with localcontext(CTX):
+            for v in self.close_values:
+                peak = max(peak, v)
+                if peak > 0:
+                    worst = max(worst, 1 - v / peak)
+        return str(worst.quantize(Decimal("0.000001"), rounding=ROUND_HALF_EVEN))
+
     def league(self) -> list[dict[str, str]]:
         """Public league table: every fund's return since the warm start, ours included."""
         with localcontext(CTX):
-            units = sum((x.units for x in self.series), Decimal(0))
-            unit_nav = sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
+            unit_nav = self.unit_nav()
             ours = {"id": "you", "name": "Your fund", "style": "long/short", "status": "active",
                     "return_bps": str(((unit_nav / 100 - 1) * 10000).quantize(Decimal("0.1"))), "nav": str(self.nav())}
         return sorted([*self.market.league(self.marks), ours], key=lambda x: (-Decimal(x["return_bps"]), x["id"]))
@@ -963,9 +993,7 @@ class Engine:
             open_nav = sum((D(x["units"]) for x in self.tape.raw["opening"]["fund"]["series"]), Decimal(0)) * 100
             moves = (q * (self.marks[s] - self._opening_marks[s]) for s, q in open_pos.items())
             bench = sum(moves, Decimal(0)) / open_nav
-            units = sum((x.units for x in self.series), Decimal(0))
-            unit_nav = sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
-            fund = unit_nav / 100 - 1
+            fund = self.unit_nav() / 100 - 1
             excess = ((fund - bench) * 10000).quantize(Decimal("0.1"))
             return {"fund_return_bps": str((fund * 10000).quantize(Decimal("0.1"))),
                     "benchmark_return_bps": str((bench * 10000).quantize(Decimal("0.1"))),
@@ -985,6 +1013,9 @@ class Engine:
             label = "SURVIVAL"
         else:
             label = "WIN"
+        deferred = {k: str(v) for k, v in sorted(self.lp.carried.items())} if self.lp else {}
+        if label == "WIN" and deferred:
+            label = "SURVIVAL"  # a season cannot win by deferring LP obligations past the end (GAME_SYSTEMS §4)
         score = self.score(len(forced))
         league = self.league()
         score["rank"] = 1 + sorted((-Decimal(x["return_bps"]), x["id"]) for x in league).index(
@@ -993,4 +1024,16 @@ class Engine:
         return {"label": label, "nav": str(nav), **score, "redemption_paid": str(tactical), "forced": forced,
                 "unpaid": unpaid, "recall_resolved_by": self.recall_resolved_by,
                 "variant": self.tape.raw.get("variant", "base"),
-                "journal_digest": self.j.digest(), "tape_digest": self.tape.digest}
+                "journal_digest": self.j.digest(), "tape_digest": self.tape.digest,
+                **({"lp_deferred": deferred} if self.lp else {}),
+                "scenario": self.tape.raw.get("scenario_id", "case1"), "max_drawdown": self.max_drawdown(),
+                **self._generator_reveal()}
+
+    def _generator_reveal(self) -> dict[str, Any]:
+        """Generated rooms, finished runs only: the seed commitment and how many generated days were stressed."""
+        gen = self.tape.raw.get("generator")
+        if gen is None or not self.finished():
+            return {}
+        return {"seed_commitment": gen["seed_commitment"],
+                "stressed_days": sum(1 for _, regime in gen["regimes"] if regime == "stressed"),
+                "generated_days": len(gen["regimes"])}

@@ -33,6 +33,8 @@ var _lab_volume := 100.0
 var _lab_horizon := 5.0
 var _replay_data: Dictionary = {}
 var _replay_loading := false
+var _thesis_calm := ""  # survives re-renders while the partner or clock changes the room
+var _thesis_sending := false
 
 
 func _ready() -> void:
@@ -82,7 +84,7 @@ func _ready() -> void:
 		nav.add_child(b)
 		_buttons[function] = b
 	_entry = LineEdit.new()
-	_entry.placeholder_text = "Function or symbol + Enter: MON / BRIN GP / PORT / RISK / NEWS / ORDERS / STREET / HELP / REPLAY"
+	_entry.placeholder_text = "Function or symbol + Enter: MON / BRIN GP / PORT / RISK / NEWS / ORDERS / STREET / HELP / REPLAY / RESEARCH"
 	_entry.text_submitted.connect(_command)
 	column.add_child(_entry)
 	_status = _label("", AMBER)
@@ -141,7 +143,7 @@ func _input(event: InputEvent) -> void:
 	if event.keycode == KEY_ESCAPE:
 		close()
 		get_viewport().set_input_as_handled()
-	elif event.keycode >= KEY_F1 and event.keycode <= KEY_F9:
+	elif event.keycode >= KEY_F1 and event.keycode <= KEY_F10:
 		navigate(TerminalRules.PAGES[event.keycode - KEY_F1])
 		get_viewport().set_input_as_handled()
 
@@ -213,6 +215,8 @@ func _grid(headers: Array, parent: Node = null) -> GridContainer:
 
 
 func _render() -> void:
+	var focus := get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var refocus := focus != null and focus.name == "ThesisCalm"  # keep typing through a re-render
 	for child in _body.get_children():
 		_body.remove_child(child)
 		child.queue_free()
@@ -236,6 +240,7 @@ func _render() -> void:
 		"STREET": _street()
 		"HELP": _help()
 		"REPLAY": _replay_page()
+		"RESEARCH": _research_page(refocus)
 
 
 func _replay_page() -> void:
@@ -326,6 +331,11 @@ func _monitor() -> void:
 		var headline := _label("D%d / %s" % [int(news[i]["day"]), news[i]["text"]], RED if news[i]["kind"] == "alert" else INK)
 		headline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		right.add_child(headline)
+	var macro: Array = data.get("macro", [])
+	if not macro.is_empty():
+		right.add_child(_label("STREET ACTIVITY INDEX / AS PUBLISHED (above 50 = expansion)", AMBER))
+		for line in TerminalRules.macro_lines(macro, 4):
+			right.add_child(_label(line))
 	_text("Change is from the previous observed event. Select a symbol to inspect its history.", MUTED)
 
 
@@ -554,7 +564,69 @@ func _help() -> void:
 	for row in ["MON       Market monitor; select a symbol for its chart", "BRIN GP   Observed price history for BRIN (any known symbol works)",
 			"PORT      Signed holdings and NAV weights", "RISK      Static stress and liquidity/cure scenarios",
 			"NEWS      Shared notices and research visible to your seat", "ORDERS    Accepted orders and fill status",
-			"STREET    Rival-fund league table", "REPLAY    Completed-run causal comparisons"]:
+			"STREET    Rival-fund league table", "REPLAY    Completed-run causal comparisons",
+			"RESEARCH  Regime question, published prior/posterior and your thesis (generated markets)"]:
 		_text(row)
-	_text("F1-F9 switch functions. Enter selects a function. Escape returns to the office. T opens the terminal from the world.", MUTED)
+	_text("F1-F10 switch functions. Enter selects a function. Escape returns to the office. T opens the terminal from the world.", MUTED)
 	_text("Use Trading desk to submit a ticket or propose a package. Your partner's signature and all risk limits still apply.", MUTED)
+
+
+func _research_page(refocus := false) -> void:
+	_text("RESEARCH / REGIME QUESTION", AMBER, 20)
+	var regime: Variant = data.get("regime")
+	if not regime is Dictionary:
+		_text("No live research question. Generated markets ask one once the first Street activity print is published.", MUTED)
+		return
+	var q: Dictionary = regime
+	_text("%s: was the Street calm or stressed in the period of day %d?" % [q["question"], int(q["period_day"])])
+	var grid := _grid(["", "Calm", "Stressed"])
+	for row in [["Published prior (regime chain alone)", q["prior"]], ["Posterior from published prints", q["posterior"]]]:
+		grid.add_child(_label(row[0], MUTED))
+		grid.add_child(_label(str(row[1]["calm"])))
+		grid.add_child(_label(str(row[1]["stressed"])))
+	_text("%s Evidence: %d published print(s)." % [q.get("method", ""), int(q.get("evidence", 0))], MUTED, 12)
+	_text("YOUR THESIS", AMBER)
+	var form := HBoxContainer.new()
+	form.add_theme_constant_override("separation", 12)
+	_body.add_child(form)
+	form.add_child(_label("Calm probability (0 to 1, up to 6 dp)", MUTED))
+	var calm := LineEdit.new()
+	calm.name = "ThesisCalm"
+	calm.text = _thesis_calm
+	calm.placeholder_text = str(q["posterior"]["calm"])
+	calm.custom_minimum_size.x = 140
+	form.add_child(calm)
+	var stressed := _label("")
+	form.add_child(stressed)
+	var send := Button.new()
+	send.name = "ThesisSend"
+	form.add_child(send)
+	var update := func(text: String) -> void:
+		_thesis_calm = text
+		var f := TerminalRules.thesis_forecast(text)
+		stressed.text = "Stressed " + (f["stressed"] if not f.is_empty() else "--")
+		send.disabled = f.is_empty() or _thesis_sending or _stale or data.get("finished", false)
+		send.text = "Season over: theses are closed" if data.get("finished", false) else (
+				"Sending..." if _thesis_sending else "Record thesis for " + str(q["question"]))
+	update.call(_thesis_calm)
+	calm.text_changed.connect(update)
+	calm.text_submitted.connect(func(_t): if not send.disabled: _submit_thesis(str(q["question"])))
+	send.pressed.connect(func(): _submit_thesis(str(q["question"])))
+	if refocus:
+		calm.call_deferred("grab_focus")
+	_text("Only the newest period can be forecast. Theses are Brier-scored in the debrief beside P&L; they never move money, NAV or rank.", MUTED, 12)
+
+
+## One submission = one Api.command call = one idempotency key; the server validates question and sum.
+func _submit_thesis(question: String) -> void:
+	var forecast := TerminalRules.thesis_forecast(_thesis_calm)
+	if forecast.is_empty() or _thesis_sending:
+		return
+	_thesis_sending = true
+	_render()
+	var response: Dictionary = await _api.command({"type": "thesis", "question": question, "forecast": forecast})
+	_thesis_sending = false
+	if response.get("ok", false):
+		_status.text = "Thesis recorded for %s: calm %s / stressed %s." % [question, forecast["calm"], forecast["stressed"]]
+	if is_open(): _render()
+	_fetch()

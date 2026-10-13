@@ -111,3 +111,15 @@ The playable challenge extends the existing tape with a small statement overlay 
 The stdlib-only administrator calculates common P&L from reconstructed assets less independent claims, rather than copying posted P&L. It uses a separate largest-remainder allocation, per-series fee residuals and algebraic capital-above-HWM provision calculation. Frozen calendar closes retain inputs/outputs. Redemption preview compares every surviving capital/unit/HWM field and monetary claim before application. Fund fee liabilities are independently reconciled to the manager's receivable/revenue. Dated fee tests catch compensating wrong-date postings despite matching final balances.
 
 Evidence: 228 PostgreSQL-backed backend tests, 78 Godot checks, import/boot, Ruff/mypy (21 modules) and real two-seat HTTP challenge smoke. Canonical economics and tape digest are unchanged, rules advance to 2026.10.8. The administrator still shares observed marks, pending settlement instructions and payment confirmations; it is not an external certifier. Full design, limits and next settlement-identity task: [ADMINISTRATOR_CONTROLS](ADMINISTRATOR_CONTROLS.md).
+
+## 12. Measured frame-time and size budgets
+
+`scripts/measure_frames.py` opens a solo room, boots the real Godot client (`--perf=out.json` in `game/scripts/perf.gd`) with V-Sync off and no frame cap, walks a fixed route through all eight locations, skips 5 s and records 40 s of wall-clock frame times. Budget: p95 <= 16.7 ms. Measured 12 Oct 2026 on one machine only (RTX 4070 Laptop GPU, i9-14900HX, Windows 11, Vulkan Forward+, 1600x900, Godot 4.7.2), not "mid hardware":
+
+| Run | frames | mean fps | p50 / p95 / p99 ms | worst ms | draw calls mean / max |
+|---|---|---|---|---|---|
+| Before | 3978 | 97.4 | 7.52 / 8.62 / 11.05 | 2101.4 | 1033 / 1289 |
+| After | 6443 | 161.0 | 6.46 / 7.09 / 8.66 | 16.9 | 982 / 1289 |
+| Warm-up (M6, two runs) | 6415 / 6401 | 160.3 / 160.0 | 6.47 / 7.05 / 8.74 and 6.48 / 7.07 / 8.75 | 11.7 / 11.6 | 986 / 1289 |
+
+The p95 passed before, but every room entry froze the game for 1-2 s: the highlighted floor toggled `emission_enabled`, a new material shader variant compiled on the main thread each time. The floor now keeps emission on and changes only its colour. A later audit (M6) removed the other runtime variant switch, the camera DOF `dof_blur_far_enabled` toggle in street view (blur distance is now pushed out of range instead), and pre-instances the event-only broker courier (with its letter) and tactical LP below the office slab at load so their scenes, materials and pipelines are ready before the first crisis; the scenes stay cached. The measurement route never triggers those visitors, so their first-arrival frame is not separately measured. Size budgets (`scripts/budgets.json`, about 20% over the first measurement, checked in CI by `scripts/check_budgets.py`): Linux export 126,977,552 bytes, Windows export 162,726,624 bytes, first-load JS gzip 116,063 bytes (`/`) and 123,517 bytes (`/room/[id]`). Frame time is not checked in CI: runners have no GPU. A lower-end GPU and the Compatibility renderer remain unmeasured.

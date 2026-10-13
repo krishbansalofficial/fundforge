@@ -4,7 +4,9 @@ FundForge is a desktop hedge-fund simulation built in **Godot 4**. You run a fic
 
 You can play solo with a deterministic **bot partner**, or with a friend as two partners. Either way, every number comes from a deterministic Python engine with PostgreSQL as the authority. Every dollar moves through an immutable, balanced journal, and every decision is a hash-chained command, so any finished game can be replayed and verified to the cent.
 
-> **Trailer GIF: not recorded yet.** It will live at `docs/media/` once the scripted end-to-end run exists (see [PROGRESS](docs/PROGRESS.md)). Actual terminal captures and the implementation contract are in [Forge Terminal](docs/TERMINAL.md).
+![Two browser windows side by side, Ana the portfolio manager and Ben the managing partner, playing the same fictional fund on the web desk: a margin call appears, Ana proposes an ALTO sale, Ben co-signs, the order fills, and both debriefs end with Win.](docs/images/s2-two-partners.gif)
+
+*Fictional market. Two browser partners on the web desk, recorded from the automated Playwright S2 test run (`frontend/e2e/s2.spec.ts`, base market) on 12 October 2026 and sped up 4x; rebuild with [`scripts/make_demo_gif.py`](scripts/make_demo_gif.py). Godot terminal captures are in [Forge Terminal](docs/TERMINAL.md).*
 
 **No AI wrapper.** The game has no LLM in it. The bot partner (`bot:v1`) is a short rules policy in [`backend/src/fundforge/bot.py`](backend/src/fundforge/bot.py). It uses the same commands, role limits, digest signatures and mandate checks as a human, and every action it takes is logged and replayed like any other command.
 
@@ -57,7 +59,7 @@ Postgres stores the accepted commands and the journal they produced, never mutab
 
 ## Quickstart
 
-Prerequisites: Docker, plus [Godot 4.7.2](https://godotengine.org/) for the game client. Full setup is in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Prerequisites: Docker, plus [Godot 4.7.2](https://godotengine.org/) for the game client.
 
 ```bash
 docker compose up -d db api      # PostgreSQL on :5432, FastAPI on :8000 (SQL migrations apply automatically)
@@ -66,8 +68,11 @@ docker compose up -d db api      # PostgreSQL on :5432, FastAPI on :8000 (SQL mi
 Then start the game. Either open `game/project.godot` in the Godot editor and press Play, or run:
 
 ```bash
+godot --headless --path game --editor --import
 godot --path game
 ```
+
+On Windows, `powershell -File scripts/run_game.ps1` imports the project, checks the local API and launches the game. Pass `-Server http://127.0.0.1:8011` to use a different local API.
 
 There are no exported builds yet. Export presets are in progress.
 

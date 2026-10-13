@@ -190,6 +190,16 @@ static func reconnect_delay(attempt: int) -> float:
 	return minf(15.0, pow(2.0, maxi(attempt - 1, 0)))
 
 
+## Handshakes that may fail before presence is given up for this join. A server without the presence route
+## (an older API) refuses every upgrade; polling runs the game, so stop retrying instead of logging forever.
+const PRESENCE_HANDSHAKE_TRIES := 3
+
+
+## Whether to reconnect after failure `attempt`. Once a socket has opened, drops always retry.
+static func presence_retry(attempt: int, ever_opened: bool) -> bool:
+	return ever_opened or attempt < PRESENCE_HANDSHAKE_TRIES
+
+
 ## Most journal entries the HUD keeps per entity; older ones are dropped from the front.
 const LEDGER_CACHE := 1000
 

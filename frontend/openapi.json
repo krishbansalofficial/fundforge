@@ -16,6 +16,177 @@
         "title": "AcceptReplacement",
         "type": "object"
       },
+      "AdminClaim": {
+        "additionalProperties": false,
+        "properties": {
+          "crystallized_fee": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Crystallized Fee",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "payable": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Payable",
+            "type": "string"
+          },
+          "price": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Price",
+            "type": "string"
+          },
+          "series_id": {
+            "title": "Series Id",
+            "type": "string"
+          },
+          "units": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Units",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "series_id",
+          "units",
+          "price",
+          "payable",
+          "crystallized_fee"
+        ],
+        "title": "AdminClaim",
+        "type": "object"
+      },
+      "AdminSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "hwm": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Hwm",
+            "type": "string"
+          },
+          "net": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Net",
+            "type": "string"
+          },
+          "provision": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Provision",
+            "type": "string"
+          },
+          "series_id": {
+            "title": "Series Id",
+            "type": "string"
+          },
+          "units": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Units",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series_id",
+          "units",
+          "hwm",
+          "net",
+          "provision"
+        ],
+        "title": "AdminSeries",
+        "type": "object"
+      },
+      "AdministratorReport": {
+        "additionalProperties": false,
+        "properties": {
+          "breaks": {
+            "items": {
+              "$ref": "#/components/schemas/Break"
+            },
+            "title": "Breaks",
+            "type": "array"
+          },
+          "claim_count": {
+            "title": "Claim Count",
+            "type": "integer"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/AdminClaim"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "close_count": {
+            "title": "Close Count",
+            "type": "integer"
+          },
+          "liabilities": {
+            "additionalProperties": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "title": "Liabilities",
+            "type": "object"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/AdminSeries"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "checked",
+              "break"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "breaks",
+          "close_count",
+          "claim_count",
+          "series",
+          "liabilities",
+          "claims"
+        ],
+        "title": "AdministratorReport",
+        "type": "object"
+      },
+      "AsOf": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "event": {
+            "title": "Event",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event",
+          "day",
+          "date",
+          "phase"
+        ],
+        "title": "AsOf",
+        "type": "object"
+      },
       "Assignment": {
         "additionalProperties": false,
         "properties": {
@@ -86,6 +257,304 @@
         "title": "AttentionClaim",
         "type": "object"
       },
+      "BranchOutcome": {
+        "additionalProperties": false,
+        "description": "A counterfactual branch may stop before the end; it is then not a comparable ending score.",
+        "properties": {
+          "benchmark_return_bps": {
+            "title": "Benchmark Return Bps",
+            "type": "string"
+          },
+          "excess_bps": {
+            "title": "Excess Bps",
+            "type": "string"
+          },
+          "forced": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Forced",
+            "type": "array"
+          },
+          "fund_return_bps": {
+            "title": "Fund Return Bps",
+            "type": "string"
+          },
+          "funds": {
+            "title": "Funds",
+            "type": "integer"
+          },
+          "generated_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated Days"
+          },
+          "journal_digest": {
+            "title": "Journal Digest",
+            "type": "string"
+          },
+          "label": {
+            "enum": [
+              "WIN",
+              "SURVIVAL",
+              "DISTRESS",
+              "IN_PROGRESS"
+            ],
+            "title": "Label",
+            "type": "string"
+          },
+          "lp_deferred": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lp Deferred"
+          },
+          "max_drawdown": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Max Drawdown",
+            "type": "string"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "recall_resolved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall Resolved By"
+          },
+          "redemption_paid": {
+            "title": "Redemption Paid",
+            "type": "string"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          },
+          "seed_commitment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed Commitment"
+          },
+          "stressed_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stressed Days"
+          },
+          "tape_digest": {
+            "title": "Tape Digest",
+            "type": "string"
+          },
+          "unpaid": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unpaid",
+            "type": "array"
+          },
+          "variant": {
+            "title": "Variant",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "nav",
+          "fund_return_bps",
+          "benchmark_return_bps",
+          "excess_bps",
+          "score",
+          "rank",
+          "funds",
+          "redemption_paid",
+          "forced",
+          "unpaid",
+          "recall_resolved_by",
+          "variant",
+          "journal_digest",
+          "tape_digest",
+          "scenario",
+          "max_drawdown"
+        ],
+        "title": "BranchOutcome",
+        "type": "object"
+      },
+      "BranchState": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "headroom": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Headroom",
+            "type": "string"
+          },
+          "journal_digest": {
+            "title": "Journal Digest",
+            "type": "string"
+          },
+          "nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "positions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Positions",
+            "type": "object"
+          },
+          "recall_open": {
+            "title": "Recall Open",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "phase",
+          "nav",
+          "headroom",
+          "recall_open",
+          "positions",
+          "journal_digest"
+        ],
+        "title": "BranchState",
+        "type": "object"
+      },
+      "Break": {
+        "additionalProperties": false,
+        "description": "A control discrepancy; ``actual``/``expected`` are diagnostic text, not always numbers.",
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "subject"
+        ],
+        "title": "Break",
+        "type": "object"
+      },
+      "BrokerSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_count": {
+            "title": "Activity Count",
+            "type": "integer"
+          },
+          "balances": {
+            "additionalProperties": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "title": "Balances",
+            "type": "object"
+          },
+          "fee_line_count": {
+            "title": "Fee Line Count",
+            "type": "integer"
+          },
+          "financing_accrued": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Financing Accrued",
+            "type": "string"
+          },
+          "financing_invoiced": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Financing Invoiced",
+            "type": "string"
+          },
+          "statement_count": {
+            "title": "Statement Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "activity_count",
+          "fee_line_count",
+          "statement_count",
+          "balances",
+          "financing_accrued",
+          "financing_invoiced"
+        ],
+        "title": "BrokerSummary",
+        "type": "object"
+      },
       "Cancel": {
         "additionalProperties": false,
         "properties": {
@@ -106,6 +575,107 @@
           "order_id"
         ],
         "title": "Cancel",
+        "type": "object"
+      },
+      "ChapterCheckpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "enum": [
+              "strong",
+              "stable",
+              "concerned",
+              "withdrawal_risk"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "breaches": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Breaches",
+            "type": "string"
+          },
+          "clamp": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Clamp",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "end": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "End",
+            "type": "string"
+          },
+          "gate": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Gate",
+            "type": "string"
+          },
+          "herding": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Herding",
+            "type": "string"
+          },
+          "kind": {
+            "const": "chapter_close",
+            "title": "Kind",
+            "type": "string"
+          },
+          "lp": {
+            "title": "Lp",
+            "type": "string"
+          },
+          "meeting": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Meeting",
+            "type": "string"
+          },
+          "overdue": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Overdue",
+            "type": "string"
+          },
+          "performance": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Performance",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "report": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Report",
+            "type": "string"
+          },
+          "start": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "kind",
+          "lp",
+          "policy_version",
+          "start",
+          "performance",
+          "breaches",
+          "report",
+          "meeting",
+          "gate",
+          "herding",
+          "overdue",
+          "clamp",
+          "end",
+          "band"
+        ],
+        "title": "ChapterCheckpoint",
         "type": "object"
       },
       "Chat": {
@@ -217,8 +787,10 @@
           "mapping": {
             "accept_replacement": "#/components/schemas/AcceptReplacement",
             "cancel": "#/components/schemas/Cancel",
+            "contact_lp": "#/components/schemas/ContactLp",
             "pause": "#/components/schemas/Pause",
             "propose": "#/components/schemas/Propose",
+            "propose_gate": "#/components/schemas/ProposeGate",
             "ready": "#/components/schemas/Ready",
             "research": "#/components/schemas/ResearchCommand",
             "resolve_statement": "#/components/schemas/ResolveStatement",
@@ -227,6 +799,7 @@
             "set_speed": "#/components/schemas/SetSpeed",
             "share_research": "#/components/schemas/ShareResearch",
             "sign": "#/components/schemas/Sign",
+            "thesis": "#/components/schemas/Thesis",
             "ticket": "#/components/schemas/Ticket",
             "visit": "#/components/schemas/Visit"
           },
@@ -274,9 +847,258 @@
           },
           {
             "$ref": "#/components/schemas/Pause"
+          },
+          {
+            "$ref": "#/components/schemas/Thesis"
+          },
+          {
+            "$ref": "#/components/schemas/ContactLp"
+          },
+          {
+            "$ref": "#/components/schemas/ProposeGate"
           }
         ],
         "title": "CommandBody"
+      },
+      "ContactLp": {
+        "additionalProperties": false,
+        "description": "Managing partner: spend this window's attention on one LP before its next review (generated rooms).",
+        "properties": {
+          "lp": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Lp",
+            "type": "string"
+          },
+          "type": {
+            "const": "contact_lp",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "lp"
+        ],
+        "title": "ContactLp",
+        "type": "object"
+      },
+      "ControlReport": {
+        "additionalProperties": false,
+        "description": "``Engine.control_report``: scoped reconciliation, not external NAV certification (see ``scope``).",
+        "properties": {
+          "administrator": {
+            "$ref": "#/components/schemas/AdministratorReport"
+          },
+          "book_nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Book Nav",
+            "type": "string"
+          },
+          "breaks": {
+            "items": {
+              "$ref": "#/components/schemas/Break"
+            },
+            "title": "Breaks",
+            "type": "array"
+          },
+          "broker": {
+            "$ref": "#/components/schemas/BrokerSummary"
+          },
+          "conditional_nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Conditional Nav",
+            "type": "string"
+          },
+          "confirmations": {
+            "title": "Confirmations",
+            "type": "integer"
+          },
+          "execution_status": {
+            "enum": [
+              "checked",
+              "break"
+            ],
+            "title": "Execution Status",
+            "type": "string"
+          },
+          "expected_positions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Expected Positions",
+            "type": "object"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "settlements": {
+            "items": {
+              "$ref": "#/components/schemas/Settlement"
+            },
+            "title": "Settlements",
+            "type": "array"
+          },
+          "statement_queue": {
+            "items": {
+              "$ref": "#/components/schemas/StatementRow"
+            },
+            "title": "Statement Queue",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "checked",
+              "break"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "execution_status",
+          "breaks",
+          "confirmations",
+          "expected_positions",
+          "conditional_nav",
+          "book_nav",
+          "scope",
+          "administrator",
+          "settlements",
+          "statement_queue",
+          "broker"
+        ],
+        "title": "ControlReport",
+        "type": "object"
+      },
+      "Coordinate": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "phase"
+        ],
+        "title": "Coordinate",
+        "type": "object"
+      },
+      "Debrief": {
+        "additionalProperties": false,
+        "description": "``POST /api/rooms/{id}/debrief``: completed-run causal replay, optionally omitting one decision.",
+        "properties": {
+          "branch_id": {
+            "title": "Branch Id",
+            "type": "string"
+          },
+          "finished": {
+            "title": "Finished",
+            "type": "boolean"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentEvent"
+            },
+            "title": "Incidents",
+            "type": "array"
+          },
+          "investors": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LpDebrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nav_difference": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav Difference",
+            "type": "string"
+          },
+          "omitted_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Omitted Seq"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/BranchOutcome"
+          },
+          "policy": {
+            "title": "Policy",
+            "type": "string"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/RejectedStep"
+            },
+            "title": "Rejected",
+            "type": "array"
+          },
+          "research": {
+            "$ref": "#/components/schemas/ResearchRecord"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "source_outcome": {
+            "$ref": "#/components/schemas/Outcome"
+          },
+          "source_version": {
+            "title": "Source Version",
+            "type": "integer"
+          },
+          "state": {
+            "$ref": "#/components/schemas/BranchState"
+          },
+          "tape_digest": {
+            "title": "Tape Digest",
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineStep"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "branch_id",
+          "source_version",
+          "rules_version",
+          "tape_digest",
+          "omitted_seq",
+          "finished",
+          "state",
+          "outcome",
+          "source_outcome",
+          "nav_difference",
+          "research",
+          "timeline",
+          "rejected",
+          "incidents",
+          "policy"
+        ],
+        "title": "Debrief",
+        "type": "object"
       },
       "DebriefRequest": {
         "properties": {
@@ -397,6 +1219,27 @@
         "title": "Firm",
         "type": "object"
       },
+      "Forecast": {
+        "additionalProperties": false,
+        "properties": {
+          "calm": {
+            "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+            "title": "Calm",
+            "type": "string"
+          },
+          "stressed": {
+            "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+            "title": "Stressed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "calm",
+          "stressed"
+        ],
+        "title": "Forecast",
+        "type": "object"
+      },
       "Fund": {
         "additionalProperties": false,
         "properties": {
@@ -505,6 +1348,44 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HistoryPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "event": {
+            "title": "Event",
+            "type": "integer"
+          },
+          "marks": {
+            "additionalProperties": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "title": "Marks",
+            "type": "object"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event",
+          "day",
+          "date",
+          "phase",
+          "marks"
+        ],
+        "title": "HistoryPoint",
+        "type": "object"
+      },
       "IncidentEvent": {
         "additionalProperties": false,
         "properties": {
@@ -555,6 +1436,46 @@
           "text"
         ],
         "title": "IncidentEvent",
+        "type": "object"
+      },
+      "Investors": {
+        "additionalProperties": false,
+        "description": "The managing partner's LP inbox in generated rooms; exact confidence stays server-side until the debrief.",
+        "properties": {
+          "deal_day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deal Day"
+          },
+          "gate_elected": {
+            "title": "Gate Elected",
+            "type": "boolean"
+          },
+          "lps": {
+            "items": {
+              "$ref": "#/components/schemas/LpRow"
+            },
+            "title": "Lps",
+            "type": "array"
+          },
+          "policy": {
+            "title": "Policy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy",
+          "deal_day",
+          "gate_elected",
+          "lps"
+        ],
+        "title": "Investors",
         "type": "object"
       },
       "JournalEntry": {
@@ -722,6 +1643,181 @@
         "title": "LiquidityRequest",
         "type": "object"
       },
+      "LpDebrief": {
+        "additionalProperties": false,
+        "description": "Generated rooms: every LP confidence component, revealed only after the run.",
+        "properties": {
+          "carried_units": {
+            "additionalProperties": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "title": "Carried Units",
+            "type": "object"
+          },
+          "checkpoints": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "chapter_close": "#/components/schemas/ChapterCheckpoint",
+                  "review": "#/components/schemas/ReviewCheckpoint"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReviewCheckpoint"
+                },
+                {
+                  "$ref": "#/components/schemas/ChapterCheckpoint"
+                }
+              ]
+            },
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "final": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/LpFinal"
+            },
+            "title": "Final",
+            "type": "object"
+          },
+          "policy": {
+            "title": "Policy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy",
+          "checkpoints",
+          "final",
+          "carried_units"
+        ],
+        "title": "LpDebrief",
+        "type": "object"
+      },
+      "LpFinal": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "enum": [
+              "strong",
+              "stable",
+              "concerned",
+              "withdrawal_risk"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "confidence": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Confidence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confidence",
+          "band"
+        ],
+        "title": "LpFinal",
+        "type": "object"
+      },
+      "LpRow": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "enum": [
+              "strong",
+              "stable",
+              "concerned",
+              "withdrawal_risk"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "carried_units": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carried Units"
+          },
+          "contacted": {
+            "title": "Contacted",
+            "type": "boolean"
+          },
+          "first_cutoff": {
+            "title": "First Cutoff",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "requested_units": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Units"
+          }
+        },
+        "required": [
+          "id",
+          "band",
+          "requested_units",
+          "carried_units",
+          "first_cutoff",
+          "contacted"
+        ],
+        "title": "LpRow",
+        "type": "object"
+      },
+      "MacroPrint": {
+        "additionalProperties": false,
+        "description": "One published print of a generated market's indicator; a later revision appears only from its own day.",
+        "properties": {
+          "period_day": {
+            "title": "Period Day",
+            "type": "integer"
+          },
+          "published_day": {
+            "title": "Published Day",
+            "type": "integer"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "series": {
+            "title": "Series",
+            "type": "string"
+          },
+          "value": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series",
+          "period_day",
+          "published_day",
+          "revision",
+          "value"
+        ],
+        "title": "MacroPrint",
+        "type": "object"
+      },
       "NewRoom": {
         "properties": {
           "mp_name": {
@@ -752,6 +1848,18 @@
               }
             ],
             "title": "Solo Role"
+          },
+          "variant": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant"
           }
         },
         "title": "NewRoom",
@@ -797,6 +1905,69 @@
           "bot_role"
         ],
         "title": "NewRoomResponse",
+        "type": "object"
+      },
+      "NewsItem": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "string"
+          },
+          "refs": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Refs",
+            "type": "object"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "visibility": {
+            "enum": [
+              "private",
+              "shared"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "day",
+          "date",
+          "phase",
+          "kind",
+          "refs",
+          "text",
+          "visibility"
+        ],
+        "title": "NewsItem",
         "type": "object"
       },
       "NextEvent": {
@@ -1021,6 +2192,17 @@
             "title": "Funds",
             "type": "integer"
           },
+          "generated_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated Days"
+          },
           "journal_digest": {
             "title": "Journal Digest",
             "type": "string"
@@ -1032,6 +2214,25 @@
               "DISTRESS"
             ],
             "title": "Label",
+            "type": "string"
+          },
+          "lp_deferred": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lp Deferred"
+          },
+          "max_drawdown": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Max Drawdown",
             "type": "string"
           },
           "nav": {
@@ -1057,9 +2258,35 @@
             "title": "Redemption Paid",
             "type": "string"
           },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
           "score": {
             "title": "Score",
             "type": "string"
+          },
+          "seed_commitment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seed Commitment"
+          },
+          "stressed_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stressed Days"
           },
           "tape_digest": {
             "title": "Tape Digest",
@@ -1092,7 +2319,9 @@
           "recall_resolved_by",
           "variant",
           "journal_digest",
-          "tape_digest"
+          "tape_digest",
+          "scenario",
+          "max_drawdown"
         ],
         "title": "Outcome",
         "type": "object"
@@ -1102,6 +2331,14 @@
         "properties": {
           "digest": {
             "title": "Digest",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "orders",
+              "gate"
+            ],
+            "title": "Kind",
             "type": "string"
           },
           "orders": {
@@ -1129,6 +2366,11 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "terms": {
+            "additionalProperties": true,
+            "title": "Terms",
+            "type": "object"
           }
         },
         "required": [
@@ -1137,7 +2379,9 @@
           "digest",
           "status",
           "signatures",
-          "orders"
+          "orders",
+          "kind",
+          "terms"
         ],
         "title": "Package",
         "type": "object"
@@ -1274,6 +2518,129 @@
         "title": "Propose",
         "type": "object"
       },
+      "ProposeGate": {
+        "additionalProperties": false,
+        "description": "Propose a redemption gate for the next dealing close; the other partner elects it with ``sign``.",
+        "properties": {
+          "package_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Package Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "propose_gate",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "package_id"
+        ],
+        "title": "ProposeGate",
+        "type": "object"
+      },
+      "Quote": {
+        "additionalProperties": false,
+        "properties": {
+          "borrow_rate": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Borrow Rate"
+          },
+          "borrowed": {
+            "title": "Borrowed",
+            "type": "integer"
+          },
+          "change_bps": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Bps"
+          },
+          "mark": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Mark",
+            "type": "string"
+          },
+          "mv": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Mv",
+            "type": "string"
+          },
+          "observed_event_volume": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Event Volume"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "since_start_bps": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since Start Bps"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          }
+        },
+        "required": [
+          "sym",
+          "mark",
+          "qty",
+          "mv",
+          "change_bps",
+          "since_start_bps",
+          "weight",
+          "borrowed",
+          "borrow_rate",
+          "observed_event_volume"
+        ],
+        "title": "Quote",
+        "type": "object"
+      },
       "Ready": {
         "additionalProperties": false,
         "properties": {
@@ -1387,6 +2754,55 @@
         "title": "Recall",
         "type": "object"
       },
+      "RegimeQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "title": "Evidence",
+            "type": "integer"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "period_day": {
+            "title": "Period Day",
+            "type": "integer"
+          },
+          "posterior": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "prior": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "states": {
+            "items": {
+              "enum": [
+                "calm",
+                "stressed"
+              ],
+              "type": "string"
+            },
+            "title": "States",
+            "type": "array"
+          }
+        },
+        "required": [
+          "question",
+          "period_day",
+          "states",
+          "prior",
+          "posterior",
+          "evidence",
+          "method"
+        ],
+        "title": "RegimeQuestion",
+        "type": "object"
+      },
       "RejectedFill": {
         "additionalProperties": false,
         "properties": {
@@ -1409,6 +2825,30 @@
           "rejected"
         ],
         "title": "RejectedFill",
+        "type": "object"
+      },
+      "RejectedStep": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "type",
+          "reason"
+        ],
+        "title": "RejectedStep",
         "type": "object"
       },
       "Research": {
@@ -1488,6 +2928,37 @@
         "title": "ResearchCommand",
         "type": "object"
       },
+      "ResearchRecord": {
+        "additionalProperties": false,
+        "description": "Brier scores of each seat's latest thesis per question; beside P&L, never in it.",
+        "properties": {
+          "policy": {
+            "title": "Policy",
+            "type": "string"
+          },
+          "seats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SeatResearch"
+            },
+            "title": "Seats",
+            "type": "object"
+          },
+          "theses": {
+            "items": {
+              "$ref": "#/components/schemas/ThesisScore"
+            },
+            "title": "Theses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "theses",
+          "seats",
+          "policy"
+        ],
+        "title": "ResearchRecord",
+        "type": "object"
+      },
       "ResearchUse": {
         "additionalProperties": false,
         "properties": {
@@ -1555,6 +3026,95 @@
         "title": "ResolveStatement",
         "type": "object"
       },
+      "ReviewCheckpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "enum": [
+              "strong",
+              "stable",
+              "concerned",
+              "withdrawal_risk"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "clamp": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Clamp",
+            "type": "string"
+          },
+          "contact": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Contact",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "drawdown": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Drawdown",
+            "type": "string"
+          },
+          "drawdown_pp": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Drawdown Pp",
+            "type": "string"
+          },
+          "end": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "End",
+            "type": "string"
+          },
+          "kind": {
+            "const": "review",
+            "title": "Kind",
+            "type": "string"
+          },
+          "lp": {
+            "title": "Lp",
+            "type": "string"
+          },
+          "open_alerts": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Open Alerts",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "response_lag": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Response Lag",
+            "type": "string"
+          },
+          "start": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "kind",
+          "lp",
+          "policy_version",
+          "start",
+          "drawdown",
+          "response_lag",
+          "contact",
+          "clamp",
+          "end",
+          "band",
+          "drawdown_pp",
+          "open_alerts"
+        ],
+        "title": "ReviewCheckpoint",
+        "type": "object"
+      },
       "RoomView": {
         "additionalProperties": false,
         "description": "``GET /api/rooms/{id}/view``: the session view plus seat names and the real-time clock.",
@@ -1608,6 +3168,16 @@
             },
             "title": "Incidents",
             "type": "array"
+          },
+          "investors": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Investors"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "league": {
             "items": {
@@ -1732,6 +3302,7 @@
           "incident_events",
           "decisions",
           "outcome",
+          "investors",
           "names",
           "realtime"
         ],
@@ -1770,6 +3341,33 @@
           "text"
         ],
         "title": "Say",
+        "type": "object"
+      },
+      "SeatResearch": {
+        "additionalProperties": false,
+        "properties": {
+          "mean_brier": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Brier"
+          },
+          "theses": {
+            "title": "Theses",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "theses",
+          "mean_brier"
+        ],
+        "title": "SeatResearch",
         "type": "object"
       },
       "Series": {
@@ -1852,6 +3450,63 @@
         "title": "SetSpeed",
         "type": "object"
       },
+      "Settlement": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "due_day": {
+            "title": "Due Day",
+            "type": "integer"
+          },
+          "failed_days": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Failed Days",
+            "type": "array"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "obligation": {
+            "title": "Obligation",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "settled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "obligation",
+          "kind",
+          "sym",
+          "qty",
+          "amount",
+          "due_day",
+          "status",
+          "failed_days"
+        ],
+        "title": "Settlement",
+        "type": "object"
+      },
       "ShareResearch": {
         "additionalProperties": false,
         "properties": {
@@ -1901,6 +3556,624 @@
           "digest"
         ],
         "title": "Sign",
+        "type": "object"
+      },
+      "StatementResolution": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "statement_id": {
+            "title": "Statement Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statement_id",
+          "revision",
+          "date",
+          "actor"
+        ],
+        "title": "StatementResolution",
+        "type": "object"
+      },
+      "StatementRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "as_of": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "available_at": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "balance": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Balance",
+            "type": "string"
+          },
+          "expected": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Expected",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "received_date": {
+            "title": "Received Date",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "supersedes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "source",
+          "account",
+          "as_of",
+          "available_at",
+          "balance",
+          "expected",
+          "received_date",
+          "supersedes",
+          "reason"
+        ],
+        "title": "StatementRevision",
+        "type": "object"
+      },
+      "StatementRow": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "actual": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Actual",
+            "type": "string"
+          },
+          "age_calendar_days": {
+            "title": "Age Calendar Days",
+            "type": "integer"
+          },
+          "can_resolve": {
+            "title": "Can Resolve",
+            "type": "boolean"
+          },
+          "expected": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Expected",
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/StatementRevision"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StatementResolution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resolution_history": {
+            "items": {
+              "$ref": "#/components/schemas/StatementResolution"
+            },
+            "title": "Resolution History",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "status",
+          "age_calendar_days",
+          "revision",
+          "account",
+          "actual",
+          "expected",
+          "can_resolve",
+          "resolution",
+          "resolution_history",
+          "history"
+        ],
+        "title": "StatementRow",
+        "type": "object"
+      },
+      "Stress": {
+        "additionalProperties": false,
+        "properties": {
+          "gross": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross"
+          },
+          "headroom": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Headroom",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "long_shock": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Long Shock",
+            "type": "string"
+          },
+          "maintenance_req": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Maintenance Req",
+            "type": "string"
+          },
+          "margin_breach": {
+            "title": "Margin Breach",
+            "type": "boolean"
+          },
+          "nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav",
+            "type": "string"
+          },
+          "pnl": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Pnl",
+            "type": "string"
+          },
+          "short_shock": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Short Shock",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "long_shock",
+          "short_shock",
+          "pnl",
+          "nav",
+          "maintenance_req",
+          "headroom",
+          "margin_breach",
+          "gross"
+        ],
+        "title": "Stress",
+        "type": "object"
+      },
+      "TerminalOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "filled": {
+            "title": "Filled",
+            "type": "integer"
+          },
+          "fills": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Fill"
+                },
+                {
+                  "$ref": "#/components/schemas/RejectedFill"
+                }
+              ]
+            },
+            "title": "Fills",
+            "type": "array"
+          },
+          "forced": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forced"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "sym",
+          "side",
+          "qty",
+          "filled",
+          "remaining",
+          "status",
+          "forced",
+          "fills"
+        ],
+        "title": "TerminalOrder",
+        "type": "object"
+      },
+      "TerminalRisk": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Cash",
+            "type": "string"
+          },
+          "controls": {
+            "$ref": "#/components/schemas/ControlReport"
+          },
+          "credit_left": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Credit Left",
+            "type": "string"
+          },
+          "debt": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Debt",
+            "type": "string"
+          },
+          "headroom": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Headroom",
+            "type": "string"
+          },
+          "long_mv": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Long Mv",
+            "type": "string"
+          },
+          "maintenance_rates": {
+            "additionalProperties": {
+              "pattern": "^-?\\d+(\\.\\d+)?$",
+              "type": "string"
+            },
+            "title": "Maintenance Rates",
+            "type": "object"
+          },
+          "maintenance_req": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Maintenance Req",
+            "type": "string"
+          },
+          "nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav",
+            "type": "string"
+          },
+          "restricted_collateral": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Restricted Collateral",
+            "type": "string"
+          },
+          "short_mv": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Short Mv",
+            "type": "string"
+          },
+          "stress_method": {
+            "title": "Stress Method",
+            "type": "string"
+          },
+          "stresses": {
+            "items": {
+              "$ref": "#/components/schemas/Stress"
+            },
+            "title": "Stresses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "controls",
+          "nav",
+          "long_mv",
+          "short_mv",
+          "maintenance_req",
+          "headroom",
+          "cash",
+          "restricted_collateral",
+          "debt",
+          "credit_left",
+          "maintenance_rates",
+          "stress_method",
+          "stresses"
+        ],
+        "title": "TerminalRisk",
+        "type": "object"
+      },
+      "TerminalView": {
+        "additionalProperties": false,
+        "description": "``GET /api/rooms/{id}/terminal``: read-only as-of analytics at one room version.",
+        "properties": {
+          "as_of": {
+            "$ref": "#/components/schemas/AsOf"
+          },
+          "finished": {
+            "title": "Finished",
+            "type": "boolean"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "history_truncated": {
+            "title": "History Truncated",
+            "type": "boolean"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentEvent"
+            },
+            "title": "Incidents",
+            "type": "array"
+          },
+          "league": {
+            "items": {
+              "$ref": "#/components/schemas/LeagueRow"
+            },
+            "title": "League",
+            "type": "array"
+          },
+          "macro": {
+            "items": {
+              "$ref": "#/components/schemas/MacroPrint"
+            },
+            "title": "Macro",
+            "type": "array"
+          },
+          "news": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItem"
+            },
+            "title": "News",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/TerminalOrder"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/Quote"
+            },
+            "title": "Quotes",
+            "type": "array"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegimeQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "risk": {
+            "$ref": "#/components/schemas/TerminalRisk"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "schema": {
+            "const": "forge-terminal-v1",
+            "title": "Schema",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema",
+          "finished",
+          "role",
+          "as_of",
+          "source",
+          "quotes",
+          "history",
+          "history_truncated",
+          "risk",
+          "news",
+          "incidents",
+          "orders",
+          "league",
+          "macro",
+          "regime",
+          "version"
+        ],
+        "title": "TerminalView",
+        "type": "object"
+      },
+      "Thesis": {
+        "additionalProperties": false,
+        "description": "A seat's forecast for the terminal's live regime question; scored in the debrief, never in P&L.",
+        "properties": {
+          "forecast": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "question": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "type": {
+            "const": "thesis",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "question",
+          "forecast"
+        ],
+        "title": "Thesis",
+        "type": "object"
+      },
+      "ThesisScore": {
+        "additionalProperties": false,
+        "properties": {
+          "brier": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Brier",
+            "type": "string"
+          },
+          "forecast": {
+            "$ref": "#/components/schemas/Forecast"
+          },
+          "period_day": {
+            "title": "Period Day",
+            "type": "integer"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "recorded_day": {
+            "title": "Recorded Day",
+            "type": "integer"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "true_regime": {
+            "enum": [
+              "calm",
+              "stressed"
+            ],
+            "title": "True Regime",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "question",
+          "period_day",
+          "recorded_day",
+          "forecast",
+          "true_regime",
+          "brier"
+        ],
+        "title": "ThesisScore",
         "type": "object"
       },
       "Ticket": {
@@ -1958,6 +4231,71 @@
           "type"
         ],
         "title": "Ticket",
+        "type": "object"
+      },
+      "TimelineStep": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "$ref": "#/components/schemas/BranchState"
+          },
+          "before": {
+            "$ref": "#/components/schemas/BranchState"
+          },
+          "can_omit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Omit"
+          },
+          "nav_delta": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nav Delta"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "accepted",
+              "rejected",
+              "omitted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "role",
+          "type",
+          "status",
+          "before",
+          "after"
+        ],
+        "title": "TimelineStep",
         "type": "object"
       },
       "ValidationError": {
@@ -2230,9 +4568,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Debrief Api Rooms  Room Id  Debrief Post",
-                  "type": "object"
+                  "$ref": "#/components/schemas/Debrief"
                 }
               }
             },
@@ -2420,9 +4756,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Terminal Api Rooms  Room Id  Terminal Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/TerminalView"
                 }
               }
             },

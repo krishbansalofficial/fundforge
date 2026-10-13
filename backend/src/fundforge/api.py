@@ -30,8 +30,26 @@ from .engine import CommandRejected
 from .liquidity import project
 from .observability import REJECTIONS, JsonFormatter, context, request_id
 from .presence import hub
-from .schemas import COMMAND_TAGS, DECIMAL_PATTERN, CommandBody, LedgerPage, NewRoomResponse, RoomView
-from .store import KeyReused, ReplayDivergence, RoomExpired, RoomIncompatible, Store
+from .schemas import (
+    COMMAND_TAGS,
+    DECIMAL_PATTERN,
+    CommandBody,
+    Debrief,
+    LedgerPage,
+    NewRoomResponse,
+    RoomView,
+    TerminalView,
+)
+from .store import (
+    GENERATED,
+    SCENARIOS,
+    KeyReused,
+    ReplayDivergence,
+    RoomExpired,
+    RoomIncompatible,
+    Store,
+    scenario_variants,
+)
 from .terminal import snapshot
 
 log = logging.getLogger("fundforge.clock")
@@ -82,6 +100,9 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 MAX_BODY_BYTES = int(os.environ.get("FUNDFORGE_MAX_BODY_BYTES", str(64 * 1024)))
 ROOMS_PER_IP = int(os.environ.get("FUNDFORGE_ROOMS_PER_IP", "20"))
 ROOM_WINDOW_SECONDS = 3600.0
+# Test-only: lets end-to-end runs choose the hidden market variant. Never set in production: a player who
+# picks the variant knows the future market.
+TEST_VARIANTS = os.environ.get("FUNDFORGE_TEST_VARIANTS") == "1"
 
 
 class BodyLimit:
@@ -245,6 +266,7 @@ class NewRoom(BaseModel):
     pm_name: str = Field("", max_length=40)
     mp_name: str = Field("", max_length=40)
     solo_role: str | None = Field(None, pattern="^(pm|mp)$")  # play alone; the bot takes the other seat
+    variant: str | None = Field(None, max_length=80)  # test-only; see pinned_variant
 
 
 def seat(room_id: str, authorization: str = Header("")) -> str:
@@ -277,12 +299,33 @@ def ready() -> dict[str, bool]:
     return {"ok": True}
 
 
+def pinned_variant(scenario: str, requested: str | None, enabled: bool) -> str | None:
+    """The variant a new room must use, or None to draw a hidden one as usual.
+
+    ``requested`` is the client's choice and ``enabled`` is FUNDFORGE_TEST_VARIANTS. A listed scenario's
+    variants are ``scenario_variants(scenario)``; generated rooms (``GENERATED``) take ``seed:<text>``.
+    Refuse with ``ApiError(status, code, message)``.
+    """
+    if requested is None:
+        return None
+    if not enabled:  # refuse loudly so a misconfigured test run cannot silently draw a random market
+        raise ApiError(403, "variant_forbidden", "choosing the market variant is disabled on this server")
+    if scenario == GENERATED:
+        known = requested.startswith("seed:") and len(requested) > 5
+    else:  # an unknown scenario is refused by the store with its own message
+        known = scenario not in SCENARIOS or requested in scenario_variants(scenario)
+    if not known:
+        raise ApiError(422, "invalid_request", f"unknown variant {requested!r} for scenario {scenario!r}")
+    return requested
+
+
 @app.post("/api/rooms", status_code=201, response_model=NewRoomResponse)
 def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
     if not room_creations.allow(request.client.host if request.client else "unknown"):
         raise ApiError(429, "rate_limited", f"at most {room_creations.per_window} new rooms per hour from one address")
+    variant = pinned_variant(body.scenario, body.variant, TEST_VARIANTS)
     try:
-        return store().create_room(body.scenario, body.pm_name, body.mp_name, solo_role=body.solo_role)
+        return store().create_room(body.scenario, body.pm_name, body.mp_name, variant, solo_role=body.solo_role)
     except CommandRejected as e:
         raise HTTPException(422, str(e)) from e
 
@@ -326,7 +369,7 @@ def ledger(room_id: str, entity: str = "fund", after: int | None = Query(None, g
     return {"entity": entity, "entries": page, "next": start + len(page), "digest": s.e.j.digest()}
 
 
-@app.get("/api/rooms/{room_id}/terminal")
+@app.get("/api/rooms/{room_id}/terminal", response_model=TerminalView, response_model_exclude_unset=True)
 def terminal(room_id: str, user: str = Depends(seat)) -> dict[str, Any]:
     """Authenticated read-only analytics at one consistent room version."""
     try:
@@ -342,7 +385,7 @@ class DebriefRequest(BaseModel):
     omit_seq: int | None = Field(None, ge=1)
 
 
-@app.post("/api/rooms/{room_id}/debrief")
+@app.post("/api/rooms/{room_id}/debrief", response_model=Debrief, response_model_exclude_unset=True)
 def debrief(room_id: str, body: DebriefRequest, user: str = Depends(seat)) -> dict[str, Any]:
     try:
         version, s, _ = store().session(room_id)

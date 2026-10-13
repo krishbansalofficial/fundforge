@@ -103,7 +103,7 @@ Each phase ends with green CI, an updated PROGRESS and one ENGINEERING write-up 
   No OpenTelemetry. (Logs, metrics and `deploy/grafana/fundforge.json` done 11 Oct 2026.)
 - **API v1:** Pydantic discriminated-union commands, a `{code, message}` error envelope, a stored outcome for rejected keys (both done 11 Oct 2026, migration 0006), `ETag: version` with a 304 response, a ledger cursor (both done 11 Oct 2026), and openapi-typescript types replacing `View = any` (done 11 Oct 2026: strict `fundforge/schemas.py` contract tested against whole games; generated `frontend/app/api-types.ts` with freshness checks). Pydantic discriminated-union commands done 11–12 Oct 2026, validated before the engine.
 - **Frontend fixes:** one `order_id` and idempotency key per form submission, and buttons disabled while a request is in flight. (Done 11 Oct 2026: `frontend/app/exclusive.ts`, `npm test`.)
-- **Playwright end-to-end test:** two browser contexts play S2 to a WIN, with axe checks on the desk. The same run records the README GIF. (12 Oct 2026: test done in CI, `frontend/e2e/s2.spec.ts`; the README GIF is not recorded.)
+- **Playwright end-to-end test:** two browser contexts play S2 to a WIN, with axe checks on the desk. The same run records the README GIF. (12 Oct 2026: test done in CI, `frontend/e2e/s2.spec.ts`; README GIF recorded from that run, `docs/images/s2-two-partners.gif`.)
 - **Hygiene:**
   - MIT LICENSE and CREDITS.md
   - fictional tickers, plus a test that rejects real-listed symbols (ALTO, BEAM, BOND, ELAN and JUNO collide today)
@@ -160,7 +160,7 @@ Systems:
 - **Risk.** A stress and liquidity simulator: shock marks, then replay forced liquidation over future events with real impact and capacity, to get events-to-cure, cost and the insolvency point.
 - **Margin cure.** A minimum-impact cure solved by marginal-cost bisection in Decimal. It is used both for forced liquidation and as a draft for players. CVXPY appears only in tests, as an oracle.
 - **Market generator.** `generate(seed, gen_version, skeleton) -> raw` uses a SHA-256-counter PRNG with Decimal-only factor and regime shocks. The seed stays server-side until the debrief. A tape is accepted only if the balance runner passes. (Generator done 11 Oct 2026, `fundforge/generator.py`; balance gate and room wiring open.)
-- **As-of tape.** `(instrument, event_time, available_at, revision, value)`. The view resolves the latest revision visible at the current clock.
+- **As-of tape.** `(instrument, event_time, available_at, revision, value)`. The view resolves the latest revision visible at the current clock. (Done 12 Oct 2026: `fundforge/asof.py`; generated rooms publish a revised Street activity index shown as-of in the terminal.)
 
 ### P5: Stretch, cut first
 

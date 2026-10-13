@@ -7,6 +7,9 @@
   The proposer's signature counts once; it executes only when the *other* partner
   signs the same digest. Edits produce a new digest, so old signatures never carry over.
 * Replacement borrow and treasury reserve belong to the managing partner.
+* Generated rooms: LP contact belongs to the managing partner. A redemption gate is a package of
+  kind ``gate`` whose digest binds the dealing day and the exact pending requests; it is elected only
+  when the *other* partner signs, and the requests are revalidated at signing.
 * Time advances only when both partners are ready; any state change clears readiness.
   If both vote ``skip``, time keeps advancing through quiet windows until a notice,
   incident, open order or the end (refused while a package awaits a signature).
@@ -17,11 +20,14 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from decimal import Decimal, localcontext
+from decimal import Decimal, InvalidOperation, localcontext
 from typing import Any
 
+from . import investors
 from .engine import CommandRejected, Engine
+from .generator import MACRO_SERIES, Spec
 from .money import CTX, D, cents
+from .research import REGIMES, regime_question
 
 Cmd = dict[str, Any]
 
@@ -43,6 +49,8 @@ class Package:
     digest: str
     signatures: set = field(default_factory=set)
     status: str = "PENDING_APPROVAL"
+    kind: str = "orders"  # or "gate": a joint redemption-gate election
+    terms: dict = field(default_factory=dict)
 
 
 def canonical(obj: object) -> str:
@@ -151,12 +159,36 @@ class Session:
         if self.e.cursor > p.expires_cursor or not self.e.at_barrier():
             p.status = "EXPIRED"
             raise CommandRejected("package expired")
+        if p.kind == "gate":
+            if self._lp(investors.gate_terms) != p.terms:
+                raise CommandRejected("redemption requests changed since the gate was proposed")
+            p.signatures.add(role)
+            p.status = "ELECTED"
+            investors.elect_gate(self.e, p.terms)
+            return {"package_id": p.package_id, "status": p.status}
         self._mandate([(sym, side, qty) for _, sym, side, qty, _ in p.orders])  # signatures never override limits
         p.signatures.add(role)
         p.status = "AUTHORIZED_QUEUED"
         for oid, sym, side, qty, limit in p.orders:
             self.e.submit_order(oid, sym, side, qty, D(limit) if limit else None)
         return {"package_id": p.package_id, "status": p.status}
+
+    def _cmd_propose_gate(self, role: str, c: Cmd) -> Cmd:
+        terms = self._lp(investors.gate_terms)
+        if c["package_id"] in self.packages:
+            raise CommandRejected("package id already used; edits must be proposed as a new package")
+        expires = self.e.cursor + 1
+        identity = [POLICY_VERSION, "gate", c["package_id"], terms, expires]
+        digest = hashlib.sha256(canonical(identity).encode()).hexdigest()
+        self.packages[c["package_id"]] = Package(c["package_id"], role, (), expires, digest, {role}, kind="gate",
+                                                 terms=terms)
+        return {"package_id": c["package_id"], "digest": digest}
+
+    def _cmd_contact_lp(self, role: str, c: Cmd) -> Cmd:
+        if role != "mp":
+            raise CommandRejected("LP relationships belong to the managing partner")
+        self._lp(investors.contact, role, c["lp"])
+        return {"contacted": c["lp"]}
 
     def _cmd_cancel(self, role: str, c: Cmd) -> Cmd:
         self.e.cancel_order(c["order_id"])
@@ -238,6 +270,25 @@ class Session:
                           "ref": c.get("ref")})
         return {"said": True}
 
+    def _cmd_thesis(self, role: str, c: Cmd) -> Cmd:
+        """Record a forecast for the live regime question. Lives only in the command log: no money, positions
+        or journal. The debrief scores each seat's latest thesis per question."""
+        if self.e.finished():
+            raise CommandRejected("the season is over")
+        q = regime_question(self.e.tape.macro.known(self.e.ev.day, MACRO_SERIES), Spec())
+        if q is None or c.get("question") != q["question"]:
+            raise CommandRejected("a thesis must answer the terminal's current research question")
+        f = c.get("forecast")
+        if not isinstance(f, dict) or set(f) != set(REGIMES) or not all(type(v) is str for v in f.values()):
+            raise CommandRejected("forecast needs a decimal string for each of calm and stressed")
+        try:
+            probs = {s: Decimal(v) for s, v in f.items()}
+        except InvalidOperation as e:
+            raise CommandRejected("forecast needs a decimal string for each of calm and stressed") from e
+        if not all(v.is_finite() and 0 <= v <= 1 for v in probs.values()) or sum(probs.values()) != 1:
+            raise CommandRejected("forecast probabilities must be between 0 and 1 and sum to exactly 1")
+        return {"question": q["question"], "forecast": {s: str(v) for s, v in probs.items()}}
+
     def _cmd_pause(self, role: str, c: Cmd) -> Cmd:
         self.clock = {**self.clock, "paused": True, "reason": f"Paused by the {ROLE_NAMES[role]}."}
         return {"clock": self.clock}
@@ -260,14 +311,21 @@ class Session:
             reason = ("A partner's research has arrived." if new and new[-1]["refs"].get("owner")
                       else new[-1]["text"] if new else self.e.incidents[-1])
             self.clock = {**self.clock, "paused": True, "reason": reason}
-        elif new:
-            self.clock = {**self.clock, "paused": True, "reason": new[-1]["text"]}
+        elif new:  # a private notice (e.g. the MP's LP inbox) must not reach the other seat through the clock
+            reason = "A partner has new private information." if new[-1]["refs"].get("owner") else new[-1]["text"]
+            self.clock = {**self.clock, "paused": True, "reason": reason}
         return {"advanced": True, "next": self._next(), "clock": self.clock}
 
     def running(self) -> bool:
         return not self.clock["paused"] and not self.e.finished()
 
     # ---------- helpers ----------
+    def _lp(self, fn: Callable[..., Any], *args: Any) -> Any:
+        try:
+            return fn(self.e, *args)
+        except investors.Refused as ex:
+            raise CommandRejected(str(ex)) from ex
+
     def _mandate(self, orders: list[tuple[str, str, int]]) -> None:
         for sym, side, qty in orders:
             if sym not in self.e.marks or side not in ("BUY", "SELL", "SHORT", "COVER") or qty <= 0:
@@ -343,7 +401,7 @@ class Session:
             "orders": [{"order_id": o.order_id, "sym": o.sym, "side": o.side, "qty": o.qty, "filled": o.filled,
                         "status": o.status, "forced": o.forced, "fills": o.fills} for o in e.orders],
             "packages": [{"package_id": p.package_id, "proposer": p.proposer, "digest": p.digest, "status": p.status,
-                          "signatures": sorted(p.signatures),
+                          "signatures": sorted(p.signatures), "kind": p.kind, "terms": copy.deepcopy(p.terms),
                           "orders": [dict(zip(("order_id", "sym", "side", "qty", "limit"), o, strict=True))
                                      for o in p.orders]}
                          for p in self.packages.values()],
@@ -355,6 +413,7 @@ class Session:
                            "detail": {k: v for k, v in x["command"].items() if k != "type"}}
                           for x in self.log if x["command"]["type"] not in ("ready", "tick", "say")],
             "outcome": e.outcome() if e.finished() else None,
+            "investors": investors.view(e, role),
         }
 
     def ledger(self, entity: str = "fund", limit: int = 200) -> list[dict]:

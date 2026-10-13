@@ -198,6 +198,67 @@ export interface components {
              */
             type: "accept_replacement";
         };
+        /** AdminClaim */
+        AdminClaim: {
+            /** Crystallized Fee */
+            crystallized_fee: string;
+            /** Date */
+            date: string;
+            /** Payable */
+            payable: string;
+            /** Price */
+            price: string;
+            /** Series Id */
+            series_id: string;
+            /** Units */
+            units: string;
+        };
+        /** AdminSeries */
+        AdminSeries: {
+            /** Hwm */
+            hwm: string;
+            /** Net */
+            net: string;
+            /** Provision */
+            provision: string;
+            /** Series Id */
+            series_id: string;
+            /** Units */
+            units: string;
+        };
+        /** AdministratorReport */
+        AdministratorReport: {
+            /** Breaks */
+            breaks: components["schemas"]["Break"][];
+            /** Claim Count */
+            claim_count: number;
+            /** Claims */
+            claims: components["schemas"]["AdminClaim"][];
+            /** Close Count */
+            close_count: number;
+            /** Liabilities */
+            liabilities: {
+                [key: string]: string;
+            };
+            /** Series */
+            series: components["schemas"]["AdminSeries"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "checked" | "break";
+        };
+        /** AsOf */
+        AsOf: {
+            /** Date */
+            date: string;
+            /** Day */
+            day: number;
+            /** Event */
+            event: number;
+            /** Phase */
+            phase: string;
+        };
         /** Assignment */
         Assignment: {
             /** Location */
@@ -225,6 +286,109 @@ export interface components {
             /** Window */
             window: number;
         };
+        /**
+         * BranchOutcome
+         * @description A counterfactual branch may stop before the end; it is then not a comparable ending score.
+         */
+        BranchOutcome: {
+            /** Benchmark Return Bps */
+            benchmark_return_bps: string;
+            /** Excess Bps */
+            excess_bps: string;
+            /** Forced */
+            forced: string[];
+            /** Fund Return Bps */
+            fund_return_bps: string;
+            /** Funds */
+            funds: number;
+            /** Generated Days */
+            generated_days?: number | null;
+            /** Journal Digest */
+            journal_digest: string;
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "WIN" | "SURVIVAL" | "DISTRESS" | "IN_PROGRESS";
+            /** Lp Deferred */
+            lp_deferred?: {
+                [key: string]: string;
+            } | null;
+            /** Max Drawdown */
+            max_drawdown: string;
+            /** Nav */
+            nav: string;
+            /** Rank */
+            rank: number;
+            /** Recall Resolved By */
+            recall_resolved_by: string | null;
+            /** Redemption Paid */
+            redemption_paid: string;
+            /** Scenario */
+            scenario: string;
+            /** Score */
+            score: string;
+            /** Seed Commitment */
+            seed_commitment?: string | null;
+            /** Stressed Days */
+            stressed_days?: number | null;
+            /** Tape Digest */
+            tape_digest: string;
+            /** Unpaid */
+            unpaid: string[];
+            /** Variant */
+            variant: string;
+        };
+        /** BranchState */
+        BranchState: {
+            /** Day */
+            day: number;
+            /** Headroom */
+            headroom: string;
+            /** Journal Digest */
+            journal_digest: string;
+            /** Nav */
+            nav: string;
+            /** Phase */
+            phase: string;
+            /** Positions */
+            positions: {
+                [key: string]: number;
+            };
+            /** Recall Open */
+            recall_open: number;
+        };
+        /**
+         * Break
+         * @description A control discrepancy; ``actual``/``expected`` are diagnostic text, not always numbers.
+         */
+        Break: {
+            /** Actual */
+            actual?: string | null;
+            /** Code */
+            code: string;
+            /** Expected */
+            expected?: string | null;
+            /** Subject */
+            subject: string;
+        };
+        /** BrokerSummary */
+        BrokerSummary: {
+            /** Activity Count */
+            activity_count: number;
+            /** Balances */
+            balances: {
+                [key: string]: string;
+            };
+            /** Fee Line Count */
+            fee_line_count: number;
+            /** Financing Accrued */
+            financing_accrued: string;
+            /** Financing Invoiced */
+            financing_invoiced: string;
+            /** Statement Count */
+            statement_count: number;
+        };
         /** Cancel */
         Cancel: {
             /** Order Id */
@@ -234,6 +398,45 @@ export interface components {
              * @enum {string}
              */
             type: "cancel";
+        };
+        /** ChapterCheckpoint */
+        ChapterCheckpoint: {
+            /**
+             * Band
+             * @enum {string}
+             */
+            band: "strong" | "stable" | "concerned" | "withdrawal_risk";
+            /** Breaches */
+            breaches: string;
+            /** Clamp */
+            clamp: string;
+            /** Day */
+            day: string;
+            /** End */
+            end: string;
+            /** Gate */
+            gate: string;
+            /** Herding */
+            herding: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "chapter_close";
+            /** Lp */
+            lp: string;
+            /** Meeting */
+            meeting: string;
+            /** Overdue */
+            overdue: string;
+            /** Performance */
+            performance: string;
+            /** Policy Version */
+            policy_version: string;
+            /** Report */
+            report: string;
+            /** Start */
+            start: string;
         };
         /** Chat */
         Chat: {
@@ -273,7 +476,96 @@ export interface components {
          * CommandBody
          * @description The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop.
          */
-        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"];
+        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"] | components["schemas"]["Thesis"] | components["schemas"]["ContactLp"] | components["schemas"]["ProposeGate"];
+        /**
+         * ContactLp
+         * @description Managing partner: spend this window's attention on one LP before its next review (generated rooms).
+         */
+        ContactLp: {
+            /** Lp */
+            lp: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "contact_lp";
+        };
+        /**
+         * ControlReport
+         * @description ``Engine.control_report``: scoped reconciliation, not external NAV certification (see ``scope``).
+         */
+        ControlReport: {
+            administrator: components["schemas"]["AdministratorReport"];
+            /** Book Nav */
+            book_nav: string;
+            /** Breaks */
+            breaks: components["schemas"]["Break"][];
+            broker: components["schemas"]["BrokerSummary"];
+            /** Conditional Nav */
+            conditional_nav: string;
+            /** Confirmations */
+            confirmations: number;
+            /**
+             * Execution Status
+             * @enum {string}
+             */
+            execution_status: "checked" | "break";
+            /** Expected Positions */
+            expected_positions: {
+                [key: string]: number;
+            };
+            /** Scope */
+            scope: string;
+            /** Settlements */
+            settlements: components["schemas"]["Settlement"][];
+            /** Statement Queue */
+            statement_queue: components["schemas"]["StatementRow"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "checked" | "break";
+        };
+        /** Coordinate */
+        Coordinate: {
+            /** Day */
+            day: number;
+            /** Phase */
+            phase: string;
+        };
+        /**
+         * Debrief
+         * @description ``POST /api/rooms/{id}/debrief``: completed-run causal replay, optionally omitting one decision.
+         */
+        Debrief: {
+            /** Branch Id */
+            branch_id: string;
+            /** Finished */
+            finished: boolean;
+            /** Incidents */
+            incidents: components["schemas"]["IncidentEvent"][];
+            investors?: components["schemas"]["LpDebrief"] | null;
+            /** Nav Difference */
+            nav_difference: string;
+            /** Omitted Seq */
+            omitted_seq: number | null;
+            outcome: components["schemas"]["BranchOutcome"];
+            /** Policy */
+            policy: string;
+            /** Rejected */
+            rejected: components["schemas"]["RejectedStep"][];
+            research: components["schemas"]["ResearchRecord"];
+            /** Rules Version */
+            rules_version: string;
+            source_outcome: components["schemas"]["Outcome"];
+            /** Source Version */
+            source_version: number;
+            state: components["schemas"]["BranchState"];
+            /** Tape Digest */
+            tape_digest: string;
+            /** Timeline */
+            timeline: components["schemas"]["TimelineStep"][];
+        };
         /** DebriefRequest */
         DebriefRequest: {
             /** Omit Seq */
@@ -318,6 +610,13 @@ export interface components {
             /** Payroll Payable */
             payroll_payable: string;
         };
+        /** Forecast */
+        Forecast: {
+            /** Calm */
+            calm: string;
+            /** Stressed */
+            stressed: string;
+        };
         /** Fund */
         Fund: {
             /** Cash */
@@ -352,6 +651,21 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HistoryPoint */
+        HistoryPoint: {
+            /** Date */
+            date: string;
+            /** Day */
+            day: number;
+            /** Event */
+            event: number;
+            /** Marks */
+            marks: {
+                [key: string]: string;
+            };
+            /** Phase */
+            phase: string;
+        };
         /** IncidentEvent */
         IncidentEvent: {
             /** Amounts */
@@ -370,6 +684,20 @@ export interface components {
             };
             /** Text */
             text: string;
+        };
+        /**
+         * Investors
+         * @description The managing partner's LP inbox in generated rooms; exact confidence stays server-side until the debrief.
+         */
+        Investors: {
+            /** Deal Day */
+            deal_day: number | null;
+            /** Gate Elected */
+            gate_elected: boolean;
+            /** Lps */
+            lps: components["schemas"]["LpRow"][];
+            /** Policy */
+            policy: string;
         };
         /** JournalEntry */
         JournalEntry: {
@@ -444,6 +772,68 @@ export interface components {
              */
             volume_scale?: string;
         };
+        /**
+         * LpDebrief
+         * @description Generated rooms: every LP confidence component, revealed only after the run.
+         */
+        LpDebrief: {
+            /** Carried Units */
+            carried_units: {
+                [key: string]: string;
+            };
+            /** Checkpoints */
+            checkpoints: (components["schemas"]["ReviewCheckpoint"] | components["schemas"]["ChapterCheckpoint"])[];
+            /** Final */
+            final: {
+                [key: string]: components["schemas"]["LpFinal"];
+            };
+            /** Policy */
+            policy: string;
+        };
+        /** LpFinal */
+        LpFinal: {
+            /**
+             * Band
+             * @enum {string}
+             */
+            band: "strong" | "stable" | "concerned" | "withdrawal_risk";
+            /** Confidence */
+            confidence: string;
+        };
+        /** LpRow */
+        LpRow: {
+            /**
+             * Band
+             * @enum {string}
+             */
+            band: "strong" | "stable" | "concerned" | "withdrawal_risk";
+            /** Carried Units */
+            carried_units: string | null;
+            /** Contacted */
+            contacted: boolean;
+            /** First Cutoff */
+            first_cutoff: number;
+            /** Id */
+            id: string;
+            /** Requested Units */
+            requested_units: string | null;
+        };
+        /**
+         * MacroPrint
+         * @description One published print of a generated market's indicator; a later revision appears only from its own day.
+         */
+        MacroPrint: {
+            /** Period Day */
+            period_day: number;
+            /** Published Day */
+            published_day: number;
+            /** Revision */
+            revision: number;
+            /** Series */
+            series: string;
+            /** Value */
+            value: string;
+        };
         /** NewRoom */
         NewRoom: {
             /**
@@ -463,6 +853,8 @@ export interface components {
             scenario?: string;
             /** Solo Role */
             solo_role?: string | null;
+            /** Variant */
+            variant?: string | null;
         };
         /** NewRoomResponse */
         NewRoomResponse: {
@@ -478,6 +870,30 @@ export interface components {
             tokens: {
                 [key: string]: string;
             };
+        };
+        /** NewsItem */
+        NewsItem: {
+            /** Code */
+            code: string;
+            /** Date */
+            date: string;
+            /** Day */
+            day: number;
+            /** Kind */
+            kind: string;
+            /** Phase */
+            phase: string;
+            /** Refs */
+            refs: {
+                [key: string]: string | number;
+            };
+            /** Text */
+            text: string;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "private" | "shared";
         };
         /** NextEvent */
         NextEvent: {
@@ -557,6 +973,8 @@ export interface components {
             fund_return_bps: string;
             /** Funds */
             funds: number;
+            /** Generated Days */
+            generated_days?: number | null;
             /** Journal Digest */
             journal_digest: string;
             /**
@@ -564,6 +982,12 @@ export interface components {
              * @enum {string}
              */
             label: "WIN" | "SURVIVAL" | "DISTRESS";
+            /** Lp Deferred */
+            lp_deferred?: {
+                [key: string]: string;
+            } | null;
+            /** Max Drawdown */
+            max_drawdown: string;
             /** Nav */
             nav: string;
             /** Rank */
@@ -572,8 +996,14 @@ export interface components {
             recall_resolved_by: string | null;
             /** Redemption Paid */
             redemption_paid: string;
+            /** Scenario */
+            scenario: string;
             /** Score */
             score: string;
+            /** Seed Commitment */
+            seed_commitment?: string | null;
+            /** Stressed Days */
+            stressed_days?: number | null;
             /** Tape Digest */
             tape_digest: string;
             /** Unpaid */
@@ -585,6 +1015,11 @@ export interface components {
         Package: {
             /** Digest */
             digest: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "orders" | "gate";
             /** Orders */
             orders: components["schemas"]["PackageOrder"][];
             /** Package Id */
@@ -595,6 +1030,10 @@ export interface components {
             signatures: string[];
             /** Status */
             status: string;
+            /** Terms */
+            terms: {
+                [key: string]: unknown;
+            };
         };
         /** PackageOrder */
         PackageOrder: {
@@ -644,6 +1083,42 @@ export interface components {
              */
             type: "propose";
         };
+        /**
+         * ProposeGate
+         * @description Propose a redemption gate for the next dealing close; the other partner elects it with ``sign``.
+         */
+        ProposeGate: {
+            /** Package Id */
+            package_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "propose_gate";
+        };
+        /** Quote */
+        Quote: {
+            /** Borrow Rate */
+            borrow_rate: string | null;
+            /** Borrowed */
+            borrowed: number;
+            /** Change Bps */
+            change_bps: string | null;
+            /** Mark */
+            mark: string;
+            /** Mv */
+            mv: string;
+            /** Observed Event Volume */
+            observed_event_volume: number | null;
+            /** Qty */
+            qty: number;
+            /** Since Start Bps */
+            since_start_bps: string | null;
+            /** Sym */
+            sym: string;
+            /** Weight */
+            weight: string | null;
+        };
         /** Ready */
         Ready: {
             /**
@@ -685,6 +1160,21 @@ export interface components {
             /** Resolved By */
             resolved_by: string | null;
         };
+        /** RegimeQuestion */
+        RegimeQuestion: {
+            /** Evidence */
+            evidence: number;
+            /** Method */
+            method: string;
+            /** Period Day */
+            period_day: number;
+            posterior: components["schemas"]["Forecast"];
+            prior: components["schemas"]["Forecast"];
+            /** Question */
+            question: string;
+            /** States */
+            states: ("calm" | "stressed")[];
+        };
         /** RejectedFill */
         RejectedFill: {
             /** Day */
@@ -693,6 +1183,15 @@ export interface components {
             phase: string;
             /** Rejected */
             rejected: string;
+        };
+        /** RejectedStep */
+        RejectedStep: {
+            /** Reason */
+            reason: string;
+            /** Seq */
+            seq: number;
+            /** Type */
+            type: string;
         };
         /** Research */
         Research: {
@@ -724,6 +1223,20 @@ export interface components {
              */
             type: "research";
         };
+        /**
+         * ResearchRecord
+         * @description Brier scores of each seat's latest thesis per question; beside P&L, never in it.
+         */
+        ResearchRecord: {
+            /** Policy */
+            policy: string;
+            /** Seats */
+            seats: {
+                [key: string]: components["schemas"]["SeatResearch"];
+            };
+            /** Theses */
+            theses: components["schemas"]["ThesisScore"][];
+        };
         /** ResearchUse */
         ResearchUse: {
             /** Assigned Day */
@@ -749,6 +1262,41 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** ReviewCheckpoint */
+        ReviewCheckpoint: {
+            /**
+             * Band
+             * @enum {string}
+             */
+            band: "strong" | "stable" | "concerned" | "withdrawal_risk";
+            /** Clamp */
+            clamp: string;
+            /** Contact */
+            contact: string;
+            /** Day */
+            day: string;
+            /** Drawdown */
+            drawdown: string;
+            /** Drawdown Pp */
+            drawdown_pp: string;
+            /** End */
+            end: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "review";
+            /** Lp */
+            lp: string;
+            /** Open Alerts */
+            open_alerts: string;
+            /** Policy Version */
+            policy_version: string;
+            /** Response Lag */
+            response_lag: string;
+            /** Start */
+            start: string;
+        };
         /**
          * RoomView
          * @description ``GET /api/rooms/{id}/view``: the session view plus seat names and the real-time clock.
@@ -769,6 +1317,7 @@ export interface components {
             incident_events: components["schemas"]["IncidentEvent"][];
             /** Incidents */
             incidents: string[];
+            investors: components["schemas"]["Investors"] | null;
             /** League */
             league: components["schemas"]["LeagueRow"][];
             /** Marks */
@@ -816,6 +1365,13 @@ export interface components {
              */
             type: "say";
         };
+        /** SeatResearch */
+        SeatResearch: {
+            /** Mean Brier */
+            mean_brier: string | null;
+            /** Theses */
+            theses: number;
+        };
         /** Series */
         Series: {
             /** Hwm */
@@ -851,6 +1407,28 @@ export interface components {
              */
             type: "set_speed";
         };
+        /** Settlement */
+        Settlement: {
+            /** Amount */
+            amount: string;
+            /** Due Day */
+            due_day: number;
+            /** Failed Days */
+            failed_days: number[];
+            /** Kind */
+            kind: string;
+            /** Obligation */
+            obligation: string;
+            /** Qty */
+            qty: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "settled";
+            /** Sym */
+            sym: string;
+        };
         /** ShareResearch */
         ShareResearch: {
             /** Topic */
@@ -873,6 +1451,214 @@ export interface components {
              */
             type: "sign";
         };
+        /** StatementResolution */
+        StatementResolution: {
+            /** Actor */
+            actor: string;
+            /** Date */
+            date: string;
+            /** Revision */
+            revision: number;
+            /** Statement Id */
+            statement_id: string;
+        };
+        /** StatementRevision */
+        StatementRevision: {
+            /** Account */
+            account: string;
+            as_of: components["schemas"]["Coordinate"];
+            available_at: components["schemas"]["Coordinate"];
+            /** Balance */
+            balance: string;
+            /** Expected */
+            expected: string;
+            /** Id */
+            id: string;
+            /** Reason */
+            reason: string;
+            /** Received Date */
+            received_date: string;
+            /** Revision */
+            revision: number;
+            /** Source */
+            source: string;
+            /** Supersedes */
+            supersedes: number | null;
+        };
+        /** StatementRow */
+        StatementRow: {
+            /** Account */
+            account: string;
+            /** Actual */
+            actual: string;
+            /** Age Calendar Days */
+            age_calendar_days: number;
+            /** Can Resolve */
+            can_resolve: boolean;
+            /** Expected */
+            expected: string;
+            /** History */
+            history: components["schemas"]["StatementRevision"][];
+            /** Id */
+            id: string;
+            /** Owner */
+            owner: string;
+            resolution: components["schemas"]["StatementResolution"] | null;
+            /** Resolution History */
+            resolution_history: components["schemas"]["StatementResolution"][];
+            /** Revision */
+            revision: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "resolved";
+        };
+        /** Stress */
+        Stress: {
+            /** Gross */
+            gross: string | null;
+            /** Headroom */
+            headroom: string;
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Long Shock */
+            long_shock: string;
+            /** Maintenance Req */
+            maintenance_req: string;
+            /** Margin Breach */
+            margin_breach: boolean;
+            /** Nav */
+            nav: string;
+            /** Pnl */
+            pnl: string;
+            /** Short Shock */
+            short_shock: string;
+        };
+        /** TerminalOrder */
+        TerminalOrder: {
+            /** Filled */
+            filled: number;
+            /** Fills */
+            fills: (components["schemas"]["Fill"] | components["schemas"]["RejectedFill"])[];
+            /** Forced */
+            forced: string | null;
+            /** Order Id */
+            order_id: string;
+            /** Qty */
+            qty: number;
+            /** Remaining */
+            remaining: number;
+            /** Side */
+            side: string;
+            /** Status */
+            status: string;
+            /** Sym */
+            sym: string;
+        };
+        /** TerminalRisk */
+        TerminalRisk: {
+            /** Cash */
+            cash: string;
+            controls: components["schemas"]["ControlReport"];
+            /** Credit Left */
+            credit_left: string;
+            /** Debt */
+            debt: string;
+            /** Headroom */
+            headroom: string;
+            /** Long Mv */
+            long_mv: string;
+            /** Maintenance Rates */
+            maintenance_rates: {
+                [key: string]: string;
+            };
+            /** Maintenance Req */
+            maintenance_req: string;
+            /** Nav */
+            nav: string;
+            /** Restricted Collateral */
+            restricted_collateral: string;
+            /** Short Mv */
+            short_mv: string;
+            /** Stress Method */
+            stress_method: string;
+            /** Stresses */
+            stresses: components["schemas"]["Stress"][];
+        };
+        /**
+         * TerminalView
+         * @description ``GET /api/rooms/{id}/terminal``: read-only as-of analytics at one room version.
+         */
+        TerminalView: {
+            as_of: components["schemas"]["AsOf"];
+            /** Finished */
+            finished: boolean;
+            /** History */
+            history: components["schemas"]["HistoryPoint"][];
+            /** History Truncated */
+            history_truncated: boolean;
+            /** Incidents */
+            incidents: components["schemas"]["IncidentEvent"][];
+            /** League */
+            league: components["schemas"]["LeagueRow"][];
+            /** Macro */
+            macro: components["schemas"]["MacroPrint"][];
+            /** News */
+            news: components["schemas"]["NewsItem"][];
+            /** Orders */
+            orders: components["schemas"]["TerminalOrder"][];
+            /** Quotes */
+            quotes: components["schemas"]["Quote"][];
+            regime: components["schemas"]["RegimeQuestion"] | null;
+            risk: components["schemas"]["TerminalRisk"];
+            /** Role */
+            role: string | null;
+            /**
+             * Schema
+             * @constant
+             */
+            schema: "forge-terminal-v1";
+            /** Source */
+            source: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * Thesis
+         * @description A seat's forecast for the terminal's live regime question; scored in the debrief, never in P&L.
+         */
+        Thesis: {
+            forecast: components["schemas"]["Forecast"];
+            /** Question */
+            question: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "thesis";
+        };
+        /** ThesisScore */
+        ThesisScore: {
+            /** Brier */
+            brier: string;
+            forecast: components["schemas"]["Forecast"];
+            /** Period Day */
+            period_day: number;
+            /** Question */
+            question: string;
+            /** Recorded Day */
+            recorded_day: number;
+            /** Role */
+            role: string;
+            /**
+             * True Regime
+             * @enum {string}
+             */
+            true_regime: "calm" | "stressed";
+        };
         /** Ticket */
         Ticket: {
             /** Limit */
@@ -893,6 +1679,26 @@ export interface components {
              * @enum {string}
              */
             type: "ticket";
+        };
+        /** TimelineStep */
+        TimelineStep: {
+            after: components["schemas"]["BranchState"];
+            before: components["schemas"]["BranchState"];
+            /** Can Omit */
+            can_omit?: boolean | null;
+            /** Nav Delta */
+            nav_delta?: string | null;
+            /** Role */
+            role: string;
+            /** Seq */
+            seq: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "accepted" | "rejected" | "omitted";
+            /** Type */
+            type: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1068,9 +1874,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["Debrief"];
                 };
             };
             /** @description Validation Error */
@@ -1178,9 +1982,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["TerminalView"];
                 };
             };
             /** @description Validation Error */
