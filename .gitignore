@@ -32,3 +32,4 @@ logs/
 next-env.d.ts
 mlflow.db
 ml/results/*.zip
+deploy/kafka/plugins/

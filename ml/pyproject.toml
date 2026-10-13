@@ -25,6 +25,9 @@ train = [
     "stable-baselines3>=2.6",
     "mlflow>=3.0",
 ]
+stream = [
+    "confluent-kafka>=2.6",
+]
 
 [tool.uv.sources]
 fundforge = { path = "../backend", editable = true }

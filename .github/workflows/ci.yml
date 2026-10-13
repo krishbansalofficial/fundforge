@@ -33,6 +33,20 @@ jobs:
       - run: uv run ruff check
       - run: uv run mypy
       - run: uv run pytest -q
+  kafka:
+    # Postgres outbox -> Debezium -> Kafka: live parity, game unaffected with Kafka stopped, full recovery.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: deploy/kafka/fetch-debezium.sh
+      - run: docker compose -f deploy/kafka/compose.yaml up -d
+      - run: cd ml && uv sync --locked --group stream --python 3.13
+      - run: cd ml && .venv/bin/python scripts/kafka_e2e.py  # venv python: no lingering uv process
+      - if: failure()
+        run: docker compose -f deploy/kafka/compose.yaml logs --no-color --tail 200
+      - if: always()
+        run: docker compose -f deploy/kafka/compose.yaml down -v
   frontend:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: frontend } }

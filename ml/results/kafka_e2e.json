@@ -1,0 +1,24 @@
+{
+  "room": "8dcfec97209c",
+  "phase1_live": {
+    "ok": true,
+    "messages": 29,
+    "distinct_events": 29,
+    "outbox_rows": 29,
+    "wrong_topic": 0
+  },
+  "kafka_stopped": {
+    "finished": true,
+    "version": 43,
+    "verified_version": 43,
+    "seconds": 0.61
+  },
+  "phase2_recovered": {
+    "ok": true,
+    "messages": 335,
+    "distinct_events": 306,
+    "outbox_rows": 306,
+    "wrong_topic": 0
+  },
+  "feature_version": "stream-features-v1"
+}
