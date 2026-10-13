@@ -627,3 +627,24 @@ No backend source, fixture, rules version or golden changed, so the backend suit
 - The Oracle free-tier limits have conflicting 2026 reports and must be checked in the tenancy.
 
 **One next task:** lane A replaces the deepcopy rollback snapshot with an undo log. The stateful Hypothesis test and goldens must stay unchanged, and the speed-up must be measured with `sim_benchmark.py`.
+
+## Faster rollback snapshot, 13 October 2026
+
+`Session.handle` snapshots the session before every command, so it can roll back if the command fails. It now does this with `pickle` instead of `copy.deepcopy`. New `governance.snapshot`/`restore` share the pinned tape by reference, exactly as the old deepcopy memo did, and the bytes are unpickled only when a command fails. Rollback semantics are unchanged. No rules version, fixture or golden changed.
+
+**Tests:** new `backend/tests/test_snapshot.py` (3) checks that:
+- a restored copy matches deepcopy (same journal digest, NAV and session state);
+- the restored copy is independent of the live session and shares only the tape;
+- a rejected command leaves the view, digest and version identical;
+- an unknown persistent id is refused.
+
+**Checks:**
+- Full backend suite **298 passed** with a local PostgreSQL 16 (CI uses 17); none skipped.
+- Ruff passed; mypy passed (29 files).
+- `ml` tests still pass.
+
+**Measured** with `scripts/sim_benchmark.py` on 4 cores: **65–76 ms per Case1 episode, 13–15 episodes/s/core**, against 135–174 ms before (about 2.2×). Under cProfile the snapshot is still 75% of the remaining time.
+
+**Limitation:** this is a cheaper copy, not an undo log. Pickle is used only for in-process rollback bytes created by the server itself, never for loading external data.
+
+**One next task:** lanes B, C and D start their day 2–3 items once PR #5 merges. Lane A takes the settlement-obligations task; the undo log comes only if RL training time needs it.

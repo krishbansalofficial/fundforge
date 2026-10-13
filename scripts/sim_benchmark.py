@@ -4,8 +4,8 @@ Run from backend/:  uv run python ../scripts/sim_benchmark.py [--runs 20]
 
 Plays the knowledge-free policy grid through the real Session (balance.play), so the number
 includes governance, compliance, rollback snapshots and reconciliation, exactly what an RL
-environment would pay per episode. Prints per-episode time and the share of time spent in
-copy.deepcopy (Session.handle's rollback snapshot).
+environment would pay per episode. Prints per-episode time and the share of profiled time spent
+in copy.deepcopy and in Session.handle's rollback snapshot (cProfile inflates both).
 """
 
 import argparse
@@ -44,8 +44,11 @@ def main() -> None:
     prof.disable()
     stats = pstats.Stats(prof).stats  # type: ignore[attr-defined]
     total = sum(v[2] for v in stats.values())  # tottime
-    deep = next(v[3] for k, v in stats.items() if k[2] == "deepcopy" and k[0].endswith("copy.py"))  # cumtime
-    print(f"deepcopy share of profiled time: {deep / total:.0%}")
+    def share(path_end: str, name: str) -> float:  # cumtime of one function over total tottime
+        return next((v[3] for k, v in stats.items() if k[2] == name and k[0].endswith(path_end)), 0.0) / total
+
+    print(f"profiled time in copy.deepcopy: {share('copy.py', 'deepcopy'):.0%}; "
+          f"in the rollback snapshot: {share('governance.py', 'snapshot'):.0%}")
 
 
 if __name__ == "__main__":

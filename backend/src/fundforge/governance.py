@@ -14,7 +14,9 @@
 
 import copy
 import hashlib
+import io
 import json
+import pickle
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import Decimal, localcontext
@@ -47,6 +49,40 @@ class Package:
 
 def canonical(obj: object) -> str:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str)
+
+
+class _Snapshot(pickle.Pickler):
+    """Serializes mutable session state; the immutable shared tape is referenced, never copied."""
+
+    def __init__(self, buf: io.BytesIO, shared: object) -> None:
+        super().__init__(buf, protocol=pickle.HIGHEST_PROTOCOL)
+        self.shared = shared
+
+    def persistent_id(self, obj: object) -> str | None:
+        return "shared" if obj is self.shared else None
+
+
+class _Restore(pickle.Unpickler):
+    def __init__(self, data: bytes, shared: object) -> None:
+        super().__init__(io.BytesIO(data))
+        self.shared = shared
+
+    def persistent_load(self, pid: object) -> object:
+        if pid != "shared":
+            raise pickle.UnpicklingError(f"unknown persistent id {pid!r}")
+        return self.shared
+
+
+def snapshot(state: object, shared: object) -> bytes:
+    """A full, independent copy of ``state`` as bytes: the same result as ``copy.deepcopy(state,
+    {id(shared): shared})`` once restored, but about 3x cheaper, and restored only on rollback."""
+    buf = io.BytesIO()
+    _Snapshot(buf, shared).dump(state)
+    return buf.getvalue()
+
+
+def restore(data: bytes, shared: object) -> Any:
+    return _Restore(data, shared).load()
 
 
 class Session:
@@ -91,13 +127,14 @@ class Session:
         handler = COMMANDS.get(str(command.get("type")))
         if handler is None:
             raise CommandRejected(f"unknown command type {command.get('type')!r}")
-        # ponytail: snapshot by deepcopy (tape shared via memo); per-entity undo log if profiling says so
-        saved = copy.deepcopy((self.e, self.packages, self.ready, self.turnover, self.clock, self.chat),
-                              {id(self.e.tape): self.e.tape})
+        # Rollback snapshot: pickled (tape shared by reference) and unpickled only if the command fails.
+        # deepcopy here was 93% of profiled run time (scripts/sim_benchmark.py); an undo log is the next step.
+        tape = self.e.tape
+        saved = snapshot((self.e, self.packages, self.ready, self.turnover, self.clock, self.chat), tape)
         try:
             result = handler(self, role, command)
         except Exception:
-            self.e, self.packages, self.ready, self.turnover, self.clock, self.chat = saved
+            self.e, self.packages, self.ready, self.turnover, self.clock, self.chat = restore(saved, tape)
             raise
         self.results[key] = (fp, result)
         self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "key": key,

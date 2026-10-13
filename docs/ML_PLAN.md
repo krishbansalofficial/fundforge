@@ -24,7 +24,8 @@ ML advises, generates or plays a disclosed seat. **It never owns the economics.*
 | rally, passive | 135–136 | 7.4 |
 | rally, S1_balanced | 168–174 | 5.7–5.9 |
 
-- **Where the time goes:** under cProfile, **93%** of the time is `copy.deepcopy` in `Session.handle`'s rollback snapshot (`governance.py`, the "per-entity undo log if profiling says so" comment). The engine's own work is a small remainder.
+- **Update, 13 October 2026, pickle snapshot:** `Session.handle` now pickles its rollback snapshot (the tape is shared by reference) and unpickles it only when a command fails. Same rollback semantics; 298 backend tests pass with PostgreSQL. Measured: **65–76 ms per episode (13–15 episodes/s/core), about 2.2× faster**. Under cProfile the snapshot is still 75% of the remaining time, so a per-command undo log stays the next speed step.
+- **Where the time went (before the update):** under cProfile, **93%** of the time is `copy.deepcopy` in `Session.handle`'s rollback snapshot (`governance.py`, the "per-entity undo log if profiling says so" comment). The engine's own work is a small remainder.
 - **What it means:** at today's speed, 1M decision steps is roughly 2–3 core-hours, so RL on the real Decimal engine is feasible. Replacing the snapshot is lane A's first task. The speed-up is to be measured, not assumed.
 - **The float training twin is optional.** Build it only if the measured speed after that fix misses the training budget. If built, it must pass a parity test against the Decimal engine, and final evaluation always uses the real engine.
 
@@ -80,9 +81,4 @@ Each lane is its own session and worktree. Ownership is in [ML_CONTRACTS](ML_CON
 
 ## Next task
 
-Lane A: replace `Session.handle`'s deepcopy snapshot with an undo log or a cheaper snapshot. Requirements:
-- the stateful Hypothesis test and every rollback test pass;
-- goldens are unchanged;
-- the speed-up is measured with `scripts/sim_benchmark.py`.
-
-Lanes B, C and D start on their day 2–3 items once this change is merged.
+The cheaper snapshot is done (above). Lanes B, C and D start on their day 2–3 items once the day-1 change is merged. Lane A continues with the settlement-obligations task; the undo log is taken up only if RL training time demands it.
