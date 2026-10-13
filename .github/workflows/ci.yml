@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - run: deploy/kafka/fetch-debezium.sh
-      - run: docker compose -f deploy/kafka/compose.yaml up -d
+      - run: docker compose -f deploy/kafka/compose.yaml up -d --wait  # waits for the db healthcheck
       - run: cd ml && uv sync --locked --group stream --python 3.13
       - run: cd ml && .venv/bin/python scripts/kafka_e2e.py  # venv python: no lingering uv process
       - if: failure()

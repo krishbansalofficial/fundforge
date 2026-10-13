@@ -32,14 +32,21 @@ ENVELOPE = ("event_id", "contract_version", "room_id", "seq", "idx", "kind", "au
             "tape_digest", "day", "phase", "sim_date", "chain_head")
 
 
+def _body(raw: bytes) -> Any:
+    try:
+        return json.loads(raw or b"null")
+    except ValueError:  # e.g. Connect's REST server answers with plain text/HTML while starting up
+        return raw.decode(errors="replace")
+
+
 def http(method: str, url: str, body: dict[str, Any] | None = None) -> tuple[int, Any]:
     req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None,
                                  headers={"Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
-            return r.status, json.loads(r.read() or b"null")
+            return r.status, _body(r.read())
     except urllib.error.HTTPError as e:
-        return e.code, json.loads(e.read() or b"null")
+        return e.code, _body(e.read())
 
 
 def wait_connector(connect: str, timeout: float = 180) -> None:
