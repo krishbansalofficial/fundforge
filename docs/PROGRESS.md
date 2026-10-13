@@ -591,3 +591,39 @@ Both then mark Ready to the end. The test reads the API only to know the clock.
 **One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked items are a server-side test hook to pin a room's variant for deterministic end-to-end coverage of both markets (test-only, so it needs care not to leak the variant), or the web desk's journal using the ledger cursor.
 
 **CI fix, 12 October 2026.** Two of three CI runs for `3cbd8f3` failed `e2e` and `export` even though their tests had **passed** (S2 WIN; co-op split, met and verified). The jobs then failed in `setup-uv`'s post-job cache prune, which waited 5 minutes on uv's cache lock and exited 2. The lock was held by the background API started with `uv run uvicorn`. The failure is intermittent because only the run that saves the uv cache prunes it. Reproduced locally: `uv cache prune --ci` blocks while a `uv run` process is alive and returns at once when the process is the venv's own Python. Fix: both jobs start the API (and the acceptance script) from `backend/.venv/bin`, and stop the background servers with an `EXIT` trap.
+
+## ML lane, day 1: decisions, contracts and boundaries, 13 October 2026
+
+The owner asked to make FundForge an ML project as well as a game. Their decisions, recorded in DECISIONS (13 October 2026):
+- add Kafka, Spark and Kubernetes, each behind a tested boundary;
+- zero spend;
+- public deployment authorized;
+- up to four parallel lanes.
+
+Plan: [ML_PLAN](ML_PLAN.md). Contracts: [ML_CONTRACTS](ML_CONTRACTS.md). CLAUDE.md gained one ML/platform paragraph.
+
+**New:**
+- `ml/`: a separate uv project, `fundforge_ml`, depending on the backend by path.
+- `contracts.py`:
+  - `CONTRACT_VERSION`;
+  - `split_of` (80/10/10 by seed family, fixed salt);
+  - `hidden_paths`;
+  - `observe`, the only sanctioned observation: `Session.view` plus a hidden-key check before the debrief.
+- `ml/contracts/`: outbox event and dataset JSON schemas.
+- `scripts/sim_benchmark.py`.
+- A CI `ml` job: `lint-imports`, ruff, mypy strict, pytest.
+
+**Checks:**
+- `ml` pytest **8 passed**, including the future-headline canary on both variants with a positive control.
+- `lint-imports` kept, ruff passed, mypy strict passed.
+- Both boundary checks failed on a deliberately planted `import fundforge_ml` in the backend and passed once it was removed.
+
+**Measured** with `sim_benchmark.py` on this 4-core container: 135–174 ms per Case1 episode (5.7–7.4 episodes/s/core). Under cProfile, 93% of the time is `copy.deepcopy` in `Session.handle`'s rollback snapshot.
+
+No backend source, fixture, rules version or golden changed, so the backend suite was not re-run for this change. Nothing has been deployed yet.
+
+**Limitations:**
+- Contracts only; no environment, model, Kafka, Spark or Kubernetes code yet.
+- The Oracle free-tier limits have conflicting 2026 reports and must be checked in the tenancy.
+
+**One next task:** lane A replaces the deepcopy rollback snapshot with an undo log. The stateful Hypothesis test and goldens must stay unchanged, and the speed-up must be measured with `sim_benchmark.py`.

@@ -1,0 +1,50 @@
+{
+  "contract_version": "ml-contracts-2026.10.1",
+  "description": "Offline dataset tables (Parquet locally, Delta Lake on Spark). Features and hidden labels live in separate tables; a label is joined only as a training target. Money and rates are decimal strings; model-ready floats are derived columns with a _f suffix. The split column comes from fundforge_ml.contracts.split_of(seed_family) and never from row order.",
+  "tables": {
+    "episodes": {
+      "key": ["episode_id"],
+      "columns": {
+        "episode_id": "string: sha256 of gen_version|seed_family|seed|policy_id|rules_version",
+        "seed_family": "string: hashed for the split; whole families are held out",
+        "split": "string: train | val | test",
+        "gen_version": "string",
+        "seed_commitment": "string: sha256 commitment, never the seed itself",
+        "scenario_id": "string",
+        "rules_version": "string",
+        "tape_digest": "string",
+        "policy_id": "string: e.g. passive, S1_balanced, bot:v1, ppo:<model sha256>",
+        "outcome_label": "string: WIN | SURVIVAL | DISTRESS",
+        "score": "decimal string",
+        "nav": "decimal string",
+        "journal_digest": "string: reproducible by replay"
+      }
+    },
+    "decisions": {
+      "key": ["episode_id", "seat", "step"],
+      "columns": {
+        "episode_id": "string",
+        "seat": "string: pm | mp",
+        "step": "int",
+        "day": "int",
+        "phase": "string",
+        "available_day": "int: last simulated day whose information the row may use; equals day",
+        "obs": "json string: fundforge_ml.contracts.observe(session, user), unchanged",
+        "action": "json string: the command sent, or null for wait",
+        "accepted": "bool",
+        "reject_code": "string or null",
+        "reward": "decimal string"
+      }
+    },
+    "labels": {
+      "key": ["episode_id", "label"],
+      "columns": {
+        "episode_id": "string",
+        "label": "string: variant | regime_day_<n> | factor_day_<n> | ...",
+        "value": "string",
+        "known_at_day": "int: first day the truth could be known by a player; null if only at the debrief"
+      },
+      "rule": "Never a model input. Joined only as a target, with an explicit horizon."
+    }
+  }
+}
