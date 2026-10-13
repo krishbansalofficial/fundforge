@@ -687,3 +687,51 @@ New code in `ml/src/fundforge_ml/`:
 - The two-seat PettingZoo env, the dataset export and the `visit`/`resolve_statement`/`set_reserve` actions are not in v1.
 
 **One next task:** train MaskablePPO on train-split families and compare it on test-split families against the random baseline, with MLflow tracking.
+
+## Data lane: transactional outbox, Debezium and Kafka (lane D), 13 October 2026
+
+**Outbox** (`backend/src/fundforge/outbox.py`, migration `0007_outbox.sql`):
+- `Store._apply` writes outbox rows in the **same transaction** as each command and its journal rows.
+- Each command emits:
+  - the command itself (public);
+  - its journal entries (internal);
+  - new notices (the owner's seat if the notice has an owner, otherwise public);
+  - new incidents;
+  - the outcome when the game ends.
+- `Session.log` entries now record counts after each command, so events are attributed to the exact command, bot commands included.
+- The table is append-only with a foreign key to `commands`. Nothing in the game reads it.
+
+**Tests and checks:**
+- Backend `test_outbox.py` (4, PostgreSQL) checks:
+  - journal events match `journal_entries`, and every event's chain head matches its command row;
+  - research evidence is MP-private;
+  - exactly one outcome event carries the variant;
+  - rejected or retried commands write no events;
+  - the table is append-only;
+  - in solo rooms, bot commands get their own events.
+- Full backend suite **302 passed** with local PostgreSQL 16.
+- `ml/tests/test_outbox_contract.py` validates full-game rows against the frozen JSON schema and checks that the backend and ML contract versions agree.
+
+**Streaming features** (`fundforge_ml/stream.py`, `stream-features-v1`): per-seat, order-independent features (counts, maxima, set unions), deduplicated by `event_id`, reading only public events and the seat's own. `test_stream.py` checks that shuffled and redelivered streams equal the batch result, that seats stay isolated, that Debezium dates are normalized, and that hidden truth is refused.
+
+**Kafka stack** (`deploy/kafka/`):
+- single-node KRaft Kafka 3.9.1;
+- a Kafka Connect worker on the stock `apache/kafka` image, with the Debezium Postgres connector 3.2.0.Final from Maven Central, verified against Maven's SHA-1 (quay.io is blocked from this container);
+- an Outbox Event Router routing to `fundforge.<kind>s`, keyed by room.
+
+**End-to-end** (`ml/scripts/kafka_e2e.py`, measured here, `ml/results/kafka_e2e.json`):
+
+| Phase | Result |
+|---|---|
+| Live | 29/29 events delivered, correct topics, streamed features equal batch |
+| Kafka stopped | Game finished and verified (43 commands) |
+| After restart | All 306 outbox events arrived (335 messages, 29 redelivered); streamed features equal batch |
+
+The new CI job `kafka` runs the same check.
+
+**Finding:** a single Connect worker coordinates through the broker. After a broker outage its source task cannot stop cleanly: first the producer failed sends, then, with blocking sends, a rebalance could not stop the task. The working recovery is restarting the Connect worker. Debezium resumes from its offsets and the replication slot, so delivery is at least once and deduplicated by `event_id`.
+
+**Limitations:**
+- The room's opening entries are not emitted, since they are derivable from the pinned tape.
+- `verify()` does not yet re-derive the outbox.
+- Kafka is not part of the production compose, and nothing is deployed.
