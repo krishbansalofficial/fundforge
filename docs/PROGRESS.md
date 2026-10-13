@@ -648,3 +648,42 @@ No backend source, fixture, rules version or golden changed, so the backend suit
 **Limitation:** this is a cheaper copy, not an undo log. Pickle is used only for in-process rollback bytes created by the server itself, never for loading external data.
 
 **One next task:** lanes B, C and D start their day 2–3 items once PR #5 merges. Lane A takes the settlement-obligations task; the undo log comes only if RL training time needs it.
+
+## ML lane: Gymnasium environment (lane B, day 2), 13 October 2026
+
+New code in `ml/src/fundforge_ml/`:
+- `worlds.py`: authored or generated worlds, cached, behind the existing balance gate, with seed families for splitting.
+- `encoding.py`: `obs-v1`, a 96-float vector built only from the partner's view and public scenario facts.
+- `env.py`: `FundForgeEnv`, one seat as a Gymnasium env; `bot:v1` plays the other seat through normal commands.
+  - **Actions** (`actions-v1`, 46 in total): wait; reduce any position by 25%, 50% or 100%, always proposed as a joint package that the partner must countersign; research a topic; share it; accept replacement borrow.
+  - **Mask:** built from the observation only, exposed as `action_masks()` for MaskablePPO.
+  - **Reward** (`reward-v1`): the engine's own score in percent plus a tier bonus, with optional NAV shaping.
+
+`ml/tests/test_env.py` (11 tests) covers:
+- Gymnasium's `check_env` for both seats;
+- full scored episodes with a reconciliation check;
+- identical journal digests and observations for the same seed and actions;
+- trades requiring the partner's countersignature;
+- role-specific masks;
+- no hidden keys in `info` before the debrief;
+- **numeric canary:** ALTO is doubled from the last public mark onward. Every earlier observation and mask must be identical to a clean run, and the change must appear afterwards (positive control).
+
+**Checks:** `ml` 19 passed; ruff, mypy strict and `lint-imports` pass.
+
+**Measured** with `ml/scripts/env_baselines.py` (this container, 40 seed families, 20 episodes per row):
+- **Balance gate:** 23/40 generated families pass for both variants. All 17 rejections are `cover_recall_only_does_not_win`.
+- **Speed:** 6–7 decisions per episode with skip pacing; 38–123 env steps/s.
+- **Baselines** on 4 test-split families:
+
+| Seat | Never act | Uniform random over valid actions |
+|---|---|---|
+| PM | mean reward −2.03 ± 0.29, 20 Survival | +6.43 ± 0.65, 20 Win |
+| MP | +0.07 ± 1.26, 15 Survival / 5 Win | +6.02 ± 0.54, 20 Win |
+
+**Finding:** in these worlds, random valid play wins every time. The masked action set plus the bot partner makes the current Case1 decisions too easy. That is a balance problem for the game lane, and RL results must be reported against this random baseline, not against doing nothing.
+
+**Limitations:**
+- No learned policy yet.
+- The two-seat PettingZoo env, the dataset export and the `visit`/`resolve_statement`/`set_reserve` actions are not in v1.
+
+**One next task:** train MaskablePPO on train-split families and compare it on test-split families against the random baseline, with MLflow tracking.

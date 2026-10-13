@@ -5,6 +5,8 @@ description = "ML lane for FundForge: environments, datasets and models that adv
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "fundforge",
+    "gymnasium>=1.0",
+    "numpy>=2.0",
 ]
 
 [dependency-groups]

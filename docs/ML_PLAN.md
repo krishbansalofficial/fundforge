@@ -79,6 +79,10 @@ Each lane is its own session and worktree. Ownership is in [ML_CONTRACTS](ML_CON
 - Every reported metric comes with its seed split, its sample size and the command that reproduces it. No invented results.
 - Kafka: stopped-broker, offset-0 replay and duplicate-delivery tests. Spark: Polars-parity test. Kubernetes: kind deployment smoke in CI. Redis: two-replica presence test.
 
+## Status, 13 October 2026
+
+Lane B day 2 done: `FundForgeEnv` with masks, determinism and numeric canary tests, and measured baselines (see PROGRESS). Random valid play already wins every measured world, so learned policies are judged against that baseline.
+
 ## Next task
 
 The cheaper snapshot is done (above). Lanes B, C and D start on their day 2–3 items once the day-1 change is merged. Lane A continues with the settlement-obligations task; the undo log is taken up only if RL training time demands it.
