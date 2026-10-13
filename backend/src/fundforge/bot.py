@@ -34,6 +34,10 @@ def plan(s: Session, role: str) -> list[dict[str, Any]]:
     # 1. review the human partner's packages: countersign or explain the refusal
     for p in s.packages.values():
         if p.status == "PENDING_APPROVAL" and p.proposer != role and not _said(s, f"pkg:{p.package_id}"):
+            if p.kind == "gate":  # a material LP exception needs distinct human consent; the bot never supplies it
+                out.append({"type": "say", "ref": f"pkg:{p.package_id}",
+                            "text": "I won't elect a redemption gate: that needs a human partner's consent."})
+                continue
             out.append({"type": "sign", "package_id": p.package_id, "digest": p.digest,
                         "_ref": f"pkg:{p.package_id}"})
     if role == "mp" and at_barrier:

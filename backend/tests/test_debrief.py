@@ -158,3 +158,4 @@ def test_replay_http_requires_auth_version_and_completed_game(monkeypatch):
     seq = decision_seq(s)
     response = c.post(path, headers=headers, json={"version": s.version, "omit_seq": seq})
     assert response.status_code == 200 and response.json()["omitted_seq"] == seq
+    assert response.json() == replay(s, seq) and "investors" not in response.json()  # exact shape, no nulls added

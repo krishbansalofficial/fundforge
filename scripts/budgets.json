@@ -1,0 +1,20 @@
+{
+  "note": "Limits are about 20% above the 12 Oct 2026 measurement in measured (Godot 4.7.2 release templates; Next 15.5 turbopack build). Frame time is checked locally by measure_frames.py, sizes by check_budgets.py in CI.",
+  "frame": {"p95_ms_max": 16.7},
+  "export_bytes_max": {
+    "linux/FundForge.x86_64": 152400000,
+    "windows/FundForge.exe": 195300000
+  },
+  "first_load_js_gzip_bytes_max": {
+    "/_not-found/page": 137000,
+    "/page": 139300,
+    "/room/[id]/page": 148300
+  },
+  "measured": {
+    "linux/FundForge.x86_64": 126977552,
+    "windows/FundForge.exe": 162726624,
+    "/_not-found/page": 114083,
+    "/page": 116063,
+    "/room/[id]/page": 123517
+  }
+}

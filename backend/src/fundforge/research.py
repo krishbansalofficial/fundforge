@@ -7,15 +7,24 @@ as 6dp HALF_EVEN Decimals. A card is usable only once its ``available_at`` day h
 so a posterior can never contain future evidence. Thesis tickets are scored with the
 multi-state Brier score, reported beside P&L and never inside it.
 
-Pure domain: no engine, journal or I/O imports. Not yet wired into a scenario.
+Generated markets ask one live question: was the hidden regime stressed on the latest period
+whose Street activity print is published? ``regime_filter`` answers it with an exact forward
+filter (a two-state hidden Markov model) over the published prints; see its docstring.
+
+Pure domain: no engine, journal or I/O imports.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from decimal import ROUND_HALF_EVEN, Decimal
 from fractions import Fraction
+from typing import Any
+
+from .asof import Observation
+from .generator import Spec
 
 SHOWN = Decimal("0.000001")
+REGIMES = ("calm", "stressed")
 
 
 @dataclass(frozen=True)
@@ -71,3 +80,62 @@ def brier(forecast: Mapping[str, Decimal], true_state: str) -> Fraction:
     if true_state not in forecast or any(p < 0 for p in forecast.values()) or sum(forecast.values()) != 1:
         raise ValueError("forecast must cover the true state with non-negative probabilities summing to 1")
     return sum(((Fraction(p) - (1 if s == true_state else 0)) ** 2 for s, p in forecast.items()), Fraction(0))
+
+
+def question_id(period_day: int) -> str:
+    return f"regime:{period_day}"
+
+
+def _likelihood(value: Decimal, level: int, bound: int) -> Fraction:
+    """P(print | state): the generator adds uniform integer noise in [-bound, bound] tenths."""
+    tenths = value * 10
+    if tenths != tenths.to_integral_value():
+        raise ValueError(f"print {value} is not a whole number of tenths")
+    return Fraction(1, 2 * bound + 1) if abs(int(tenths) - level) <= bound else Fraction(0)
+
+
+def regime_filter(prints: Sequence[Observation], spec: Spec) -> list[tuple[dict[str, Fraction], dict[str, Fraction]]]:
+    """Exact forward filter over consecutive generated days: ``(published prior, posterior)`` per print.
+
+    The generator starts calm before its first generated day and, at each generated day, flips the
+    regime with probability ``p = switch_bp / 10000``, then prints that day's level plus noise.
+    So the published prior for the k-th generated day is the chain alone: P(stressed) = (1 - (1-2p)^k) / 2
+    (3/20 on the first day by default). The posterior predicts yesterday's belief one step and multiplies
+    by the print's likelihood: 1/(2b+1) if the print is within ``b`` tenths of the state's level, else 0,
+    with ``b`` the first-print bound, or the revision bound when ``prints`` carries a revision. Callers pass
+    each day's latest available revision only, so a revision replaces its first print, never adds to it.
+    Prints must be every generated day up to the newest, oldest first: the as-of view guarantees this,
+    because every generated day prints with the same lag.
+    """
+    p = Fraction(spec.switch_bp, 10_000)
+    level = {"calm": spec.macro_level + spec.macro_regime, "stressed": spec.macro_level - spec.macro_regime}
+
+    def step(b: dict[str, Fraction]) -> dict[str, Fraction]:
+        return {"calm": b["calm"] * (1 - p) + b["stressed"] * p, "stressed": b["stressed"] * (1 - p) + b["calm"] * p}
+
+    belief = chain = {"calm": Fraction(1), "stressed": Fraction(0)}
+    out = []
+    for o in prints:
+        chain = step(chain)
+        bound = spec.macro_revised_noise if o.revision else spec.macro_first_noise
+        weights = {s: w * _likelihood(o.value, level[s], bound) for s, w in step(belief).items()}
+        total = sum(weights.values(), Fraction(0))
+        if total == 0:
+            raise ValueError(f"print {o.value} for day {o.event_time} is impossible under every regime")
+        belief = {s: w / total for s, w in weights.items()}
+        out.append((chain, belief))
+    return out
+
+
+def regime_question(known: Sequence[Observation], spec: Spec) -> dict[str, Any] | None:
+    """The live research question from the published prints only (``AsOfTape.known``), or None before any."""
+    if not known:
+        return None
+    prior, post = regime_filter(known, spec)[-1]
+    day = known[-1].event_time
+    return {"question": question_id(day), "period_day": day, "states": list(REGIMES),
+            "prior": {s: str(v) for s, v in shown(prior).items()},
+            "posterior": {s: str(v) for s, v in shown(post).items()},
+            "evidence": len(known),
+            "method": "Exact forward filter over every published print (latest revision only); "
+                      "prior is the regime chain alone. Shown to 6dp."}

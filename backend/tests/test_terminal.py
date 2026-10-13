@@ -150,6 +150,7 @@ def test_terminal_http_auth_and_consistent_version_without_database():
         assert pm_data.pop("role") == "pm" and mp_data.pop("role") == "mp"
         assert pm_data == mp_data
         assert pm.json()["version"] == 7 and pm.json()["as_of"]["event"] == e.cursor
+        assert pm.json() == {**snapshot(e, "pm"), "version": 7}  # the response model keeps the exact shape
         from fundforge.store import RoomIncompatible
 
         def incompatible(_self, _room):

@@ -187,3 +187,114 @@ def test_client_command_shapes_validate_and_normalize():
                 {"type": "tick", "expected_version": 1}, {"type": "no_such_thing"}, {}]:
         with pytest.raises(ValidationError):
             adapter.validate_python(bad)
+
+
+def terminal_views(s: Session, seen: list) -> None:
+    from fundforge.schemas import TerminalView
+    from fundforge.terminal import snapshot
+
+    for role in ("pm", "mp"):
+        seen.append(TerminalView.model_validate_json(json.dumps({**snapshot(s.e, role), "version": s.version})))
+
+
+def debriefs(s: Session) -> list:
+    """The baseline replay plus one branch omitting each kind of omittable decision once."""
+    from fundforge.debrief import OMITTABLE, replay
+    from fundforge.schemas import Debrief
+
+    kinds: dict[str, int] = {}
+    for seq, item in enumerate(s.log, 1):
+        kinds.setdefault(item["command"]["type"], seq)
+    omit = [None, *(seq for kind, seq in kinds.items() if kind in OMITTABLE)]
+    return [Debrief.model_validate_json(json.dumps(replay(s, seq))) for seq in omit]
+
+
+def thesis_room(s: Session, k: int) -> None:
+    """Each seat forecasts the terminal's live regime question whenever one is open."""
+    from fundforge.terminal import snapshot
+
+    q = snapshot(s.e)["regime"]
+    if q and not s.e.finished():
+        for n, user in enumerate(P.values()):
+            with contextlib.suppress(CommandRejected):
+                s.handle(user, f"thesis-{k}-{n}", {"type": "thesis", "question": q["question"],
+                                                   "forecast": {"calm": "0.7", "stressed": "0.3"}})
+
+
+def gate_room(s: Session, k: int) -> None:
+    """Managing partner contacts Tactical before the reviews; a gate is proposed and elected after the cutoff."""
+    if s.e.ev.day == 12 and k == 0:
+        s.handle("ben", "contact", {"type": "contact_lp", "lp": "Tactical"})
+    if s.e.ev.day >= 16 and "gate" not in s.packages:
+        g = s.handle("ana", "gate", {"type": "propose_gate", "package_id": "gate"})
+        s.handle("ben", "gate-sign", {"type": "sign", "package_id": "gate", "digest": g["digest"]})
+
+
+def contract_play(scenario: str, variant: str = "base", script=None) -> tuple[list, list]:
+    e = Engine(_tape(scenario, variant))
+    e.advance()
+    s = Session(e, P)
+    terminals: list = []
+    k = 0
+    while not s.e.finished():
+        terminal_views(s, terminals)
+        if script:
+            script(s, k)
+        for user in P.values():
+            s.handle(user, f"ready-{k}-{user}", {"type": "ready", "version": s.version})
+        k += 1
+    terminal_views(s, terminals)
+    return terminals, debriefs(s)
+
+
+def test_terminal_and_debrief_from_whole_games_match_the_contract():
+    games = [contract_play("case1"), contract_play("case1", "rally"), contract_play("case1", script=busy),
+             contract_play("case1-controls", script=busy), contract_play("case1-generated", "seed:thesis-contract",
+                                                                         thesis_room),
+             contract_play("case1-generated", "seed:lp-1", gate_room)]
+    terminals = [t for g in games for t in g[0]]
+    debriefs_ = [d for g in games for d in g[1]]
+    # The games above must reach the optional branches, or the contract is untested there.
+    assert any(t.macro for t in terminals) and any(t.regime for t in terminals)
+    assert any(t.regime is None for t in terminals) and any(t.finished for t in terminals)
+    assert any(t.risk.controls.statement_queue for t in terminals) and any(t.orders for t in terminals)
+    assert any(t.risk.controls.settlements for t in terminals) and any(t.news for t in terminals)
+    assert {n.visibility for t in terminals for n in t.news} == {"private", "shared"}
+    assert any(r.revision for t in terminals for r in t.macro)
+    assert any(d.research.theses for d in debriefs_) and any(d.investors for d in debriefs_)
+    kinds = {c.kind for d in debriefs_ if d.investors for c in d.investors.checkpoints}
+    assert kinds == {"review", "chapter_close"}
+    assert any(step.status == "omitted" for d in debriefs_ for step in d.timeline)
+    assert any(d.rejected for d in debriefs_)
+    finished = [d.source_outcome for d in debriefs_]
+    assert any(o.seed_commitment for o in finished) and any(o.seed_commitment is None for o in finished)
+    assert {o.scenario for o in finished} == {"case1", "case1-controls", "case1-generated"}
+
+
+def test_terminal_and_debrief_contracts_reject_undeclared_fields():
+    from fundforge.debrief import replay
+    from fundforge.schemas import BranchOutcome, Debrief, TerminalView
+    from fundforge.terminal import snapshot
+
+    e = Engine(_tape("case1"))
+    e.advance()
+    s = Session(e, P)
+    view = {**snapshot(e, "pm"), "version": 0}
+    # a branch that stops early reports the live outcome, labelled IN_PROGRESS, without post-run reveals
+    assert BranchOutcome.model_validate_json(json.dumps(e.outcome())).label == "IN_PROGRESS"
+    TerminalView.model_validate_json(json.dumps(view))
+    with pytest.raises(ValidationError):
+        TerminalView.model_validate_json(json.dumps({**view, "tape": {}}))
+    with pytest.raises(ValidationError):
+        TerminalView.model_validate_json(json.dumps({**view, "risk": {**view["risk"], "nav": 1}}))
+    k = 0
+    while not s.e.finished():
+        for user in P.values():
+            s.handle(user, f"r{k}-{user}", {"type": "ready", "version": s.version})
+        k += 1
+    out = replay(s)
+    Debrief.model_validate_json(json.dumps(out))
+    with pytest.raises(ValidationError):
+        Debrief.model_validate_json(json.dumps({**out, "regimes": []}))
+    with pytest.raises(ValidationError):  # exponent notation is not a plain decimal string
+        Debrief.model_validate_json(json.dumps({**out, "nav_difference": "1E+2"}))

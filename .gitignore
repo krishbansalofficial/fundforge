@@ -25,6 +25,8 @@ Thumbs.db
 data/raw/
 data/private/
 artifacts/
+backups/
+*.dump
 mlruns/
 logs/
 .playwright-mcp/

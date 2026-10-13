@@ -30,6 +30,7 @@ from .engine import RULES_VERSION, CommandRejected, Engine
 from .generator import GEN_VERSION, commitment, generate
 from .governance import CLOCK, Session, canonical
 from .journal import Entry
+from .lp import POLICY_VERSION as LP_POLICY
 from .observability import COMMAND_SECONDS, REPLAY_SECONDS, command_type, context, timed
 from .tape import Tape, compile_tape, load, variants
 
@@ -75,7 +76,9 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
         if scenario == GENERATED:  # the hidden variant column holds the seed; the outcome reveals it at the end
             if not variant.startswith("seed:") or len(variant) < 6:
                 raise CommandRejected("generated rooms need a seed variant")
-            return compile_tape({**generate(variant[5:], GEN_VERSION, raw), "variant": variant})
+            # LP agents (confidence, generated requests, gates) run only in generated markets
+            return compile_tape({**generate(variant[5:], GEN_VERSION, raw), "variant": variant,
+                                 "lp_agents": LP_POLICY})
         if scenario == "case1-controls":
             raw["broker_statements"] = json.loads((FIXTURES / "broker_break_example.json").read_text(encoding="utf-8"))
         else:  # $100k above the $2.5m opening debt: a large purchase fails until sale proceeds arrive
@@ -84,14 +87,14 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
     return load(FIXTURES / SCENARIOS[scenario], variant)
 
 
-def _variants(scenario: str) -> list[str]:
+def scenario_variants(scenario: str) -> list[str]:
     return variants(json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8")))
 
 
 def _draw_variant(scenario: str) -> str:
     """A hidden variant for a new room; generated markets retry seeds until the balance gate accepts one."""
     if scenario != GENERATED:
-        return secrets.choice(_variants(scenario))
+        return secrets.choice(scenario_variants(scenario))
     base = secrets.token_hex(16)
     for attempt in range(GENERATION_ATTEMPTS):
         variant = f"seed:{base}-{attempt}"

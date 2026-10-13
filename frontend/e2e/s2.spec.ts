@@ -76,12 +76,18 @@ async function accessible(page: Page, where: string) {
   expect(serious.map((v) => `${where}: ${v.id} at ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 }
 
-test("two partners play S2 through the web desk to a Win", async ({ browser, request }) => {
-  const created = await request.post("/api/rooms", { data: { pm_name: "Ana", mp_name: "Ben" } });
+// Both markets, pinned through the API's test-only variant option (FUNDFORGE_TEST_VARIANTS=1), so every run
+// covers the base sell-off (a margin call to cure) and the rally (none announced).
+// FUNDFORGE_RECORD=<dir> records both partners' pages to <dir>/pm.webm and <dir>/mp.webm (the README demo;
+// see scripts/make_demo_gif.py) and runs only the base market, which has the margin call to show.
+const record = process.env.FUNDFORGE_RECORD;
+for (const variant of record ? ["base"] : ["base", "rally"]) test(`two partners play S2 through the web desk to a Win (${variant})`, async ({ browser, request }) => {
+  const created = await request.post("/api/rooms", { data: { pm_name: "Ana", mp_name: "Ben", variant } });
   expect(created.status()).toBe(201);
   const { room_id: room, tokens } = await created.json();
   const open = async (role: "pm" | "mp"): Promise<Seat> => {
-    const page = await (await browser.newContext()).newPage();
+    const page = await (await browser.newContext(record
+      ? { recordVideo: { dir: join(record, "raw"), size: { width: 1400, height: 1000 } } } : {})).newPage();
     await page.goto(`/room/${room}#t=${tokens[role]}`);
     await expect(page.getByRole("heading", { name: "Desk feed" })).toBeVisible();
     return { role, token: tokens[role], page };
@@ -128,10 +134,20 @@ test("two partners play S2 through the web desk to a Win", async ({ browser, req
   }
   const outcome = (await view(request, room, pm.token)).outcome;
   console.log(`outcome ${outcome.label} in the ${outcome.variant} market, margin call cured: ${curedMarginCall}`);
+  expect(outcome.variant).toBe(variant);
+  expect(curedMarginCall).toBe(variant === "base");
   expect(outcome.label).toBe("WIN");
   expect(outcome.recall_resolved_by).toBe("replacement borrow");
   for (const seat of seats) {
     await expect(seat.page.locator(".verdict")).toHaveText("Win", { timeout: 10_000 });
     await accessible(seat.page, `${seat.role.toUpperCase()} debrief`);
+  }
+  if (record) {
+    for (const seat of seats) await seat.page.locator(".verdict").scrollIntoViewIfNeeded();
+    await pm.page.waitForTimeout(2000); // hold the verdict on screen for the clip
+    for (const seat of seats) {
+      await seat.page.context().close();
+      await seat.page.video()!.saveAs(join(record, `${seat.role}.webm`));
+    }
   }
 });

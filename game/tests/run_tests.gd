@@ -38,6 +38,38 @@ func _initialize() -> void:
 	for key in WorldRules.LOCATIONS:
 		check(WorldRules.location_at(WorldRules.LOCATIONS[key]["spot"]) == key, "spot inside %s" % key)
 
+	# ending card text: the market sentence follows the revealed variant, money keeps every Decimal digit
+	check("sell-off and short squeeze" in CardRules.market_text("base"), "case1 base market text")
+	check("sell-off and short squeeze" in CardRules.market_text(null), "missing variant reads as base")
+	check("broad rally" in CardRules.market_text("rally"), "case1 rally market text")
+	var gen_text := CardRules.market_text("seed:card-test")
+	check("generated" in gen_text and "card-test" in gen_text and not "rally" in gen_text and not "squeeze" in gen_text,
+			"generated market text reveals the seed, not a case1 variant")
+	check(CardRules.seed_hash("seed:abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "seed SHA-256")
+	check(CardRules.seed_hash("base") == "", "no seed hash for authored variants")
+	check(CardRules.money("21806458.80") == "$21,806,458.80", "money keeps cents")
+	check(CardRules.money("-1234567.005") == "-$1,234,567.005", "money keeps every digit, no float rounding")
+	check(CardRules.money("0.1") == "$0.10" and CardRules.money("999") == "$999.00", "money pads cents")
+	check(CardRules.money("90071992547409930.01") == "$90,071,992,547,409,930.01", "money beyond float precision")
+	var outcome := {"label": "SURVIVAL", "nav": "21806458.80", "score": "-303.3", "fund_return_bps": "-913.6",
+			"benchmark_return_bps": "-910.3", "rank": 6, "funds": 6, "forced": ["a", "b"], "variant": "seed:card-test",
+			"journal_digest": "j" }
+	check(CardRules.facts({}).is_empty(), "ending facts omit unavailable fields")
+	var ending_facts := CardRules.facts({"scenario": "generated", "max_drawdown": "0.123456", "generated_days": 10, "stressed_days": 0, "seed_commitment": "abc"})
+	check("Maximum drawdown: 12.3456% of NAV per unit, measured at business-day closes" in ending_facts, "ending drawdown preserves server precision")
+	check("Generated market: 0 stressed days out of 10 generated days" in ending_facts and "Seed SHA-256: abc" in ending_facts, "ending generated facts include zero stressed days")
+	var card_rows := CardRules.rows(outcome, {"pm": "Ana", "mp": "Ben"}, {}, {})
+	var card_keys := card_rows.map(func(r): return r[0])
+	check(not "Mean Brier" in card_keys and not "Chain head" in card_keys and not "Rules" in card_keys, "missing optional sources drop their rows")
+	check(["Result", "#6 of 6 funds  /  Score -303.3 bps"] in card_rows, "rank and score row")
+	check(["Final NAV", "$21,806,458.80"] in card_rows and ["Seed", "card-test"] in card_rows, "nav and revealed seed rows")
+	card_rows = CardRules.rows({"label": "WIN", "nav": "1", "score": "12.5", "variant": "rally"}, {},
+			{"seats": {"pm": {"theses": 2, "mean_brier": "0.25"}, "mp": {"theses": 0, "mean_brier": null}}},
+			{"rules_version": "r1", "chain_head": "abc"})
+	check(["Mean Brier", "PM 0.25 (2)"] in card_rows and ["Variant", "rally"] in card_rows, "brier and variant rows")
+	check(["Chain head", "abc"] in card_rows and ["Rules", "r1"] in card_rows, "verify rows")
+	check(["Result", "Score +12.5 bps"] in card_rows, "score row without a rank")
+
 	# clock interpolation is cosmetic and bounded by the server schedule
 	var view := {"clock": {"day": 12, "phase": "PUBLIC_MARK", "next": {"day": 12, "phase": "EXEC_A"}},
 			"realtime": {"running": true, "next_tick_in": 8.0, "window_seconds": 8.0}}
@@ -103,6 +135,8 @@ func _initialize() -> void:
 	check(not WorldRules.should_send_move(Vector3.ZERO, Vector3(0.01, 0, 0), 1.0), "tiny steps are not sent")
 	check(WorldRules.should_send_move(Vector3.ZERO, Vector3(1, 0, 0), 0.2), "a real step after the interval is sent")
 	check([1, 2, 3, 4, 9].map(func(n): return WorldRules.reconnect_delay(n)) == [1.0, 2.0, 4.0, 8.0, 15.0], "reconnect backoff caps at 15 s")
+	check([0, 1, 2, 3, 9].map(func(n): return WorldRules.presence_retry(n, false)) == [true, true, true, false, false]
+			and WorldRules.presence_retry(9, true), "a server that never upgrades stops presence retries; drops always retry")
 	var api: Node = load("res://scripts/api.gd").new()
 	var seen: Array = []
 	api.partner_moved.connect(func(r, pos, loc): seen.append([r, pos, loc]))
@@ -159,6 +193,11 @@ func _initialize() -> void:
 	check(TerminalRules.parse("risk", symbols, "BRIN")["symbol"] == "BRIN", "function preserves selected security")
 	check(not TerminalRules.parse("REAL GP", symbols, "BRIN")["ok"], "unknown security refused")
 	check(not TerminalRules.parse("BRIN BUY 100", symbols, "BRIN")["ok"], "terminal parser cannot submit trades")
+	var macro := [{"period_day": 3, "published_day": 4, "revision": 0, "value": "51.2"},
+			{"period_day": 4, "published_day": 7, "revision": 1, "value": "47.9"}]
+	check(TerminalRules.macro_lines(macro, 4) == PackedStringArray(["D4  47.9  revised D7", "D3  51.2  first print D4"])
+			and TerminalRules.macro_lines(macro, 1).size() == 1 and TerminalRules.macro_lines([], 4).is_empty(),
+			"activity index rows are newest first, labelled by revision and bounded")
 	check(not TerminalRules.parse("", symbols, "BRIN")["ok"], "empty command explained")
 	check(TerminalRules.prices([{"marks": {"BRIN": "100"}}, {"marks": {"BRIN": "102.5"}}], "BRIN") == PackedFloat32Array([100, 102.5]), "chart uses only supplied observations")
 	check(TerminalRules.prices([], "BRIN").is_empty(), "empty chart safe")
@@ -166,7 +205,52 @@ func _initialize() -> void:
 	var keys := WorldRules.SCENARIOS.map(func(sc): return sc[0])
 	check(keys == ["case1", "case1-controls", "case1-settlement", "case1-generated"],
 			"menu offers standard, broker, settlement and generated scenarios")
+	var frames := PackedFloat64Array()
+	for i in range(1, 101):
+		frames.append(float(i))  # 1..100 ms
+	var fs := Perf.stats(frames)
+	check(fs["frames"] == 100 and fs["p50_ms"] == 50.0 and fs["p95_ms"] == 95.0 and fs["p99_ms"] == 99.0
+			and fs["worst_ms"] == 100.0 and fs["mean_ms"] == 50.5, "frame percentiles are nearest-rank")
+	check(Perf.stats(PackedFloat64Array())["frames"] == 0, "empty frame report safe")
+	var ats := PackedFloat64Array([0.5, 1.0, 1.5, 5.0])
+	var ev := Perf.after_event(ats, PackedFloat64Array([90.0, 10.0, 30.0, 80.0]), 0.9, "courier")
+	check(ev["worst_ms"] == 30.0 and ev["worst_at_s"] == 1.5, "event worst frame counts only the window after it")
+	check(Perf.after_event(ats, PackedFloat64Array([1.0, 1.0, 1.0, 1.0]), -9.0, "x")["worst_at_s"] == -1.0,
+			"event before recording reports no frame")
+	_lp_checks()
 	_ui_checks.call_deferred()
+
+
+func _lp_checks() -> void:
+	# LP inbox text: bands, exact Decimal units, gate terms, and nothing for the PM seat
+	var inv := {"policy": "p", "deal_day": 20, "gate_elected": false, "lps": [
+			{"id": "Patient", "band": "stable", "requested_units": null, "carried_units": null, "first_cutoff": 55, "contacted": false},
+			{"id": "Tactical", "band": "withdrawal_risk", "requested_units": "17500.000001", "carried_units": null, "first_cutoff": 15, "contacted": true}]}
+	var mp := {"role": "mp", "clock": {"day": 15}, "attention": {"committed": false}, "investors": inv, "packages": [],
+			"notices": [{"day": 13, "code": "lp_band", "text": "Tactical LP relationship is now concerned."},
+				{"day": 14, "code": "market", "text": "x"}]}
+	check(LpRules.band_text("withdrawal_risk") == "Withdrawal risk" and LpRules.band_text("strong") == "Strong", "LP band labels")
+	check(LpRules.units("17500.000001") == "17,500.000001" and LpRules.units("999") == "999"
+			and LpRules.units("1234567") == "1,234,567", "LP units keep every Decimal digit")
+	var lp_rows := LpRules.rows(mp)
+	check(lp_rows.size() == 2 and lp_rows[0] == "Patient   Stable", "LP row without request")
+	check("Redemption request 17,500.000001 units, dealt at the day 20 close, payable day 21" in lp_rows[1], "LP request row with exact units and days")
+	check(LpRules.contact_reason(mp, inv["lps"][0]) == "" and "already contacted" in LpRules.contact_reason(mp, inv["lps"][1]),
+			"contact allowed once per LP before review")
+	check("attention already committed" in LpRules.contact_reason(mp.merged({"attention": {"committed": true}}, true), inv["lps"][0]),
+			"contact disabled when attention is used")
+	check("no LP review remains" in LpRules.contact_reason(mp.merged({"clock": {"day": 16}}, true), inv["lps"][0]),
+			"contact disabled after the last review")
+	var terms := LpRules.pending_gate_terms(mp)
+	check(terms == {"deal_day": 20, "requests": {"Tactical": "17500.000001"}}, "gate terms bind deal day and exact requests")
+	check(LpRules.gate_terms_text(terms).begins_with("GATE for the day 20 dealing close, binding requests: Tactical 17,500.000001 units."),
+			"gate terms text")
+	check(LpRules.pending_gate_terms(mp.merged({"clock": {"day": 21}}, true)).is_empty(), "no gate after the dealing close")
+	check(LpRules.has_open_gate({"packages": [{"kind": "gate", "status": "PENDING_APPROVAL"}]})
+			and not LpRules.has_open_gate({"packages": [{"kind": "orders", "status": "PENDING_APPROVAL"}]}), "open gate package detection")
+	check(LpRules.notices(mp).size() == 1 and LpRules.notices(mp)[0]["code"] == "lp_band", "LP notices filtered by code")
+	var pm := {"role": "pm", "clock": {"day": 15}, "investors": null, "packages": [], "notices": []}
+	check(LpRules.rows(pm).is_empty() and LpRules.pending_gate_terms(pm).is_empty(), "PM seat sees no LP inbox")
 
 
 func _ui_checks() -> void:
@@ -278,6 +362,44 @@ func _ui_checks() -> void:
 	for child in terminal._body.get_children():
 		if child is Button and child.text.begins_with("Accept matching correction"): review_buttons += 1
 	check(review_buttons == 0, "PM sees statement evidence without MP resolution action")
+	# research page: published prior/posterior, exact complement, one thesis command through the Api path
+	check(TerminalRules.parse("research", [], "BRIN") == {"ok": true, "page": "RESEARCH", "symbol": "BRIN"}, "parse RESEARCH page")
+	check(TerminalRules.thesis_forecast("0.35") == {"calm": "0.350000", "stressed": "0.650000"}, "thesis complement is exact")
+	check(TerminalRules.thesis_forecast("0.000001") == {"calm": "0.000001", "stressed": "0.999999"}, "complement at 6dp edge")
+	check(TerminalRules.thesis_forecast("1") == {"calm": "1.000000", "stressed": "0.000000"}, "certain calm")
+	check(TerminalRules.micros("0.1") + TerminalRules.micros(TerminalRules.thesis_forecast("0.1")["stressed"]) == 1000000,
+			"0.1 + complement sums to exactly one (no float drift)")
+	for bad in ["", "1.000001", "1.5", "-0.1", "0.1234567", ".5", "50%", "0.5.0", "abc", "1e-3"]:
+		check(TerminalRules.thesis_forecast(bad).is_empty(), "rejects thesis entry '%s'" % bad)
+	var lines := TerminalRules.research_lines({"theses": [{"role": "pm", "question": "regime:14", "recorded_day": 15,
+			"forecast": {"calm": "0.700000", "stressed": "0.300000"}, "true_regime": "calm", "brier": "0.180000"}],
+			"seats": {"pm": {"theses": 1, "mean_brier": "0.180000"}, "mp": {"theses": 0, "mean_brier": null}}})
+	check(lines.size() == 2 and "true CALM" in lines[0] and "Brier 0.180000" in lines[0] and lines[1].begins_with("PM mean Brier 0.180000"),
+			"debrief research lines: forecast, truth, Brier, seat mean only for seats with theses")
+	check(TerminalRules.research_lines({"theses": [], "seats": {}}).is_empty(), "no research panel without theses")
+	terminal.data["regime"] = {"question": "regime:14", "period_day": 14, "prior": {"calm": "0.671500", "stressed": "0.328500"},
+			"posterior": {"calm": "0.850000", "stressed": "0.150000"}, "evidence": 3, "method": "Exact forward filter."}
+	terminal._thesis_calm = ""
+	terminal.data["finished"] = false  # the replay checks above finished the season
+	terminal.navigate("RESEARCH")
+	var calm_input: LineEdit = terminal.find_child("ThesisCalm", true, false)
+	var thesis_send: Button = terminal.find_child("ThesisSend", true, false)
+	check(calm_input != null and thesis_send.disabled and calm_input.focus_mode != Control.FOCUS_NONE
+			and thesis_send.focus_mode != Control.FOCUS_NONE, "thesis entry is keyboard reachable and starts disabled")
+	calm_input.text = "0.25"
+	calm_input.text_changed.emit("0.25")
+	check(not thesis_send.disabled, "valid calm probability enables the thesis")
+	transport.last_command = {}
+	calm_input.text_submitted.emit("0.25")
+	check(transport.last_command == {"type": "thesis", "question": "regime:14", "forecast": {"calm": "0.250000", "stressed": "0.750000"}},
+			"Enter sends one exact thesis for the live question")
+	terminal.data["finished"] = true
+	terminal._render()
+	check((terminal.find_child("ThesisSend", true, false) as Button).disabled, "finished season closes thesis entry")
+	terminal.data["finished"] = false
+	terminal.data["regime"] = null
+	terminal._render()
+	check(terminal.find_child("ThesisCalm", true, false) == null, "no thesis entry without a live question")
 	transport.free()
 	terminal.close()
 	check(not terminal.is_open(), "terminal closes")

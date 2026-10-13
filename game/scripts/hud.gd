@@ -389,7 +389,8 @@ func _committee() -> void:
 	var any := false
 	for p in view.get("packages", []):
 		any = true
-		var desc := ", ".join(p["orders"].map(func(o): return "%s %s %s" % [o["side"], o["qty"], o["sym"]]))
+		var desc := LpRules.gate_terms_text(p.get("terms", {})) if p.get("kind") == "gate" else \
+				", ".join(p["orders"].map(func(o): return "%s %s %s" % [o["side"], o["qty"], o["sym"]]))
 		_text("%s  proposed by %s  [%s]  hash %s" % [desc, view.get("names", {}).get(p["proposer"], p["proposer"]),
 				str(p["status"]).to_lower().replace("_", " "), str(p["digest"]).substr(0, 10)], 14)
 		if p["status"] == "PENDING_APPROVAL" and p["proposer"] == other:
@@ -533,7 +534,36 @@ func _lp() -> void:
 	for s in view.get("series", []):
 		_text("%s   units %s   NAV/unit %s   HWM %s   provision %s" % [s["id"], s["units"], s["nav_per_unit"], s["hwm"],
 				WorldRules.money(s["provision"])], 14)
-	_text("Tactical has noticed a 10,000-unit redemption, dealt at the day 20 close and paid day 21.", 13, Color("#4d5e72"))
+	var lp_notices := LpRules.notices(view)
+	if view.get("investors") == null and lp_notices.is_empty():
+		_text("Tactical has noticed a 10,000-unit redemption, dealt at the day 20 close and paid day 21.", 13, Color("#4d5e72"))
+	if view.get("investors") is Dictionary:
+		_lp_inbox()
+	elif role == "pm":
+		_text("LP relationships belong to the managing partner. Formal notices and gate elections are shared.", 12, Color("#4d5e72"))
+	for n in lp_notices:
+		_text("Day %d  %s" % [int(n.get("day", 0)), n.get("text", "")], 12)
+
+
+## The MP's LP inbox (generated rooms): bands, requests, contact and gate proposal. Reads only this view.
+func _lp_inbox() -> void:
+	_text("LP INBOX / bands from the last certified review", 16)
+	var lps: Array = view["investors"].get("lps", [])
+	var lines := LpRules.rows(view)
+	for i in lps.size():
+		var lp: Dictionary = lps[i]
+		_text(lines[i], 14)
+		var reason := LpRules.contact_reason(view, lp)
+		var lp_id: String = lp["id"]
+		_button("Contact %s" % lp_id if reason == "" else "Contact %s  (%s)" % [lp_id, reason],
+				func(): Api.command({"type": "contact_lp", "lp": lp_id}), reason == "")
+	var terms := LpRules.pending_gate_terms(view)
+	if not terms.is_empty() and not LpRules.has_open_gate(view):
+		_text(LpRules.gate_terms_text(terms), 13, Color("#7a4a12"))
+		_button("Propose gate to partner (they must countersign in the committee room)",
+				func(): Api.command({"type": "propose_gate", "package_id": "gate-" + Api.new_key().substr(0, 8)}))
+	if view["investors"].get("gate_elected", false):
+		_text("A gate is elected for the next dealing close.", 13, Color("#7a4a12"))
 
 
 func _broker() -> void:
@@ -602,15 +632,14 @@ func _show_debrief(o: Dictionary) -> void:
 	var v := VBoxContainer.new()
 	_debrief.add_child(v)
 	var big := Label.new()
-	big.text = {"WIN": "Win", "SURVIVAL": "Survival", "DISTRESS": "Distress"}.get(o["label"], o["label"])
+	big.text = CardRules.LABELS.get(o["label"], o["label"])
 	big.add_theme_font_size_override("font_size", 48)
 	big.add_theme_color_override("font_color", {"WIN": Color("#6cbf8f"), "SURVIVAL": Color("#e0a14a")}.get(o["label"], Color("#ec6d62")))
 	v.add_child(big)
 	var body := Label.new()
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var world := "a sell-off and short squeeze" if o.get("variant", "base") == "base" else "a broad rally"
-	body.text = "The day 16 market was %s. You couldn't know which in advance.\n\nScore %s bps (fund %s bps vs passive book %s bps, minus forced-action penalties)\nEnding NAV %s\nTactical redemption paid %s\nRecall resolved by %s\nForced actions: %s\nUnpaid: %s\nReplay proof: tape %s, journal %s" % [
-		world, o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
+	body.text = "%s\n\nScore %s bps (fund %s bps vs passive book %s bps, minus forced-action penalties)\nEnding NAV %s\nTactical redemption paid %s\nRecall resolved by %s\nForced actions: %s\nUnpaid: %s\nReplay proof: tape %s, journal %s" % [
+		CardRules.market_text(o.get("variant")), o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
 		WorldRules.money(o["nav"]), WorldRules.money(o["redemption_paid"]), str(o.get("recall_resolved_by", "unresolved")),
 		"none" if o["forced"].is_empty() else "; ".join(o["forced"]), "none" if o["unpaid"].is_empty() else "; ".join(o["unpaid"]),
 		str(o["tape_digest"]).substr(0, 12), str(o["journal_digest"]).substr(0, 12)]
@@ -618,4 +647,117 @@ func _show_debrief(o: Dictionary) -> void:
 		body.text = "You finished #%d of %d funds
 
 " % [int(o["rank"]), int(o["funds"])] + body.text
+	var facts := CardRules.facts(o)
+	if not facts.is_empty():
+		body.text += "\n" + "\n".join(facts)
 	v.add_child(body)
+	var save := Button.new()
+	save.name = "SaveCard"
+	save.text = "Save ending card"
+	var saved := Label.new()
+	saved.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	save.pressed.connect(func():
+		save.disabled = true
+		var path := await save_card("user://fundforge-ending-%s.png" % Api.room_id)
+		saved.text = ("Saved " + path) if path != "" else "Couldn't save the card."
+		save.disabled = false)
+	v.add_child(save)
+	v.add_child(saved)
+	_debrief_research(v)
+
+
+## Render the ending card offscreen, only on demand, and save it as a PNG. Returns the absolute path, or ""
+## without an outcome. Research and the chain head are optional: their rows drop if a call fails.
+func save_card(path: String) -> String:
+	var o: Variant = view.get("outcome")
+	if not o is Dictionary:
+		return ""
+	var research := {}
+	var res: Dictionary = await Api.debrief({"version": int(view.get("version", -1))})
+	if res.get("ok", false) and res.get("data") is Dictionary:
+		research = res["data"].get("research", {})
+	var verify := {}
+	res = await Api.verify()
+	if res.get("ok", false) and res.get("data") is Dictionary:
+		verify = res["data"]
+	var vp := SubViewport.new()
+	vp.size = CardRules.SIZE
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	add_child(vp)
+	vp.add_child(_card(o, CardRules.rows(o, view.get("names", {}), research, verify)))
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var img := vp.get_texture().get_image()
+	vp.queue_free()
+	if img == null or img.save_png(path) != OK:
+		return ""
+	return ProjectSettings.globalize_path(path)
+
+
+func _card(o: Dictionary, rows: Array) -> Control:
+	var bg := PanelContainer.new()
+	bg.size = Vector2(CardRules.SIZE)
+	bg.add_theme_stylebox_override("panel", _style(Color("#0f1a27"), Color("#f0c27a")))
+	var m := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		m.add_theme_constant_override("margin_" + side, 30)
+	bg.add_child(m)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	m.add_child(v)
+	var head := Label.new()
+	head.text = "FUNDFORGE  /  fictional fund, no real money"
+	head.add_theme_color_override("font_color", Color("#8fa5ba"))
+	head.add_theme_font_size_override("font_size", 18)
+	v.add_child(head)
+	var big := Label.new()
+	big.text = CardRules.LABELS.get(o["label"], o["label"])
+	big.add_theme_font_size_override("font_size", 60)
+	big.add_theme_color_override("font_color", {"WIN": Color("#6cbf8f"), "SURVIVAL": Color("#e0a14a")}.get(o["label"], Color("#ec6d62")))
+	v.add_child(big)
+	var market := Label.new()
+	market.text = CardRules.market_text(o.get("variant"))
+	market.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	market.custom_minimum_size.x = CardRules.SIZE.x - 80
+	market.add_theme_font_size_override("font_size", 18)
+	v.add_child(market)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("v_separation", 4)
+	v.add_child(grid)
+	for r in rows:
+		for i in 2:
+			var l := Label.new()
+			l.text = r[i]
+			l.add_theme_font_size_override("font_size", 17)
+			if i == 0:
+				l.add_theme_color_override("font_color", Color("#8fa5ba"))
+			grid.add_child(l)
+	return bg
+
+
+## Research scores come from the completed-run debrief; shown under the P&L result, never mixed into it.
+func _debrief_research(box: VBoxContainer) -> void:
+	var res: Dictionary = await Api.debrief({"version": int(view.get("version", -1))})
+	if not res.get("ok", false) or not res.get("data") is Dictionary or not is_instance_valid(box):
+		return
+	var research: Dictionary = res["data"].get("research", {})
+	var lines := TerminalRules.research_lines(research)
+	if lines.is_empty():
+		return
+	var heading := Label.new()
+	heading.name = "ResearchHeading"
+	heading.text = "RESEARCH / REGIME FORECASTS (separate from P&L)"
+	heading.add_theme_color_override("font_color", Color("#f0c27a"))
+	box.add_child(heading)
+	for line in lines:
+		var row := Label.new()
+		row.text = line
+		box.add_child(row)
+	var policy := Label.new()
+	policy.text = str(research.get("policy", ""))
+	policy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	policy.add_theme_color_override("font_color", Color("#8fa5ba"))
+	policy.add_theme_font_size_override("font_size", 12)
+	box.add_child(policy)

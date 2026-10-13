@@ -35,6 +35,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm run build
+      - run: python3 ../scripts/check_budgets.py --next .next  # first-load JS size budget
   game:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: game } }
@@ -74,7 +75,7 @@ jobs:
         # The API runs from the venv, not `uv run`: a lingering uv process holds uv's cache lock and makes
         # setup-uv's post-job cache prune wait 5 minutes and fail the job after the tests have passed.
         run: |
-          (cd backend && FUNDFORGE_CLOCK=0 exec .venv/bin/uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1) &
+          (cd backend && FUNDFORGE_CLOCK=0 FUNDFORGE_TEST_VARIANTS=1 exec .venv/bin/uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1) &
           api=$!
           (cd frontend && exec npx next start -p 3011 > ../web.log 2>&1) &
           web=$!
@@ -103,6 +104,7 @@ jobs:
       - run: test -f templates.tpz || curl -sSL "$TEMPLATES_URL" -o templates.tpz
       - run: curl -sSL "$GODOT_URL" -o godot.zip && unzip -q godot.zip && mv Godot_v4.7.2-stable_linux.x86_64 godot
       - run: scripts/export_game.sh "$PWD/godot" templates.tpz export  # exports both, boots the Linux build
+      - run: python3 scripts/check_budgets.py --export export  # desktop build size budget (frame time is local-only)
       - uses: astral-sh/setup-uv@v5
       - run: cd backend && uv sync --locked --python 3.13
       - name: co-op acceptance with two exported clients (split across two crises, meet, sign a package)

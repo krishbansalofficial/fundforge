@@ -9,6 +9,7 @@ var _joined := false
 var _menu: Control
 var _args := {}
 var _server := "http://127.0.0.1:8000"
+var _perf: Perf  # only with --perf
 
 
 func _ready() -> void:
@@ -24,10 +25,17 @@ func _ready() -> void:
 	_dev_flags()
 
 
-## Dev/CI flags: --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --shot=path.png --shot-after=SECONDS --demo
+## Dev/CI flags: --perf=out.json --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --thesis=0.4 --shot=path.png --shot-after=SECONDS --save-card=path.png --demo
 ## (env FUNDFORGE_SERVER also sets the default server)
 func _dev_flags() -> void:
 	var args := _args
+	if args.has("perf"):  # --perf=out.json [--perf-warmup=S] [--perf-seconds=S]: frame-time report, then quit
+		var perf := Perf.new()
+		perf.out_path = str(args["perf"])
+		perf.warmup = float(args.get("perf-warmup", "5"))
+		perf.seconds = float(args.get("perf-seconds", "30"))
+		add_child(perf)
+		_perf = perf
 	if args.has("demo"):
 		_demo()
 	if args.has("join"):
@@ -43,6 +51,9 @@ func _dev_flags() -> void:
 			if office:
 				var spot: Vector2 = WorldRules.LOCATIONS[step[0]]["spot"]
 				office.me.walk_to(Vector3(spot.x, 0.0, spot.y))
+	if args.has("open") and hud:  # --goto=lp --open=lp: screenshot option, opens that location's panel
+		await get_tree().create_timer(2.0).timeout
+		hud.open_panel(str(args["open"]))
 	if args.has("terminal"):
 		# Screenshot/smoke option: waits for a real room view before opening the terminal.
 		for _attempt in range(100):
@@ -51,6 +62,25 @@ func _dev_flags() -> void:
 				hud.terminal.navigate(str(args.get("terminal", "MON")))
 				break
 			await get_tree().create_timer(0.1).timeout
+	if args.has("thesis"):  # --terminal=RESEARCH --thesis=0.4: types the calm probability and presses Record
+		await get_tree().create_timer(3.0).timeout
+		var calm: LineEdit = hud.terminal.find_child("ThesisCalm", true, false) if hud else null
+		if calm:
+			calm.text = str(args["thesis"])
+			calm.text_changed.emit(calm.text)
+			var send: Button = hud.terminal.find_child("ThesisSend", true, false)
+			if not send.disabled:
+				send.pressed.emit()
+	if args.has("save-card"):  # --join=room:token --save-card=path.png: render the ending card of a finished room, then quit
+		for _attempt in range(100):
+			if hud and Api.view.get("outcome") != null:
+				break
+			await get_tree().create_timer(0.1).timeout
+		var saved := ""
+		if hud:
+			saved = await hud.save_card(str(args["save-card"]))
+		print("ending card: ", saved if saved != "" else "not saved (no finished room)")
+		get_tree().quit(0 if saved != "" else 1)
 	if args.has("shot"):
 		await get_tree().create_timer(float(args.get("shot-after", "6"))).timeout
 		# Force a frame even when a hidden/minimized smoke-test window is occluded.
@@ -172,6 +202,9 @@ func _on_view(view: Dictionary) -> void:
 	var notices: Array = view.get("notices", [])
 	var effects := WorldRules.new_effects(notices, _seen_notices)
 	_seen_notices = notices.size()
+	if _perf:
+		for e in effects:
+			_perf.mark(e)
 	var fills := Sfx.fill_count(view)
 	if _seen_fills >= 0:
 		hud.sfx.play_effects(effects)

@@ -222,3 +222,31 @@ def test_malformed_commands_are_refused_before_the_engine(client):
     assert c.post(path, headers=h(pm, "godot"), json={"type": "propose", "package_id": "g",
                                                        "orders": [again]}).json() == p  # same key, same command
     assert c.get(f"/api/rooms/{rid}/ledger?after=-1", headers=h(pm, "x")).json()["code"] == "invalid_request"
+
+
+def test_market_variant_is_pinned_only_when_the_test_flag_is_on(client, monkeypatch):
+    import json
+
+    from fundforge import api
+
+    def create(**body):
+        return client.post("/api/rooms", json={"pm_name": "Ana", "mp_name": "Ben", **body})
+
+    monkeypatch.setattr(api, "TEST_VARIANTS", False)
+    off = create(variant="rally")
+    assert off.status_code == 403 and off.json()["code"] == "variant_forbidden"
+    assert create().status_code == 201  # without a variant, rooms draw a hidden one as before
+
+    monkeypatch.setattr(api, "TEST_VARIANTS", True)
+    for scenario, variant in [("case1", "crash"), ("case1", "seed:abc"), ("case1-generated", "rally"),
+                              ("case1-generated", "seed:")]:
+        bad = create(scenario=scenario, variant=variant)
+        assert bad.status_code == 422 and bad.json()["code"] == "invalid_request", (scenario, variant)
+    assert create(scenario="nope", variant="base").json()["code"] == "rejected"
+    room = create(variant="rally").json()
+    view = client.get(f"/api/rooms/{room['room_id']}/view",
+                      headers={"Authorization": f"Bearer {room['tokens']['pm']}"}).json()
+    assert view["outcome"] is None and "variant" not in json.dumps(view)  # still hidden from players
+    api.store().verify(room["room_id"])  # raises on any divergence
+    with api.store().pool.connection() as c:
+        assert c.execute("select variant from rooms where id = %s", (room["room_id"],)).fetchone()[0] == "rally"

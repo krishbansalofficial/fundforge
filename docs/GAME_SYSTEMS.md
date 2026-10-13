@@ -77,6 +77,19 @@ Both partners must elect a permitted gate before the dealing event. Maximum deal
 
 Day 60 deferred requests carry into the debrief and reduce the renewal outcome. A season cannot win by deferring its obligations past the final screenshot.
 
+### Generated-market LP agents (house rules, `lp-confidence-2026.10.2`, 12 October 2026)
+
+Only `case1-generated` rooms run these (tape field `lp_agents`); Case1 and other authored scenarios keep their authored redemption contract. They are balance hypotheses awaiting owner confirmation, not investor-behaviour claims.
+
+- **Start:** the launch roster confidences (Seed 72, Patient 80, Tactical 65) at the window's opening.
+- **Interim reviews** at the certified closes of days 13 and 15 (`lp.review`): drawdown of the LP's net value per unit below its peak at closes since the window opened (2dp pp) × cost per pp (Seed 1, Patient 3, Tactical 2), capped at 8; −lag cost per material alert still unresolved at the close (open margin call; open recall without an accepted replacement), costs Seed 1, Patient 1, Tactical 3; partner contact (managing partner command `contact_lp`, one window's attention, once per LP per review) offsets at most Seed 3 / Patient 1 / Tactical 1 of that review's losses and never raises confidence on its own.
+- **Requests:** at the day-15 cutoff, after that day's review, `lp.redemption_request` with the authored redemption as the LP's external need (larger, not the sum), dealt at the day-20 close in exact 8dp units through the administrator-checked `series.redeem` path.
+- **Gate:** either partner proposes a `gate` package binding the dealing day and the exact pending requests; only the other partner's signature elects it, at a barrier before the dealing close, with requests revalidated at signing. Election is always permitted while requests are pending; it defers only when requests exceed 20% of pre-flow NAV (`lp.allocate_gate`). Carried units stay invested, prevent a WIN and appear as `lp_deferred`. The solo bot never countersigns a gate.
+- **Chapter close** (day 20, after dealing): `lp.chapter_close`, plus herding: an LP not itself deferred loses half its own gate penalty when a gate deferred another LP's units that window.
+- **Visibility:** bands at the last certified checkpoint, pending/carried units and band-change notices go to the managing partner only; formal redemption notices and gate elections are shared. Exact components appear only in the finished run's debrief.
+
+With the launch lock-ups, only Tactical can request at day 15, and its largest request (50% of 70,000 units, about 14% of NAV) cannot reach the 20% gate, so a gate in this window is recorded but never defers. Tests exercise deferral with a test roster.
+
 ## 5. Management-company economy
 
 Opening company cash is $300,000. Baseline overhead/payroll is $20,000 per five-day week, accrued $4,000 each simulated day and payable at each fifth-day close. It earns cash only when contractual fund fees are paid. Management fees accrue on calendar dates and pay after each dealing window; performance provisions generally stay uncrystallized until 31 December, with only accepted redeemed units crystallizing earlier. The 60-business-day season cannot accelerate incentive income to rescue payroll. Accrued fee receivables are assets, not spendable payroll cash.
@@ -152,6 +165,8 @@ This is a demanding selected contract, not a universal definition of a successfu
 Awards describe outcomes: Renewal; Survival Without Renewal; Responsible Winddown; Broker Default; Company Failure. A narrower recovery objective can recognize good crisis management without relabeling a failed investment mandate as a win.
 
 For private comparisons, rank first by outcome tier, then by net return among teams meeting that tier's published objectives, then by lower drawdown, then a stable ID. Seed/scenario/rule versions must match. Do not compare three deliberately different challenge cases on a common return leaderboard. Report investor capital returned and company cash alongside the ranking. Do not combine fund AUM and company fee income into “profit,” count subscriptions as returns, or award points for turnover, leverage, prose length or an LLM's opinion.
+
+**Outcome facts (implemented 12 Oct 2026, `Engine.outcome`; descriptive, not yet a ranking key).** `max_drawdown` is the largest fall of fund NAV per unit (all series' net capital after provisions divided by all units, so subscriptions and redemptions do not move it) from its running peak, as a fraction of that peak. The points are the warm-start value and the value after every posting of each business-day CLOSE (fees, dealing, LP checkpoints and the accruals for the calendar days up to the next event). The result is computed in the domain context and quantized once to 6dp HALF_EVEN; it is `0.000000` if NAV per unit never falls below a prior peak. Intraday marks are not points. `scenario` is the room's scenario id. In generated rooms, and only once the run is finished, the outcome also carries `seed_commitment` (SHA-256 of the seed), `stressed_days` and `generated_days` (counts of the generator's hidden regimes). Before the end no view, terminal or outcome carries them.
 
 Campaign unlocks new scenario packs and strategy mandates, not additive market advantages. No strategy has a forced role in every scenario. Balancing must include passive cash, benchmark buy-and-hold, a diversified long/short ruleset, a concentrated gambler and gate/fee exploit attempts on the same tape.
 

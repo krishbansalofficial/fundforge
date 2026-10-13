@@ -14,6 +14,9 @@ from typing import Annotated, Any, Literal, get_args
 from pydantic import BaseModel, ConfigDict, Field, RootModel, StringConstraints
 
 Dec = str  # a decimal number serialized as a string
+# Stricter form used by the terminal and debrief contracts: plain digits, never an exponent or a JSON number.
+DecOut = Annotated[str, StringConstraints(pattern=r"^-?\d+(\.\d+)?$")]
+Band = Literal["strong", "stable", "concerned", "withdrawal_risk"]
 
 
 class Strict(BaseModel):
@@ -178,6 +181,25 @@ class Package(Strict):
     status: str
     signatures: list[str]
     orders: list[PackageOrder]
+    kind: Literal["orders", "gate"]
+    terms: dict[str, Any]  # a gate binds {"deal_day", "requests": {series: units}}; empty for orders
+
+
+class LpRow(Strict):
+    id: str
+    band: Literal["strong", "stable", "concerned", "withdrawal_risk"]  # from the last certified checkpoint
+    requested_units: Dec | None
+    carried_units: Dec | None
+    first_cutoff: int
+    contacted: bool
+
+
+class Investors(Strict):
+    """The managing partner's LP inbox in generated rooms; exact confidence stays server-side until the debrief."""
+    policy: str
+    deal_day: int | None
+    gate_elected: bool
+    lps: list[LpRow]
 
 
 class LeagueRow(Strict):
@@ -222,6 +244,13 @@ class Outcome(Strict):
     variant: str
     journal_digest: str
     tape_digest: str
+    lp_deferred: dict[str, Dec] | None = None  # generated rooms: gated units carried past the end
+    scenario: str
+    max_drawdown: DecOut  # peak-to-trough fall of fund NAV per unit over business closes, a 6dp fraction
+    # generated rooms, finished runs only: never in any view before the end
+    seed_commitment: str | None = None
+    stressed_days: int | None = None
+    generated_days: int | None = None
 
 
 class Realtime(Strict):
@@ -259,6 +288,7 @@ class SessionView(Strict):
     incident_events: list[IncidentEvent]
     decisions: list[Decision]
     outcome: Outcome | None
+    investors: Investors | None  # managing partner only, generated rooms only
 
 
 class RoomView(SessionView):
@@ -288,6 +318,355 @@ class NewRoomResponse(Strict):
     tokens: dict[str, str]
     names: dict[str, str]
     bot_role: str | None
+
+
+# ---------- terminal (GET /api/rooms/{id}/terminal) ----------
+
+class AsOf(Strict):
+    event: int
+    day: int
+    date: str
+    phase: str
+
+
+class Quote(Strict):
+    sym: str
+    mark: DecOut
+    qty: int
+    mv: DecOut
+    change_bps: DecOut | None
+    since_start_bps: DecOut | None
+    weight: DecOut | None
+    borrowed: int
+    borrow_rate: DecOut | None
+    observed_event_volume: int | None  # the authored capacity of the last processed event, not traded volume
+
+
+class HistoryPoint(Strict):
+    event: int
+    day: int
+    date: str
+    phase: str
+    marks: dict[str, DecOut]
+
+
+class Break(Strict):
+    """A control discrepancy; ``actual``/``expected`` are diagnostic text, not always numbers."""
+    code: str
+    subject: str
+    actual: str | None = None
+    expected: str | None = None
+
+
+class AdminSeries(Strict):
+    series_id: str
+    units: DecOut
+    hwm: DecOut
+    net: DecOut
+    provision: DecOut
+
+
+class AdminClaim(Strict):
+    date: str
+    series_id: str
+    units: DecOut
+    price: DecOut
+    payable: DecOut
+    crystallized_fee: DecOut
+
+
+class AdministratorReport(Strict):
+    status: Literal["checked", "break"]
+    breaks: list[Break]
+    close_count: int
+    claim_count: int
+    series: list[AdminSeries]
+    liabilities: dict[str, DecOut]
+    claims: list[AdminClaim]
+
+
+class Settlement(Strict):
+    obligation: str
+    kind: str
+    sym: str
+    qty: int
+    amount: DecOut
+    due_day: int
+    status: Literal["pending", "settled"]
+    failed_days: list[int]
+
+
+class Coordinate(Strict):
+    day: int
+    phase: str
+
+
+class StatementRevision(Strict):
+    id: str
+    revision: int
+    source: str
+    account: str
+    as_of: Coordinate
+    available_at: Coordinate
+    balance: DecOut
+    expected: DecOut
+    received_date: str
+    supersedes: int | None
+    reason: str
+
+
+class StatementResolution(Strict):
+    statement_id: str
+    revision: int
+    date: str
+    actor: str
+
+
+class StatementRow(Strict):
+    id: str
+    owner: str
+    status: Literal["open", "resolved"]
+    age_calendar_days: int
+    revision: int
+    account: str
+    actual: DecOut
+    expected: DecOut
+    can_resolve: bool
+    resolution: StatementResolution | None
+    resolution_history: list[StatementResolution]
+    history: list[StatementRevision]
+
+
+class BrokerSummary(Strict):
+    activity_count: int
+    fee_line_count: int
+    statement_count: int
+    balances: dict[str, DecOut]
+    financing_accrued: DecOut
+    financing_invoiced: DecOut
+
+
+class ControlReport(Strict):
+    """``Engine.control_report``: scoped reconciliation, not external NAV certification (see ``scope``)."""
+    status: Literal["checked", "break"]
+    execution_status: Literal["checked", "break"]
+    breaks: list[Break]
+    confirmations: int
+    expected_positions: dict[str, int]
+    conditional_nav: DecOut
+    book_nav: DecOut
+    scope: str
+    administrator: AdministratorReport
+    settlements: list[Settlement]
+    statement_queue: list[StatementRow]
+    broker: BrokerSummary
+
+
+class Stress(Strict):
+    id: str
+    label: str
+    long_shock: DecOut
+    short_shock: DecOut
+    pnl: DecOut
+    nav: DecOut
+    maintenance_req: DecOut
+    headroom: DecOut
+    margin_breach: bool
+    gross: DecOut | None
+
+
+class TerminalRisk(Strict):
+    controls: ControlReport
+    nav: DecOut
+    long_mv: DecOut
+    short_mv: DecOut
+    maintenance_req: DecOut
+    headroom: DecOut
+    cash: DecOut
+    restricted_collateral: DecOut
+    debt: DecOut
+    credit_left: DecOut
+    maintenance_rates: dict[str, DecOut]
+    stress_method: str
+    stresses: list[Stress]
+
+
+class NewsItem(Notice):
+    visibility: Literal["private", "shared"]
+
+
+class TerminalOrder(Strict):
+    order_id: str
+    sym: str
+    side: str
+    qty: int
+    filled: int
+    remaining: int
+    status: str
+    forced: str | None
+    fills: list[Fill | RejectedFill]
+
+
+class MacroPrint(Strict):
+    """One published print of a generated market's indicator; a later revision appears only from its own day."""
+    series: str
+    period_day: int
+    published_day: int
+    revision: int
+    value: DecOut
+
+
+class RegimeQuestion(Strict):
+    question: str  # e.g. "regime:12"; the ``thesis`` command answers it
+    period_day: int
+    states: list[Literal["calm", "stressed"]]
+    prior: Forecast
+    posterior: Forecast
+    evidence: int
+    method: str
+
+
+class TerminalView(Strict):
+    """``GET /api/rooms/{id}/terminal``: read-only as-of analytics at one room version."""
+    schema_: Literal["forge-terminal-v1"] = Field(alias="schema")
+    finished: bool
+    role: str | None
+    as_of: AsOf
+    source: str
+    quotes: list[Quote]
+    history: list[HistoryPoint]
+    history_truncated: bool
+    risk: TerminalRisk
+    news: list[NewsItem]
+    incidents: list[IncidentEvent]
+    orders: list[TerminalOrder]
+    league: list[LeagueRow]
+    macro: list[MacroPrint]  # empty in authored markets
+    regime: RegimeQuestion | None  # generated markets only
+    version: int
+
+
+# ---------- debrief (POST /api/rooms/{id}/debrief) ----------
+
+class BranchState(Strict):
+    day: int
+    phase: str
+    nav: DecOut
+    headroom: DecOut
+    recall_open: int
+    positions: dict[str, int]
+    journal_digest: str
+
+
+class TimelineStep(Strict):
+    seq: int
+    role: str
+    type: str
+    status: Literal["accepted", "rejected", "omitted"]
+    before: BranchState
+    after: BranchState
+    nav_delta: DecOut | None = None  # absent on the omitted step
+    can_omit: bool | None = None
+
+
+class RejectedStep(Strict):
+    seq: int
+    type: str
+    reason: str
+
+
+class ThesisScore(Strict):
+    role: str
+    question: str
+    period_day: int
+    recorded_day: int
+    forecast: Forecast
+    true_regime: Literal["calm", "stressed"]
+    brier: DecOut
+
+
+class SeatResearch(Strict):
+    theses: int
+    mean_brier: DecOut | None
+
+
+class ResearchRecord(Strict):
+    """Brier scores of each seat's latest thesis per question; beside P&L, never in it."""
+    theses: list[ThesisScore]
+    seats: dict[str, SeatResearch]
+    policy: str
+
+
+class ReviewCheckpoint(Strict):
+    day: str
+    kind: Literal["review"]
+    lp: str
+    policy_version: str
+    start: DecOut
+    drawdown: DecOut
+    response_lag: DecOut
+    contact: DecOut
+    clamp: DecOut
+    end: DecOut
+    band: Band
+    drawdown_pp: DecOut
+    open_alerts: DecOut
+
+
+class ChapterCheckpoint(Strict):
+    day: str
+    kind: Literal["chapter_close"]
+    lp: str
+    policy_version: str
+    start: DecOut
+    performance: DecOut
+    breaches: DecOut
+    report: DecOut
+    meeting: DecOut
+    gate: DecOut
+    herding: DecOut
+    overdue: DecOut
+    clamp: DecOut
+    end: DecOut
+    band: Band
+
+
+class LpFinal(Strict):
+    confidence: DecOut
+    band: Band
+
+
+class LpDebrief(Strict):
+    """Generated rooms: every LP confidence component, revealed only after the run."""
+    policy: str
+    checkpoints: list[Annotated[ReviewCheckpoint | ChapterCheckpoint, Field(discriminator="kind")]]
+    final: dict[str, LpFinal]
+    carried_units: dict[str, DecOut]
+
+
+class BranchOutcome(Outcome):
+    """A counterfactual branch may stop before the end; it is then not a comparable ending score."""
+    label: Literal["WIN", "SURVIVAL", "DISTRESS", "IN_PROGRESS"]  # type: ignore[assignment]
+
+
+class Debrief(Strict):
+    """``POST /api/rooms/{id}/debrief``: completed-run causal replay, optionally omitting one decision."""
+    branch_id: str
+    source_version: int
+    rules_version: str
+    tape_digest: str
+    omitted_seq: int | None
+    finished: bool
+    state: BranchState
+    outcome: BranchOutcome
+    source_outcome: Outcome
+    nav_difference: DecOut
+    research: ResearchRecord
+    investors: LpDebrief | None = None  # present in generated rooms only
+    timeline: list[TimelineStep]
+    rejected: list[RejectedStep]
+    incidents: list[IncidentEvent]
+    policy: str
 
 
 # ---------- commands (POST /api/rooms/{id}/commands) ----------
@@ -385,10 +764,34 @@ class Pause(Strict):
     type: Literal["pause"]
 
 
+class Forecast(Strict):
+    calm: DecIn
+    stressed: DecIn
+
+
+class Thesis(Strict):
+    """A seat's forecast for the terminal's live regime question; scored in the debrief, never in P&L."""
+    type: Literal["thesis"]
+    question: Id  # e.g. "regime:12", the terminal's ``regime.question``
+    forecast: Forecast  # probabilities summing to exactly 1
+
+
+class ContactLp(Strict):
+    """Managing partner: spend this window's attention on one LP before its next review (generated rooms)."""
+    type: Literal["contact_lp"]
+    lp: Id
+
+
+class ProposeGate(Strict):
+    """Propose a redemption gate for the next dealing close; the other partner elects it with ``sign``."""
+    type: Literal["propose_gate"]
+    package_id: Id
+
+
 # ``tick`` is not here: only the server's clock issues it, never an HTTP client.
 Command = Annotated[
     Ticket | Propose | Sign | Cancel | ResearchCommand | Visit | ShareResearch | AcceptReplacement | SetReserve
-    | ResolveStatement | Ready | SetSpeed | Say | Pause,
+    | ResolveStatement | Ready | SetSpeed | Say | Pause | Thesis | ContactLp | ProposeGate,
     Field(discriminator="type"),
 ]
 
