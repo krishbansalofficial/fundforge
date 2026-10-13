@@ -15,6 +15,15 @@ dev = [
     "ruff>=0.16.10",
     "mypy>=2.4.0",
     "import-linter>=2.1",
+    "jsonschema>=4.23",
+]
+# Training stack, kept out of the default install (and CI) so contract checks stay light.
+# On Linux, PyPI torch includes CUDA libraries; install a CPU wheel yourself if you prefer.
+train = [
+    "torch>=2.6",
+    "sb3-contrib>=2.6",
+    "stable-baselines3>=2.6",
+    "mlflow>=3.0",
 ]
 
 [tool.uv.sources]

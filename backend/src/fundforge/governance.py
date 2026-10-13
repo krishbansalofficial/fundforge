@@ -138,7 +138,10 @@ class Session:
             raise
         self.results[key] = (fp, result)
         self.log.append({"day": self.e.ev.day, "phase": self.e.ev.phase, "role": role, "key": key,
-                         "command": command, "result": result})
+                         "command": command, "result": result,
+                         # what existed after this command: lets the outbox attribute each event to its command
+                         "after": {"journal": len(self.e.j.entries), "notices": len(self.e.notices),
+                                   "incidents": len(self.e.incident_events), "date": self.e.ev.date.isoformat()}})
         if command["type"] != "ready":
             self.ready.clear()
         return result
