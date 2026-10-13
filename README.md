@@ -118,7 +118,9 @@ What the tests cover:
 - real-Postgres race tests (concurrent signatures, retries, ready and clock ticks);
 - tamper detection by `verify`.
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test. **CI has not run on GitHub yet**: the 37 code commits on `main` have not been pushed.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test. CI runs on GitHub. On 13 October 2026 the latest `main` run had failing `export` and `e2e` jobs; the fix (`ci: run background servers from the venv`) passed on branch `claude/handoff-phases-mms73g` and is not yet merged.
+
+Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 18 ms (fastest of 50 samples) on a 2 CPU cloud machine, and the independent control report in about 0.5 ms. Method, machine and the other planned benchmarks (Postgres latency, API load, frame time, fault detection, balance) are in [BENCHMARKS](docs/BENCHMARKS.md); raw results are in `bench/results/`.
 
 Engineering write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md).
 

@@ -1,0 +1,64 @@
+{
+  "benchmark": "B1-engine",
+  "commit": "3cbd8f3",
+  "rules_version": "case1-rules-2026.10.8",
+  "measured_at": "2026-10-13T16:41:08+00:00",
+  "python": "3.13.16",
+  "machine": "Linux x86_64, Intel(R) Xeon(R) Processor @ 2.80GHz, 2 logical CPUs",
+  "repeat": 50,
+  "warmup": 3,
+  "paths": {
+    "S1_early_reduction": {
+      "season_ms": {
+        "min": 17.084,
+        "p50": 17.479,
+        "p95": 20.28,
+        "max": 33.611
+      },
+      "control_report_ms": {
+        "p50": 0.493,
+        "p95": 0.56
+      },
+      "journal_digest": "85b2bbd19160c3019da2cd716985bfafdfb384f252f346cc192de578cab6d8ea"
+    },
+    "S2_replacement_and_cure": {
+      "season_ms": {
+        "min": 17.77,
+        "p50": 18.824,
+        "p95": 24.476,
+        "max": 24.991
+      },
+      "control_report_ms": {
+        "p50": 0.505,
+        "p95": 0.714
+      },
+      "journal_digest": "d7aaeb270aebe890aa1b27b2f06c6d2c190e990687a814fd31ff2ecc7d619b4f"
+    },
+    "F1_inaction": {
+      "season_ms": {
+        "min": 17.189,
+        "p50": 18.23,
+        "p95": 24.533,
+        "max": 169.307
+      },
+      "control_report_ms": {
+        "p50": 0.482,
+        "p95": 0.757
+      },
+      "journal_digest": "67c220ce4b3e041e7bedcc056a62ec3755cbe95e50e6da620b028e2e9797b271"
+    },
+    "F2_replacement_without_cure": {
+      "season_ms": {
+        "min": 17.76,
+        "p50": 19.874,
+        "p95": 29.679,
+        "max": 40.669
+      },
+      "control_report_ms": {
+        "p50": 0.54,
+        "p95": 0.94
+      },
+      "journal_digest": "bd513f9d4f984e7c5161d969f65cd006a74082c833e0d25bd06d314ded9cc7f5"
+    }
+  }
+}

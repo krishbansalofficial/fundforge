@@ -589,3 +589,14 @@ Both then mark Ready to the end. The test reads the API only to know the clock.
 - My local runner initially left a `next-server` holding the port (fixed with a process group); that affected only the local harness.
 
 **One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked items are a server-side test hook to pin a room's variant for deterministic end-to-end coverage of both markets (test-only, so it needs care not to leak the variant), or the web desk's journal using the ledger cursor.
+
+## Benchmark audit and B1 engine benchmark, 13 October 2026
+
+Audit: no performance or detection benchmark had been recorded. Prometheus histograms exist but were never driven under load; the ROADMAP "replay about 10 ms" had no recorded method; P3's 60 fps budget was never measured; no evidence exists in the repository for a worst frame reduction from 2.1 s to 16.9 ms. Backend collection is 295 tests (`pytest --collect-only`); there is one Playwright test (`frontend/e2e/s2.spec.ts`). Latest `main` CI run failed `export` and `e2e`; the fix is on `claude/handoff-phases-mms73g`, unmerged.
+
+New [BENCHMARKS](BENCHMARKS.md) defines B1 to B6 (engine, Postgres latency, API load, frame time, control detection with mutation score, balance across seeds) and ROADMAP now makes them phase gates. New `scripts/bench_engine.py` implements B1: four golden paths, warmups, 50 samples, digest determinism check, JSON result with commit and machine, and a minimum based `--compare` gate.
+
+Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.77 ms minimum, 17.48 to 19.87 ms median per path; `control_report` about 0.5 ms median. Digests match `golden.json`. Medians moved between about 18 and 30 ms across consecutive runs on this machine, so the gate uses the minimum; three repeat comparisons stayed within 4%, and an injected 8 ms slowdown was flagged on all paths. Ruff passed on the script. No engine, rules or test change; no Postgres, Godot or frontend check was needed.
+
+**One next task:** add the B1 A/B job to CI (base and head on the same runner, fail on regression), then implement B2 Postgres command latency.
+
