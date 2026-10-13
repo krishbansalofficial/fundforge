@@ -63,7 +63,8 @@ class TrainWorlds:
     def __call__(self, options: dict[str, Any], rng: np.random.Generator) -> worlds.World:
         names = worlds.variant_names()
         seed = self.seeds[int(rng.integers(len(self.seeds)))]
-        return worlds.world(seed, names[int(rng.integers(len(names)))])
+        # these seeds already passed the gate in the parent process; workers need not re-run it
+        return worlds.world(seed, names[int(rng.integers(len(names)))], gate=False)
 
 
 def make_env(role: str, seeds: list[str], rank: int):  # type: ignore[no-untyped-def]
