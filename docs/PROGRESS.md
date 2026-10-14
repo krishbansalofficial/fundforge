@@ -735,3 +735,37 @@ The new CI job `kafka` runs the same check.
 - The room's opening entries are not emitted, since they are derivable from the pinned tape.
 - `verify()` does not yet re-derive the outbox.
 - Kafka is not part of the production compose, and nothing is deployed.
+
+## ML lane: MaskablePPO on held-out worlds (lane B), 14 October 2026
+
+`ml/scripts/train_ppo.py` with MaskablePPO (sb3-contrib 2.9, PyTorch 2.14, CPU), tracked in MLflow (SQLite backend):
+
+**Data:** 200 generated seed families went through the balance gate.
+- 88 passed both variants: 73 train / 8 val / 7 test by `split_of`.
+- 112 were rejected, all `cover_recall_only_does_not_win`, and recorded.
+
+**Training:** PM seat, 200,000 steps on train families only, 4 worker processes, 1,422 s (141 steps/s). MLP 128×128, n_steps 256, batch 256, γ 0.99, lr 3e-4, entropy 0.01, seed 0.
+
+**Results** (`ml/results/ppo_pm.json`, model SHA-256 recorded; the model file is not committed) on the **14 held-out test worlds** (7 families × 2 variants):
+
+| Policy | Mean reward ± 95% CI | Mean score | Outcomes |
+|---|---|---|---|
+| MaskablePPO, deterministic | 8.01 ± 1.09 | +301 bps | 14 Win |
+| Random valid action, 5 seeds per world | 5.64 ± 0.25 | +64 bps | 70 Win |
+| `bot:v1` rules in the PM seat | −2.45 ± 0.40 | −245 bps | 14 Survival |
+| Wait | −2.51 ± 0.37 | −251 bps | 14 Survival |
+
+Paired against random on each world: **+2.38 ± 1.01**, with PPO ahead on **13 of 14** worlds.
+
+**Notes:**
+- The engine's score is excess return over the passive opening book minus forced-action penalties, so the PPO gain is in score, not tier: random play already wins every world.
+- `bot:v1` as PM is capped by the 5% solo-ticket limit, so its margin cure is too small in the base market. It is no stronger than waiting here.
+- The first 200k run was lost to an environment mistake: a concurrent `uv sync` removed torch from the shared venv during training. Training now uses an isolated `ml/.venv-train`.
+
+**Limitations:**
+- One seed and one seat (PM).
+- 14 test worlds is a small sample.
+- No hyperparameter search; the validation split is unused so far.
+- Evaluation is on the authored Case1 skeleton with generated marks only (no scenario randomiser yet).
+
+**One next task:** train the MP seat and repeat with 3 seeds to report variance across seeds. Then run Optuna on the validation split.
