@@ -41,7 +41,7 @@ def plan(s: Session, role: str) -> list[dict[str, Any]]:
             out.append({"type": "sign", "package_id": p.package_id, "digest": p.digest,
                         "_ref": f"pkg:{p.package_id}"})
     if role == "mp" and at_barrier:
-        for issue in e.broker.queue(e.ev.date):
+        for issue in e.broker.queue(e.ev.date, e.ev.day):
             if issue["can_resolve"]:
                 out.append({"type": "resolve_statement", "statement_id": issue["id"],
                             "revision": issue["revision"], "version": s.version,

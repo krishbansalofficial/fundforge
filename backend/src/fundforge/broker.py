@@ -13,6 +13,12 @@ from typing import Any
 CTX = Context(prec=40, rounding=ROUND_HALF_EVEN)
 ZERO, CENT = Decimal(0), Decimal("0.01")
 PHASES = ("OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE")
+# Aging: a break's age is business days from its open day (the event day index counts business days)
+# to the clock, or to its resolution day once resolved. Aged = open and older than the threshold.
+# The threshold is a design choice, not a measured figure. Aging is report-only: any open break
+# still blocks certification and dealing.
+AGING_VERSION = "break-aging-1"
+AGED_AFTER_BUSINESS_DAYS = 3
 
 
 def coordinate(value: dict[str, Any]) -> tuple[int, int]:
@@ -101,6 +107,7 @@ class Resolution:
     statement_id: str
     revision: int
     date: str
+    day: int
     actor: str
 
 
@@ -219,7 +226,7 @@ class Broker:
                 arrivals.append(s.id)
         return arrivals
 
-    def queue(self, today: date) -> list[dict[str, Any]]:
+    def queue(self, today: date, day: int) -> list[dict[str, Any]]:
         rows = []
         for sid in sorted({s.id for s in self.statements}):
             history = [s for s in self.statements if s.id == sid]
@@ -229,7 +236,13 @@ class Broker:
             latest, first = history[-1], wrong[0]
             resolved = next((r for r in reversed(self.resolutions) if r.statement_id == sid
                              and r.revision == latest.revision), None)
+            opened_day = first.available_at[0]
+            age = (resolved.day if resolved else day) - opened_day
             rows.append({"id": sid, "owner": "mp", "status": "resolved" if resolved else "open",
+                         "code": "statement_balance_mismatch", "opened_day": opened_day,
+                         "amount": str((first.balance - first.expected).quantize(CENT, rounding=ROUND_HALF_EVEN)),
+                         "age_business_days": age, "aging_version": AGING_VERSION,
+                         "aged": resolved is None and age > AGED_AFTER_BUSINESS_DAYS,
                          "age_calendar_days": ((date.fromisoformat(resolved.date) if resolved else today)
                                                - date.fromisoformat(first.received_date)).days,
                          "revision": latest.revision, "account": latest.account,
@@ -243,8 +256,8 @@ class Broker:
                                      for s in history]})
         return rows
 
-    def resolve(self, sid: str, revision: int, today: date, actor: str) -> None:
-        row = next((r for r in self.queue(today) if r["id"] == sid), None)
+    def resolve(self, sid: str, revision: int, today: date, day: int, actor: str) -> None:
+        row = next((r for r in self.queue(today, day) if r["id"] == sid), None)
         if row is None or row["revision"] != revision or not row["can_resolve"]:
             raise ValueError("a matching, published correction is required; review the latest revision")
-        self.resolutions += (Resolution(sid, revision, today.isoformat(), actor),)
+        self.resolutions += (Resolution(sid, revision, today.isoformat(), day, actor),)

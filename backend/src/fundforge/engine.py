@@ -942,7 +942,7 @@ class Engine:
              "due_day": c.day + 1, "status": "pending" if f"X{n}" in open_ids else "settled",
              "failed_days": [d for d, oid in self.settlement_failures if oid == f"X{n}"]}
             for n, c in enumerate(self.confirmations, start=1)]
-        queue = self.broker.queue(self.ev.date)
+        queue = self.broker.queue(self.ev.date, self.ev.day)
         report["statement_queue"] = queue
         report["broker"] = {"activity_count": len(self.broker.activities), "fee_line_count": len(self.broker.fees),
                             "statement_count": len(self.broker.statements),
@@ -969,7 +969,7 @@ class Engine:
         if self.control_report()["breaks"]:
             raise CommandRejected("current book discrepancies require repair before statement resolution")
         try:
-            self.broker.resolve(statement_id, revision, self.ev.date, actor)
+            self.broker.resolve(statement_id, revision, self.ev.date, self.ev.day, actor)
         except ValueError as exc:
             raise CommandRejected(str(exc)) from exc
         self._notice("Broker correction reviewed; original statement retained.", code="broker_resolved",
