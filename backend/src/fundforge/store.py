@@ -25,7 +25,7 @@ from psycopg import Connection
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
-from . import balance, bot
+from . import balance, bot, outbox
 from .engine import RULES_VERSION, CommandRejected, Engine
 from .generator import GEN_VERSION, commitment, generate
 from .governance import CLOCK, Session, canonical
@@ -289,6 +289,7 @@ class Store:
                 raise CommandRejected(rejected[2])
             base = self._cache_get(room, version) or self._replay(c, room, version, tape, partners, bot_role)
             s = copy.deepcopy(base, {id(base.e.tape): base.e.tape})
+            before, finished_before = outbox.counts(s), s.e.finished()
             lo = len(s.e.j.entries)
             result = json.loads(json.dumps(s.handle(user, key, command)))
             steps = [(user, key, command, result, (lo, len(s.e.j.entries), s.e.j.digest()))]
@@ -300,14 +301,20 @@ class Store:
                                  (room, version)).fetchone()
             prev = prev_row[0] if prev_row and prev_row[0] else GENESIS
             seq = version
-            for uid, k, cmd, res, (jlo, jhi, digest) in steps:
+            events: list[dict] = []
+            for n, (uid, k, cmd, res, (jlo, jhi, digest)) in enumerate(steps):
                 seq += 1
                 link = chain(prev, seq, k, uid, cmd, res, digest)
                 c.execute("insert into commands (room_id, seq, idem_key, user_id, command, result,"
                           " journal_digest_after, chain_hash) values (%s,%s,%s,%s,%s,%s,%s,%s)",
                           (room, seq, k, uid, Jsonb(cmd), Jsonb(res), digest, link))
                 self._append_journal(c, room, s.e.j.entries[jlo:jhi], seq)
+                entry = s.log[seq - 1]
+                events += outbox.rows_for(room, RULES_VERSION, s, seq, entry, before, link, finished_before,
+                                          last=n == len(steps) - 1)
+                before = entry["after"]
                 prev = link
+            self._append_outbox(c, events)
             speed: int = s.clock["speed"] or 1
             c.execute("update rooms set version=%s, running=%s, speed=%s,"
                       " next_tick_at = now() + make_interval(secs => %s) where id=%s",
@@ -357,6 +364,25 @@ class Store:
                 " values (%s,%s,%s,%s,%s,%s)",
                 [(room, x.entry_id, i, x.entity, p.account, p.amount)
                  for x in entries for i, p in enumerate(x.postings)])
+
+    @staticmethod
+    def _append_outbox(c: Conn, events: Sequence[dict]) -> None:
+        cols = ("event_id", "contract_version", "room_id", "seq", "idx", "kind", "audience", "rules_version",
+                "tape_digest", "day", "phase", "sim_date", "chain_head", "payload")
+        with c.cursor() as cur:
+            cur.executemany(f"insert into outbox ({', '.join(cols)}) values ({', '.join(['%s'] * len(cols))})",
+                            [tuple(Jsonb(ev[k]) if k == "payload" else ev[k] for k in cols) for ev in events])
+
+    def outbox(self, room: str, after_seq: int = 0) -> list[dict]:
+        """Outbox events of a room in relay order (for tests and the Kafka relay's backfill)."""
+        with self.pool.connection() as c:
+            rows = c.execute("select event_id, contract_version, room_id, seq, idx, kind, audience, rules_version,"
+                             " tape_digest, day, phase, sim_date, chain_head, payload from outbox"
+                             " where room_id=%s and seq>%s order by seq, idx", (room, after_seq)).fetchall()
+        keys = ("event_id", "contract_version", "room_id", "seq", "idx", "kind", "audience", "rules_version",
+                "tape_digest", "day", "phase", "sim_date", "chain_head", "payload")
+        return [{k: (str(v) if k in ("event_id", "sim_date") else v) for k, v in zip(keys, r, strict=True)}
+                for r in rows]
 
     # ---------- audit ----------
     def verify(self, room: str) -> dict:

@@ -1,0 +1,27 @@
+{
+  "name": "fundforge-outbox",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+    "database.hostname": "db",
+    "database.port": "5432",
+    "database.user": "fundforge",
+    "database.password": "fundforge",
+    "database.dbname": "fundforge",
+    "topic.prefix": "fundforge",
+    "table.include.list": "public.outbox",
+    "publication.autocreate.mode": "filtered",
+    "slot.name": "fundforge_outbox",
+    "tombstones.on.delete": "false",
+    "transforms": "outbox",
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.table.field.event.id": "event_id",
+    "transforms.outbox.table.field.event.key": "room_id",
+    "transforms.outbox.table.field.event.type": "kind",
+    "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.table.expand.json.payload": "true",
+    "transforms.outbox.route.by.field": "kind",
+    "transforms.outbox.route.topic.replacement": "fundforge.${routedByValue}s",
+    "transforms.outbox.table.fields.additional.placement": "event_id:envelope,contract_version:envelope,room_id:envelope,seq:envelope,idx:envelope,kind:envelope,audience:envelope,rules_version:envelope,tape_digest:envelope,day:envelope,phase:envelope,sim_date:envelope,chain_head:envelope"
+  }
+}
