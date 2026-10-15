@@ -293,8 +293,14 @@ export interface components {
         BranchOutcome: {
             /** Benchmark Return Bps */
             benchmark_return_bps: string;
+            /** Claims On Time */
+            claims_on_time?: boolean | null;
+            /** Claims Unpaid */
+            claims_unpaid?: number | null;
             /** Excess Bps */
             excess_bps: string;
+            /** Financing Drag Bps */
+            financing_drag_bps?: string | null;
             /** Forced */
             forced: string[];
             /** Fund Return Bps */
@@ -303,6 +309,8 @@ export interface components {
             funds: number;
             /** Generated Days */
             generated_days?: number | null;
+            /** Impact Drag Bps */
+            impact_drag_bps?: string | null;
             /** Journal Digest */
             journal_digest: string;
             /**
@@ -314,6 +322,8 @@ export interface components {
             lp_deferred?: {
                 [key: string]: string;
             } | null;
+            /** Mandate Breaches */
+            mandate_breaches?: number | null;
             /** Max Drawdown */
             max_drawdown: string;
             /** Nav */
@@ -324,6 +334,8 @@ export interface components {
             recall_resolved_by: string | null;
             /** Redemption Paid */
             redemption_paid: string;
+            /** Renewal Failures */
+            renewal_failures?: string[] | null;
             /** Scenario */
             scenario: string;
             /** Score */
@@ -515,7 +527,7 @@ export interface components {
          * CommandBody
          * @description The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop.
          */
-        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"] | components["schemas"]["Thesis"] | components["schemas"]["ContactLp"] | components["schemas"]["ProposeGate"];
+        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"] | components["schemas"]["Thesis"] | components["schemas"]["ContactLp"] | components["schemas"]["ProposeGate"] | components["schemas"]["ProposeWinddown"];
         /**
          * ContactLp
          * @description Managing partner: spend this window's attention on one LP before its next review (generated rooms).
@@ -1006,8 +1018,14 @@ export interface components {
         Outcome: {
             /** Benchmark Return Bps */
             benchmark_return_bps: string;
+            /** Claims On Time */
+            claims_on_time?: boolean | null;
+            /** Claims Unpaid */
+            claims_unpaid?: number | null;
             /** Excess Bps */
             excess_bps: string;
+            /** Financing Drag Bps */
+            financing_drag_bps?: string | null;
             /** Forced */
             forced: string[];
             /** Fund Return Bps */
@@ -1016,17 +1034,21 @@ export interface components {
             funds: number;
             /** Generated Days */
             generated_days?: number | null;
+            /** Impact Drag Bps */
+            impact_drag_bps?: string | null;
             /** Journal Digest */
             journal_digest: string;
             /**
              * Label
              * @enum {string}
              */
-            label: "WIN" | "SURVIVAL" | "DISTRESS";
+            label: "WIN" | "SURVIVAL" | "DISTRESS" | "RENEWAL" | "WINDDOWN" | "DEFAULT" | "COMPANY_FAILURE";
             /** Lp Deferred */
             lp_deferred?: {
                 [key: string]: string;
             } | null;
+            /** Mandate Breaches */
+            mandate_breaches?: number | null;
             /** Max Drawdown */
             max_drawdown: string;
             /** Nav */
@@ -1037,6 +1059,8 @@ export interface components {
             recall_resolved_by: string | null;
             /** Redemption Paid */
             redemption_paid: string;
+            /** Renewal Failures */
+            renewal_failures?: string[] | null;
             /** Scenario */
             scenario: string;
             /** Score */
@@ -1136,6 +1160,19 @@ export interface components {
              * @enum {string}
              */
             type: "propose_gate";
+        };
+        /**
+         * ProposeWinddown
+         * @description Campaign: propose a joint controlled winddown; the other partner's ``sign`` declares it.
+         */
+        ProposeWinddown: {
+            /** Package Id */
+            package_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "propose_winddown";
         };
         /** Quote */
         Quote: {

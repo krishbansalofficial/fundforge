@@ -265,9 +265,42 @@
             "title": "Benchmark Return Bps",
             "type": "string"
           },
+          "claims_on_time": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claims On Time"
+          },
+          "claims_unpaid": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claims Unpaid"
+          },
           "excess_bps": {
             "title": "Excess Bps",
             "type": "string"
+          },
+          "financing_drag_bps": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Financing Drag Bps"
           },
           "forced": {
             "items": {
@@ -294,6 +327,17 @@
               }
             ],
             "title": "Generated Days"
+          },
+          "impact_drag_bps": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact Drag Bps"
           },
           "journal_digest": {
             "title": "Journal Digest",
@@ -323,6 +367,17 @@
             ],
             "title": "Lp Deferred"
           },
+          "mandate_breaches": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mandate Breaches"
+          },
           "max_drawdown": {
             "pattern": "^-?\\d+(\\.\\d+)?$",
             "title": "Max Drawdown",
@@ -350,6 +405,20 @@
           "redemption_paid": {
             "title": "Redemption Paid",
             "type": "string"
+          },
+          "renewal_failures": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renewal Failures"
           },
           "scenario": {
             "title": "Scenario",
@@ -904,6 +973,7 @@
             "pause": "#/components/schemas/Pause",
             "propose": "#/components/schemas/Propose",
             "propose_gate": "#/components/schemas/ProposeGate",
+            "propose_winddown": "#/components/schemas/ProposeWinddown",
             "ready": "#/components/schemas/Ready",
             "research": "#/components/schemas/ResearchCommand",
             "resolve_statement": "#/components/schemas/ResolveStatement",
@@ -969,6 +1039,9 @@
           },
           {
             "$ref": "#/components/schemas/ProposeGate"
+          },
+          {
+            "$ref": "#/components/schemas/ProposeWinddown"
           }
         ],
         "title": "CommandBody"
@@ -2300,9 +2373,42 @@
             "title": "Benchmark Return Bps",
             "type": "string"
           },
+          "claims_on_time": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claims On Time"
+          },
+          "claims_unpaid": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claims Unpaid"
+          },
           "excess_bps": {
             "title": "Excess Bps",
             "type": "string"
+          },
+          "financing_drag_bps": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Financing Drag Bps"
           },
           "forced": {
             "items": {
@@ -2330,6 +2436,17 @@
             ],
             "title": "Generated Days"
           },
+          "impact_drag_bps": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact Drag Bps"
+          },
           "journal_digest": {
             "title": "Journal Digest",
             "type": "string"
@@ -2338,7 +2455,11 @@
             "enum": [
               "WIN",
               "SURVIVAL",
-              "DISTRESS"
+              "DISTRESS",
+              "RENEWAL",
+              "WINDDOWN",
+              "DEFAULT",
+              "COMPANY_FAILURE"
             ],
             "title": "Label",
             "type": "string"
@@ -2356,6 +2477,17 @@
               }
             ],
             "title": "Lp Deferred"
+          },
+          "mandate_breaches": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mandate Breaches"
           },
           "max_drawdown": {
             "pattern": "^-?\\d+(\\.\\d+)?$",
@@ -2384,6 +2516,20 @@
           "redemption_paid": {
             "title": "Redemption Paid",
             "type": "string"
+          },
+          "renewal_failures": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renewal Failures"
           },
           "scenario": {
             "title": "Scenario",
@@ -2666,6 +2812,29 @@
           "package_id"
         ],
         "title": "ProposeGate",
+        "type": "object"
+      },
+      "ProposeWinddown": {
+        "additionalProperties": false,
+        "description": "Campaign: propose a joint controlled winddown; the other partner's ``sign`` declares it.",
+        "properties": {
+          "package_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Package Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "propose_winddown",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "package_id"
+        ],
+        "title": "ProposeWinddown",
         "type": "object"
       },
       "Quote": {

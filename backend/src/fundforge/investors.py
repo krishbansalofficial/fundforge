@@ -120,7 +120,7 @@ def on_close(e: Engine) -> None:
                                                       "open_alerts": str(alerts)})
             b.contacts.clear()
     cutoffs = tuple(e.tape.raw.get("campaign", {}).get("notice_cutoffs", NOTICE_CUTOFFS))
-    if day in cutoffs:
+    if day in cutoffs and e.winddown is None:  # a declared winddown redeems every unit: no new requests
         deal = day + DEALING_LAG
         external: dict[str, Decimal] = {}
         for r in e.tape.raw["redemptions"]:

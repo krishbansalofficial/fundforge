@@ -23,6 +23,13 @@ def good() -> EndingFacts:
     ({"nav": D(0)}, "DEFAULT"),
     ({"overdue_claims": True}, "DEFAULT"),
     ({"broker_default": True, "payroll_unpaid": True}, "DEFAULT"),
+    ({"forced_actions": True}, "SURVIVAL"),
+    ({"broker_shortfalls": True}, "SURVIVAL"),
+    # a finished winddown returns every unit, so its NAV is zero by design and is not a default
+    ({"winddown_complete": True, "winddown_started": True, "nav": D(0)}, "WINDDOWN"),
+    ({"winddown_complete": True, "winddown_started": True, "nav": D(0), "overdue_claims": True}, "DEFAULT"),
+    # an unfinished winddown is neither a completed winddown nor a renewal
+    ({"winddown_started": True}, "SURVIVAL"),
 ])
 def test_awards_and_inclusive_vs_strict_boundaries(changes, expected):
     assert classify(replace(good(), **changes))["award"] == expected
