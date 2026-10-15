@@ -1230,3 +1230,15 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 **Limitations:** the solver is a local optimum of the integer problem, with no global-optimum claim. The tolerances are measured, not proven: worst observed gap to the convex optimum was 7.5% on small caps.
 
 **One next task:** run `uv run mypy src/fundforge/cure.py` (domain modules are mypy-strict per CLAUDE.md) and fix any findings.
+
+## Campaign pacing (P4 milestone), 15 October 2026
+
+**Done in this worktree:** `backend/tests/test_campaign_pacing.py` checks that `ready` with `skip: true` reaches the same journal digest and outcome label as stepping every barrier, for four `campaign-v1` variants (`base`, `rally`, `lean-company`, `tight-credit`).
+
+**Measured:** stepping takes 60 ready rounds (one pair per barrier). Skip-ready is bounded at 16 rounds for three variants and 30 for `tight-credit`. Bounds are the measured rounds plus a small margin, so a chattier campaign fails the test.
+
+**Checks:** `pytest tests/test_campaign_pacing.py` `4 passed`; full backend suite `353 passed, 42 skipped`; `ruff check src tests` clean.
+
+**Limitations:** the bound is per variant, not a general pacing guarantee. Only the four named variants are covered.
+
+**One next task:** add the campaign's seeded variants to the pacing test so the bound holds across generator seeds, not only the fixed variants.

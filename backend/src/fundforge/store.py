@@ -75,6 +75,8 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
         selected = raw.get("variants", {}).get(variant, {})
         if "opening_firm_cash" in selected:
             raw["opening"]["firm"]["cash"] = selected["opening_firm_cash"]
+        if "credit_limit" in selected:  # authored facility size: a smaller line makes the same crisis a default
+            raw["defaults"]["credit_limit"] = selected["credit_limit"]
         return compile_tape(raw, variant)
     if scenario != "case1":
         raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))

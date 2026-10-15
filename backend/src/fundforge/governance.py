@@ -199,6 +199,11 @@ class Session:
         if self.e.cursor > p.expires_cursor or not self.e.at_barrier():
             p.status = "EXPIRED"
             raise CommandRejected("package expired")
+        if p.kind == "winddown":
+            p.signatures.add(role)
+            p.status = "ELECTED"
+            self.e.start_winddown()
+            return {"package_id": p.package_id, "status": p.status}
         if p.kind == "gate":
             if self._lp(investors.gate_terms) != p.terms:
                 raise CommandRejected("redemption requests changed since the gate was proposed")
@@ -222,6 +227,21 @@ class Session:
         digest = hashlib.sha256(canonical(identity).encode()).hexdigest()
         self.packages[c["package_id"]] = Package(c["package_id"], role, (), expires, digest, {role}, kind="gate",
                                                  terms=terms)
+        return {"package_id": c["package_id"], "digest": digest}
+
+    def _cmd_propose_winddown(self, role: str, c: Cmd) -> Cmd:
+        """Campaign: propose a joint controlled winddown at this barrier; the other partner's signature declares it."""
+        if not self.e.tape.raw.get("campaign"):
+            raise CommandRejected("winddown is a campaign mechanic")
+        if self.e.winddown is not None:
+            raise CommandRejected("winddown already declared")
+        if c["package_id"] in self.packages:
+            raise CommandRejected("package id already used; edits must be proposed as a new package")
+        expires = self.e.cursor + 1
+        identity = [POLICY_VERSION, "winddown", c["package_id"], self.e.ev.day, expires]
+        digest = hashlib.sha256(canonical(identity).encode()).hexdigest()
+        self.packages[c["package_id"]] = Package(c["package_id"], role, (), expires, digest, {role}, kind="winddown",
+                                                 terms={"day": self.e.ev.day})
         return {"package_id": c["package_id"], "digest": digest}
 
     def _cmd_contact_lp(self, role: str, c: Cmd) -> Cmd:
