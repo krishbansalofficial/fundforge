@@ -202,6 +202,57 @@ def test_invalid_authored_corrections_are_rejected(change):
         compile_tape(raw)
 
 
+def test_break_is_aged_in_business_days_from_its_open_day():
+    from fundforge.broker import AGED_AFTER_BUSINESS_DAYS
+
+    s = session()
+    advance(s, 12)
+    row = s.e.control_report()["statement_queue"][0]
+    assert (row["opened_day"], row["age_business_days"], row["amount"], row["code"]) == (
+        12, 0, "100.00", "statement_balance_mismatch")
+    assert row["aged"] is False
+    advance(s, 13)
+    assert s.e.control_report()["statement_queue"][0]["age_business_days"] == 1
+    advance(s, 12 + AGED_AFTER_BUSINESS_DAYS)
+    row = s.e.control_report()["statement_queue"][0]
+    assert row["age_business_days"] == AGED_AFTER_BUSINESS_DAYS and row["aged"] is False
+    advance(s, 13 + AGED_AFTER_BUSINESS_DAYS)
+    row = s.e.control_report()["statement_queue"][0]
+    assert row["age_business_days"] == 1 + AGED_AFTER_BUSINESS_DAYS and row["aged"] is True
+    assert row["aging_version"] == "break-aging-1" and s.e.control_report()["status"] == "break"
+
+
+def test_aged_open_break_still_blocks_dealing():
+    s = session()
+    advance(s, 21)
+    report = s.e.control_report()
+    assert report["statement_queue"][0]["aged"] is True and report["status"] == "break"
+    assert any(i["code"] == "dealing_blocked" for i in s.e.incident_events)
+
+
+def test_resolution_is_recorded_with_its_day_and_freezes_the_age():
+    s = session()
+    advance(s, 13)
+    s.handle("ben", "review", correction(s))
+    assert s.e.broker.resolutions[0].day == 13
+    advance(s, 20)
+    row = s.e.control_report()["statement_queue"][0]
+    assert row["status"] == "resolved" and row["aged"] is False and row["age_business_days"] == 1
+
+
+def test_unresolved_aged_break_survives_replay():
+    s = session()
+    advance(s, 17)
+    before = s.e.control_report()["statement_queue"]
+    assert before[0]["status"] == "open" and before[0]["aged"] is True
+    restored = Session(Engine(s.e.tape), dict(s.partners))
+    restored.e.advance()
+    for row in s.log:
+        restored.handle(s.partners[row["role"]], row["key"], row["command"])
+    assert restored.e.control_report()["statement_queue"] == before
+    assert restored.e.j.digest() == s.e.j.digest()
+
+
 @pytest.mark.skipif(not os.environ.get("DATABASE_URL"), reason="needs DATABASE_URL")
 def test_statement_resolution_and_original_evidence_survive_postgres_reload():
     import fundforge.store as storage

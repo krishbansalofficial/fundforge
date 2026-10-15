@@ -33,6 +33,10 @@ Cash and financing comparisons are exact at posted cents. No one-cent discrepanc
 
 The simulated confirmations share the engine's instructed transaction amounts, identities and observed marks. This detects posting omissions/corruption and independently checks financing arithmetic; it does not prove the instructions themselves came from an external bank. Both reducers could share a bad upstream instruction. Management-company cash, management/performance fee allocation, LP claims and full administrator NAV certification are outside this slice. Live arithmetic discrepancies appear in the control report; the aged, manually resolved queue currently covers authored statement discrepancies.
 
+## Break queue and aging (`break-aging-1`)
+
+Each statement id with a mismatched revision is one queue break. Its row carries `id` (the break id), `code` (`statement_balance_mismatch`), `opened_day` (event day its mismatched revision became available), signed `amount` (declared balance minus expected, cents) and `age_business_days`. The age counts business days from `opened_day` to the clock, or to the resolution day once resolved, so it is frozen after review. `aged` is true while open and older than `AGED_AFTER_BUSINESS_DAYS` = 3. That threshold is a design choice, not a measured figure. Aging is report-only: any open break still blocks certification and dealing. `resolve_statement` records the resolution day, so replay reproduces the same ages. `age_calendar_days` is unchanged.
+
 ## Authoring and command contracts
 
 `broker_statements` records contain `id`, positive sequential `revision`, `source`, `account` (`cash`, `collateral` or positive `debt`), `balance` as a finite nonnegative cent-valued string, `as_of: {day, phase}` and `available_at: {day, phase}`. Revisions after 1 must name the previous revision in `supersedes`, retain source/account/as-of coordinates, provide a nonempty correction reason and arrive at a strictly later event. Invalid records fail tape compilation.
