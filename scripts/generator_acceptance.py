@@ -1,9 +1,11 @@
-"""Measure how often generated Case1 tapes pass the balance gate, per generator Spec.
+"""Measure how often randomised Case1 worlds pass the balance gate, and record every rejected seed.
 
-    cd backend && uv run python ../scripts/generator_acceptance.py [N]
+    cd backend && uv run python ../scripts/generator_acceptance.py [N] [rejects.json]
 
-Prints accepted/N and the failure counts for each candidate spec over seeds bench-0..bench-(N-1).
-A measurement over a fixed seed list, not a probability claim.
+Plays seeds ``bench-0`` .. ``bench-(N-1)`` under ``SCENARIO_VERSION`` with the default ``Spec`` and
+prints accepted/N, the failure counts, and the split of accepted seeds. Rejected seeds with their
+failure codes are written to ``rejects.json`` when a path is given. A measurement over a fixed seed
+list, not a probability claim.
 """
 
 import json
@@ -12,23 +14,29 @@ from collections import Counter
 from pathlib import Path
 
 from fundforge.balance import accept
-from fundforge.generator import GEN_VERSION, Spec, generate
+from fundforge.generator import SCENARIO_VERSION, Spec, generate, split_of
 from fundforge.tape import compile_tape
 
 SKELETON = json.loads((Path(__file__).resolve().parents[1] / "fixtures" / "case1.json").read_text(encoding="utf-8"))
-SPECS = {
-    "default": Spec(),
-    "calmer": Spec(factor_bp=100, idio_bp=75, stress_multiplier=2),
-    "quiet": Spec(factor_bp=60, idio_bp=50, stress_multiplier=2),
-}
 
 if __name__ == "__main__":
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 20
-    for name, spec in SPECS.items():
-        failures: Counter[str] = Counter()
-        accepted = 0
-        for i in range(n):
-            ok, report = accept(compile_tape(generate(f"bench-{i}", GEN_VERSION, SKELETON, spec)))
-            accepted += ok
+    rejects_path = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+    failures: Counter[str] = Counter()
+    rejected: list[dict[str, object]] = []
+    accepted = Counter[str]()
+    for i in range(n):
+        seed = f"bench-{i}"
+        ok, report = accept(compile_tape(generate(seed, SCENARIO_VERSION, SKELETON, Spec())))
+        if ok:
+            accepted[split_of(seed)] += 1
+        else:
             failures.update(report["failures"])
-        print(f"{name:8s} accepted {accepted}/{n}  failures {dict(failures)}")
+            rejected.append({"seed": seed, "split": split_of(seed), "failures": report["failures"]})
+    total = sum(accepted.values())
+    print(f"{SCENARIO_VERSION} default  accepted {total}/{n} ({100 * total / n:.1f}%)")
+    print(f"  accepted by split {dict(accepted)}")
+    print(f"  failure codes over rejected seeds {dict(failures)}")
+    if rejects_path:
+        rejects_path.write_text(json.dumps(rejected, indent=1), encoding="utf-8")
+        print(f"  rejected seeds written to {rejects_path}")
