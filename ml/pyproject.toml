@@ -25,6 +25,11 @@ train = [
     "stable-baselines3>=2.6",
     "mlflow>=3.0",
 ]
+# Regime forecasting models (scripts/train_forecast.py); the feature and metric code needs numpy only.
+forecast = [
+    "lightgbm>=4.5",
+    "torch>=2.6",
+]
 stream = [
     "confluent-kafka>=2.6",
 ]

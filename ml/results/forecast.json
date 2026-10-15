@@ -1,0 +1,535 @@
+{
+  "task": "P(stressed) for the latest published Street activity period, from published prints only",
+  "reproduce": "cd ml && uv run --group forecast python scripts/train_forecast.py --worlds 20000",
+  "versions": {
+    "feature": "forecast-features-2026.10.1",
+    "generator": "gen-2026.10.1",
+    "macro": "macro-2026.10.2",
+    "contracts": "ml-contracts-2026.10.1",
+    "python": "3.13.12",
+    "numpy": "2.5.4",
+    "lightgbm": "4.7.0",
+    "torch": "2.14.1+cpu",
+    "platform": "Windows-11-10.0.26300-SP0"
+  },
+  "data": {
+    "worlds": 20000,
+    "seed_pattern": "forecast-{i}, i in [0, worlds)",
+    "variant": "base",
+    "balance_gate": "not applied (the filter is exact for the ungated generator distribution)",
+    "split": "contracts.split_of(seed_family), salt 'fundforge-split-v1'; whole families held out",
+    "families": {
+      "train": 15950,
+      "val": 1968,
+      "test": 2082
+    },
+    "samples": {
+      "train": 143550,
+      "val": 17712,
+      "test": 18738
+    },
+    "test_stressed_rate": 0.36588750133418724
+  },
+  "metrics_note": "Binary Brier on P(stressed) (research.brier's two-state score is 2x). ECE over 10 equal-width bins. gap_* = model minus exact Bayes filter on the same test rows; gap_brier_se_by_world is the standard error of per-world mean gaps.",
+  "training": {
+    "seed": 20261015,
+    "lightgbm_best_iteration": 150,
+    "mlp_epochs": 34,
+    "logreg": "numpy Newton/IRLS, l2 1e-3"
+  },
+  "test": {
+    "bayes_exact_filter": {
+      "n": 18738,
+      "worlds": 2082,
+      "brier": 0.05722317763172165,
+      "log_loss": 0.18052107502606596,
+      "ece": 0.003373921389689388,
+      "gap_brier": 0.0,
+      "gap_brier_se_by_world": 0.0,
+      "gap_log_loss": 0.0,
+      "mean_abs_to_bayes": 0.0,
+      "reliability": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "n": 7361,
+          "mean_p": 0.0,
+          "frac_stressed": 0.0
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 3529,
+          "mean_p": 0.14999999999999997,
+          "frac_stressed": 0.14735052422782657
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 1264,
+          "mean_p": 0.25499999999999995,
+          "frac_stressed": 0.2721518987341772
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 375,
+          "mean_p": 0.3386528,
+          "frac_stressed": 0.392
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 17,
+          "mean_p": 0.41893094117647056,
+          "frac_stressed": 0.47058823529411764
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 1,
+          "mean_p": 0.584035,
+          "frac_stressed": 1.0
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 91,
+          "mean_p": 0.6635846153846154,
+          "frac_stressed": 0.6263736263736264
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 431,
+          "mean_p": 0.7449999999999999,
+          "frac_stressed": 0.7517401392111369
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 1396,
+          "mean_p": 0.8499999999999998,
+          "frac_stressed": 0.8467048710601719
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "n": 4273,
+          "mean_p": 1.0,
+          "frac_stressed": 1.0
+        }
+      ]
+    },
+    "chain_prior_only": {
+      "n": 18738,
+      "worlds": 2082,
+      "brier": 0.22278992590452007,
+      "log_loss": 0.6353107949961317,
+      "ece": 0.003392321287757445,
+      "gap_brier": 0.1655667482727984,
+      "gap_brier_se_by_world": 0.0020533324023421823,
+      "gap_log_loss": 0.4547897199700658,
+      "mean_abs_to_bayes": 0.36039849549471664,
+      "reliability": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 2082,
+          "mean_p": 0.14999999999999997,
+          "frac_stressed": 0.15177713736791545
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 2082,
+          "mean_p": 0.25499999999999995,
+          "frac_stressed": 0.2665706051873199
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 6246,
+          "mean_p": 0.36280000000000007,
+          "frac_stressed": 0.3655139289145053
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 8328,
+          "mean_p": 0.44678483624999993,
+          "frac_stressed": 0.44452449567723346
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "n": 0,
+          "mean_p": null,
+          "frac_stressed": null
+        }
+      ]
+    },
+    "logistic_regression": {
+      "n": 18738,
+      "worlds": 2082,
+      "brier": 0.07499236218401296,
+      "log_loss": 0.2387251855732592,
+      "ece": 0.012251593555180096,
+      "gap_brier": 0.0177691845522913,
+      "gap_brier_se_by_world": 0.0009616537969032125,
+      "gap_log_loss": 0.05820411054719324,
+      "mean_abs_to_bayes": 0.07613652213701969,
+      "reliability": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "n": 8372,
+          "mean_p": 0.02104862027992073,
+          "frac_stressed": 0.021739130434782608
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 1486,
+          "mean_p": 0.14539186760901168,
+          "frac_stressed": 0.17294751009421266
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 1030,
+          "mean_p": 0.24861373140421195,
+          "frac_stressed": 0.2543689320388349
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 794,
+          "mean_p": 0.3492655553405709,
+          "frac_stressed": 0.31738035264483627
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 662,
+          "mean_p": 0.44591278662895634,
+          "frac_stressed": 0.37915407854984895
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 585,
+          "mean_p": 0.5509963947279853,
+          "frac_stressed": 0.5247863247863248
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 580,
+          "mean_p": 0.65101588952441,
+          "frac_stressed": 0.6775862068965517
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 589,
+          "mean_p": 0.7503580750457127,
+          "frac_stressed": 0.7470288624787776
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 755,
+          "mean_p": 0.8545596732872432,
+          "frac_stressed": 0.8900662251655629
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "n": 3885,
+          "mean_p": 0.9760899037108781,
+          "frac_stressed": 0.9884169884169884
+        }
+      ]
+    },
+    "lightgbm": {
+      "n": 18738,
+      "worlds": 2082,
+      "brier": 0.05765487790286416,
+      "log_loss": 0.18189222498114507,
+      "ece": 0.0043933552931757994,
+      "gap_brier": 0.0004317002711424939,
+      "gap_brier_se_by_world": 0.00012961119704366143,
+      "gap_log_loss": 0.001371149955079115,
+      "mean_abs_to_bayes": 0.007113639801005069,
+      "reliability": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "n": 7420,
+          "mean_p": 0.0008942833720787009,
+          "frac_stressed": 0.0008086253369272237
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 3420,
+          "mean_p": 0.15013747316611284,
+          "frac_stressed": 0.14736842105263157
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 1336,
+          "mean_p": 0.2518428692906428,
+          "frac_stressed": 0.27619760479041916
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 309,
+          "mean_p": 0.34282029795934715,
+          "frac_stressed": 0.3786407766990291
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 67,
+          "mean_p": 0.431413616051917,
+          "frac_stressed": 0.47761194029850745
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 30,
+          "mean_p": 0.5633923421822336,
+          "frac_stressed": 0.6666666666666666
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 211,
+          "mean_p": 0.6646622337262575,
+          "frac_stressed": 0.7014218009478673
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 296,
+          "mean_p": 0.7574524167354614,
+          "frac_stressed": 0.7871621621621622
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 1373,
+          "mean_p": 0.8413054094482153,
+          "frac_stressed": 0.8383102694828842
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "n": 4276,
+          "mean_p": 0.999589733836572,
+          "frac_stressed": 1.0
+        }
+      ]
+    },
+    "torch_mlp": {
+      "n": 18738,
+      "worlds": 2082,
+      "brier": 0.06014232079968471,
+      "log_loss": 0.1884345360869496,
+      "ece": 0.006233297128813723,
+      "gap_brier": 0.002919143167963057,
+      "gap_brier_se_by_world": 0.0003430467451308375,
+      "gap_log_loss": 0.007913461060883642,
+      "mean_abs_to_bayes": 0.01911623841703672,
+      "reliability": [
+        {
+          "lo": 0.0,
+          "hi": 0.1,
+          "n": 7466,
+          "mean_p": 0.0014517002017253324,
+          "frac_stressed": 0.0017412268952585051
+        },
+        {
+          "lo": 0.1,
+          "hi": 0.2,
+          "n": 3227,
+          "mean_p": 0.16121489049472565,
+          "frac_stressed": 0.15866129532073134
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.3,
+          "n": 1304,
+          "mean_p": 0.23857607242245615,
+          "frac_stressed": 0.25306748466257667
+        },
+        {
+          "lo": 0.3,
+          "hi": 0.4,
+          "n": 347,
+          "mean_p": 0.34595423679186904,
+          "frac_stressed": 0.3285302593659942
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.5,
+          "n": 206,
+          "mean_p": 0.44061851805274926,
+          "frac_stressed": 0.45145631067961167
+        },
+        {
+          "lo": 0.5,
+          "hi": 0.6,
+          "n": 151,
+          "mean_p": 0.5512929910066112,
+          "frac_stressed": 0.6423841059602649
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.7,
+          "n": 233,
+          "mean_p": 0.6539816815454049,
+          "frac_stressed": 0.6952789699570815
+        },
+        {
+          "lo": 0.7,
+          "hi": 0.8,
+          "n": 491,
+          "mean_p": 0.7575434061514628,
+          "frac_stressed": 0.8268839103869654
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 1005,
+          "mean_p": 0.8459775437763081,
+          "frac_stressed": 0.8318407960199005
+        },
+        {
+          "lo": 0.9,
+          "hi": 1.0,
+          "n": 4308,
+          "mean_p": 0.9982802486159564,
+          "frac_stressed": 0.9965181058495822
+        }
+      ]
+    }
+  },
+  "test_brier_by_as_of_day": {
+    "13": {
+      "bayes_exact_filter": 0.0488712776176753,
+      "chain_prior_only": 0.1287439961575408,
+      "logistic_regression": 0.05878654974216898,
+      "lightgbm": 0.04890384967433009,
+      "torch_mlp": 0.049079752868184785,
+      "n": 2082
+    },
+    "14": {
+      "bayes_exact_filter": 0.06021032660902977,
+      "chain_prior_only": 0.19564459654178673,
+      "logistic_regression": 0.07561940325957302,
+      "lightgbm": 0.06027333895016599,
+      "torch_mlp": 0.061423242080080834,
+      "n": 2082
+    },
+    "15": {
+      "bayes_exact_filter": 0.05797525480307396,
+      "chain_prior_only": 0.22339880139289142,
+      "logistic_regression": 0.07695757237964018,
+      "lightgbm": 0.05853217534933104,
+      "torch_mlp": 0.0604176764062577,
+      "n": 2082
+    },
+    "16": {
+      "bayes_exact_filter": 0.05904841091858789,
+      "chain_prior_only": 0.23558155101104705,
+      "logistic_regression": 0.07377404044858063,
+      "lightgbm": 0.05940495319994054,
+      "torch_mlp": 0.060624273181109314,
+      "n": 2082
+    },
+    "17": {
+      "bayes_exact_filter": 0.05802116823967338,
+      "chain_prior_only": 0.23558155101104705,
+      "logistic_regression": 0.07314368279089438,
+      "lightgbm": 0.05824242395901177,
+      "torch_mlp": 0.05985431403683292,
+      "n": 2082
+    },
+    "18": {
+      "bayes_exact_filter": 0.05108534487989913,
+      "chain_prior_only": 0.24293495999541304,
+      "logistic_regression": 0.07248842694937818,
+      "lightgbm": 0.051929160628573945,
+      "torch_mlp": 0.05441776722427627,
+      "n": 2082
+    },
+    "19": {
+      "bayes_exact_filter": 0.0594659022351705,
+      "chain_prior_only": 0.24662289192512996,
+      "logistic_regression": 0.0825456897537377,
+      "lightgbm": 0.05971290490334024,
+      "torch_mlp": 0.0643767397271059,
+      "n": 2082
+    },
+    "20": {
+      "bayes_exact_filter": 0.06255678558590297,
+      "chain_prior_only": 0.24726535518452405,
+      "logistic_regression": 0.08227017206219935,
+      "lightgbm": 0.06330347199818619,
+      "torch_mlp": 0.06760848337016324,
+      "n": 2082
+    },
+    "21": {
+      "bayes_exact_filter": 0.057774127796481986,
+      "chain_prior_only": 0.24933562992130054,
+      "logistic_regression": 0.07934572226994425,
+      "lightgbm": 0.0585916224628976,
+      "torch_mlp": 0.06347863830315145,
+      "n": 2082
+    }
+  },
+  "seconds": {
+    "generate": 14.7,
+    "fit": 20.7
+  }
+}
