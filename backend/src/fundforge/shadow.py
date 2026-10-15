@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_EVEN, Context, Decimal, localcontext
 from typing import Any
 
+from .money import cents
+
 CONTEXT = Context(prec=40, rounding=ROUND_HALF_EVEN)
 CENT, PRICE = Decimal("0.01"), Decimal("0.000001")
 
@@ -111,3 +113,58 @@ def inspect_settlements(confirmations: Iterable[ExecutionConfirmation],
     breaks += [{"code": "settlement_missing", "subject": oid} for oid in expected if oid not in seen]
     breaks += [{"code": "settlement_duplicate", "subject": oid} for oid, n in seen.items() if n > 1]
     return breaks
+
+
+def strike_nav_per_unit(net: Decimal, units: Decimal) -> Decimal:
+    """Struck NAV per unit: net / units, rounded half-even to the 1e-6 price tick."""
+    if units <= 0:
+        raise ValueError("NAV per unit requires positive units")
+    with localcontext(CONTEXT):
+        return (net / units).quantize(PRICE, rounding=ROUND_HALF_EVEN)
+
+
+def payable(units: Decimal, price: Decimal) -> tuple[Decimal, Decimal]:
+    """Payable = units x struck price in cents (half-even); the sub-cent residual is returned, not hidden."""
+    with localcontext(CONTEXT):
+        gross = units * price
+        amount = cents(gross)
+        return amount, gross - amount
+
+
+def certify(units: dict[str, Decimal], posted_net: dict[str, Decimal], engine_net: dict[str, Decimal],
+            claims: Iterable[tuple[str, Decimal, Decimal, Decimal]]) -> dict[str, Any]:
+    """Certify engine NAV per unit and dealt payables against independently struck values.
+
+    units: series units; posted_net: journal capital per series (positive credit balance);
+    engine_net: administrator net per series; claims: (series, units, engine price, engine payable).
+    Only breaks above one cent are reported; sub-cent differences are rounding residuals.
+    Inputs are plain values: this module never reads engine, journal or posting state.
+    """
+    with localcontext(CONTEXT):
+        breaks: list[dict[str, Any]] = []
+        series_rows = []
+        for sid in sorted(units.keys() | posted_net.keys() | engine_net.keys()):
+            u = units.get(sid, Decimal(0))
+            posted = posted_net.get(sid, Decimal(0))
+            engine = engine_net.get(sid, Decimal(0))
+            struck = strike_nav_per_unit(posted, u) if u > 0 else Decimal(0)
+            if abs(engine - posted) > CENT:
+                breaks.append({"code": "nav_per_unit", "subject": sid, "actual": str(engine),
+                               "expected": str(posted)})
+            series_rows.append({"series": sid, "units": str(u), "posted_net": str(posted),
+                                "engine_net": str(engine), "struck_nav_per_unit": str(struck),
+                                "residual": str(posted - u * struck)})
+        claim_rows = []
+        for sid, u, price, engine_pay in claims:
+            with localcontext(CONTEXT):
+                struck = price.quantize(PRICE, rounding=ROUND_HALF_EVEN)
+            amount, residual = payable(u, struck)
+            # Strike rounding can move units x price by at most units x half a tick; plus one cent.
+            if abs(engine_pay - (amount + residual)) > CENT + u * PRICE / 2:
+                breaks.append({"code": "payable", "subject": sid, "actual": str(engine_pay),
+                               "expected": str(amount + residual)})
+            claim_rows.append({"series": sid, "units": str(u), "struck_nav_per_unit": str(struck),
+                               "payable": str(amount), "residual": str(residual),
+                               "engine_payable": str(engine_pay)})
+        return {"status": "break" if breaks else "checked", "breaks": breaks, "series": series_rows,
+                "claims": claim_rows}

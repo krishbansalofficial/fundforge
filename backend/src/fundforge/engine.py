@@ -21,7 +21,7 @@ from .journal import Journal, entry
 from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
-from .shadow import ExecutionConfirmation, inspect_book, inspect_settlements
+from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_settlements
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
 Side = Literal["BUY", "SELL", "SHORT", "COVER"]
@@ -857,6 +857,15 @@ class Engine:
             self.j.balances("fund"), self.j.balances("firm"), management)
         report["administrator"] = admin
         report["breaks"] += admin["breaks"]
+        fund_balances = self.j.balances("fund")
+        with localcontext(CTX):  # sign flips and claim inputs must not inherit a caller's precision
+            certification = certify(
+                {k: s.units for k, s in self.administrator.series.items()},
+                {k: -fund_balances.get(f"capital:{k}", Decimal(0)) for k in self.administrator.series},
+                {k: s.net for k, s in self.administrator.series.items()},
+                [(c.series_id, c.units, c.price, c.payable) for c in self.administrator.claims])
+        report["certification"] = certification
+        report["breaks"] += certification["breaks"]
         report["breaks"] += inspect_settlements(
             self.confirmations,
             [(p.obligation, p.kind, p.sym, p.qty, p.amount, p.settle_day) for p in self.pending],
