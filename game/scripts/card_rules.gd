@@ -25,8 +25,10 @@ static func facts(outcome: Dictionary) -> PackedStringArray:
 
 ## What the run's market was, from the outcome's revealed `variant`. Case 1 variants are authored
 ## (fixtures/case1.json); generated rooms reveal their seed as `seed:<text>`.
-static func market_text(variant: Variant) -> String:
+static func market_text(variant: Variant, scenario: Variant = null) -> String:
 	var v := "base" if variant == null else str(variant)
+	if scenario != null and not str(scenario).begins_with("case1"):  # Case 1's day 16 text would be wrong here
+		return "The %s run's hidden variant was \"%s\"." % [scenario, v]
 	if v == "base":
 		return "The day 16 market was a sell-off and short squeeze. You couldn't know which in advance."
 	if v == "rally":

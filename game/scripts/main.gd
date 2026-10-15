@@ -141,7 +141,7 @@ func _build_menu() -> void:
 	title.add_theme_font_size_override("font_size", 52)
 	v.add_child(title)
 	var tag := Label.new()
-	tag.text = "Two partners. A fictional $25m fund. Ten days of crisis. Investor money can't pay your payroll."
+	tag.text = "Two partners. A fictional $25m fund. Ten days of crisis, or a 30-day campaign. Investor money can't pay your payroll."
 	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(tag)
 	var server := _field(v, "Server", _server)

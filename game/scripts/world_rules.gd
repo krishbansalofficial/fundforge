@@ -26,6 +26,7 @@ const SCENARIOS := [
 	["case1-controls", "Broker review challenge: investigate a cash statement error in Terminal RISK"],
 	["case1-settlement", "Settlement failure: a tight credit line fails a BUY settlement; follow the retry in RISK"],
 	["case1-generated", "Generated market: Case 1's crisis on a fresh seeded price path (seed revealed at the end)"],
+	["campaign-v1", "Campaign: the first mandate, 30 days in three chapters with six instruments"],
 ]
 const STREET := Rect2i(0, 15, 24, 2)
 const WORLD := Rect2i(0, 0, 24, 23)
