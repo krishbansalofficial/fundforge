@@ -428,6 +428,7 @@ class StatementResolution(Strict):
     statement_id: str
     revision: int
     date: str
+    day: int
     actor: str
 
 
@@ -436,6 +437,12 @@ class StatementRow(Strict):
     owner: str
     status: Literal["open", "resolved"]
     age_calendar_days: int
+    code: str
+    opened_day: int
+    amount: str
+    age_business_days: int
+    aged: bool
+    aging_version: str
     revision: int
     account: str
     actual: DecOut

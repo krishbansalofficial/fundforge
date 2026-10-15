@@ -1554,6 +1554,8 @@ export interface components {
             actor: string;
             /** Date */
             date: string;
+            /** Day */
+            day: number;
             /** Revision */
             revision: number;
             /** Statement Id */
@@ -1588,16 +1590,28 @@ export interface components {
             account: string;
             /** Actual */
             actual: string;
+            /** Age Business Days */
+            age_business_days: number;
             /** Age Calendar Days */
             age_calendar_days: number;
+            /** Aged */
+            aged: boolean;
+            /** Aging Version */
+            aging_version: string;
+            /** Amount */
+            amount: string;
             /** Can Resolve */
             can_resolve: boolean;
+            /** Code */
+            code: string;
             /** Expected */
             expected: string;
             /** History */
             history: components["schemas"]["StatementRevision"][];
             /** Id */
             id: string;
+            /** Opened Day */
+            opened_day: number;
             /** Owner */
             owner: string;
             resolution: components["schemas"]["StatementResolution"] | null;

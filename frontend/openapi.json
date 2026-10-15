@@ -3931,6 +3931,10 @@
             "title": "Date",
             "type": "string"
           },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
@@ -3944,6 +3948,7 @@
           "statement_id",
           "revision",
           "date",
+          "day",
           "actor"
         ],
         "title": "StatementResolution",
@@ -4032,13 +4037,33 @@
             "title": "Actual",
             "type": "string"
           },
+          "age_business_days": {
+            "title": "Age Business Days",
+            "type": "integer"
+          },
           "age_calendar_days": {
             "title": "Age Calendar Days",
             "type": "integer"
           },
+          "aged": {
+            "title": "Aged",
+            "type": "boolean"
+          },
+          "aging_version": {
+            "title": "Aging Version",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
           "can_resolve": {
             "title": "Can Resolve",
             "type": "boolean"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
           },
           "expected": {
             "pattern": "^-?\\d+(\\.\\d+)?$",
@@ -4055,6 +4080,10 @@
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "opened_day": {
+            "title": "Opened Day",
+            "type": "integer"
           },
           "owner": {
             "title": "Owner",
@@ -4095,6 +4124,12 @@
           "owner",
           "status",
           "age_calendar_days",
+          "code",
+          "opened_day",
+          "amount",
+          "age_business_days",
+          "aged",
+          "aging_version",
           "revision",
           "account",
           "actual",
