@@ -7,6 +7,7 @@ dependencies = [
     "fundforge",
     "gymnasium>=1.0",
     "numpy>=2.0",
+    "polars>=1.20",
 ]
 
 [dependency-groups]

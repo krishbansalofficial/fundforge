@@ -164,6 +164,14 @@ class FundForgeEnv(gym.Env[npt.NDArray[np.float32], int]):
     def _qty(position: int, frac: float) -> int:
         return math.ceil(abs(position) * frac)
 
+    def command_for(self, action: int) -> dict[str, Any] | None:
+        """The command ``step(action)`` would send now (for logging); packages are named as ``step`` names them."""
+        self.steps += 1
+        try:
+            return self._command(action)
+        finally:
+            self.steps -= 1
+
     def _command(self, action: int) -> dict[str, Any] | None:
         kind, arg = self.actions[action]
         if kind == "wait":
