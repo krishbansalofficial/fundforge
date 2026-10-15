@@ -1258,3 +1258,25 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 **Checks:** backend `564 passed, 42 skipped`; ruff clean; mypy clean on `store.py` and `cure.py`. Postgres-gated tests were skipped here because `DATABASE_URL` is unset.
 
 **One next task:** decide the shadow merge (keep the existing `certify()` and port only the independent-strike checks that are missing), then run the Postgres-gated suite against a scratch database.
+
+## Milestone round checkpoint, 15 October 2026 (later)
+
+**Merged into `main`:**
+- Broker statement break aging (`broker.py`, `AGING_VERSION` `break-aging-1`, `AGED_AFTER_BUSINESS_DAYS` = 3). The 3-business-day threshold is a design choice, not a measured figure. The aged flag is report-only; open breaks still block dealing and certification. The API contract and `openapi.json` / `api-types.ts` were regenerated to match.
+- Research boundary tests (`test_research.py`, AST check that nothing outside `research.py` imports it). The research module itself already existed. The milestone is not complete: no fixture has priors or likelihood ratios, so no posterior is wired into any scenario.
+- Pacing gate fix (`test_campaign_pacing.py`): generated-seed pacing now runs on the first 12 gate-accepted seeds. The earlier test called `store._tape` directly and so bypassed the balance gate; seeds 2, 4, 5, 6, 8, 10 and 11 were gate-rejected.
+
+**Not merged (duplicates or unresolved decisions):**
+- Shadow certification (`abe46a9…`): a second `certify()` that conflicts with main's NAV gate.
+- LP confidence (`abc23e8…`): a parallel preference layer. Main's `lp.py` `review()` already covers drawdown, response lag, contact and herding.
+
+**Scan results (`seed:{i}-0`, i = 1..199):** the balance gate accepts 84 and rejects 115. Every stepped run that was scanned ends in SURVIVAL, so no non-SURVIVAL label has been found. Only the `-0` suffix was scanned.
+
+**Checks:** full backend suite and ruff clean at the time of this entry (see the test count in the final report).
+
+**Open risks**
+- Generator acceptance is about 42% in this scan (84 of 199), so room creation can still fail with "try again" after 12 rejections in a row.
+- Postgres-gated tests have not run here (`DATABASE_URL` unset).
+- Worktrees cut from older commits duplicated code already on main. New agents now merge main first, and each result is checked against main before merging.
+
+**One next task:** decide the shadow merge: keep main's `certify()` and port only the independent-strike checks that are missing.
