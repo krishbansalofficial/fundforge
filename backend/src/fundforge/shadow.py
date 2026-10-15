@@ -111,3 +111,98 @@ def inspect_settlements(confirmations: Iterable[ExecutionConfirmation],
     breaks += [{"code": "settlement_missing", "subject": oid} for oid in expected if oid not in seen]
     breaks += [{"code": "settlement_duplicate", "subject": oid} for oid, n in seen.items() if n > 1]
     return breaks
+
+
+# ---------- NAV certificate per dealing close (FUND_ACCOUNTING §5a) ----------
+NAV_TOLERANCE = CENT  # inclusive: |independent - book| <= 0.01 certifies; 0.01 + anything breaks
+STRIKE = PRICE  # NAV per unit struck at 6dp HALF_EVEN
+REASONS = {  # control break code -> certificate blocking reason
+    **dict.fromkeys(("invalid_confirmation", "fill_price", "fill_amount", "position_direction", "position",
+                     "long_valuation", "short_valuation", "conditional_nav"), "shadow_break"),
+    **dict.fromkeys(("broker_balance", "financing_accrued", "financing_invoiced", "settled_loan",
+                     "financing_date"), "broker_break"),
+    **dict.fromkeys(("settlement_misallocated", "settlement_unexplained_delay", "settlement_missing",
+                     "settlement_duplicate"), "settlement_break"),
+    **dict.fromkeys(("lp_series", "lp_capital", "lp_provision", "admin_claim", "manager_receivable",
+                     "manager_revenue", "management_fee_date"), "lp_claim_mismatch"),
+}
+
+
+@dataclass(frozen=True)
+class Strike:
+    series_id: str
+    units: Decimal
+    net: Decimal
+    nav_per_unit: Decimal  # net / units, 6dp HALF_EVEN
+
+
+@dataclass(frozen=True)
+class RedemptionLine:
+    series_id: str
+    units: Decimal
+    nav_per_unit: Decimal  # struck price
+    payable: Decimal  # units x struck price, cents HALF_EVEN
+    journal_payable: Decimal  # the candidate the books would post (exact pro-rata net, cents)
+    residual: Decimal  # journal_payable - payable
+    residual_bound: Decimal  # units x half a strike step + two half-cent roundings
+
+
+@dataclass(frozen=True)
+class Certificate:
+    date: str
+    day: int
+    status: str  # "certified" | "broken"; "pending" is only the as-of state before the first certificate
+    independent_nav: Decimal
+    book_nav: Decimal
+    difference: Decimal  # book - independent
+    tolerance: Decimal
+    strikes: tuple[Strike, ...]
+    redemptions: tuple[RedemptionLine, ...]
+    reasons: tuple[str, ...]  # sorted typed codes; empty iff certified
+
+    def wire(self) -> dict[str, Any]:
+        def text(row: Any) -> dict[str, Any]:
+            return {k: str(v) if isinstance(v, Decimal) else v for k, v in row.__dict__.items()}
+        return {**text(self), "strikes": [text(s) for s in self.strikes],
+                "redemptions": [text(r) for r in self.redemptions], "reasons": list(self.reasons)}
+
+
+def certify(d: str, day: int, wealth: Decimal, liabilities: dict[str, Decimal],
+            independent: dict[str, tuple[Decimal, Decimal, Decimal]], book: dict[str, Decimal],
+            breaks: Iterable[dict[str, Any]], open_statements: Iterable[str],
+            redemptions: Iterable[tuple[str, Decimal, Decimal]]) -> Certificate:
+    """Strike NAV per unit and gate dealing on one coherent certificate.
+
+    Independent NAV = wealth (confirmed holdings at observed marks, broker cash/collateral/debt, unsettled
+    obligations, independent financing) - independent fee/redemption claims - independent provisions.
+    independent: administrator series (units, net, provision). book: fund journal balances; book NAV is
+    assets minus liabilities (every account except LP capital and unallocated common P&L), so provisions
+    count as liabilities as in FUND_ACCOUNTING §9. redemptions: (series, units, journal candidate payable).
+    Any reason blocks dealing.
+    """
+    with localcontext(CONTEXT):
+        independent_nav = (wealth - sum(liabilities.values(), Decimal(0))
+                           - sum((f for _, _, f in independent.values()), Decimal(0)))
+        book_nav = sum((v for k, v in book.items() if not k.startswith("capital:") and k != "common_pnl"),
+                       Decimal(0))
+        difference = book_nav - independent_nav
+        reasons = {REASONS.get(b["code"], "shadow_break") for b in breaks}
+        if abs(difference) > NAV_TOLERANCE:
+            reasons.add("shadow_nav")
+        if any(True for _ in open_statements):
+            reasons.add("broker_statement")
+        strikes = {sid: Strike(sid, units, net, (net / units).quantize(STRIKE))
+                   for sid, (units, net, _) in sorted(independent.items()) if units > 0}
+        lines = []
+        for sid, units, journal in redemptions:
+            if sid not in strikes:
+                reasons.add("lp_claim_mismatch")
+                continue
+            price = strikes[sid].nav_per_unit
+            payable = (units * price).quantize(CENT)
+            bound = units * STRIKE / 2 + CENT
+            if abs(journal - payable) > bound:
+                reasons.add("payable_residual")
+            lines.append(RedemptionLine(sid, units, price, payable, journal, journal - payable, bound))
+        return Certificate(d, day, "broken" if reasons else "certified", independent_nav, book_nav, difference,
+                           NAV_TOLERANCE, tuple(strikes.values()), tuple(lines), tuple(sorted(reasons)))

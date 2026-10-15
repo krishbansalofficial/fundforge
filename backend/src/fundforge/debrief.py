@@ -98,6 +98,7 @@ def replay(source: Session, omit_seq: int | None = None) -> dict[str, Any]:
             "outcome": branch.e.outcome(), "source_outcome": source.e.outcome(),
             "nav_difference": str(cents(branch.e.nav() - source.e.nav())),
             "research": research_scores(source),
+            "certificates": source.e.certification()["certificates"],
             **({"investors": investors.debrief(source.e)} if source.e.lp else {}),
             "timeline": timeline, "rejected": rejected, "incidents": copy.deepcopy(branch.e.incident_events),
             "policy": "Completed-run counterfactual. Omit one decision, retry the original suffix, "

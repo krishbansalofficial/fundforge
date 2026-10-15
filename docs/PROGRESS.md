@@ -895,3 +895,135 @@ Builders M9, M12 and M13 stopped early on an API session limit (HTTP 429). The c
 **M13, NAV certification gate.** It made no code changes. `certify()`, the per-series NAV strike with payable residual, and the open-broker-break link to certification remain open.
 
 **One next task:** run M9's crisis measurement and the Compatibility-renderer proxy. Then build the M13 certification gate.
+
+## Web terminal ORDERS, STREET and debrief REPLAY (P2 web desk, builder B3), 12 October 2026
+
+`terminal.tsx` has a "Terminal functions" nav (MON / ORDERS / STREET, `aria-pressed`). ORDERS is the accepted-order blotter with fills, rejected fills and partner or broker-forced origin. STREET is the ranked league, with your fund highlighted and a note that rival holdings are not disclosed. A refused thesis shows "Thesis not recorded: <server message>" and keeps the typed value.
+
+In `desk.tsx`, `send` resolves to null or the refusal reason, and the ticket, propose and reserve inputs keep their values on refusal. Maximum drawdown uses the exact `lib.exactPct()` (tested: "0.29" stays 29%). The debrief fetches the baseline replay once for research scores and the new REPLAY section, which has "Replay without #n" per omittable decision. Each branch is labelled hypothetical and compares result, ending NAV, NAV difference, forced actions, incidents and rejections. Unfinished branches are flagged as not comparable.
+
+New `e2e/terminal-pages.spec.ts` (2 tests): a stale `regime:3` question refused by the server; a case1 run with one ticket replayed without it, ORDERS fills reached by keyboard and STREET ranks. axe is clean on all views.
+
+Validation: `tsc` passed, `npm test` 6 passed, build passed. Size: `/room/[id]` 127,654 of 148,300 bytes. Playwright **18 passed** (3.8 min). The coordinator re-ran `tsc` and `npm test` (6): passed.
+
+Limitations: the liquidity/cure lab is not ported because `/liquidity` is untyped. REPLAY lists only omittable decisions. No browser test covers an unfinished branch.
+
+## Crisis-arrival frame time, Compatibility proxy and ending-card facts (P3, builder B2), 12 October 2026
+
+Crisis route (`measure_frames.py --crisis`): case1 base, 1600x900, Forward+, recorded for 40 s after a 5 s warm-up. Every event mark fired in all four runs. Worst frame is in ms, within 3 s of each mark:
+
+| Run | p95 | worst overall | courier | day-16 shock | rival alarm | redemption / LP visitor |
+|---|---|---|---|---|---|---|
+| warm-up on (2 runs) | 6.52 / 6.56 | 28.4 / 25.6 | 28.4 / 25.6 | 22.6 / 24.8 | 19.4 / 18.1 | 10.6 / 10.9 |
+| `--no-prewarm` (2 runs) | 6.56 / 6.58 | 131.7 / 130.8 | 44.3 / 42.3 | 26.6 / 130.8 | 18.9 / 17.2 | 10.7 / 10.8 |
+
+The warm-up removes about 16 ms from the courier's first frame, and the two ~131 ms frames appear only without it. Single frames of 18–28 ms remain at the courier, the day-16 shock and the rival alarm. The tactical LP visitor's first arrival is unmeasured: its day-12 notice is in the first view, so it arrives before recording starts.
+
+Compatibility proxy (`gl_compatibility`/OpenGL3, 1280x720): p50/p95/p99 3.63/4.53/5.12 ms, worst 16.2 ms, 1887 mean draw calls vs about 980 on Forward+. It renders correctly with harder shadows and unsupported-effect warnings, and no errors. This is the same GPU, so it is not a mid-range-hardware result.
+
+Ending card: `card_rules.percent()` uses string arithmetic and replaces a float format. The card shows max drawdown, scenario and stressed days. The seed row uses the server's `seed_commitment` and is flagged if it disagrees with the client's hash. Smoke cards: case1 base 8.7432%; generated `seed:card-m9` 11.0594% with 5 of 8 stressed days and a matching commitment. The outcome panel is now a scroll box, so it fits a 900 px screen. `--no-prewarm` is a measurement-only flag.
+
+Validation: Godot suite 0 failures, including 12 new checks. The coordinator re-ran it: 0 failures. Numbers are in ENGINEERING §12.
+
+## CI supply-chain hardening (P2, builder B4), 12 October 2026
+
+Every action in `.github/workflows/ci.yml` is now pinned to the full commit SHA that its floating major tag points to today, with a `# vX.Y.Z` comment: checkout v4.4.0, setup-uv v5.4.2, setup-node v4.4.0, upload-artifact v4.6.2, cache v4.3.0. No action version changed. Top-level `permissions: { contents: read }`; no job asks for more. Coverage was already complete: pytest finds new tests, `npm test` lists all unit files, and `npm run e2e` runs all 8 specs. The e2e suite creates 18 rooms from 127.0.0.1, close to the in-memory limit of 20 per hour, so the e2e API sets `FUNDFORGE_ROOMS_PER_IP=200`. A new `workflow_dispatch`-only `demo` job records S2, builds the GIF (Pillow in a throwaway venv) and uploads an `s2-demo` artifact for 7 days, with no secrets or releases. ENGINEERING has a short "CI supply chain" section.
+
+Validation: the workflow parses with PyYAML (7 jobs). actionlint v1.7.12 exits 0, with shellcheck off. The coordinator confirmed no unpinned `uses:` remain. **CI has not run on GitHub**; the branch is not pushed. Newer action majors are deliberately not adopted. The GHCR/SSH deploy workflow does not exist; it needs owner authorization.
+
+## Independent NAV certification gate (P4, builder B1), 12 October 2026
+
+Already existed and was not rebuilt: `shadow.inspect_book` and `inspect_settlements`, the independent `administrator.py` (series capital and fees), the broker statement queue with aging, `engine.control_report`, and the `_deal` blocks.
+
+Added:
+- **`shadow.certify()`** (stdlib only) returns a frozen `Certificate`: status, independent and book NAV, difference, tolerance, per-series struck NAV per unit, redemption lines with payable = units × strike and a residual, and reasons. Independent NAV comes from the administrator's own records (holdings at observed marks, broker balances, unsettled obligations, financing) minus its own claims and provisions. Reasons are `shadow_nav`, `shadow_break`, `broker_break`, `broker_statement`, `settlement_break`, `lp_claim_mismatch` and `payable_residual`. An unknown break code fails closed.
+- **Dealing gate.** `engine._deal` dry-runs the redemption, stores the certificate, and deals only when it is `certified`. Otherwise it records a typed `dealing_blocked` incident with the reasons and the difference.
+- **Exposure.** Terminal RISK has `risk.certification` (pending before the first dealing close), the view has an optional `certification` status, and the debrief has `certificates`. All schema additions are optional. `openapi.json` and `api-types.ts` were regenerated. Conventions are in FUND_ACCOUNTING §5a and ADMINISTRATOR_CONTROLS.
+
+**RULES_VERSION `case1-rules-2026.10.11`**, because blocking behaviour changed. In `golden.json` only the rules tag changed; all four journal digests and NAVs are identical. A corrupted payable now blocks dealing with an incident instead of raising `administrator_claim`. Corrupted fee, units or HWM still raise.
+
+Validation: new `tests/test_certificate.py` (8 tests):
+- a hand strike of 1.234568 with a −0.01 residual;
+- the Case1 day-20 strike 92.428988, payable 924,289.88, zero residual;
+- the 1¢ boundary, in the pure function and in the engine;
+- a balanced but unsupported expense accrual that every earlier control accepts and certification rejects (the ROADMAP acceptance case);
+- an open broker break in case1-controls blocking certification and dealing;
+- replay and debrief giving identical certificates.
+
+Four mutations each fail a test. The coordinator re-ran the suite: **339 passed, 4 skipped**, ruff and mypy passed, and only the rules tag changed in `golden.json`.
+
+Owner conventions to confirm:
+- the 1¢ tolerance is inclusive;
+- NAV per unit is struck at 6dp HALF_EVEN;
+- the journal payable stays exact pro-rata, and the struck residual is reported, not posted, and blocks only beyond units × 0.0000005 + 0.01;
+- certificates are issued only at closes with redemptions due.
+
+Limitations: `investors.chapter_facts` still uses the control report's `checked`, not the certificate. Neither client renders the certificate. Marks, settlement instructions and payment confirmations are still shared upstream inputs, so this is not external-administrator certification.
+
+## Dealing-close certificate displays, 12 October 2026
+
+Reviewed the latest local changes; NAV certification was the latest implemented domain slice and lacked client displays. The web terminal now has RISK certification, with pending/certified/broken status, dated certificates, blocked reasons, independent and book NAV, signed difference, inclusive tolerance, exact six-decimal series strikes, and exact redemption payables/residuals/bounds. Godot RISK displays the same server fields. Both label the boundary as internal independent reconciliation using shared marks, settlement instructions and payment confirmations. No client recomputes eligibility, strikes or residuals; no certificate is invented before a dealing close. Existing upstream limitations remain.
+
+Paths: `frontend/app/room/[id]/terminal.tsx`, `game/scripts/forge_terminal.gd`, `frontend/e2e/certification.spec.ts`, `game/tests/run_tests.gd`. Removed an unused import of a missing Scroll export in the locally changed desk that blocked TypeScript.
+
+Validation: 3 browser contract tests passed for pending/certified/broken responses, including exact 1.234568 strike and -0.01 residual, reasons, and axe with no serious/critical WCAG 2 A/AA violations. Tests inject certificate responses in real rooms rather than certify financial runs. Godot suite passed with 0 failures, including 2 certificate display checks; those checks caught an initial insertion on PORT instead of RISK, which was corrected. TypeScript, production build and frontend unit tests passed. Existing unrelated work preserved; no accounting changes, commit, push or deployment.
+
+**One next task:** show the latest dealing-close certification status beside fund NAV on both clients so a broken certificate is visible outside RISK, without confusing an old dealing-close certificate with an intraday NAV check.
+
+## Parallel P3 client status and P4 LP certificate integration, 12 October 2026
+
+The owner authorized sub-agents and simultaneous milestone work. Two bounded builders worked with separate file ownership, preserving the existing local changes. Neither P3 nor P4 is claimed complete.
+
+P3: both web desk and Godot HUD show Pending/Certified/Broken latest dealing-close certification beside NAV. The text explicitly says this status is not a new check of current NAV; broken status describes the latest withheld dealing and directs the player to RISK. Missing/null certificates remain pending. Paths: web `desk.tsx`, `frontend/e2e/certification-status.spec.ts`, Godot `hud.gd`, `certification_rules.gd` plus its UID, and `run_tests.gd`.
+
+P4: chapter report confidence now requires checked current controls and every issued dealing-close certificate within `[start_day, current_day]` to be certified. A broken frozen certificate cannot disappear from that chapter's report merely because current reconciliation later recovers. Prior-window/future certificates are excluded. With no dealing certificate, the ordinary report still uses current reconciliation; pending NAV certification is not treated as a certified NAV. Paths: `investors.py`, `test_lp_agents.py`, rules tag in `engine.py`, `golden.json`, and the contract in `GAME_SYSTEMS.md`.
+
+This changes generated-room confidence for broken-certificate paths, so rules are now `case1-rules-2026.10.12`. All four authored golden outcome labels, NAVs and journal digests remain identical; only the golden rules tag changed. Older pinned rooms need their original runtime; do not edit stored room rules to bypass compatibility.
+
+Validation: full PostgreSQL backend suite **341 passed, 4 skipped** (pg_dump availability cases); Ruff passed and mypy passed for 31 source files. The P4 builder additionally ran 60 focused LP/arithmetic/golden/certificate/engine/administrator tests. Browser status transition test passed; Godot full suite passed with 0 failures and four new HUD-status assertions. Production build and 6 frontend unit tests passed. A first mypy invocation from the repo root resolved the installed package instead of the configured source; rerunning from backend passed. The only backend warning remains the Starlette/httpx deprecation.
+
+Limitations: certificate integration uses controlled fault injection to separate historical certificate failure from current control reconciliation. Browser status test uses controlled view responses, not a broken economic run. Temporary test servers on 8030/3011 were stopped; existing gameplay API8022 was preserved and has its previously loaded rules. No commit, push or deployment.
+
+**One next task:** combined real HTTP/Godot acceptance for a broker-control challenge reaching broken dealing certification, with verification and visible status in both seats; keep rules compatibility explicit.
+
+## Parallel P3 challenge acceptance and P4 investor debrief, 13 October 2026
+
+Continued with two authorized sub-agents and separate file ownership after reviewing the current repo/local edits. Neither milestone is claimed complete; existing work was preserved.
+
+P3: new `scripts/certification_acceptance.py` advances a real two-seat case1-controls room without resolving its broker statement. At day 21 it asserts broken dealing-close certification, no redemption claims, agreement between seat views and verified books. Two real headless Godot processes then join the room; new `--certification-evidence` in `game/scripts/main.gd` reads actual HUD/RISK labels at the matching server version. The script asserts both seats show Broken, historical dealing-withheld wording and the broker-statement reason. Editor and exported clients are supported. Artifacts omit tokens, and subprocess command/log output is not exposed on failure. This is programmatic label evidence, not graphical human playtesting.
+
+Local acceptance passed against fresh API8030: certificate broken for broker_statement, version 36, both Godot seats matched, books verified. Token-free evidence: `C:/Users/krish/.cache/fundforge-cert-acceptance/acceptance.json`. CI's existing export job now runs this acceptance against the exported Linux executable after co-op acceptance and uploads its small evidence directory. Its local test API explicitly enables pinned variants. The new Linux CI step has not run remotely yet.
+
+P4: the web completed-run record now shows final LP bands, exact confidence and carried-unit strings, plus interim/chapter confidence transitions with labeled performance, alert/response, contact, report, gate and herding drivers. Optional investor records are omitted and empty checkpoint histories are explained. Research, relationships and replay share the existing baseline debrief response. A keyed component-local promise also prevents duplicate baseline POSTs from development Strict Mode effect setup.
+
+Validation: 3 investor-debrief Playwright/axe cases passed (populated, absent, empty), including no final confidence during play and one shared baseline request. TypeScript and production build passed, 6 frontend unit tests passed, Godot full suite passed with 0 failures, acceptance script Ruff passed. Bundle budgets passed: room first-load gzip JS 128,589 bytes against 148,300. Scoped whitespace checks passed. Browser records are controlled responses in real rooms; real HTTP/Godot acceptance separately proves the broken dealing path. No finance/rules/schema change; rules remain 2026.10.12. Test servers8030/3011 were stopped; pre-existing gameplay servers were preserved. No commit, push or deployment.
+
+**One next task:** expose the completed investor relationship record in the Godot debrief using the existing completed-only API, with exact carried units and causal drivers; add headless client coverage.
+
+## Parallel P4 Godot relationship record and P2 web recovery, 13 October 2026
+
+Reviewed current repo/local changes and continued two authorized builders with separate ownership, without waiting for either milestone to complete.
+
+P4: Godot's ending screen now shows the investor relationship record from its existing debrief response, before the empty-research early return. New pure `investor_record_rules.gd` preserves exact confidence/carried units, final bands, interim/chapter confidence transitions, confidence drivers and review evidence. Missing LP records are omitted and empty checkpoint histories are explained. Wrapped labels use the existing ending scroll container. No additional API request or gameplay calculation was added. Paths: helper plus UID, `hud.gd`, `run_tests.gd`.
+
+P2: web RunRecord now has a visible Retry run record action after transient fetch failure, independent of room-version changes. A keyed attempt shares one baseline request for research/relationships/replay, loading prevents repeated retry clicks, and cleanup ignores late older-version responses. No economic command is sent by recovery. Paths: `desk.tsx`, `frontend/e2e/run-record-recovery.spec.ts`.
+
+Validation: 3 recovery and 3 existing investor-debrief browser tests passed, including unchanged-version retry, optional records, request counts and stale response handling. TypeScript passed. Godot import and full headless suite passed with 0 failures, including pure formatting and actual investor-label rendering. A real HTTP seed:lp-1 run finished with matching PM/MP relationship records, nine checkpoints across Patient/Seed/Tactical and verified books. Production build and 6 unit tests passed. Bundle budget passed: room first-load gzip JS 128,659 against 148,300. Scoped whitespace check passed.
+
+Limitations: browser fault cases use controlled responses; real HTTP validation separately checks completed backend records. Godot headless labels do not establish a graphical human playtest. No backend rules/schema/economics changed; rules remain 2026.10.12. Test8030/3011 processes were stopped, existing gameplay servers preserved. No commit, push or deployment; neither milestone marked complete.
+
+**One next task:** Godot ending-record failure/retry feedback using the same completed-only debrief request, so connection failures cannot silently omit research and investor history.
+
+## Parallel Godot ending recovery and web terminal recovery, 13 October 2026
+
+Reviewed repo/local changes and assigned two independent client slices to authorized sub-agents, with separate ownership and no waiting for milestone completion.
+
+Godot's ending screen now shows record loading, failure and Retry run record. Research and investor history share one guarded completed-only read. Repeated in-flight clicks and retries after successful loading cannot duplicate rows. Hidden/replaced panels ignore late data; a replacement can start its own read after the previous one completes. A version change in the same visible panel exposes an explicit retry instead of leaving Loading stuck. Paths: `hud.gd`, asynchronous fake-transport tests in `run_tests.gd`.
+
+The web terminal now exposes Retry terminal for initial and refresh failures, independent of room-version changes. A retained snapshot is labeled stale, and page/chart selection plus unsent thesis input survive refresh/retry. Requests are keyed by room/token/version/attempt, duplicate retries are disabled while loading, old responses are ignored, and a different room/token cannot use a retained snapshot. Paths: `terminal.tsx`, `frontend/e2e/terminal-recovery.spec.ts`.
+
+Validation: 7 browser tests passed: 3 recovery cases, the existing delayed-response research regression, and all 3 certification/accessibility cases. TypeScript passed. Godot import and full headless suite passed with 0 failures, including failure→retry→success, repeated clicks, hidden/replaced panel and same-panel version-change cases. Production build and 6 frontend unit tests passed; bundle budget and scoped whitespace checks passed. Retry tests send no economic commands.
+
+Limitations: browser transport failures and Godot asynchronous failures are injected; no graphical human playtest was performed. Room/token snapshot isolation is enforced in code, while browser tests directly cover paused-room retry, retained state and old-version response rejection. No backend rules/schema/economics changed; rules remain 2026.10.12. Temporary8030/3011 processes stopped and existing gameplay servers preserved. No commit, push or deployment.
+
+**One next task:** explicit stale/disconnected status for the Godot main HUD when room polling fails, so old NAV and clock views cannot look live; retain last data with a visible age and recover on successful polling.

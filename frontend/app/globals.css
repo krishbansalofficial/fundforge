@@ -183,3 +183,10 @@ tr.entry-start td { border-top: 1px solid var(--ink-soft); }
 .terminal .regime form { align-items: end; gap: 0.6rem; }
 .hint.error { color: var(--breach); }
 .research-scores { border-top: 1px solid var(--rule); margin-top: 1rem; padding-top: 0.6rem; }
+
+/* Terminal ORDERS/STREET pages and the debrief's replay comparison. */
+.terminal .tabs { margin: 0.4rem 0 0.8rem; }
+.terminal ul.fills { margin: 0; padding-left: 1rem; }
+.terminal tr.mine th, .terminal tr.mine td { font-weight: 700; }
+.replay { border-top: 1px solid var(--rule); margin-top: 1rem; padding-top: 0.6rem; }
+.replay .branch { border-left: 4px solid var(--amber); padding-left: 0.8rem; margin-top: 0.8rem; }

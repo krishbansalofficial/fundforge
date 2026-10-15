@@ -9,6 +9,7 @@ signal partner_moved(role: String, pos: Vector3, location: String)
 signal partner_left(role: String)
 
 const POLL_SECONDS := 0.5
+const STALE_SECONDS := 2.0
 
 var base_url := "http://127.0.0.1:8000"
 var room_id := ""
@@ -16,6 +17,10 @@ var token := ""
 var view: Dictionary = {}
 var view_received_at := 0.0  # Time.get_ticks_msec()/1000 when the last view arrived
 var view_etag := ""  # sent as If-None-Match; a 304 keeps the view and its arrival time
+var last_poll_success_at := -1.0  # heartbeat time, distinct from the snapshot interpolation baseline
+var polling_stale := false
+var _joined_at := 0.0
+var _join_generation := 0
 
 var _polling := false
 var _poll_timer: Timer
@@ -39,6 +44,13 @@ func _ready() -> void:
 
 
 func join(url: String, room: String, seat_token: String) -> void:
+	_join_generation += 1
+	_polling = false  # old room reads remain isolated by the captured generation
+	view = {}
+	view_received_at = 0.0
+	last_poll_success_at = -1.0
+	polling_stale = false
+	_joined_at = Time.get_ticks_msec() / 1000.0
 	base_url = url.trim_suffix("/")
 	room_id = room
 	token = seat_token
@@ -132,18 +144,51 @@ func _poll() -> void:
 	if _polling or room_id == "":
 		return
 	_polling = true
+	var generation := _join_generation
 	var res := await request(HTTPClient.METHOD_GET, "/api/rooms/%s/view" % room_id, null, "", view_etag)
+	if generation != _join_generation:
+		return
 	_polling = false
+	var now := Time.get_ticks_msec() / 1000.0
+	if res.get("status") == 304 and not res.get("network_error", false) and not view.is_empty():
+		last_poll_success_at = now
+		polling_stale = false
+		view.erase("_client_frozen_hour")
+		return
 	if res["ok"] and res["data"] is Dictionary:
+		if int(res["data"].get("version", -1)) < int(view.get("version", -1)):
+			_mark_stale(now)
+			return
 		view_etag = WorldRules.header_value(res["headers"], "etag")
-		view = res["data"]
+		view = res["data"].duplicate(true)
+		view.erase("_client_frozen_hour")
 		view_received_at = Time.get_ticks_msec() / 1000.0
+		last_poll_success_at = now
+		polling_stale = false
 		view_changed.emit(view)
+	else:
+		_mark_stale(now)
+
+
+func _mark_stale(now: float) -> void:
+	if not polling_stale and not view.is_empty():
+		view["_client_frozen_hour"] = WorldRules.clock_hour(view, maxf(0.0, now - view_received_at))
+	polling_stale = true
+
+
+func poll_state(now := -1.0) -> Dictionary:
+	if now < 0:
+		now = Time.get_ticks_msec() / 1000.0
+	var age := maxf(0.0, now - (last_poll_success_at if last_poll_success_at >= 0.0 else _joined_at))
+	if room_id != "" and age >= STALE_SECONDS:
+		_mark_stale(now)
+	return {"stale": polling_stale, "age_seconds": age, "has_view": not view.is_empty()}
 
 
 # ---------------- live presence ----------------
 
 func _process(_delta: float) -> void:
+	poll_state()
 	if room_id == "" or token == "":
 		return
 	var now := Time.get_ticks_msec() / 1000.0

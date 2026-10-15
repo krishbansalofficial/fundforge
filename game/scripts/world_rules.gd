@@ -79,6 +79,8 @@ static func clamp_to_world(grid: Vector2) -> Vector2:
 ## Interpolated in-world hour between the current phase and the next one, driven by the server's
 ## schedule (`realtime.next_tick_in` measured when the view arrived). Purely cosmetic.
 static func clock_hour(view: Dictionary, seconds_since_view: float) -> float:
+	if view.has("_client_frozen_hour"):
+		return float(view["_client_frozen_hour"])
 	var clock: Dictionary = view.get("clock", {})
 	var now_h: float = PHASE_HOUR.get(clock.get("phase", "OPEN_ADMIN"), 8.0)
 	var nxt = clock.get("next")

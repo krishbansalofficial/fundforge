@@ -17,6 +17,7 @@ Dec = str  # a decimal number serialized as a string
 # Stricter form used by the terminal and debrief contracts: plain digits, never an exponent or a JSON number.
 DecOut = Annotated[str, StringConstraints(pattern=r"^-?\d+(\.\d+)?$")]
 Band = Literal["strong", "stable", "concerned", "withdrawal_risk"]
+CertificationStatus = Literal["pending", "certified", "broken"]
 
 
 class Strict(BaseModel):
@@ -289,6 +290,7 @@ class SessionView(Strict):
     decisions: list[Decision]
     outcome: Outcome | None
     investors: Investors | None  # managing partner only, generated rooms only
+    certification: CertificationStatus | None = None  # latest dealing-close NAV certificate; pending before one
 
 
 class RoomView(SessionView):
@@ -462,6 +464,43 @@ class ControlReport(Strict):
     broker: BrokerSummary
 
 
+class Strike(Strict):
+    series_id: str
+    units: DecOut
+    net: DecOut
+    nav_per_unit: DecOut  # net / units, 6dp HALF_EVEN
+
+
+class RedemptionLine(Strict):
+    series_id: str
+    units: DecOut
+    nav_per_unit: DecOut
+    payable: DecOut  # units x struck price, cents HALF_EVEN
+    journal_payable: DecOut
+    residual: DecOut  # journal_payable - payable
+    residual_bound: DecOut
+
+
+class Certificate(Strict):
+    """``shadow.certify``: one NAV certificate per dealing close; dealing proceeds only when ``certified``."""
+    date: str
+    day: int
+    status: Literal["certified", "broken"]
+    independent_nav: DecOut
+    book_nav: DecOut
+    difference: DecOut  # book - independent; certified when |difference| <= tolerance (inclusive)
+    tolerance: DecOut
+    strikes: list[Strike]
+    redemptions: list[RedemptionLine]
+    reasons: list[Literal["shadow_nav", "shadow_break", "broker_break", "broker_statement", "settlement_break",
+                          "lp_claim_mismatch", "payable_residual"]]
+
+
+class Certification(Strict):
+    status: CertificationStatus
+    certificates: list[Certificate]  # issued at dealing closes already processed, oldest first
+
+
 class Stress(Strict):
     id: str
     label: str
@@ -477,6 +516,7 @@ class Stress(Strict):
 
 class TerminalRisk(Strict):
     controls: ControlReport
+    certification: Certification | None = None
     nav: DecOut
     long_mv: DecOut
     short_mv: DecOut
@@ -662,6 +702,7 @@ class Debrief(Strict):
     source_outcome: Outcome
     nav_difference: DecOut
     research: ResearchRecord
+    certificates: list[Certificate] | None = None  # the source run's dealing-close NAV certificates
     investors: LpDebrief | None = None  # present in generated rooms only
     timeline: list[TimelineStep]
     rejected: list[RejectedStep]

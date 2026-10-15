@@ -414,6 +414,7 @@ class Session:
                           for x in self.log if x["command"]["type"] not in ("ready", "tick", "say")],
             "outcome": e.outcome() if e.finished() else None,
             "investors": investors.view(e, role),
+            "certification": e.certification()["status"],
         }
 
     def ledger(self, entity: str = "fund", limit: int = 200) -> list[dict]:

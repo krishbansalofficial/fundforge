@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
-import { api, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
+import { api, exactPct, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
@@ -66,21 +66,42 @@ export default function Desk({ roomId }: { roomId: string }) {
   // One command in flight per desk: a double-click must not send a second order with a new id and key.
   const inFlight = useRef(false);
   const [busy, setBusy] = useState(false);
+  // Keyboard focus survives a command: the fieldset disables the pressed control while the command is in
+  // flight, and Sign/Accept/Ready may then disappear or stay disabled. Without this, focus falls to <body>
+  // and a keyboard player starts again from the top of the page.
+  const focusBefore = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const prev = focusBefore.current;
+    if (busy || !prev) return;
+    focusBefore.current = null;
+    const now = document.activeElement as HTMLElement | null;
+    if (now && now !== document.body && now !== prev && now.isConnected) return; // the player moved on
+    if (prev.isConnected && !prev.matches(":disabled")) { prev.focus(); return; }
+    const heading = (prev.isConnected ? prev.closest("section") : null)?.querySelector<HTMLElement>("h2, h3")
+      ?? document.getElementById("ptn-h");
+    heading?.focus();
+  }, [busy, v]);
   const send = useCallback(
     async (cmd: Command, done?: string) => {
-      if (!token) return;
+      if (!token) return "No seat token.";
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && active !== document.body) focusBefore.current = active;
+      let refused = "Another command is still in flight." as string | null;
       await exclusive(inFlight, async () => {
         setBusy(true);
         try {
           await api(`/api/rooms/${roomId}/commands`, token, cmd);
+          refused = null;
           setFlash(done ?? "");
           await refresh();
         } catch (e) {
-          setFlash(`Not done: ${(e as Error).message}`);
+          refused = (e as Error).message;
+          setFlash(`Not done: ${refused}`);
         } finally {
           setBusy(false);
         }
       });
+      return refused;
     },
     [roomId, token, refresh],
   );
@@ -99,7 +120,12 @@ export default function Desk({ roomId }: { roomId: string }) {
     <main className="desk">
       <Ribbon v={v} />
       <section className="status" aria-label="Fund status">
-        <Figure label="Net asset value" value={money(f.nav)} />
+        <div className="figure">
+          <span className="figure-label">Net asset value</span>
+          <span className="figure-value">{money(f.nav)}</span>
+          <span>Latest dealing-close: {v.certification === "certified" ? "Certified" : v.certification === "broken" ? "Broken" : "Pending"}</span>
+          <small>{v.certification === "broken" ? "Latest dealing was withheld; inspect RISK certification. " : v.certification !== "certified" ? "No dealing-close certificate yet. " : ""}Status applies to the latest dealing close, not a new check of current NAV.</small>
+        </div>
         <Figure label="Gross / net exposure" value={`${pct(f.gross)} / ${pct(f.net)}`} />
         <Headroom nav={Number(f.nav)} req={Number(f.maintenance_req)} />
         <Figure label="Cash / broker debt" value={`${money(f.cash)} / ${money(f.debt)}`} />
@@ -107,6 +133,7 @@ export default function Desk({ roomId }: { roomId: string }) {
         <Figure label="Firm cash (not fund money)" value={money(v.firm.cash)} tone="firm" />
       </section>
 
+      {error && <p className="alert soft" role="status">Connection problem: {error}. Showing the last loaded desk.</p>}
       {f.margin_call && (
         <p className="alert" role="alert">
           Margin call of {money(f.margin_call, 2)}. Cure it at the next execution by selling longs or covering shorts, or the broker liquidates.
@@ -276,12 +303,12 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
           {me === "pm" && (
             <button type="button" disabled={!atBarrier || !qty || notional > ticketCap}
               title={notional > ticketCap ? "Above 5% of NAV: propose it as a package" : ""}
-              onClick={() => send({ type: "ticket", ...order() }, "Ticket queued for the next execution.").then(() => setQty(""))}>
+              onClick={() => send({ type: "ticket", ...order() }, "Ticket queued for the next execution.").then((no) => { if (!no) setQty(""); })}>
               Send ticket
             </button>
           )}
           <button type="button" className="secondary" disabled={!atBarrier || !qty}
-            onClick={() => send({ type: "propose", package_id: `pkg-${crypto.randomUUID().slice(0, 8)}`, orders: [order()] }, "Package sent for your partner's signature.").then(() => setQty(""))}>
+            onClick={() => send({ type: "propose", package_id: `pkg-${crypto.randomUUID().slice(0, 8)}`, orders: [order()] }, "Package sent for your partner's signature.").then((no) => { if (!no) setQty(""); })}>
             Propose to partner
           </button>
         </div>
@@ -324,7 +351,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
           <div className="row">
             <input inputMode="decimal" aria-label="Treasury reserve in dollars" placeholder={`Reserve, now ${money(v.fund.reserve)}`} value={reserve}
               onChange={(e) => setReserve(e.target.value.replace(/[^\d.]/g, ""))} />
-            <button type="button" disabled={!reserve} onClick={() => send({ type: "set_reserve", amount: reserve }, "Treasury reserve set.").then(() => setReserve(""))}>Set reserve</button>
+            <button type="button" disabled={!reserve} onClick={() => send({ type: "set_reserve", amount: reserve }, "Treasury reserve set.").then((no) => { if (!no) setReserve(""); })}>Set reserve</button>
           </div>
         </div>
       )}
@@ -405,7 +432,7 @@ function gateText(terms: Record<string, unknown>): string {
   return `Gate for the day ${terms.deal_day} dealing close, binding requests: ${Object.entries(requests).sort(([a], [b]) => a.localeCompare(b)).map(([id, units]) => `${id} ${units} units`).join(", ")}. At most 20% of pre-flow NAV is dealt, pro rata; undealt units stay invested and carry forward.`;
 }
 
-function Investors({ v, send }: { v: View; send: (c: Command, done?: string) => Promise<void> }) {
+function Investors({ v, send }: { v: View; send: Send }) {
   const inbox = v.role === "mp" ? v.investors : null;
   const requests = Object.fromEntries((inbox?.lps ?? []).filter((lp) => lp.requested_units != null).map((lp) => [lp.id, lp.requested_units]));
   const pendingGates = v.packages.filter((p) => p.kind === "gate" && p.status === "PENDING_APPROVAL");
@@ -571,7 +598,7 @@ function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; ro
       <dl>
         <dt>Ending NAV</dt><dd>{money(o.nav, 2)}</dd>
         <dt>Scenario</dt><dd>{o.scenario}</dd>
-        <dt>Maximum drawdown</dt><dd>{(Number(o.max_drawdown) * 100).toFixed(4)}% of NAV per unit, measured at business-day closes</dd>
+        <dt>Maximum drawdown</dt><dd>{exactPct(o.max_drawdown) ?? o.max_drawdown}% of NAV per unit, measured at business-day closes</dd>
         {o.generated_days != null && o.stressed_days != null && <>
           <dt>Generated market</dt><dd>{num(o.stressed_days)} stressed days out of {num(o.generated_days)} generated days</dd>
         </>}
@@ -584,7 +611,7 @@ function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; ro
         <dt>Unpaid or failed</dt><dd>{o.unpaid.length ? o.unpaid.join("; ") : "none"}</dd>
         <dt>Replay proof</dt><dd className="digest">tape {o.tape_digest.slice(0, 12)}, journal {o.journal_digest.slice(0, 12)}</dd>
       </dl>
-      {token && <ResearchScores v={v} roomId={roomId} token={token} />}
+      {token && <RunRecord v={v} roomId={roomId} token={token} />}
       <h2>How you got here</h2>
       {v.decisions.length === 0 ? <p className="muted">Neither partner acted; the tape and the broker decided.</p> : (
         <ol className="decisions">
@@ -623,22 +650,68 @@ function describe(d: Decision): string {
   }
 }
 
-// POST /debrief's research record, generated from the server contract (fundforge.schemas.Debrief).
+// POST /debrief, generated from the server contract (fundforge.schemas.Debrief).
 type Scores = DebriefResponse["research"];
 
-/** Forecast skill, scored beside P&L and kept out of it. Fetched once per finished room version. */
-function ResearchScores({ v, roomId, token }: { v: View; roomId: string; token: string }) {
-  const [r, setR] = useState<Scores | null>(null);
+/** One baseline replay feeds research, investor relationships and the omission list. */
+function RunRecord({ v, roomId, token }: { v: View; roomId: string; token: string }) {
+  const [d, setD] = useState<DebriefResponse | null>(null);
   const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const request = useRef<{ roomId: string; token: string; version: number; attempt: number; result: Promise<DebriefResponse> } | null>(null);
   useEffect(() => {
     let cancelled = false;
-    api(`/api/rooms/${roomId}/debrief`, token, { version: v.version })
-      .then((d: DebriefResponse) => { if (!cancelled) { setR(d.research); setError(""); } })
-      .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Research scores unavailable"); });
+    setLoading(true);
+    setError("");
+    setD(null);
+    if (!request.current || request.current.roomId !== roomId || request.current.token !== token || request.current.version !== v.version || request.current.attempt !== attempt) {
+      request.current = { roomId, token, version: v.version, attempt, result: api(`/api/rooms/${roomId}/debrief`, token, { version: v.version }) };
+    }
+    request.current.result
+      .then((got: DebriefResponse) => { if (!cancelled) { setD(got); setError(""); } })
+      .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Run record unavailable"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [roomId, token, v.version]);
-  if (error) return <p role="alert">Research scores unavailable: {error}</p>;
-  if (!r || r.theses.length === 0) return null; // authored markets, or no thesis filed
+  }, [roomId, token, v.version, attempt]);
+  if (loading) return <p role="status">Loading run record…</p>;
+  if (error) return <div><p role="alert">Run record unavailable: {error}</p>
+    <button type="button" onClick={() => { setLoading(true); setAttempt(a => a + 1); }}>Retry run record</button></div>;
+  if (!d) return null;
+  return <><ResearchScores v={v} r={d.research} /><InvestorRecord investors={d.investors} /><Replay v={v} roomId={roomId} token={token} baseline={d} /></>;
+}
+
+function InvestorRecord({ investors }: { investors: DebriefResponse["investors"] }) {
+  if (!investors) return null;
+  return <section aria-labelledby="investor-record-h">
+    <h2 id="investor-record-h">Investor relationship record</h2>
+    <p className="muted">{investors.policy}. Confidence and drivers are the server&apos;s completed-run record.</p>
+    <table aria-label="Final investor relationships">
+      <thead><tr><th scope="col">Investor</th><th scope="col">Final band</th><th scope="col" className="n">Confidence</th><th scope="col" className="n">Carried units</th></tr></thead>
+      <tbody>{Object.entries(investors.final).map(([lp, final]) => <tr key={lp}>
+        <th scope="row">{lp}</th><td>{final.band.replaceAll("_", " ")}</td><td className="n">{final.confidence}</td>
+        <td className="n">{investors.carried_units[lp] ?? "0"}</td>
+      </tr>)}</tbody>
+    </table>
+    {investors.checkpoints.length === 0 ? <p className="muted">No relationship checkpoints were recorded.</p> : <>
+      <p>Drivers below are changes in confidence points; drawdown and open alerts describe the review evidence.</p>
+      <table aria-label="Investor confidence checkpoints">
+        <thead><tr><th scope="col">Day</th><th scope="col">Investor</th><th scope="col">Checkpoint</th><th scope="col">Confidence</th><th scope="col">Band</th><th scope="col">Drivers</th></tr></thead>
+        <tbody>{investors.checkpoints.map((c, i) => <tr key={`${c.day}:${c.lp}:${c.kind}:${i}`}>
+          <td>{c.day}</td><th scope="row">{c.lp}</th><td>{c.kind === "review" ? "Interim review" : "Chapter close"}</td>
+          <td>{c.start} → {c.end}</td><td>{c.band.replaceAll("_", " ")}</td>
+          <td>{c.kind === "review"
+            ? `Drawdown ${c.drawdown} (${c.drawdown_pp} pp below peak); response lag ${c.response_lag} (${c.open_alerts} open alerts); contact ${c.contact}; clamp ${c.clamp}`
+            : `Performance ${c.performance}; breaches ${c.breaches}; report ${c.report}; meeting ${c.meeting}; gate ${c.gate}; herding ${c.herding}; overdue payments ${c.overdue}; clamp ${c.clamp}`}</td>
+        </tr>)}</tbody>
+      </table>
+    </>}
+  </section>;
+}
+
+/** Forecast skill, scored beside P&L and kept out of it. */
+function ResearchScores({ v, r }: { v: View; r: Scores }) {
+  if (r.theses.length === 0) return null; // authored markets, or no thesis filed
   return (
     <section className="research-scores" aria-labelledby="rs-h">
       <h2 id="rs-h">Research record (separate from P&amp;L)</h2>
@@ -658,6 +731,69 @@ function ResearchScores({ v, roomId, token }: { v: View; roomId: string; token: 
           <div key={role}><dt>{v.names[role] ?? role} mean Brier</dt><dd>{s.mean_brier ?? "no theses"} ({s.theses} {s.theses === 1 ? "question" : "questions"})</dd></div>
         ))}
       </dl>
+    </section>
+  );
+}
+
+/** REPLAY: omit one recorded decision, retry the rest of the original log and compare. A hypothetical
+ *  branch computed by the server; it never changes the real run. */
+function Replay({ v, roomId, token, baseline }: { v: View; roomId: string; token: string; baseline: DebriefResponse }) {
+  const [branch, setBranch] = useState<DebriefResponse | null>(null);
+  const [loading, setLoading] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const choices = baseline.timeline.filter((s) => s.can_omit);
+  const omit = (seq: number) => {
+    setLoading(seq);
+    setError("");
+    api(`/api/rooms/${roomId}/debrief`, token, { version: v.version, omit_seq: seq })
+      .then((got: DebriefResponse) => setBranch(got))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Replay unavailable"))
+      .finally(() => setLoading(null));
+  };
+  const o = branch?.outcome;
+  return (
+    <section className="replay" aria-labelledby="replay-h">
+      <h2 id="replay-h">Replay: what if one decision had not been made?</h2>
+      <p className="muted">{baseline.policy}</p>
+      {choices.length === 0 ? <p className="muted">No recorded decision can be omitted.</p> : (
+        <table aria-label="Decisions you can omit">
+          <thead><tr><th scope="col" className="n">#</th><th scope="col">When</th><th scope="col">Partner</th><th scope="col">Decision</th>
+            <th scope="col" className="n">NAV change</th><th scope="col">Compare</th></tr></thead>
+          <tbody>
+            {choices.map((s) => (
+              <tr key={s.seq}><td className="n">{s.seq}</td><td>Day {s.before.day} {PHASE_LABEL[s.before.phase] ?? s.before.phase}</td>
+                <td>{v.names[s.role] ?? s.role}</td><th scope="row">{s.type.replaceAll("_", " ")}</th><td className="n">{money(s.nav_delta, 2)}</td>
+                <td><button type="button" className="link" disabled={loading != null} aria-pressed={branch?.omitted_seq === s.seq}
+                  onClick={() => omit(s.seq)}>{loading === s.seq ? "Replaying…" : `Replay without #${s.seq}`}</button></td></tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {error && <p role="alert">Replay unavailable: {error}</p>}
+      {branch && o && (
+        <div className="branch" role="region" aria-label={`Branch without decision ${branch.omitted_seq}`}>
+          <h3>Hypothetical branch without decision #{branch.omitted_seq} (the real run is unchanged)</h3>
+          <table aria-label="Real run versus branch">
+            <thead><tr><th scope="col">Measure</th><th scope="col" className="n">Real run</th><th scope="col" className="n">Branch</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Result</th><td className="n">{branch.source_outcome.label}</td><td className="n">{branch.finished ? o.label : "unfinished"}</td></tr>
+              <tr><th scope="row">Ending NAV</th><td className="n">{money(branch.source_outcome.nav, 2)}</td><td className="n">{money(o.nav, 2)}</td></tr>
+              <tr><th scope="row">Forced actions</th><td className="n">{branch.source_outcome.forced.length}</td><td className="n">{o.forced.length}</td></tr>
+            </tbody>
+          </table>
+          <p>NAV difference (branch minus real): {money(branch.nav_difference, 2)}.{branch.finished ? "" : " The branch did not reach the ending, so its score is not comparable."}</p>
+          {branch.incidents.length > 0 && (
+            <ul aria-label="Branch incidents">
+              {branch.incidents.map((x, i) => <li key={i}>Day {x.day} {x.code}: {x.text}</li>)}
+            </ul>
+          )}
+          {branch.rejected.length > 0 && (
+            <ul aria-label="Decisions rejected in the branch">
+              {branch.rejected.map((r) => <li key={r.seq}>#{r.seq} {r.type} rejected in this branch: {r.reason}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
     </section>
   );
 }

@@ -112,6 +112,20 @@ def compile_tape(raw: dict[str, Any], variant: str | None = None) -> Tape:
     base_mark = _money(dflt["mark"], "defaults.mark")
     base_vol = dflt["volume"]
     cal = raw["calendar"]
+    campaign = raw.get("campaign")
+    if campaign is not None:
+        chapters = campaign.get("chapters", [])
+        if (cal["start_day"] != 1 or cal["end_day"] != 31 or len(chapters) != 3
+                or [(c.get("id"), c.get("start_day"), c.get("end_day")) for c in chapters]
+                != [(1, 1, 10), (2, 11, 20), (3, 21, 30)] or len(syms) != 6):
+            raise TapeError("campaign-v1 requires six instruments and three contiguous ten-day chapters")
+        for field in ("review_days", "notice_cutoffs", "decision_days"):
+            days = campaign.get(field, [])
+            if (not days or any(type(d) is not int or not 1 <= d <= 30 for d in days)
+                    or days != sorted(set(days))):
+                raise TapeError(f"campaign.{field} requires sorted unique business days")
+        if any(d + 5 > 30 for d in campaign["notice_cutoffs"]):
+            raise TapeError("campaign notice cutoffs must deal before the terminal administration")
     try:
         validate_statements(raw.get("broker_statements", []), cal["start_day"], cal["end_day"])
     except ValueError as exc:

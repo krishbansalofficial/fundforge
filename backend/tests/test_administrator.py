@@ -127,8 +127,13 @@ def test_bad_redemption_candidate_is_blocked_before_mutating_units_claims_or_jou
 
     monkeypatch.setattr(module, "redeem", wrong)
     before = (list(e.series), e.j.digest(), e.administrator.claims, dict(e.administrator.series))
-    with pytest.raises(InvariantError, match="administrator_claim"):
+    if corruption == "payable":  # the NAV certificate's struck payable catches it first and defers dealing
         e._deal()
+        assert e.certificates[-1]["reasons"] == ["payable_residual"]
+        assert e.incident_events[-1]["code"] == "dealing_blocked"
+    else:
+        with pytest.raises(InvariantError, match="administrator_claim"):
+            e._deal()
     assert (e.series, e.j.digest(), e.administrator.claims, e.administrator.series) == before
 
 

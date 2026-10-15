@@ -87,6 +87,7 @@ def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
             "history_truncated": len(e.observations) > HISTORY_LIMIT,
             "risk": {
                 "controls": e.control_report(),
+                "certification": e.certification(),
                 "nav": str(nav), "long_mv": str(e.long_mv()), "short_mv": str(e.short_mv()),
                 "maintenance_req": str(e.margin()), "headroom": str(cents(nav - e.margin())),
                 "cash": str(e.bal("cash")), "restricted_collateral": str(e.bal("collateral")),

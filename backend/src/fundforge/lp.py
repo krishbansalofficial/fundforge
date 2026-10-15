@@ -163,9 +163,9 @@ def review(p: Profile, s: State, f: ReviewFacts) -> tuple[State, dict[str, str]]
 
 
 def redemption_request(p: Profile, confidence: Decimal, held_units: Decimal, cutoff_day: int,
-                       external_units: Decimal = ZERO) -> Decimal:
+                       external_units: Decimal = ZERO, *, notice_cutoffs: tuple[int, ...] = NOTICE_CUTOFFS) -> Decimal:
     """Units requested at a notice cutoff: the larger of the confidence request and any external need."""
-    if cutoff_day not in NOTICE_CUTOFFS:
+    if cutoff_day not in notice_cutoffs:
         raise ValueError(f"day {cutoff_day} is not a notice cutoff")
     if held_units < 0 or external_units < 0:
         raise ValueError("units cannot be negative")
