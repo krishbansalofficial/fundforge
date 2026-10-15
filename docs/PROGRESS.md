@@ -1216,3 +1216,15 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 
 **One next task:** add the B1 A/B job to CI (base and head on the same runner, fail on regression), then implement B2 Postgres command latency.
 
+
+## Campaign pacing (P4 milestone), 15 October 2026
+
+**Done in this worktree:** `backend/tests/test_campaign_pacing.py` checks that `ready` with `skip: true` reaches the same journal digest and outcome label as stepping every barrier, for four `campaign-v1` variants (`base`, `rally`, `lean-company`, `tight-credit`).
+
+**Measured:** stepping takes 60 ready rounds (one pair per barrier). Skip-ready is bounded at 16 rounds for three variants and 30 for `tight-credit`. Bounds are the measured rounds plus a small margin, so a chattier campaign fails the test.
+
+**Checks:** `pytest tests/test_campaign_pacing.py` `4 passed`; full backend suite `353 passed, 42 skipped`; `ruff check src tests` clean.
+
+**Limitations:** the bound is per variant, not a general pacing guarantee. Only the four named variants are covered.
+
+**One next task:** add the campaign's seeded variants to the pacing test so the bound holds across generator seeds, not only the fixed variants.
