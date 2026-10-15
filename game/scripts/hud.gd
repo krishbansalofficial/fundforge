@@ -26,6 +26,8 @@ var _run_record_api: Node  # injectable transport for asynchronous recovery test
 var terminal: ForgeTerminal
 var sfx: Sfx
 var _mute_button: Button
+var music: Music
+var _music_button: Button
 var _cure_draft: Array = []
 var _cure_version := -1
 var _cure_sending := false
@@ -57,7 +59,13 @@ func _ready() -> void:
 	_mute_button = Button.new()
 	_mute_button.pressed.connect(toggle_mute)
 	row.add_child(_mute_button)
+	music = Music.new()
+	add_child(music)
+	_music_button = Button.new()
+	_music_button.pressed.connect(cycle_music)
+	row.add_child(_music_button)
 	_show_mute()
+	music.refresh(sfx.muted)
 	_clock = Label.new()
 	_clock.add_theme_font_size_override("font_size", 18)
 	_clock.custom_minimum_size = Vector2(330, 0)
@@ -189,6 +197,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_set_speed(1 if paused else 0)
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		toggle_mute()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
+		cycle_music()
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
 		if _open_location == "street":
 			close_panel()
@@ -294,11 +304,18 @@ func open_panel(location: String) -> void:
 
 func toggle_mute() -> void:
 	sfx.set_muted(not sfx.muted)
+	music.refresh(sfx.muted)
+	_show_mute()
+
+
+func cycle_music() -> void:
+	music.cycle(sfx.muted)
 	_show_mute()
 
 
 func _show_mute() -> void:
 	_mute_button.text = "Sound off [M]" if sfx.muted else "Sound on [M]"
+	_music_button.text = "Music %s [N]%s" % [Music.LEVEL_NAMES[music.level], " (muted)" if sfx.muted and music.level > 0 else ""]
 
 
 func close_panel() -> void:

@@ -192,6 +192,21 @@ func _initialize() -> void:
 	var fv := {"orders": [{"fills": [{"qty": 5}, {"rejected": "no borrow"}]}, {"fills": [{"qty": 2}]}]}
 	check(Sfx.fill_count(fv) == 2 and Sfx.fill_count({}) == 0, "fill count ignores rejected fills")
 
+	# music: one synthesized deterministic loop, global mute wins, separate level toggle
+	var t_music := Time.get_ticks_msec()
+	var song := Music.synth()
+	print("  music synth took %d ms" % (Time.get_ticks_msec() - t_music))
+	var song_peak := 0
+	for i in range(0, song.size(), 2):
+		song_peak = maxi(song_peak, absi(song.decode_s16(i)))
+	check(song.size() == int(round(Music.loop_seconds() * Music.RATE)) * 2, "music loop is whole chords at its tempo")
+	check(song_peak > 3000 and song_peak < 32767, "music is audible and never clips")
+	check(absi(song.decode_s16(0)) < 200 and absi(song.decode_s16(song.size() - 2)) < 200, "music loop seam starts and ends silent")
+	check(song == Music.synth(), "music synthesis is deterministic")
+	check([0, 1, 2].map(func(l): return Music.next_level(l)) == [1, 2, 0], "music toggle cycles off, low, on")
+	check(Music.audible(false, 2) and Music.audible(false, 1) and not Music.audible(false, 0), "music level controls playback")
+	check(not Music.audible(true, 2), "global mute silences music")
+
 	# live presence (cosmetic): URLs, frames, throttling, backoff and the frame handler
 	check(WorldRules.presence_url("http://127.0.0.1:8011/", "r1") == "ws://127.0.0.1:8011/api/rooms/r1/presence", "presence ws url")
 	check(WorldRules.presence_url("https://ff.example", "r1") == "wss://ff.example/api/rooms/r1/presence", "presence wss url")
@@ -632,6 +647,19 @@ func _ui_checks() -> void:
 	var hud: Variant = load("res://scripts/hud.gd").new()
 	root.add_child(hud)
 	hud.role = "pm"
+	var saved_level: int = hud.music.level
+	var saved_muted: bool = hud.sfx.muted
+	hud.music.level = 2
+	hud.sfx.muted = false
+	hud.music.refresh(false)
+	check(hud.music._player.playing and hud.music._player.stream.loop_mode == AudioStreamWAV.LOOP_FORWARD, "HUD music loops when audible")
+	hud.music.refresh(true)
+	check(not hud.music._player.playing, "HUD music stops under the global mute")
+	hud._show_mute()
+	check(hud._music_button.text == "Music on [N]", "music toggle labelled separately from sound")
+	hud.music.level = saved_level  # restore without writing the developer's settings file
+	hud.sfx.muted = saved_muted
+	hud.music.refresh(true)
 	hud.view = {"attention": {"committed": true}, "research": {"budget": 2, "used": [],
 			"topics": ["demand_survey"], "assignments": {"demand_survey": {"location": "research"}},
 			"shared": [], "evidence": [{"text": "Private demand finding", "refs": {"topic": "crowding", "owner": "pm"}}]}}
