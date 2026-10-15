@@ -56,3 +56,29 @@ def test_brier_score():
     assert brier({"a": D("0.7"), "b": D("0.2"), "c": D("0.1")}, "b") == F(49 + 64 + 1, 100)
     with pytest.raises(ValueError):
         brier({"a": D("0.7"), "b": D("0.2")}, "a")
+
+
+def test_brier_does_not_mutate_its_forecast():
+    forecast = {"refinances": D("0.6"), "distressed": D("0.4")}
+    before = dict(forecast)
+    brier(forecast, "refinances")
+    assert forecast == before
+
+
+def test_brier_cannot_reach_pnl_or_outcomes():
+    # Brier is reported beside P&L, never inside it: no other fundforge module may import research,
+    # and research itself imports nothing from fundforge (no engine, journal or ledger).
+    import ast
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1] / "src" / "fundforge"
+    importers = []
+    for path in sorted(src.glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        names = [a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names]
+        names += [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
+        if path.name == "research.py":
+            assert not [m for m in names if m.startswith("fundforge")]
+        elif "fundforge.research" in names:
+            importers.append(path.name)
+    assert importers == []
