@@ -88,19 +88,51 @@ def _variants(scenario: str) -> list[str]:
     return variants(json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8")))
 
 
-def _draw_variant(scenario: str) -> str:
-    """A hidden variant for a new room; generated markets retry seeds until the balance gate accepts one."""
+GATE_RULE = "balance-v1"  # balance.accept over the knowledge-free grid, single world
+
+
+def _gate_seed(scenario: str, variant: str) -> tuple[bool, dict[str, Any]]:
+    """Run the balance gate on one generated variant; the report holds labels and failure names only."""
+    ok, report = balance.accept(_tape(scenario, variant))
+    log.info("generated tape %s", "accepted" if ok else "rejected",
+             extra={"command": "generate", "code": ",".join(report["failures"]) or "ok",
+                    "commitment": commitment(variant[5:])})  # never log the seed itself
+    return ok, report
+
+
+def _room_variant(scenario: str, variant: str | None) -> tuple[str, dict[str, Any]]:
+    """The hidden variant for a new room and its gate record (empty for authored scenarios).
+
+    A generated room never runs on a seed the gate has not accepted, including one passed explicitly.
+    """
+    if not variant:
+        return _draw_variant(scenario)
     if scenario != GENERATED:
-        return secrets.choice(_variants(scenario))
+        return variant, {}
+    ok, report = _gate_seed(scenario, variant)
+    if not ok:
+        raise CommandRejected("generated market failed the balance gate")
+    return variant, _gate_record([{"accepted": True, "failures": []}], report)
+
+
+def _gate_record(attempts: list[dict[str, Any]], report: dict[str, Any]) -> dict[str, Any]:
+    """Seed-free record kept with the room: each attempt's verdict and failure names, and the
+    accepted tape's policy labels and scores."""
+    return {"rule": GATE_RULE, "attempts": attempts, "policies": report["policies"]}
+
+
+def _draw_variant(scenario: str) -> tuple[str, dict[str, Any]]:
+    """A hidden variant and gate record for a new room; generated markets retry seeds until the gate accepts one."""
+    if scenario != GENERATED:
+        return secrets.choice(_variants(scenario)), {}
     base = secrets.token_hex(16)
+    attempts: list[dict[str, Any]] = []
     for attempt in range(GENERATION_ATTEMPTS):
         variant = f"seed:{base}-{attempt}"
-        ok, report = balance.accept(_tape(scenario, variant))
-        log.info("generated tape %s", "accepted" if ok else "rejected",
-                 extra={"command": "generate", "code": ",".join(report["failures"]) or "ok",
-                        "commitment": commitment(variant[5:])})  # never log the seed itself
+        ok, report = _gate_seed(scenario, variant)
+        attempts.append({"accepted": ok, "failures": report["failures"]})
         if ok:
-            return variant
+            return variant, _gate_record(attempts, report)
     raise CommandRejected("could not generate a balanced market; try again")
 
 
@@ -169,7 +201,7 @@ class Store:
             pm_name = "Morgan (bot)"
         if scenario not in SCENARIOS:
             raise CommandRejected(f"unknown scenario {scenario!r}")
-        variant = variant or _draw_variant(scenario)  # hidden from players until the debrief
+        variant, gate = _room_variant(scenario, variant)  # hidden from players until the debrief
         tape = _tape(scenario, variant)
         room = secrets.token_hex(6)
         seats = {r: (secrets.token_hex(8), secrets.token_urlsafe(24)) for r in ("pm", "mp") if r != bot_role}
@@ -178,9 +210,10 @@ class Store:
             partners[bot_role] = bot.BOT_VERSION
         names = {"pm": pm_name.strip()[:40] or "Portfolio manager", "mp": mp_name.strip()[:40] or "Managing partner"}
         with self.pool.connection() as c, c.transaction():
-            c.execute("insert into rooms (id, scenario, variant, tape_digest, partners, names, rules_version, bot_role)"
-                      " values (%s,%s,%s,%s,%s,%s,%s,%s)",
-                      (room, scenario, variant, tape.digest, Jsonb(partners), Jsonb(names), RULES_VERSION, bot_role))
+            c.execute("insert into rooms (id, scenario, variant, tape_digest, partners, names, rules_version,"
+                      " bot_role, gate) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                      (room, scenario, variant, tape.digest, Jsonb(partners), Jsonb(names), RULES_VERSION, bot_role,
+                       Jsonb(gate)))
             self._append_journal(c, room, self._fresh(tape, partners, bot_role).e.j.entries, 0)
             for r, (uid, tok) in seats.items():
                 c.execute("insert into seats values (%s,%s,%s,%s)", (_h(tok), room, uid, r))
@@ -233,6 +266,17 @@ class Store:
                                            " where room_id=%s and seq<=%s order by seq", (room, version)):
                 s.handle(uid, key, cmd)
         return s
+
+    def gate_record(self, room: str) -> dict[str, Any]:
+        """The balance-gate record of a room, revealed only once the room has finished (the debrief)."""
+        _, s, _ = self.session(room)
+        if not s.e.finished():
+            raise CommandRejected("the market gate record is revealed at the debrief")
+        with self.pool.connection() as c:
+            row = c.execute("select gate from rooms where id=%s", (room,)).fetchone()
+        if row is None:
+            raise CommandRejected("unknown room")
+        return row[0]
 
     def session(self, room: str) -> tuple[int, Session, dict]:
         """A read-only session at a consistent version (callers must not mutate it)."""
