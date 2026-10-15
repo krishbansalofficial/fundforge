@@ -14,6 +14,7 @@ from collections import Counter
 from pathlib import Path
 
 from fundforge.balance import accept
+from fundforge.engine import InvariantError
 from fundforge.generator import SCENARIO_VERSION, Spec, generate, split_of
 from fundforge.tape import compile_tape
 
@@ -27,7 +28,10 @@ if __name__ == "__main__":
     accepted = Counter[str]()
     for i in range(n):
         seed = f"bench-{i}"
-        ok, report = accept(compile_tape(generate(seed, SCENARIO_VERSION, SKELETON, Spec())))
+        try:
+            ok, report = accept(compile_tape(generate(seed, SCENARIO_VERSION, SKELETON, Spec())))
+        except InvariantError as err:  # the engine itself refused the world: a rejection, with its reason
+            ok, report = False, {"failures": [f"engine_invariant:{str(err).split(' at day')[0]}"]}
         if ok:
             accepted[split_of(seed)] += 1
         else:
