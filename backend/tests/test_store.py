@@ -262,5 +262,8 @@ def test_generated_room_is_gated_hidden_until_the_end_and_verifiable():
             st.apply(rid, u[role], f"r-{version}", {"type": "ready", "version": version})
         _, s, _ = st.session(rid)
     assert s.view(u["pm"])["outcome"]["variant"] == variant  # revealed with the debrief
+    gate = st.gate_record(rid)  # the gate record is stored with the room and revealed only now
+    assert gate["rule"] == "balance-v1" and gate["attempts"][-1]["accepted"] is True
+    assert seed not in json.dumps(gate)
     st._cache.clear()
     assert st.verify(rid)["tape_digest"] == s.e.tape.digest  # re-derived from the stored seed

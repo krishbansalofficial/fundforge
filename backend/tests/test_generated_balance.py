@@ -43,15 +43,54 @@ def test_room_seed_draw_retries_until_accepted_and_gives_up_bounded(monkeypatch)
         def fake(tape):
             calls.append(tape.raw["variant"])
             ok = answers.pop(0)
-            return ok, {"failures": [] if ok else ["passive_wins"]}
+            return ok, {"failures": [] if ok else ["passive_wins"], "policies": {}}
         return fake
 
     monkeypatch.setattr(store.balance, "accept", gate([False, False, True]))
-    variant = store._draw_variant(store.GENERATED)
+    variant, record = store._draw_variant(store.GENERATED)
     assert variant == calls[-1] and variant.endswith("-2") and len(calls) == 3
+    assert [a["accepted"] for a in record["attempts"]] == [False, False, True]
+    assert record["attempts"][0] == {"accepted": False, "failures": ["passive_wins"]}
+    assert "seed" not in json.dumps(record) and variant[5:] not in json.dumps(record)
     monkeypatch.setattr(store.balance, "accept", gate([False] * store.GENERATION_ATTEMPTS))
     with pytest.raises(CommandRejected, match="balanced market"):
         store._draw_variant(store.GENERATED)
     with pytest.raises(CommandRejected, match="seed variant"):
         store._tape(store.GENERATED, "base")
-    assert store._draw_variant("case1") in {"base", "rally"}
+    authored, authored_gate = store._draw_variant("case1")
+    assert authored in {"base", "rally"} and authored_gate == {}
+
+
+def test_explicit_generated_seed_must_pass_the_same_gate(monkeypatch):
+    """create_room(variant=...) cannot bypass the gate for generated rooms."""
+    import pytest
+
+    from fundforge import store
+    from fundforge.engine import CommandRejected
+
+    monkeypatch.setattr(store, "_gate_seed", lambda scenario, variant: (False, {"failures": ["passive_wins"]}))
+    with pytest.raises(CommandRejected, match="balance gate"):
+        store._room_variant(store.GENERATED, "seed:explicit-1")
+    monkeypatch.setattr(store, "_gate_seed", lambda scenario, variant: (True, {"failures": [], "policies": {}}))
+    variant, record = store._room_variant(store.GENERATED, "seed:explicit-1")
+    assert variant == "seed:explicit-1" and record["rule"] == store.GATE_RULE
+    assert store._room_variant("case1", "rally") == ("rally", {})
+
+
+def test_acceptance_rate_is_pinned_over_a_fixed_seed_set():
+    """Pins the measured default-spec acceptance (scripts/generator_acceptance.py, N=10, bench-0..9).
+
+    If a generator or balance change moves these counts, re-measure with the script, update the pin
+    and record the numbers in docs/PROGRESS.md. Do not change the pin to make a regression pass.
+    """
+    from collections import Counter
+
+    from fundforge.generator import Spec
+
+    accepted, failures = 0, Counter()
+    for i in range(10):
+        ok, report = accept(compile_tape(generate(f"bench-{i}", GEN_VERSION, SKELETON, Spec())))
+        accepted += ok
+        failures.update(report["failures"])
+    assert accepted == 3, (accepted, failures)
+    assert failures == Counter({"cover_recall_only_does_not_win": 7}), failures
