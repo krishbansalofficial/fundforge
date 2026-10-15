@@ -1,6 +1,8 @@
 """Detached liquidation scenarios using public, frozen assumptions, never future tape.
 
-These are bounded greedy cure comparisons, not a globally optimal execution plan.
+"cost" and "longs_first" are bounded greedy comparisons. "min_impact" solves each
+event's cheapest cure with cure.solve (docs/CURE_SOLVER.md): optimal per event
+under frozen assumptions, not a multi-event or forecast optimum.
 Only the first event's legs form a draft; normal live governance must approve it.
 """
 
@@ -10,48 +12,46 @@ from datetime import timedelta
 from decimal import Decimal, localcontext
 from typing import Any
 
+from .cure import Leg, economics, solve
 from .engine import Engine, Order, Side
-from .execution import PRICE, capacity, fill_price
+from .execution import PRICE, capacity
 from .money import CTX, D, cents
 from .series import mgmt_fee_exact
 
+STRATEGIES = ("cost", "longs_first", "min_impact")
 
-def _quantity(e: Engine, sym: str, volume: int, target: Decimal | None = None) -> tuple[int, Decimal, Decimal]:
-    """Smallest sufficient single-instrument cure, or its full available capacity."""
+
+def _leg(e: Engine, sym: str, volume: int) -> Leg:
+    """Public as-of terms for reducing one position in the next hypothetical event."""
     held = e.pos[sym]
-    side = "SELL" if held > 0 else "COVER"
-    cap = min(abs(held), capacity(volume, D(e.cfg["participation"]), 0))
-    rate = e.tape.margin(e.ev.day)["maintenance"]["long" if held > 0 else "short"]
-    target = e.deficit() if target is None else target
+    return Leg(sym, "SELL" if held > 0 else "COVER", e.marks[sym],
+               e.tape.margin(e.ev.day)["maintenance"]["long" if held > 0 else "short"], volume,
+               min(abs(held), capacity(volume, D(e.cfg["participation"]), 0)),
+               D(e.cfg["half_spread_bps"]), D(e.cfg["impact_bps"]))
 
-    def economics(q: int) -> tuple[Decimal, Decimal]:
-        if q == 0:
-            return D(0), D(0)
-        price = fill_price(e.marks[sym], side, 0, q, volume,
-                           D(e.cfg["half_spread_bps"]), D(e.cfg["impact_bps"]))
-        cost = abs(cents(price * q) - cents(e.marks[sym] * q))
-        return cents(rate * e.marks[sym] * q) - cost, cost
 
-    relief, cost = economics(cap)
+def _quantity(leg: Leg, target: Decimal) -> tuple[int, Decimal, Decimal]:
+    """Smallest sufficient single-instrument cure, or its full available capacity."""
+    cap = leg.cap
+    relief, cost = economics(leg, cap)
     if relief <= 0:
         return 0, relief, cost
     # Supported scenario coefficients keep relief monotone across participation.
     # If the conservative maximum marginal impact exceeds maintenance relief,
     # decline the instrument rather than make a false bisection claim.
-    marginal = (D(e.cfg["half_spread_bps"]) + 3 * D(e.cfg["impact_bps"])
-                * (D(cap) / volume) ** 2) / 10000
-    if rate <= marginal:
+    marginal = (leg.half_spread_bps + 3 * leg.impact_bps * (D(cap) / leg.volume) ** 2) / 10000
+    if leg.rate <= marginal:
         return 0, D(0), D(0)
     if relief >= target:
         lo, hi = 1, cap
         while lo < hi:
             mid = (lo + hi) // 2
-            if economics(mid)[0] >= target:
+            if economics(leg, mid)[0] >= target:
                 hi = mid
             else:
                 lo = mid + 1
         cap = lo
-        relief, cost = economics(cap)
+        relief, cost = economics(leg, cap)
     return cap, relief, cost
 
 
@@ -61,7 +61,7 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
     with localcontext(CTX):
         ls, ss, scale = D(long_shock), D(short_shock), D(volume_scale)
         if not (-D("0.9") <= ls <= 1 and -D("0.9") <= ss <= 1
-                and D("0.1") <= scale <= 2 and 1 <= horizon <= 10 and strategy in ("cost", "longs_first")):
+                and D("0.1") <= scale <= 2 and 1 <= horizon <= 10 and strategy in STRATEGIES):
             raise ValueError("invalid liquidity assumptions")
         observed = next((o for o in reversed(source.observations) if o["volume"]), None)
         volumes = {s: int((observed["volume"].get(s, 0) if observed else 0) * scale) for s in source.pos}
@@ -81,6 +81,18 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
         path: list[dict[str, Any]] = []
         draft: list[dict[str, Any]] = []
         status = "horizon_exhausted"
+
+        def fill(sym: str, q: int) -> None:
+            nonlocal total_cost
+            side: Side = "SELL" if e.pos[sym] > 0 else "COVER"
+            o = Order(f"lab-{step}-{sym}", sym, side, q, forced="hypothetical")
+            e._fill(o)
+            if o.filled:
+                total_cost += abs(D(o.fills[0]["amount"]) - cents(e.marks[sym] * o.filled))
+                fills.append({"sym": sym, "side": side, "qty": o.filled, "price": o.fills[0]["price"]})
+                if step == 1:
+                    draft.append({"sym": sym, "side": side, "qty": o.filled})
+
         for step in range(1, horizon + 1):
             dt = e.ev.date + timedelta(days=1)
             while dt.weekday() >= 5:
@@ -97,12 +109,18 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
                            + sum((mgmt_fee_exact(s) for s in e.series if s.units > 0), D(0)))
             cushion = cents(daily_carry * (next_date - dt).days) + D("0.02") * (len(e.loans) + len(e.series) + 1)
             e.event_fills = {}
-            fills = []
+            fills: list[dict[str, Any]] = []
             remaining = {s for s, q in e.pos.items() if q}
-            while e.deficit() > 0 and remaining and e.nav() > 0:
+            if strategy == "min_impact" and e.deficit() > 0 and e.nav() > 0:
+                plan = solve([_leg(e, sym, volumes[sym]) for sym in sorted(remaining) if volumes[sym]],
+                             e.deficit() + cushion)
+                for sym, q in sorted(plan.items()):
+                    if q:
+                        fill(sym, q)
+            while strategy != "min_impact" and e.deficit() > 0 and remaining and e.nav() > 0:
                 candidates = []
                 for sym in sorted(remaining):
-                    q, relief, cost = _quantity(e, sym, volumes[sym], e.deficit() + cushion)
+                    q, relief, cost = _quantity(_leg(e, sym, volumes[sym]), e.deficit() + cushion)
                     if q:
                         priority = (strategy == "longs_first" and e.pos[sym] < 0, cost / relief)
                         candidates.append((priority, sym, q))
@@ -110,14 +128,7 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
                     break
                 _, sym, q = min(candidates)
                 remaining.remove(sym)
-                side: Side = "SELL" if e.pos[sym] > 0 else "COVER"
-                o = Order(f"lab-{step}-{sym}", sym, side, q, forced="hypothetical")
-                e._fill(o)
-                if o.filled:
-                    total_cost += abs(D(o.fills[0]["amount"]) - cents(e.marks[sym] * o.filled))
-                    fills.append({"sym": sym, "side": side, "qty": o.filled, "price": o.fills[0]["price"]})
-                    if step == 1:
-                        draft.append({"sym": sym, "side": side, "qty": o.filled})
+                fill(sym, q)
             e._true_up_collateral()
             e.reconcile()
             funded = e.bal("collateral") >= e._collateral_target()
@@ -144,6 +155,7 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
                 e._accrue_date(accrual_date)
                 accrual_date += timedelta(days=1)
         return {"strategy": strategy, "status": status, "events_to_cure": len(path) if status == "cured" else None,
+                "insolvent_at_event": len(path) if status == "insolvent" else None,
                 "shock_nav": str(opening_nav), "execution_cost": str(cents(total_cost)),
                 "path": path, "draft": draft,
                 "assumptions": {"long_shock": long_shock, "short_shock": short_shock, "horizon": horizon,
@@ -156,4 +168,6 @@ def project(source: Engine, long_shock: str = "-0.15", short_shock: str = "0.10"
                                 "with one-interval carry cushion. "
                                 "Excludes future news, rivals, "
                                 "new recalls, investor flows and scheduled invoices. "
-                                "Greedy comparison, not an optimal forecast."}}
+                                + ("Per-event minimum-impact cure by marginal-cost bisection; "
+                                   "not a multi-event optimum or forecast." if strategy == "min_impact"
+                                   else "Greedy comparison, not an optimal forecast.")}}
