@@ -206,3 +206,18 @@ Loan identities, typed outcome incidents, RISK liquidity/cure comparison and REP
 ### 10 October checkpoint
 
 Role-specific evidence/sharing and per-window location assignments are implemented in both clients, with backend leak/auth/replay tests. Independent execution/holdings valuation controls block dealing on a break; full cash/loan-fee/LP certification and authored broker-break resolution remain open. Rules 2026.10.6 / fixture 4.1.0. Evidence: 192 backend tests, 74 Godot checks, web build, types/lint and two-seat HTTP smoke. No claim that P0-P5, persisted arbitrary branches, v1 campaign, live presence or shipping/playtest work is complete.
+
+## Benchmark amendment, 13 October 2026
+
+An audit found no recorded performance or detection benchmark: the Prometheus histograms had never been exercised under load, the "replay about 10 ms" figure had no recorded method, and the P3 60 fps acceptance had never been measured. [BENCHMARKS](BENCHMARKS.md) now defines six benchmarks with methods, result files and targets. B1 (engine season and controls) is implemented in `scripts/bench_engine.py` with a first recorded result.
+
+Benchmarks become release gates:
+
+| Phase | Benchmark gate |
+|---|---|
+| P2 | B1 A/B regression job in CI; B2 Postgres command latency recorded; B3 load test run once against the production stack with the knee reported |
+| P3 | B4 frame time recorded on two named GPUs, meeting the 16.7 ms p99 target on the integrated GPU or documenting the gap |
+| P4 | B5 fault detection corpus and mutation score for the accounting and control modules; B6 balance across generator seeds as the generator acceptance gate |
+
+A phase is not complete while its benchmark gate is unmeasured.
+
