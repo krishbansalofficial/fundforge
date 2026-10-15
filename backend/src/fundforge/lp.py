@@ -9,7 +9,7 @@ Pure domain: no engine, journal or I/O imports. Not yet wired into a scenario.
 """
 
 from dataclasses import dataclass, replace
-from decimal import ROUND_DOWN, Decimal, localcontext
+from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal, localcontext
 
 from .money import CTX
 
@@ -141,3 +141,129 @@ def allocate_gate(nav: Decimal, requests: dict[str, Decimal], unit_price: dict[s
         fraction = min(Decimal(1), cap / wanted) if gated and wanted > 0 else Decimal(1)
         dealt = {k: (u * fraction).quantize(UNITS, rounding=ROUND_DOWN) for k, u in requests.items()}
     return dealt, {k: requests[k] - dealt[k] for k in requests}
+
+
+# ---------------------------------------------------------------------------
+# Preference layer (ROADMAP P4 "LP agents"). Additive to the GAME_SYSTEMS §4 rules above; it does
+# not change chapter_close, and it is not yet wired into any scenario. Every weight, tolerance and
+# threshold below is a DESIGN CHOICE for playtesting, not a measured investor behaviour and not
+# authored in the fixtures. Changing any of them requires a new PREFERENCE_VERSION.
+# ---------------------------------------------------------------------------
+
+PREFERENCE_VERSION = "lp-preference-2026.10.1-design"
+CENT = Decimal("0.01")
+TERM_FLOOR = Decimal(-10)  # design choice: no single term can cost more than 10 points in one chapter
+CONCERN_TERM = Decimal(-2)  # design choice: a term at or below -2 is named as a statement
+
+
+@dataclass(frozen=True)
+class PreferencePolicy:
+    """Per-LP preference weights (design choices, see module note above)."""
+
+    lp_id: str
+    drawdown_tolerance_pp: Decimal  # drawdown below this costs nothing
+    drawdown_weight: Decimal  # points per percentage point of drawdown beyond tolerance
+    lag_tolerance_days: int  # reply lag at or below this costs nothing
+    lag_weight: Decimal  # points per day of reply lag beyond tolerance
+    contact_weight: Decimal  # points per verified partner contact
+    contact_cap: int  # contacts beyond this earn nothing more
+    herd_weight: Decimal  # points lost per unit of peer gate-request share, after a gate event
+
+
+# Design-choice roster. Seed values partner access; Patient values low drawdown and patience;
+# Tactical values fast response to a deteriorating thesis.
+PREFERENCES: dict[str, PreferencePolicy] = {
+    "seed": PreferencePolicy("seed", Decimal(5), Decimal("1.0"), 3, Decimal("0.5"), Decimal("2.0"), 2, Decimal(6)),
+    "patient": PreferencePolicy("patient", Decimal(3), Decimal("1.5"), 10, Decimal("0.2"), Decimal("0.5"), 2,
+                                Decimal(4)),
+    "tactical": PreferencePolicy("tactical", Decimal(8), Decimal("0.3"), 2, Decimal("1.5"), Decimal("0.5"), 3,
+                                 Decimal(10)),
+}
+
+
+@dataclass(frozen=True)
+class PreferenceFacts:
+    """Facts visible to the LP at a chapter close. Only typed, player-visible or authored events belong here."""
+
+    start: Decimal  # confidence before this chapter, 0-100
+    drawdown_pp: Decimal  # this LP's chapter maximum drawdown, positive percentage points
+    response_lag_days: int | None  # days from the LP's letter to the partner reply; None when no letter
+    partner_contacts: int  # verified partner meetings or calls with this LP this chapter
+    gate_event: bool  # an authored gate election/notice is in the facts
+    peer_request_share: Decimal  # share of other LPs with visible gate-window requests, 0-1
+
+
+@dataclass(frozen=True)
+class PreferenceComponents:
+    policy_version: str
+    start: Decimal
+    drawdown: Decimal
+    response_lag: Decimal
+    contact: Decimal
+    herding: Decimal
+    end: Decimal
+    band: str
+
+
+def _term(x: Decimal) -> Decimal:
+    """Floor at TERM_FLOOR, then round half-up to 0.01. Applied to each term inside CTX."""
+    return max(TERM_FLOOR, x).quantize(CENT, rounding=ROUND_HALF_UP)
+
+
+def confidence(policy: PreferencePolicy, facts: PreferenceFacts) -> PreferenceComponents:
+    """Named Decimal components for one LP at one chapter close. Pure: neither argument is mutated.
+
+    Rounding: each term is computed in CTX precision, floored at -10 for penalties, then rounded
+    half-up to 0.01 (``_term``). ``end`` is ``start`` plus the four rounded terms, clamped to 0-100
+    and rounded half-up to 0.01. Herding is exactly zero unless ``facts.gate_event`` is true, so a
+    peer's request can only weigh on this LP after a visible gate. A missing reply letter costs nothing.
+    """
+    if PREFERENCES.get(policy.lp_id) != policy:
+        raise ValueError("policy must be one of the versioned PREFERENCES")
+    band(facts.start)  # raises outside 0-100
+    if facts.drawdown_pp < 0 or facts.partner_contacts < 0:
+        raise ValueError("drawdown and contacts cannot be negative")
+    if facts.response_lag_days is not None and facts.response_lag_days < 0:
+        raise ValueError("response lag cannot be negative")
+    if not ZERO <= facts.peer_request_share <= 1:
+        raise ValueError("peer request share must be within 0-1")
+    with localcontext(CTX):
+        dd = _term(-policy.drawdown_weight * max(ZERO, facts.drawdown_pp - policy.drawdown_tolerance_pp))
+        if facts.response_lag_days is None:
+            lag = ZERO
+        else:
+            late = max(0, facts.response_lag_days - policy.lag_tolerance_days)
+            lag = _term(-policy.lag_weight * late)
+        contact = _term(policy.contact_weight * min(facts.partner_contacts, policy.contact_cap))
+        herd = _term(-policy.herd_weight * facts.peer_request_share) if facts.gate_event else ZERO
+        raw = facts.start + dd + lag + contact + herd
+        end = max(ZERO, min(HUNDRED, raw)).quantize(CENT, rounding=ROUND_HALF_UP)
+    return PreferenceComponents(PREFERENCE_VERSION, facts.start, dd, lag, contact, herd, end, band(end))
+
+
+# Statement codes are fixed tokens; the UI maps them to the sentences below.
+STATEMENT_TEXT: dict[str, str] = {
+    "drawdown_concern": "Drawdown is beyond this LP's tolerance.",
+    "slow_response": "Replies are running behind this LP's expectation.",
+    "no_partner_contact": "No partner contact reached this LP this chapter.",
+    "herding": "Other LPs' gate requests are weighing on this LP.",
+}
+
+
+def statements(c: PreferenceComponents) -> tuple[str, ...]:
+    """Deterministic statement codes for one series, derived only from its components."""
+    out = [f"band:{c.band}"]
+    if c.drawdown <= CONCERN_TERM:
+        out.append("drawdown_concern")
+    if c.response_lag <= CONCERN_TERM:
+        out.append("slow_response")
+    if c.contact == ZERO:
+        out.append("no_partner_contact")
+    if c.herding < ZERO:
+        out.append("herding")
+    return tuple(out)
+
+
+def series_statements(results: dict[str, PreferenceComponents]) -> dict[str, tuple[str, ...]]:
+    """Statements for each series, keyed in sorted order so the output is stable."""
+    return {k: statements(results[k]) for k in sorted(results)}
