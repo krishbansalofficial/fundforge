@@ -9,7 +9,7 @@ barrier execute at the next execution event, never at an already-published mark.
 """
 
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from typing import Any, Literal, get_args
@@ -18,6 +18,7 @@ from . import investors
 from .administrator import Administrator, Capital
 from .broker import Borrow, Broker
 from .compliance import Breach, Ruleset, evaluate
+from .ending import EndingFacts, classify
 from .execution import BUY_SIDES, capacity, fill_price, limit_quantity
 from .journal import Journal, entry
 from .lp import Book
@@ -33,7 +34,7 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.13"
+RULES_VERSION = "case1-rules-2026.10.15"
 
 
 class CommandRejected(ValueError):
@@ -130,6 +131,7 @@ class Engine:
         self.incidents: list[str] = []
         self.incident_events: list[dict[str, Any]] = []
         self.paid: dict[str, Decimal] = {}
+        self.winddown: int | None = None  # campaign: day a joint winddown was declared
         self.mandate = Ruleset.from_raw(tape.raw["mandate"])
         self._opening_marks = dict(self.marks)
         self.market = Market(tape.raw.get("market"), tape.instruments)
@@ -280,6 +282,8 @@ class Engine:
     def submit_order(self, order_id: str, sym: str, side: str, qty: int, limit: Decimal | None = None) -> Order:
         if not self.at_barrier():
             raise CommandRejected("orders are accepted only at a decision barrier")
+        if side in ("BUY", "SHORT") and self.winddown is not None:
+            raise CommandRejected("winddown: elective buying and shorting are closed")
         if sym not in self.pos or side not in SIDES or not isinstance(qty, int) or qty <= 0:
             raise CommandRejected(f"invalid order {side} {qty} {sym}")
         if any(o.order_id == order_id for o in self.orders):
@@ -352,7 +356,35 @@ class Engine:
     def compliance_check(self, new_orders: list[tuple[str, str, int]]) -> list[Breach]:
         """Mandate check for new orders on top of every still-open voluntary order, at current marks."""
         queued = [(o.sym, str(o.side), o.remaining) for o in self.orders if o.status in OPEN and not o.forced]
-        return evaluate(self.pos, self.marks, self.nav(), queued + new_orders, self.mandate)
+        return evaluate(self.pos, self.marks, self.nav(), queued + new_orders, self._mandate_rules())
+
+    def _mandate_rules(self) -> Ruleset:
+        """During a declared winddown the mandate's floors (gross/net minimum) no longer apply: liquidation is
+        the contract. Caps stay, and new risk is blocked separately."""
+        if self.winddown is None:
+            return self.mandate
+        return replace(self.mandate, gross_min=Decimal(0), net_min=Decimal(-1000))
+
+    def start_winddown(self) -> None:
+        """Joint consent (campaign): cancel elective buys and shorts; every unit is redeemed once the book is flat."""
+        if not self.tape.raw.get("campaign"):
+            raise CommandRejected("winddown is a campaign mechanic")
+        if not self.at_barrier() or self.finished():
+            raise CommandRejected("winddown is declared at a decision barrier before the end")
+        if self.winddown is not None:
+            raise CommandRejected("winddown already declared")
+        self.winddown = self.ev.day
+        for o in self.orders:
+            if o.status in OPEN and o.side in ("BUY", "SHORT"):
+                o.status = "CANCELED"
+        if self.lp is not None:
+            self.lp.requests = {}
+            self.lp.deal_day = None
+        self._notice("Both partners declared a controlled winddown: no new buying or shorting; liquidate the book "
+                     "so every unit can be redeemed.", code="winddown_declared")
+
+    def _winddown_flat(self) -> bool:
+        return all(q == 0 for q in self.pos.values()) and not self.loans and not self.pending
 
     def set_reserve(self, amount: Decimal) -> None:
         if amount < 0:
@@ -472,6 +504,7 @@ class Engine:
         self._accrue_date(self.ev.date)
         if self.ev.day % 20 == 0:
             self._invoice()
+        pre_deal_nav = self.unit_nav()
         self._deal()
         investors.on_close(self)
         nxt = self.next_event_after_close()
@@ -479,7 +512,12 @@ class Engine:
         while nxt and d < nxt:
             self._accrue_date(d)
             d += timedelta(days=1)
-        self.close_values.append(self.unit_nav())
+        # A close that redeems the last unit reports its pre-flow price: the realized liquidation value, not zero.
+        self.close_values.append(self.unit_nav() if any(s.units > 0 for s in self.series) else pre_deal_nav)
+
+    def reported_unit_nav(self) -> Decimal:
+        """Unit value for returns: the live value, or after a full winddown the last realized dealing price."""
+        return self.unit_nav() if any(s.units > 0 for s in self.series) else self.close_values[-1]
 
     def next_event_after_close(self) -> date | None:
         i = self.cursor + 1
@@ -546,6 +584,8 @@ class Engine:
         ev, s = self.ev, o.sym
         if o.status not in OPEN:
             return
+        if o.side in ("BUY", "SHORT") and not o.forced and self.winddown is not None:
+            return self._reject(o, "winddown: elective buying and shorting are closed")
         if o.side in ("BUY", "SHORT") and self.control_report()["status"] != "checked":
             return self._reject(o, "unresolved controls block new risk at execution")
         # reduce-only checks against current economic position
@@ -571,7 +611,7 @@ class Engine:
         if o.side in ("BUY", "SHORT") and not o.forced and not self._initial_margin_ok(s, o.side, q):
             return self._reject(o, "initial margin would be breached at execution")
         if not o.forced:  # revalidate the mandate at execution with live marks and NAV
-            breaches = evaluate(self.pos, self.marks, self.nav(), [(s, o.side, q)], self.mandate)
+            breaches = evaluate(self.pos, self.marks, self.nav(), [(s, o.side, q)], self._mandate_rules())
             if breaches:
                 return self._reject(o, f"mandate: {breaches[0].detail}")
         self._book(o, q, price, amount)
@@ -728,6 +768,8 @@ class Engine:
         return posted
 
     def _accrue_date(self, d: date) -> None:
+        if not any(s.units > 0 for s in self.series):
+            return  # after the last unit is redeemed no investor participates; nothing accrues or allocates
         self.broker.accrue(d, self.marks, D(self.cfg["debit_rate"]))
         self.administrator.close(d.isoformat(), self._administrator_wealth())
         with localcontext(CTX):
@@ -771,7 +813,9 @@ class Engine:
 
     def _deal(self) -> None:
         self._observe_broker()  # close statements are available before the dealing gate
-        if self.lp is not None:
+        if self.winddown is not None and self._winddown_flat() and any(s.units > 0 for s in self.series):
+            due = [(s.series_id, s.units, str(s.units)) for s in self.series if s.units > 0]
+        elif self.lp is not None:
             dealt, carried = investors.dealing(self)
             due = [(k, u, str(u)) for k, u in dealt.items() if u > 0]
         else:
@@ -998,7 +1042,7 @@ class Engine:
     def league(self) -> list[dict[str, str]]:
         """Public league table: every fund's return since the warm start, ours included."""
         with localcontext(CTX):
-            unit_nav = self.unit_nav()
+            unit_nav = self.reported_unit_nav()
             ours = {"id": "you", "name": "Your fund", "style": "long/short", "status": "active",
                     "return_bps": str(((unit_nav / 100 - 1) * 10000).quantize(Decimal("0.1"))), "nav": str(self.nav())}
         return sorted([*self.market.league(self.marks), ours], key=lambda x: (-Decimal(x["return_bps"]), x["id"]))
@@ -1014,11 +1058,51 @@ class Engine:
             open_nav = sum((D(x["units"]) for x in self.tape.raw["opening"]["fund"]["series"]), Decimal(0)) * 100
             moves = (q * (self.marks[s] - self._opening_marks[s]) for s, q in open_pos.items())
             bench = sum(moves, Decimal(0)) / open_nav
-            fund = self.unit_nav() / 100 - 1
+            fund = self.reported_unit_nav() / 100 - 1
             excess = ((fund - bench) * 10000).quantize(Decimal("0.1"))
             return {"fund_return_bps": str((fund * 10000).quantize(Decimal("0.1"))),
                     "benchmark_return_bps": str((bench * 10000).quantize(Decimal("0.1"))),
                     "excess_bps": str(excess), "score": str(excess - self.FORCED_PENALTY_BPS * n_forced)}
+
+    def drags(self) -> dict[str, Any]:
+        """Score components beside excess return: financing, impact, claims and mandate breaches.
+
+        Each is a count or a basis-point cost on opening capital. None of them touches NAV, cash or LP flows.
+        """
+        with localcontext(CTX):
+            open_nav = sum((D(x["units"]) for x in self.tape.raw["opening"]["fund"]["series"]), Decimal(0)) * 100
+            financing = sum((f.amount for f in self.broker.fees), Decimal(0))
+            impact = sum((c.qty * abs(c.price - c.reference) for c in self.confirmations), Decimal(0))
+            breaches = sum(1 for o in self.orders for f in o.fills if str(f.get("rejected", "")).startswith("mandate:"))
+            claims = sum(1 for i in self.incident_events if i["code"] == "claim_unpaid")
+            return {"financing_drag_bps": str((financing / open_nav * 10000).quantize(Decimal("0.1"))),
+                    "impact_drag_bps": str((impact / open_nav * 10000).quantize(Decimal("0.1"))),
+                    "claims_unpaid": claims, "claims_on_time": claims == 0,
+                    "mandate_breaches": breaches}
+
+    def _ending_facts(self) -> EndingFacts:
+        """Campaign award inputs: engine state plus the fixture's published renewal terms."""
+        c = self.tape.raw["campaign"]["renewal"]
+        seed = self.lp.states["Seed"].confidence if self.lp is not None and "Seed" in self.lp.states else Decimal(0)
+        certified = bool(self.certificates) and all(x["status"] == "certified" for x in self.certificates)
+        with localcontext(CTX):
+            fund_return = self.reported_unit_nav() / 100 - 1
+        return EndingFacts(
+            nav=self.nav(), book_certified=certified and self.control_report()["status"] == "checked",
+            fund_return=fund_return, cash_benchmark=D(c["cash_benchmark_bps"]) / 10000,
+            max_drawdown=D(self.max_drawdown()), seed_confidence=seed, firm_cash=self.bal("cash", "firm"),
+            minimum_firm_cash=D(c["minimum_firm_cash"]),
+            broker_default=any(p.settle_day <= self.ev.day for p in self.pending),
+            overdue_claims=any(i["code"] == "claim_unpaid" for i in self.incident_events),
+            payroll_unpaid=any(i["code"] == "payroll_unpaid" for i in self.incident_events),
+            deferred_units=bool(self.lp is not None and any(v > 0 for v in self.lp.carried.values())),
+            winddown_complete=(self.winddown is not None and all(s.units == 0 for s in self.series)
+                               and not self.pending and self.bal("redemption_payable") == 0),
+            winddown_started=self.winddown is not None,
+            forced_actions=any(i["code"] in ("forced_recall", "forced_margin") for i in self.incident_events),
+            broker_shortfalls=any(i["code"] in ("collateral_shortfall", "settlement_failed")
+                                  for i in self.incident_events),
+            confidence_min=D(c["seed_confidence_min"]), drawdown_limit=D(c["drawdown_strictly_below"]))
 
     def outcome(self) -> dict[str, Any]:
         forced = [i["text"] for i in self.incident_events if i["code"] in ("forced_recall", "forced_margin")]
@@ -1026,8 +1110,13 @@ class Engine:
             "payroll_unpaid", "claim_unpaid", "collateral_shortfall", "settlement_failed", "dealing_blocked")]
         tactical = self.paid.get("redemption", Decimal(0))
         nav = self.nav()
+        renewal_failures: list[str] | None = None
         if not self.finished():
             label = "IN_PROGRESS"
+        elif self.tape.raw.get("campaign"):
+            verdict = classify(self._ending_facts())
+            label = str(verdict["award"])
+            renewal_failures = [str(x) for x in verdict["renewal_failures"] if isinstance(x, str)]
         elif nav <= 0 or unpaid:
             label = "DISTRESS"
         elif forced:
@@ -1042,7 +1131,8 @@ class Engine:
         score["rank"] = 1 + sorted((-Decimal(x["return_bps"]), x["id"]) for x in league).index(
             next((-Decimal(x["return_bps"]), x["id"]) for x in league if x["id"] == "you"))
         score["funds"] = len(league)
-        return {"label": label, "nav": str(nav), **score, "redemption_paid": str(tactical), "forced": forced,
+        return {"label": label, "nav": str(nav), **score, **self.drags(), "renewal_failures": renewal_failures,
+                "redemption_paid": str(tactical), "forced": forced,
                 "unpaid": unpaid, "recall_resolved_by": self.recall_resolved_by,
                 "variant": self.tape.raw.get("variant", "base"),
                 "journal_digest": self.j.digest(), "tape_digest": self.tape.digest,

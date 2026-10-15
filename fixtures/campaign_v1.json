@@ -354,6 +354,12 @@
       "overrides": [],
       "public_notices": [],
       "opening_firm_cash": "80000"
+    },
+    "tight-credit": {
+      "description": "Same crisis calendar with a $2.6m prime-broker facility (a $100k headroom above the opening debt): forced covers and collateral top-ups can exhaust it.",
+      "overrides": [],
+      "public_notices": [],
+      "credit_limit": "2600000"
     }
   },
   "market": {

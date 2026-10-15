@@ -230,7 +230,7 @@ class Decision(Strict):
 
 
 class Outcome(Strict):
-    label: Literal["WIN", "SURVIVAL", "DISTRESS"]
+    label: Literal["WIN", "SURVIVAL", "DISTRESS", "RENEWAL", "WINDDOWN", "DEFAULT", "COMPANY_FAILURE"]
     nav: Dec
     fund_return_bps: Dec
     benchmark_return_bps: Dec
@@ -246,6 +246,13 @@ class Outcome(Strict):
     journal_digest: str
     tape_digest: str
     lp_deferred: dict[str, Dec] | None = None  # generated rooms: gated units carried past the end
+    # score components beside excess return and drawdown; none changes NAV, cash, LP flows or Brier
+    financing_drag_bps: Dec | None = None
+    impact_drag_bps: Dec | None = None
+    claims_unpaid: int | None = None
+    claims_on_time: bool | None = None
+    mandate_breaches: int | None = None
+    renewal_failures: list[str] | None = None  # campaign: named renewal terms not met (explainable failure)
     scenario: str
     max_drawdown: DecOut  # peak-to-trough fall of fund NAV per unit over business closes, a 6dp fraction
     # generated rooms, finished runs only: never in any view before the end
@@ -829,10 +836,16 @@ class ProposeGate(Strict):
     package_id: Id
 
 
+class ProposeWinddown(Strict):
+    """Campaign: propose a joint controlled winddown; the other partner's ``sign`` declares it."""
+    type: Literal["propose_winddown"]
+    package_id: Id
+
+
 # ``tick`` is not here: only the server's clock issues it, never an HTTP client.
 Command = Annotated[
     Ticket | Propose | Sign | Cancel | ResearchCommand | Visit | ShareResearch | AcceptReplacement | SetReserve
-    | ResolveStatement | Ready | SetSpeed | Say | Pause | Thesis | ContactLp | ProposeGate,
+    | ResolveStatement | Ready | SetSpeed | Say | Pause | Thesis | ContactLp | ProposeGate | ProposeWinddown,
     Field(discriminator="type"),
 ]
 
