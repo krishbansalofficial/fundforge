@@ -36,11 +36,25 @@ def test_skip_ready_matches_stepping_in_bounded_rounds(variant, max_skip_rounds)
     assert skipped_rounds <= max_skip_rounds
 
 
-@pytest.mark.parametrize("seed", [f"seed:{i}-0" for i in range(1, 13)])
-def test_skip_ready_matches_stepping_on_generated_seeds(seed):
-    """Generated markets: 12 measured seeds, skip takes 5-8 rounds against 18 stepped (bound 10).
+def gate_accepted_seeds(count: int) -> list[str]:
+    """The first ``count`` generated seeds that pass the real balance gate, so the room path is exercised."""
+    seeds = []
+    for i in range(1, 200):
+        seed = f"seed:{i}-0"
+        ok, _ = store._gate_seed(store.GENERATED, seed)
+        if ok:
+            seeds.append(seed)
+            if len(seeds) == count:
+                break
+    return seeds
 
-    Every measured seed ends in SURVIVAL, so this covers the digest equivalence, not outcome variety.
+
+@pytest.mark.parametrize("seed", gate_accepted_seeds(12))
+def test_skip_ready_matches_stepping_on_generated_seeds(seed):
+    """Generated markets: the first 12 gate-accepted seeds; skip takes 5-8 rounds against 18 stepped (bound 10).
+
+    Every seed measured ends in SURVIVAL, so this covers the digest equivalence, not outcome variety.
+    Gate-rejected seeds are excluded: a room never runs on one (store._room_variant).
     """
     stepped_digest, stepped_rounds, _ = run_generated(seed, skip=False)
     skipped_digest, skipped_rounds, _ = run_generated(seed, skip=True)
