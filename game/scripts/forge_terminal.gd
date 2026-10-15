@@ -377,9 +377,27 @@ func _portfolio() -> void:
 	_text("Short market values and weights are negative. Weights are exposure, not allocation of spendable cash.", MUTED)
 
 
+func _certificates(r: Dictionary) -> void:
+	var certification: Dictionary = r.get("certification", {}) if r.get("certification") is Dictionary else {}
+	_text("DEALING-CLOSE NAV CERTIFICATION: " + str(certification.get("status", "pending")).to_upper(), AMBER)
+	_text("Internal independent reconciliation using shared marks, settlement instructions and payment confirmations.", MUTED, 12)
+	if certification.get("certificates", []).is_empty():
+		_text("No dealing-close certificate has been issued yet.", MUTED)
+	for certificate in certification.get("certificates", []):
+		_text("Day %s (%s): %s" % [certificate["day"], certificate["date"], str(certificate["status"]).to_upper()], GREEN if certificate["status"] == "certified" else RED)
+		_text("Independent NAV %s / book NAV %s / difference %s / inclusive tolerance %s" % [certificate["independent_nav"], certificate["book_nav"], certificate["difference"], certificate["tolerance"]])
+		for reason in certificate.get("reasons", []):
+			_text("Certification blocked: " + str(reason).replace("_", " "), RED)
+		for strike in certificate.get("strikes", []):
+			_text("%s: %s units / net %s / struck NAV per unit %s" % [strike["series_id"], strike["units"], strike["net"], strike["nav_per_unit"]])
+		for redemption in certificate.get("redemptions", []):
+			_text("%s: struck payable %s / journal payable %s / residual %s / bound %s" % [redemption["series_id"], redemption["payable"], redemption["journal_payable"], redemption["residual"], redemption["residual_bound"]])
+
+
 func _risk() -> void:
 	_text("RISK / WHAT IF?", AMBER, 20)
 	var r: Dictionary = data.get("risk", {})
+	_certificates(r)
 	var controls: Dictionary = r.get("controls", {})
 	if not controls.is_empty():
 		_text("BROKER / EXECUTION CONTROLS: " + str(controls.get("status", "pending")).to_upper(),

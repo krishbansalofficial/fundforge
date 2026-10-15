@@ -85,6 +85,8 @@ func _ready() -> void:
 ## load, below the office slab where the depth test hides them, compiles their materials and pipelines now
 ## instead of freezing the first crisis frame; their scenes stay cached for the real arrivals.
 func _prewarm() -> void:
+	if "--no-prewarm" in OS.get_cmdline_args() + OS.get_cmdline_user_args():  # measurement only (measure_frames.py --crisis)
+		return
 	for model in ["k", "m"]:
 		_warm_scenes.append(load(Actor3D.MODELS[model][0]))
 		var a := Actor3D.new()

@@ -1,0 +1,11 @@
+# Requires Docker Compose 2.24.4+ for !reset. Deployment never builds on the host.
+services:
+  api:
+    build: !reset null
+    image: ${FUNDFORGE_API_IMAGE:?set immutable API image digest}
+  web:
+    build: !reset null
+    image: ${FUNDFORGE_WEB_IMAGE:?set immutable web image digest}
+  backup:
+    build: !reset null
+    image: ${FUNDFORGE_BACKUP_IMAGE:?set immutable backup image digest}

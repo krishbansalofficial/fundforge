@@ -36,6 +36,18 @@ export function complement(p: string): string | null {
   return `${Math.floor(rest / 1_000_000)}${frac ? `.${frac}` : ""}`;
 }
 
+/** A decimal-string fraction as an exact percentage string: the point moves two places, so no digit is
+ *  rounded or lost ("0.123456" is "12.3456", "-0.0005" is "-0.05"); null if s is not a plain decimal. */
+export function exactPct(s: string): string | null {
+  const m = /^(-?)(\d+)(?:\.(\d+))?$/.exec(s.trim());
+  if (!m) return null;
+  const frac = (m[3] ?? "").padEnd(2, "0");
+  const int = (m[2] + frac.slice(0, 2)).replace(/^0+(?=\d)/, "");
+  const rest = frac.slice(2);
+  const out = `${int}${rest ? `.${rest}` : ""}`;
+  return m[1] && /[1-9]/.test(out) ? `-${out}` : out;
+}
+
 export const pct = (s: string | null | undefined) => (s == null ? "—" : `${(Number(s) * 100).toFixed(1)}%`);
 
 export async function api(path: string, token?: string, body?: unknown, key: string = crypto.randomUUID()) {

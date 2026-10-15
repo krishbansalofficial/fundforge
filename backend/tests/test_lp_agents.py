@@ -107,6 +107,46 @@ def test_case1_is_untouched_by_lp_agents():
         s.handle(MP, "c", {"type": "contact_lp", "lp": "Tactical"})
 
 
+def test_chapter_report_uses_frozen_dealing_certificate_despite_checked_controls():
+    s = room()
+    play_to(s, 99)
+    e = s.e
+    assert e.lp is not None and e.certificates
+    assert e.control_report()["status"] == "checked"
+    assert all(c["status"] == "certified" for c in e.certificates)
+    before = investors.chapter_facts(e, e.lp.start_value, e.lp.start_day)
+    assert all(f.report_certified for f in before.values())
+    # A close's independent certificate can fail even though today's report reconciles.
+    # Keep the actual certificate's scope and strikes; fault only its certification result.
+    e.certificates[-1] = {**e.certificates[-1], "status": "broken", "reasons": ["payable_residual"]}
+    after = investors.chapter_facts(e, e.lp.start_value, e.lp.start_day)
+    for sid, facts in after.items():
+        assert not facts.report_certified
+        assert replace(facts, report_certified=True) == before[sid]
+        _, components = investors.chapter_close(e.lp.profiles[sid], e.lp.states[sid], facts)
+        assert components["report"] == "-5"
+
+
+def test_chapter_report_certificate_scope_and_pending_ordinary_report(monkeypatch):
+    s = room()
+    e = s.e
+    assert e.lp is not None and e.certification()["status"] == "pending"
+    monkeypatch.setattr(e, "control_report", lambda: {"status": "checked"})
+
+    def certified(start_day=1):
+        return all(f.report_certified for f in investors.chapter_facts(e, e.lp.start_value, start_day).values())
+
+    assert certified()  # ordinary reconciled report; no claim that pending NAV certified
+    e.certificates = [{"day": 0, "status": "broken"}, {"day": e.ev.day + 1, "status": "broken"}]
+    assert certified()  # neither prior-window nor future facts may change this close
+    e.certificates.append({"day": e.ev.day, "status": "broken"})
+    assert not certified()  # both bounds are inclusive
+    e.certificates[-1]["status"] = "certified"
+    assert certified()
+    monkeypatch.setattr(e, "control_report", lambda: {"status": "break"})
+    assert not certified()  # a certificate never substitutes for today's controls
+
+
 def big_requests(s: Session) -> None:
     """Test roster: Seed eligible at day 15 and at withdrawal risk, so requests exceed the 20% gate."""
     s.e.lp.profiles["Seed"] = replace(LAUNCH["seed"], first_eligible_cutoff=15)

@@ -10,6 +10,7 @@ var _clock: Label
 var _reason: Label
 var _speed_buttons := {}
 var _stats: Label
+var _connection: Label
 var _headroom: ProgressBar
 var _feed: RichTextLabel
 var _prompt: Label
@@ -19,6 +20,9 @@ var _panel_title: Label
 var _panel_body: VBoxContainer
 var _open_location := ""
 var _debrief: PanelContainer
+var _run_record_box: VBoxContainer
+var _run_record_loading := false
+var _run_record_api: Node  # injectable transport for asynchronous recovery tests
 var terminal: ForgeTerminal
 var sfx: Sfx
 var _mute_button: Button
@@ -84,6 +88,10 @@ func _ready() -> void:
 	_stats = Label.new()
 	_stats.add_theme_font_size_override("font_size", 15)
 	sv.add_child(_stats)
+	_connection = Label.new()
+	_connection.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_connection.add_theme_color_override("font_color", Color("#f0c27a"))
+	sv.add_child(_connection)
 	var hl := Label.new()
 	hl.text = "Maintenance headroom"
 	sv.add_child(hl)
@@ -205,6 +213,19 @@ func _set_speed(speed: int) -> void:
 
 # ---------------- per-frame and per-view updates ----------------
 
+func _process(_delta: float) -> void:
+	show_poll_state(Api.poll_state())
+
+
+func show_poll_state(state: Dictionary) -> void:
+	if not is_instance_valid(_connection):
+		return
+	if state.get("stale", false):
+		_connection.text = "Connection interrupted / data stale\nLast server contact %ds ago. NAV and clock retained." % int(state.get("age_seconds", 0)) if state.get("has_view", false) else "Connection interrupted / waiting for first room view."
+	else:
+		_connection.text = ""
+
+
 func update_clock(hour: float) -> void:
 	var c: Dictionary = view.get("clock", {})
 	if c.is_empty():
@@ -232,8 +253,8 @@ func apply_view(v: Dictionary) -> void:
 		_reason.text = caption
 	var f: Dictionary = v.get("fund", {})
 	var firm: Dictionary = v.get("firm", {})
-	_stats.text = "NAV  %s\nGross / net  %s%% / %s%%\nCash  %s   Debt  %s\nCredit left  %s\nFirm cash (not fund money)  %s" % [
-		WorldRules.money(f.get("nav", 0)), _pct(f.get("gross")), _pct(f.get("net")),
+	_stats.text = "NAV  %s\n%s\nGross / net  %s%% / %s%%\nCash  %s   Debt  %s\nCredit left  %s\nFirm cash (not fund money)  %s" % [
+		WorldRules.money(f.get("nav", 0)), CertificationRules.summary(v), _pct(f.get("gross")), _pct(f.get("net")),
 		WorldRules.money(f.get("cash", 0)), WorldRules.money(f.get("debt", 0)),
 		WorldRules.money(f.get("credit_left", 0)), WorldRules.money(firm.get("cash", 0))]
 	var ratio := WorldRules.headroom_ratio(f)
@@ -626,11 +647,15 @@ func _show_debrief(o: Dictionary) -> void:
 	_debrief = PanelContainer.new()
 	_debrief.add_theme_stylebox_override("panel", _style(Color(0.06, 0.09, 0.14, 0.97), Color("#f0c27a")))
 	_debrief.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_debrief.custom_minimum_size = Vector2(700, 380)
-	_debrief.position = Vector2(-350, -190)
+	_debrief.custom_minimum_size = Vector2(720, 700)
+	_debrief.position = Vector2(-360, -350)
 	add_child(_debrief)
+	var scroll := ScrollContainer.new()  # the outcome facts and research block outgrow a 900 px screen
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_debrief.add_child(scroll)
 	var v := VBoxContainer.new()
-	_debrief.add_child(v)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(v)
 	var big := Label.new()
 	big.text = CardRules.LABELS.get(o["label"], o["label"])
 	big.add_theme_font_size_override("font_size", 48)
@@ -739,9 +764,58 @@ func _card(o: Dictionary, rows: Array) -> Control:
 
 ## Research scores come from the completed-run debrief; shown under the P&L result, never mixed into it.
 func _debrief_research(box: VBoxContainer) -> void:
-	var res: Dictionary = await Api.debrief({"version": int(view.get("version", -1))})
-	if not res.get("ok", false) or not res.get("data") is Dictionary or not is_instance_valid(box):
+	var record := VBoxContainer.new()
+	record.name = "RunRecord"
+	box.add_child(record)
+	_run_record_box = record
+	var status := Label.new()
+	status.name = "RunRecordStatus"
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	record.add_child(status)
+	var retry := Button.new()
+	retry.name = "RetryRunRecord"
+	retry.text = "Retry run record"
+	retry.hide()
+	retry.pressed.connect(_fetch_run_record)
+	record.add_child(retry)
+	_fetch_run_record()
+
+
+func _fetch_run_record() -> void:
+	if _run_record_loading or not is_instance_valid(_run_record_box) or not is_instance_valid(_debrief) or not _debrief.visible:
 		return
+	if _run_record_box.get_meta("loaded", false):
+		return
+	var box := _run_record_box
+	var panel := _debrief
+	var version := int(view.get("version", -1))
+	var status: Label = box.get_node("RunRecordStatus")
+	var retry: Button = box.get_node("RetryRunRecord")
+	status.text = "Loading run record..."
+	retry.disabled = true
+	_run_record_loading = true
+	var transport: Node = _run_record_api if _run_record_api != null else Api
+	var res: Dictionary = await transport.debrief({"version": version})
+	_run_record_loading = false
+	if not is_instance_valid(box) or box.is_queued_for_deletion() or not is_instance_valid(panel) or panel.is_queued_for_deletion() or panel != _debrief or not panel.visible or box != _run_record_box:
+		# Replacement panels may have waited on this same transport guard; start their own read now.
+		if is_instance_valid(_run_record_box) and _run_record_box != box:
+			_fetch_run_record()
+		return
+	if version != int(view.get("version", -1)):
+		status.text = "Run record changed while loading. Retry to read the latest completed version."
+		retry.disabled = false
+		retry.show()
+		return
+	if not res.get("ok", false) or not res.get("data") is Dictionary:
+		status.text = "Run record unavailable. Retry to load research and investor relationships."
+		retry.disabled = false
+		retry.show()
+		return
+	status.text = "Run record loaded."
+	box.set_meta("loaded", true)
+	retry.hide()
+	_debrief_investors(box, res["data"].get("investors"))
 	var research: Dictionary = res["data"].get("research", {})
 	var lines := TerminalRules.research_lines(research)
 	if lines.is_empty():
@@ -761,3 +835,19 @@ func _debrief_research(box: VBoxContainer) -> void:
 	policy.add_theme_color_override("font_color", Color("#8fa5ba"))
 	policy.add_theme_font_size_override("font_size", 12)
 	box.add_child(policy)
+
+
+func _debrief_investors(box: VBoxContainer, record: Variant) -> void:
+	var lines := InvestorRecordRules.lines(record)
+	if lines.is_empty():
+		return
+	var heading := Label.new()
+	heading.name = "InvestorRecordHeading"
+	heading.text = "INVESTOR RELATIONSHIPS / COMPLETED RUN"
+	heading.add_theme_color_override("font_color", Color("#f0c27a"))
+	box.add_child(heading)
+	for line in lines:
+		var row := Label.new()
+		row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.text = line
+		box.add_child(row)

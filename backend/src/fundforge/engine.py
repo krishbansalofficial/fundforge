@@ -8,6 +8,7 @@ Players act only at decision barriers (before EXEC_A / EXEC_B). Orders accepted 
 barrier execute at the next execution event, never at an already-published mark.
 """
 
+import copy
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import ROUND_HALF_EVEN, Decimal, localcontext
@@ -23,7 +24,7 @@ from .lp import Book
 from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
-from .shadow import ExecutionConfirmation, inspect_book, inspect_settlements
+from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_settlements
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
 Side = Literal["BUY", "SELL", "SHORT", "COVER"]
@@ -32,7 +33,7 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.10"
+RULES_VERSION = "case1-rules-2026.10.13"
 
 
 class CommandRejected(ValueError):
@@ -109,6 +110,7 @@ class Engine:
         self.orders: list[Order] = []
         self.confirmations: list[ExecutionConfirmation] = []
         self.settlement_failures: list[tuple[int, str]] = []  # dated failed attempts (day, obligation)
+        self.certificates: list[dict[str, Any]] = []  # one frozen NAV certificate per dealing close, in order
         self.broker = Broker(r["opening"]["fund"], D(self.cfg["borrow_rate"]))
         self.accruals: dict[str, Accrual] = {}
         self.event_fills: dict[tuple[str, str], int] = {}
@@ -298,7 +300,9 @@ class Engine:
         rs = self.tape.raw["research"]
         if not self.at_barrier():
             raise CommandRejected("research is assigned at a decision barrier")
-        if topic not in rs["topics"] or any(r["topic"] == topic for r in self.research_used):
+        chapter_start = ((self.ev.day - 1) // 10) * 10 + 1 if self.tape.raw.get("campaign") else self.start
+        current_research = [r for r in self.research_used if r["assigned_day"] >= chapter_start]
+        if topic not in rs["topics"] or any(r["topic"] == topic for r in current_research):
             raise CommandRejected(f"unknown or repeated research topic {topic!r}")
         if role is not None:
             assignment = rs["assignments"][topic]
@@ -308,7 +312,7 @@ class Engine:
                 raise CommandRejected("assignment is not available at this location")
             if self.attention.get(role, {}).get("window") == self.cursor:
                 raise CommandRejected("attention already committed for this decision window")
-        used = sum(r.get("owner") == role for r in self.research_used)
+        used = sum(r.get("owner") == role for r in current_research)
         if used >= rs["budget_per_role" if role else "budget"]:
             raise CommandRejected("research budget exhausted")
         if role:
@@ -777,10 +781,22 @@ class Engine:
             report = self.control_report()
             self._require(report["execution_status"] == "checked", "administrator_controls",
                           "independent execution/valuation break blocks dealing")
-            if report["status"] != "checked":
-                self._incident("dealing_blocked", "Redemption dealing blocked by unresolved broker controls.")
-                self._notice("Dealing withheld: resolve broker controls before the dealing close.", "alert",
-                             code="dealing_blocked")
+            work = {s.series_id: s for s in self.series}
+            candidates = []
+            for sid, units, _ in due:  # dry run of the production candidate; posting below recomputes it
+                work[sid], payable, _fee = redeem(work[sid], units)
+                candidates.append((sid, units, payable))
+            cert = certify(self.ev.date.isoformat(), self.ev.day, self._administrator_wealth(),
+                           self.administrator.liabilities,
+                           {k: (s.units, s.net, s.provision) for k, s in self.administrator.series.items()},
+                           self.j.balances("fund"), report["breaks"],
+                           [q["id"] for q in report["statement_queue"] if q["status"] == "open"], candidates)
+            self.certificates.append(cert.wire())
+            if cert.status != "certified":
+                self._incident("dealing_blocked", "Redemption dealing blocked: NAV not certified.",
+                               amounts={"nav_difference": str(cert.difference)}, reasons=",".join(cert.reasons))
+                self._notice("Dealing withheld: NAV certification failed; resolve the listed controls.", "alert",
+                             code="dealing_blocked", reasons=",".join(cert.reasons))
                 return
         for sid, units, label in due:
             idx = next(i for i, s in enumerate(self.series) if s.series_id == sid)
@@ -897,6 +913,11 @@ class Engine:
                            "Shared marks, settlement instructions and payment confirmations remain inputs; "
                            "this is not external NAV certification.")
         return report
+
+    def certification(self) -> dict[str, Any]:
+        """As-of NAV certificates issued at dealing closes already processed; pending before the first."""
+        return {"status": self.certificates[-1]["status"] if self.certificates else "pending",
+                "certificates": copy.deepcopy(self.certificates)}
 
     def resolve_statement(self, statement_id: str, revision: int, actor: str) -> None:
         if not self.at_barrier():

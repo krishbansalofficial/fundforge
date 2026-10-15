@@ -1,0 +1,92 @@
+name: release images
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy to the configured production host after publishing images
+        type: boolean
+        default: false
+      allow_incompatible:
+        description: Acknowledge that candidate rules cannot replay some existing pinned rooms
+        type: boolean
+        default: false
+permissions: { contents: read }
+concurrency:
+  group: fundforge-release
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    outputs:
+      api: ${{ steps.publish.outputs.api }}
+      web: ${{ steps.publish.outputs.web }}
+      backup: ${{ steps.publish.outputs.backup }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Build and publish commit-tagged images, return registry digests
+        id: publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          prefix="ghcr.io/${REPOSITORY,,}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          source_url="https://github.com/$REPOSITORY"
+          for service in api backup web; do
+            image="$prefix-$service:$COMMIT"
+            if [[ "$service" == web ]]; then
+              docker build --label "org.opencontainers.image.source=$source_url" --label "org.opencontainers.image.revision=$COMMIT" --build-arg API_URL=http://api:8000 -t "$image" frontend
+            else
+              docker build --label "org.opencontainers.image.source=$source_url" --label "org.opencontainers.image.revision=$COMMIT" --target "$service" -f backend/Dockerfile -t "$image" .
+            fi
+            docker push "$image"
+            digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$image")
+            [[ "$digest" =~ @sha256:[a-f0-9]{64}$ ]]
+            printf '%s=%s\n' "$service" "$digest" >> "$GITHUB_OUTPUT"
+          done
+  deploy:
+    if: ${{ inputs.deploy }}
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Copy isolated release assets and run host-local upgrade
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_ROOT: ${{ vars.DEPLOY_ROOT }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          API_IMAGE: ${{ needs.build.outputs.api }}
+          WEB_IMAGE: ${{ needs.build.outputs.web }}
+          BACKUP_IMAGE: ${{ needs.build.outputs.backup }}
+          ACK: ${{ inputs.allow_incompatible }}
+          COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$DEPLOY_ROOT" =~ ^/[a-zA-Z0-9_/-]+$ && "$DEPLOY_ROOT" != / ]]
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]]
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/fundforge_release"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          ssh_args=(-i "$HOME/.ssh/fundforge_release" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts")
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          release="$DEPLOY_ROOT/releases/$COMMIT-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          # Values are validated above; remote paths contain no shell metacharacters or traversal.
+          ssh "${ssh_args[@]}" "$target" "test -d '$DEPLOY_ROOT' && test -f '$DEPLOY_ROOT/.env' && mkdir -p '$DEPLOY_ROOT/releases' && mkdir '$release' && mkdir '$release/deploy'"
+          scp "${ssh_args[@]}" deploy/compose.prod.yaml deploy/compose.images.yaml deploy/Caddyfile deploy/release.sh "$target:$release/deploy/"
+          flag=''
+          [[ "$ACK" != true ]] || flag=--allow-incompatible
+          ssh "${ssh_args[@]}" "$target" "bash '$release/deploy/release.sh' '$DEPLOY_ROOT/.env' '$API_IMAGE' '$WEB_IMAGE' '$BACKUP_IMAGE' $flag"

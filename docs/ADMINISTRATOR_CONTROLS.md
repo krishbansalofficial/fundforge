@@ -30,6 +30,14 @@ Before redemption, a separate preview calculates net NAV per unit, rounded payab
 
 Comparisons cover current series state, capital/provision journal balances, each fee/claim liability, firm receivable/revenue and posted management fees by calendar date and series. They use exact posted cents. The terminal report is a detached read and creates no journal entries.
 
+## NAV certificate per dealing close (rules 2026.10.11)
+
+`shadow.certify` (stdlib only) combines these controls into one certificate at each dealing close with redemptions due, before units, claims or journals change. It recomputes independent NAV from administrator wealth (fills, marks, broker reducer, unsettled obligations, financing) less independent claims and provisions, compares it with book assets minus liabilities at a 1¢ inclusive tolerance, strikes NAV per unit per series at 6dp HALF_EVEN, and reports each redemption's struck payable, journal payable and residual. Conventions and reason codes are in [FUND_ACCOUNTING §5a](FUND_ACCOUNTING.md).
+
+Dealing proceeds only on `certified`; otherwise a `dealing_blocked` incident records the reasons and NAV difference. An execution/valuation break still raises the existing `administrator_controls` integrity error, and a wrong fee, units or HWM candidate still raises `administrator_claim`. A wrong candidate payable is now caught first by the struck-payable check. Certificates are part of replayed state. They appear as-of in Terminal RISK (`risk.certification`, `pending` before the first dealing close), in the session view (`certification` status) and in the debrief (`certificates`).
+
+`test_certificate.py` covers the hand-worked strike/residual, the inclusive 1¢ boundary in pure and engine form, a balanced but unsupported expense accrual that every earlier control accepts but certification rejects, an open broker statement in `case1-controls`, and replay/debrief equality. Case1 journal digests are unchanged; only the rules tag advanced.
+
 ## Limits and next task
 
 The observations are synthetic. Market marks, execution confirmations, pending settlement instructions and actual payment confirmations remain shared upstream inputs. The pending settlement collection is not yet an independently reconstructed delivery ledger. Management-company payroll/cash is outside this calculation. January Case1 does not exercise subscriptions, annual crystallization, gates or multiple dealing windows; the new module does not implement those future campaign contracts. These limits prevent a claim of full external administrator certification.

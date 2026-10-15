@@ -39,7 +39,7 @@ log = logging.getLogger("fundforge.commands")
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json",
-             "case1-generated": "case1.json"}
+             "case1-generated": "case1.json", "campaign-v1": "campaign_v1.json"}
 GENERATED = "case1-generated"
 GENERATION_ATTEMPTS = 12  # default Spec measured 3 of 6 accepted; a room needs one accepted tape
 CACHE_ROOMS = 256
@@ -70,6 +70,12 @@ def _h(token: str) -> str:
 def _tape(scenario: str, variant: str = "base") -> Tape:
     if scenario not in SCENARIOS:
         raise CommandRejected(f"unknown scenario {scenario!r}")
+    if scenario == "campaign-v1":
+        raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))
+        selected = raw.get("variants", {}).get(variant, {})
+        if "opening_firm_cash" in selected:
+            raw["opening"]["firm"]["cash"] = selected["opening_firm_cash"]
+        return compile_tape(raw, variant)
     if scenario != "case1":
         raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))
         raw["scenario_id"] = scenario

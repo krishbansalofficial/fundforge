@@ -53,6 +53,10 @@ class Refused(ValueError):
     """A player LP action the rules do not allow now; the engine turns it into CommandRejected."""
 
 
+def review_days(e: Engine) -> tuple[int, ...]:
+    return tuple(e.tape.raw.get("campaign", {}).get("review_days", REVIEW_DAYS))
+
+
 def chapter_facts(e: Engine, start_nav_per_unit: dict[str, Decimal], start_day: int) -> dict[str, ChapterFacts]:
     """Facts per series still holding units, for the window from ``start_day`` to the engine's current day."""
     dealt = {n["refs"].get("series") for n in e.notices
@@ -60,7 +64,12 @@ def chapter_facts(e: Engine, start_nav_per_unit: dict[str, Decimal], start_day: 
     unpaid_redemptions = sum(1 for i in e.incident_events
                              if i["code"] == "claim_unpaid" and i["refs"].get("claim") == "redemption"
                              and i["day"] >= start_day)
-    certified = e.control_report()["status"] == "checked"
+    # Ordinary chapter reports can reconcile before any redemption is due. A pending
+    # dealing certificate is not certification; when dealing did occur in this window,
+    # its frozen results also constrain the chapter report, even after controls recover.
+    certificates = [c for c in e.certificates if start_day <= c["day"] <= e.ev.day]
+    certified = (e.control_report()["status"] == "checked"
+                 and all(c["status"] == "certified" for c in certificates))
     deferred = {k for k, v in e.lp.carried.items() if v > 0} if e.lp else set()
     out: dict[str, ChapterFacts] = {}
     with localcontext(CTX):
@@ -101,7 +110,7 @@ def on_close(e: Engine) -> None:
     with localcontext(CTX):
         for s in live:
             b.peaks[s.series_id] = max(b.peaks[s.series_id], s.net / s.units)
-        if day in REVIEW_DAYS:
+        if day in review_days(e):
             alerts = int(e.margin_call is not None) + int(e.recall_open > 0 and not e.replacement_accepted)
             for s in live:
                 sid, before = s.series_id, b.states[s.series_id]
@@ -110,7 +119,8 @@ def on_close(e: Engine) -> None:
                 _record(e, b, "review", sid, before, {**comp, "drawdown_pp": str(facts.drawdown_pp),
                                                       "open_alerts": str(alerts)})
             b.contacts.clear()
-    if day in NOTICE_CUTOFFS:
+    cutoffs = tuple(e.tape.raw.get("campaign", {}).get("notice_cutoffs", NOTICE_CUTOFFS))
+    if day in cutoffs:
         deal = day + DEALING_LAG
         external: dict[str, Decimal] = {}
         for r in e.tape.raw["redemptions"]:
@@ -119,7 +129,9 @@ def on_close(e: Engine) -> None:
         for s in live:
             sid = s.series_id
             units = redemption_request(b.profiles[sid], b.states[sid].confidence, s.units, day,
-                                       external.get(sid, Decimal(0)))
+                                       external.get(sid, Decimal(0)), notice_cutoffs=cutoffs)
+            if e.tape.raw.get("campaign"):
+                units = min(s.units, units + b.carried.get(sid, Decimal(0)))
             if units > 0:
                 b.requests[sid] = b.requests.get(sid, Decimal(0)) + units
                 e._notice(f"{sid} gave formal notice to redeem {units:,} units at the day {deal} dealing close.",
@@ -130,6 +142,13 @@ def on_close(e: Engine) -> None:
             before = b.states[sid]
             b.states[sid], comp = chapter_close(b.profiles[sid], before, f)
             _record(e, b, "chapter_close", sid, before, comp)
+        if e.tape.raw.get("campaign"):
+            # Returns and drawdown belong to this chapter, not the cumulative campaign.
+            # Start the next window after this close; carried units remain invested.
+            with localcontext(CTX):
+                b.start_value = {s.series_id: s.net / s.units for s in e.series if s.units > 0}
+            b.peaks = dict(b.start_value)
+            b.start_day = day + 1
 
 
 def dealing(e: Engine) -> tuple[dict[str, Decimal], dict[str, Decimal]]:
@@ -147,6 +166,8 @@ def dealt(e: Engine, carried: dict[str, Decimal]) -> None:
     b = e.lp
     assert b is not None
     b.requests = {}
+    if e.tape.raw.get("campaign"):
+        b.carried = {}  # this window re-presented prior carried units; replace with its residual
     for sid, units in carried.items():
         if units > 0:
             b.carried[sid] = b.carried.get(sid, Decimal(0)) + units
@@ -164,7 +185,7 @@ def contact(e: Engine, role: str, sid: str) -> None:
         raise Refused(f"no LP {sid!r} in the fund")
     if e.attention.get(role, {}).get("window") == e.cursor:
         raise Refused("attention already committed for this decision window")
-    if not any(d >= e.ev.day for d in REVIEW_DAYS):
+    if not any(d >= e.ev.day for d in review_days(e)):
         raise Refused("no LP review remains in this window")
     if sid in b.contacts:
         raise Refused(f"{sid} was already contacted before its next review")

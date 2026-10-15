@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { complement, num } from "./lib.ts";
+import { complement, exactPct, num } from "./lib.ts";
 
 test("complement is exact and refuses anything outside 0..1 or past 6 decimals", () => {
   assert.equal(complement("0.3"), "0.7");
@@ -13,4 +13,16 @@ test("complement is exact and refuses anything outside 0..1 or past 6 decimals",
 
 test("counts use a fixed en-US grouping", () => {
   assert.equal(num(100000), "100,000");
+});
+
+test("exactPct moves the decimal point without float rounding", () => {
+  assert.equal(exactPct("0.123456"), "12.3456");
+  assert.equal(exactPct("0.000001"), "0.0001");
+  assert.equal(exactPct("0.1"), "10");
+  assert.equal(exactPct("1"), "100");
+  assert.equal(exactPct("0.070000"), "7.0000");
+  assert.equal(exactPct("0.29"), "29"); // 0.29 * 100 is 28.999999999999996 in floats
+  assert.equal(exactPct("-0.0005"), "-0.05");
+  assert.equal(exactPct("-0"), "0");
+  for (const bad of ["", "abc", "1e-3", ".5", "0.1.2"]) assert.equal(exactPct(bad), null, bad);
 });

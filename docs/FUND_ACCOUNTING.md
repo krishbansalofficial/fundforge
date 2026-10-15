@@ -72,6 +72,14 @@ Calendar-period net return = pre-flow net NAV / prior close post-flow net NAV �
 
 Show LP contributions, dealt/paid distributions, requests, remaining capital and own fees. Money-weighted return is deferred until a dated solver/undefined-case contract exists. Net TWR, fee drag and market contribution are accounting decompositions; none identifies skill or proves causal alpha.
 
+### 5a. NAV certification and strike at a dealing close (house rule, rules 2026.10.11)
+
+Each dealing close with redemptions due issues one frozen certificate (`shadow.certify`) before any unit is cancelled. Independent NAV = confirmed holdings at observed marks + broker cash/collateral − broker debt ± unsettled obligations − independently computed financing − independent management/performance/redemption claims − independent reversible provisions. Book NAV = fund journal assets minus liabilities (every account except LP capital and unallocated common P&L; provisions are liabilities). Difference = book − independent. **Tolerance is 1¢ inclusive**: |difference| ≤ 0.01 can certify; 0.02 breaks.
+
+NAV per unit is struck per active series as independent net capital / units, quantized to **6 decimals HALF_EVEN**. Each redemption line reports payable = units × struck price, rounded to cents HALF_EVEN, beside the journal payable (exact pro-rata net capital, cents HALF_EVEN, unchanged) and residual = journal − struck payable. The residual is explicit, not posted; it blocks only beyond its rounding bound units × 0.0000005 + 0.01.
+
+Status is `certified` only with no reasons. Reasons: `shadow_nav` (difference over tolerance), `shadow_break` (execution/holdings/valuation), `broker_break` (cash/loan-fee reconciliation), `broker_statement` (unresolved statement break), `settlement_break`, `lp_claim_mismatch`, `payable_residual`. A non-certified close blocks dealing with a typed `dealing_blocked` incident carrying the reasons; there is no late or backdated dealing. Before the first dealing close the as-of status is `pending`. This certifies against simulated independent records, not an appointed external administrator.
+
 ## 6. Management fee, performance provision and crystallization
 
 Management rate is1.5% ACT/365 fixed. For date D, fee_s = opening A_s ×0.015/365. This base is after earlier common expenses and fixed liabilities, before reversible incentive provisions and today's management charge. Accrue fund expense/payable and company contractual revenue/receivable. Pay amounts accrued through day20/40/60 at the next business opening. Weekend accrual after a dealing close belongs to the next payment window. No fee on escrow capital or canceled units.

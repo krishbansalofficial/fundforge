@@ -4,6 +4,29 @@ extends SceneTree
 
 var failures := 0
 
+class PollTransport extends "res://scripts/api.gd":
+	signal reply(id: int, response: Dictionary)
+	var requests: Array[Dictionary] = []
+	func request(method: int, path: String, body: Variant = null, key := "", if_none_match := "") -> Dictionary:
+		var id := requests.size()
+		requests.append({"method": method, "path": path, "body": body, "key": key, "etag": if_none_match})
+		while true:
+			var result: Array = await reply
+			if result[0] == id:
+				return result[1]
+		return {}
+
+class RunRecordTransport extends Node:
+	signal respond
+	var response: Dictionary = {}
+	var calls := 0
+	var options: Dictionary = {}
+	func debrief(request: Dictionary) -> Dictionary:
+		calls += 1
+		options = request
+		await respond
+		return response
+
 class TerminalTransport extends Node:
 	var response: Dictionary = {}
 	var last_command: Dictionary = {}
@@ -27,6 +50,28 @@ func check(cond: bool, name: String) -> void:
 
 
 func _initialize() -> void:
+	check(InvestorRecordRules.lines(null).is_empty(), "optional investor record omitted")
+	var lp_record := {"policy": "lp-test", "final": {"Patient": {"confidence": "72.123456789", "band": "stable"}},
+		"carried_units": {"Patient": "9007199254740993.000001"}, "checkpoints": []}
+	var lp_lines := InvestorRecordRules.lines(lp_record)
+	check("Patient / final confidence 72.123456789 / stable" in lp_lines, "investor confidence preserves exact server decimals")
+	check("Patient / carried redemption units: 9007199254740993.000001 (remain invested)" in lp_lines, "carried units never use float conversion")
+	check("No relationship checkpoints were reached in this run." in lp_lines, "empty investor checkpoints explained")
+	lp_record["checkpoints"] = [{"kind": "review", "day": "13", "lp": "Patient", "start": "75.0", "end": "72.123456789",
+		"band": "withdrawal_risk", "drawdown": "-2.876543211", "response_lag": "-1.0", "contact": "1.0", "clamp": "0.0",
+		"drawdown_pp": "1.23456789", "open_alerts": "0", "policy_version": "lp-test"},
+		{"kind": "chapter_close", "day": "20", "lp": "Patient", "start": "72.123456789", "end": "73.1", "band": "stable",
+		"performance": "0.1", "breaches": "-0.2", "report": "0.3", "meeting": "0.4", "gate": "-0.5", "herding": "-0.6",
+		"overdue": "-0.7", "clamp": "0.0"}]
+	lp_lines = InvestorRecordRules.lines(lp_record)
+	check("Day 13 / Patient / Interim review / confidence 75.0 to 72.123456789 / withdrawal risk" in lp_lines, "interim checkpoint named clearly")
+	check("Day 20 / Patient / Chapter close / confidence 72.123456789 to 73.1 / stable" in lp_lines, "chapter checkpoint named clearly")
+	check("Confidence drivers / Drawdown: -2.876543211; Response lag: -1.0; Contact: 1.0; Clamp: 0.0" in lp_lines, "interim drivers preserve signs and exact decimals")
+	check("Confidence drivers / Performance: 0.1; Breaches: -0.2; Report: 0.3; Meeting: 0.4; Gate: -0.5; Herding: -0.6; Overdue: -0.7; Clamp: 0.0" in lp_lines, "all chapter drivers displayed")
+	check(CertificationRules.summary({}) == "Latest dealing-close: Pending\nNo dealing-close certificate yet.\nNot a new check of current NAV.", "missing certificate remains pending")
+	check(CertificationRules.summary({"certification": null}) == CertificationRules.summary({}), "null certificate remains pending")
+	check(CertificationRules.summary({"certification": "certified"}) == "Latest dealing-close: Certified\nNot a new check of current NAV.", "HUD scopes certificate to latest dealing close")
+	check("Latest dealing was withheld" in CertificationRules.summary({"certification": "broken"}), "broken certificate describes historical close and directs player to RISK")
 	# iso projection round-trips
 	for g in [Vector2(0, 0), Vector2(3.5, 7.25), Vector2(23, 1)]:
 		check(WorldRules.to_grid(WorldRules.to_screen(g)).distance_to(g) < 0.001, "iso round trip %s" % g)
@@ -58,6 +103,8 @@ func _initialize() -> void:
 	var ending_facts := CardRules.facts({"scenario": "generated", "max_drawdown": "0.123456", "generated_days": 10, "stressed_days": 0, "seed_commitment": "abc"})
 	check("Maximum drawdown: 12.3456% of NAV per unit, measured at business-day closes" in ending_facts, "ending drawdown preserves server precision")
 	check("Generated market: 0 stressed days out of 10 generated days" in ending_facts and "Seed SHA-256: abc" in ending_facts, "ending generated facts include zero stressed days")
+	check(CardRules.facts({"variant": "seed:abc", "seed_commitment": CardRules.seed_hash("seed:abc")}).size() == 1
+			and CardRules.facts({"variant": "seed:abc", "seed_commitment": "f00"}).size() == 2, "outcome screen flags a seed commitment mismatch")
 	var card_rows := CardRules.rows(outcome, {"pm": "Ana", "mp": "Ben"}, {}, {})
 	var card_keys := card_rows.map(func(r): return r[0])
 	check(not "Mean Brier" in card_keys and not "Chain head" in card_keys and not "Rules" in card_keys, "missing optional sources drop their rows")
@@ -69,6 +116,23 @@ func _initialize() -> void:
 	check(["Mean Brier", "PM 0.25 (2)"] in card_rows and ["Variant", "rally"] in card_rows, "brier and variant rows")
 	check(["Chain head", "abc"] in card_rows and ["Rules", "r1"] in card_rows, "verify rows")
 	check(["Result", "Score +12.5 bps"] in card_rows, "score row without a rank")
+	# drawdown percent is string arithmetic on the server's Decimal: every digit kept, nothing rounded
+	for pair in [["0.123456", "12.3456"], ["0.000000", "0.0000"], ["0.100000", "10.0000"], ["0.05", "5"],
+			["0.004", "0.4"], ["1", "100"], ["0.5", "50"], ["0.999999", "99.9999"], ["0.0000005", "0.00005"]]:
+		check(CardRules.percent(pair[0]) == pair[1], "percent %s -> %s" % pair)
+	var abc := CardRules.seed_hash("seed:abc")
+	card_rows = CardRules.rows({"label": "SURVIVAL", "nav": "1", "score": "0", "variant": "seed:abc", "max_drawdown": "0.087654",
+			"scenario": "generated", "stressed_days": 0, "generated_days": 10, "seed_commitment": abc}, {}, {}, {})
+	check(["Max drawdown", "8.7654% (NAV per unit, at closes)"] in card_rows and ["Scenario", "generated"] in card_rows,
+			"drawdown and scenario rows")
+	check(["Stressed days", "0 of 10 generated"] in card_rows and ["Seed SHA-256", abc] in card_rows, "stressed days and matching served seed commitment")
+	card_rows = CardRules.rows({"label": "SURVIVAL", "nav": "1", "score": "0", "variant": "seed:abc", "seed_commitment": "f00"}, {}, {}, {})
+	check(card_rows.any(func(r): return r[0] == "Seed SHA-256" and "does NOT match" in r[1] and "f00" in r[1] and abc in r[1]),
+			"a served commitment that disagrees with the revealed seed is flagged")
+	card_rows = CardRules.rows({"label": "SURVIVAL", "nav": "1", "score": "0", "variant": "base"}, {}, {}, {})
+	card_keys = card_rows.map(func(r): return r[0])
+	check(not "Max drawdown" in card_keys and not "Scenario" in card_keys and not "Stressed days" in card_keys and not "Seed SHA-256" in card_keys,
+			"absent outcome facts drop their card rows")
 
 	# clock interpolation is cosmetic and bounded by the server schedule
 	var view := {"clock": {"day": 12, "phase": "PUBLIC_MARK", "next": {"day": 12, "phase": "EXEC_A"}},
@@ -256,6 +320,145 @@ func _lp_checks() -> void:
 func _ui_checks() -> void:
 	# Exercise real controls, chart draw and each function without HTTP or a 3D GPU.
 	await process_frame
+	var polling := PollTransport.new()
+	root.add_child(polling)
+	polling.set_process(false)  # deterministic timestamps and no presence socket in this test
+	polling.join("http://test", "old-room", "private-test-token")
+	polling._poll_timer.stop()
+	var first_view := {"version": 4, "fund": {"nav": "123456.78"},
+		"clock": {"day": 12, "phase": "PUBLIC_MARK", "next": {"day": 12, "phase": "EXEC_A"}},
+		"realtime": {"running": true, "window_seconds": 10, "next_tick_in": 10}}
+	polling.reply.emit(0, {"ok": true, "status": 200, "data": first_view, "network_error": false, "headers": PackedStringArray(["ETag: test-v4"])})
+	check(polling.view["fund"]["nav"] == "123456.78" and not polling.polling_stale, "successful view initializes polling heartbeat")
+	var snapshot_time: float = polling.view_received_at
+	polling._poll()
+	check(polling.requests[1]["etag"] == "test-v4", "poll preserves validator for unchanged heartbeat")
+	polling.reply.emit(1, {"ok": false, "status": 0, "data": null, "network_error": true, "headers": PackedStringArray()})
+	check(polling.polling_stale and polling.view["fund"]["nav"] == "123456.78", "poll failure retains NAV and marks view stale")
+	var frozen: float = WorldRules.clock_hour(polling.view, 1)
+	check(WorldRules.clock_hour(polling.view, 100) == frozen, "stale clock stops interpolating")
+	var age_state: Dictionary = polling.poll_state(polling.last_poll_success_at + 9.0)
+	check(age_state["age_seconds"] == 9.0 and age_state["stale"], "connection age grows from last successful server contact")
+	var connection_hud: CanvasLayer = load("res://scripts/hud.gd").new()
+	connection_hud._connection = Label.new()
+	connection_hud.add_child(connection_hud._connection)
+	connection_hud.show_poll_state(age_state)
+	check("data stale" in connection_hud._connection.text and "9s ago" in connection_hud._connection.text, "HUD exposes stale state and contact age")
+	polling._poll()
+	polling.reply.emit(2, {"ok": false, "status": 304, "data": null, "network_error": false, "headers": PackedStringArray()})
+	check(not polling.polling_stale and not polling.view.has("_client_frozen_hour") and polling.view_received_at == snapshot_time,
+		"304 recovers heartbeat without resetting snapshot interpolation baseline")
+	connection_hud.show_poll_state(polling.poll_state())
+	check(connection_hud._connection.text == "", "successful heartbeat clears stale HUD message")
+	# Overlapping joins: the older completion cannot replace the new view or unlock its in-flight guard.
+	polling._poll()
+	polling.join("http://test", "new-room", "new-private-test-token")
+	polling._poll_timer.stop()
+	check(polling.view.is_empty() and polling.view_etag == "", "new join clears old seat snapshot and validator")
+	polling.reply.emit(3, {"ok": true, "status": 200, "data": first_view, "network_error": false, "headers": PackedStringArray()})
+	check(polling.view.is_empty() and polling._polling, "old join response neither leaks old view nor clears new request guard")
+	var second_view := {"version": 1, "fund": {"nav": "987.65"}, "clock": {"day": 13, "phase": "CLOSE"}}
+	polling.reply.emit(4, {"ok": true, "status": 200, "data": second_view, "network_error": false, "headers": PackedStringArray()})
+	check(polling.view["fund"]["nav"] == "987.65" and not polling.polling_stale, "new join receives only its own successful view")
+	polling._poll()
+	check(polling.poll_state(polling.last_poll_success_at + 3.0)["stale"], "unanswered request becomes stale before network timeout")
+	polling.reply.emit(5, {"ok": true, "status": 200, "data": second_view, "network_error": false, "headers": PackedStringArray()})
+	check(not polling.polling_stale and not polling.view.has("_client_frozen_hour"), "fresh 200 view recovers prolonged unanswered poll")
+	connection_hud.free()
+	polling.queue_free()
+	var ending_hud: CanvasLayer = load("res://scripts/hud.gd").new()
+	var record_box := VBoxContainer.new()
+	root.add_child(record_box)
+	ending_hud._debrief_investors(record_box, null)
+	check(record_box.get_child_count() == 0, "ending omits absent investor record controls")
+	ending_hud._debrief_investors(record_box, {"policy": "lp-ui", "final": {"Patient": {"confidence": "71.000001", "band": "stable"}},
+		"carried_units": {"Patient": "0.000001"}, "checkpoints": []})
+	check(record_box.find_child("InvestorRecordHeading", true, false) != null, "investor heading renders independently of research theses")
+	var exact_investor_label := false
+	var empty_checkpoint_label := false
+	for row in record_box.get_children():
+		if row is Label:
+			check(row.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART or row.name == "InvestorRecordHeading", "investor record rows wrap in ending scroll")
+			if "71.000001" in row.text: exact_investor_label = true
+			if "No relationship checkpoints" in row.text: empty_checkpoint_label = true
+	check(exact_investor_label and empty_checkpoint_label, "actual ending labels preserve confidence and explain missing checkpoints")
+	record_box.queue_free()
+	ending_hud.free()
+	var recovery_hud: CanvasLayer = load("res://scripts/hud.gd").new()
+	var record_transport := RunRecordTransport.new()
+	root.add_child(record_transport)
+	recovery_hud._run_record_api = record_transport
+	recovery_hud.view = {"version": 42}
+	var ending_panel := PanelContainer.new()
+	root.add_child(ending_panel)
+	recovery_hud._debrief = ending_panel
+	var ending_box := VBoxContainer.new()
+	ending_panel.add_child(ending_box)
+	recovery_hud._debrief_research(ending_box)
+	var record_status: Label = ending_box.find_child("RunRecordStatus", true, false)
+	var record_retry: Button = ending_box.find_child("RetryRunRecord", true, false)
+	check(record_status.text == "Loading run record..." and record_transport.calls == 1, "ending record shows loading during real async read")
+	check(record_transport.options == {"version": 42}, "record recovery reads completed version without gameplay command")
+	record_transport.response = {"ok": false}
+	record_transport.respond.emit()
+	await process_frame
+	check("Run record unavailable" in record_status.text and record_retry.visible and not record_retry.disabled, "failed ending read exposes retry")
+	record_retry.pressed.emit()
+	record_retry.pressed.emit()
+	check(record_transport.calls == 2 and record_retry.disabled, "duplicate retry signals share one in-flight read")
+	record_transport.response = {"ok": true, "data": {"research": {"theses": [], "seats": {}},
+		"investors": {"policy": "recovered", "checkpoints": [], "final": {}, "carried_units": {}}}}
+	record_transport.respond.emit()
+	await process_frame
+	check(record_status.text == "Run record loaded." and not record_retry.visible, "retry recovers ending record")
+	record_retry.pressed.emit()
+	check(record_transport.calls == 2, "loaded record ignores stale retry signals and avoids duplicate rows")
+	check(ending_box.find_child("InvestorRecordHeading", true, false) != null and ending_box.find_child("ResearchHeading", true, false) == null, "investors recover even without research theses")
+	# A fresh pending record on a hidden panel must never attach late data.
+	var stale_box := VBoxContainer.new()
+	ending_panel.add_child(stale_box)
+	recovery_hud._debrief_research(stale_box)
+	ending_panel.hide()
+	record_transport.respond.emit()
+	await process_frame
+	check(stale_box.find_child("InvestorRecordHeading", true, false) == null, "closed ending panel ignores late record response")
+	ending_panel.show()
+	var replaced_box := VBoxContainer.new()
+	ending_panel.add_child(replaced_box)
+	recovery_hud._debrief_research(replaced_box)
+	var replacement_panel := PanelContainer.new()
+	root.add_child(replacement_panel)
+	var replacement_box := VBoxContainer.new()
+	replacement_panel.add_child(replacement_box)
+	recovery_hud._debrief = replacement_panel
+	recovery_hud._debrief_research(replacement_box)
+	var calls_before: int = record_transport.calls
+	record_transport.respond.emit()
+	await process_frame
+	check(replaced_box.find_child("InvestorRecordHeading", true, false) == null and record_transport.calls == calls_before + 1, "replacement ignores old response and starts its own guarded read")
+	record_transport.respond.emit()
+	await process_frame
+	check(replacement_box.find_child("InvestorRecordHeading", true, false) != null, "replacement ending panel receives only its own record")
+	var changed_box := VBoxContainer.new()
+	replacement_panel.add_child(changed_box)
+	recovery_hud._debrief_research(changed_box)
+	recovery_hud.view = {"version": 43}
+	record_transport.respond.emit()
+	await process_frame
+	var changed_status: Label = changed_box.find_child("RunRecordStatus", true, false)
+	var changed_retry: Button = changed_box.find_child("RetryRunRecord", true, false)
+	check("Run record changed while loading" in changed_status.text and changed_retry.visible and not changed_retry.disabled,
+		"same ending panel version change exposes recovery instead of loading forever")
+	check(changed_box.find_child("InvestorRecordHeading", true, false) == null, "old completed version never attaches record rows")
+	changed_retry.pressed.emit()
+	check(record_transport.options == {"version": 43}, "version-change retry requests latest completed version")
+	record_transport.respond.emit()
+	await process_frame
+	check(changed_status.text == "Run record loaded.", "version-change retry recovers same ending panel")
+	ending_panel.queue_free()
+	replacement_panel.queue_free()
+	record_transport.queue_free()
+	recovery_hud.free()
 	var terminal := ForgeTerminal.new()
 	root.add_child(terminal)
 	terminal._loading = true  # suppress transport; server/API tests cover that boundary
@@ -343,6 +546,22 @@ func _ui_checks() -> void:
 				"series_id": "Seed", "price": "108", "payable": "27000", "crystallized_fee": "500"}]}
 	terminal.navigate("RISK")
 	var admin_visible := false
+	var pending_certificate := false
+	for child in terminal._body.get_children():
+		if child is Label and "CERTIFICATION: PENDING" in child.text: pending_certificate = true
+	check(pending_certificate, "RISK certificate stays pending before a dealing close")
+	terminal.data["risk"]["certification"] = {"status": "broken", "certificates": [{
+			"day": 20, "date": "2026-01-30", "status": "broken", "independent_nav": "100.00",
+			"book_nav": "100.02", "difference": "0.02", "tolerance": "0.01", "reasons": ["shadow_nav"],
+			"strikes": [{"series_id": "Seed", "units": "1", "net": "100.00", "nav_per_unit": "100.000000"}],
+			"redemptions": [{"series_id": "Seed", "payable": "10.00", "journal_payable": "9.99", "residual": "-0.01", "residual_bound": "0.06"}]}]}
+	terminal.navigate("RISK")
+	var broken_certificate := false
+	var residual_visible := false
+	for child in terminal._body.get_children():
+		if child is Label and "Certification blocked: shadow nav" in child.text: broken_certificate = true
+		if child is Label and "residual -0.01 / bound 0.06" in child.text: residual_visible = true
+	check(broken_certificate and residual_visible, "RISK shows certificate refusal and exact redemption residual")
 	var claim_visible := false
 	for child in terminal._body.get_children():
 		if child is Label and "LP / FEE CHECK: CHECKED" in child.text: admin_visible = true

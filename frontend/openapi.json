@@ -577,6 +577,119 @@
         "title": "Cancel",
         "type": "object"
       },
+      "Certificate": {
+        "additionalProperties": false,
+        "description": "``shadow.certify``: one NAV certificate per dealing close; dealing proceeds only when ``certified``.",
+        "properties": {
+          "book_nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Book Nav",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "day": {
+            "title": "Day",
+            "type": "integer"
+          },
+          "difference": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Difference",
+            "type": "string"
+          },
+          "independent_nav": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Independent Nav",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "shadow_nav",
+                "shadow_break",
+                "broker_break",
+                "broker_statement",
+                "settlement_break",
+                "lp_claim_mismatch",
+                "payable_residual"
+              ],
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "redemptions": {
+            "items": {
+              "$ref": "#/components/schemas/RedemptionLine"
+            },
+            "title": "Redemptions",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "certified",
+              "broken"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "strikes": {
+            "items": {
+              "$ref": "#/components/schemas/Strike"
+            },
+            "title": "Strikes",
+            "type": "array"
+          },
+          "tolerance": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Tolerance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "day",
+          "status",
+          "independent_nav",
+          "book_nav",
+          "difference",
+          "tolerance",
+          "strikes",
+          "redemptions",
+          "reasons"
+        ],
+        "title": "Certificate",
+        "type": "object"
+      },
+      "Certification": {
+        "additionalProperties": false,
+        "properties": {
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/Certificate"
+            },
+            "title": "Certificates",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "certified",
+              "broken"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "certificates"
+        ],
+        "title": "Certification",
+        "type": "object"
+      },
       "ChapterCheckpoint": {
         "additionalProperties": false,
         "properties": {
@@ -999,6 +1112,20 @@
           "branch_id": {
             "title": "Branch Id",
             "type": "string"
+          },
+          "certificates": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Certificate"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certificates"
           },
           "finished": {
             "title": "Finished",
@@ -2754,6 +2881,56 @@
         "title": "Recall",
         "type": "object"
       },
+      "RedemptionLine": {
+        "additionalProperties": false,
+        "properties": {
+          "journal_payable": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Journal Payable",
+            "type": "string"
+          },
+          "nav_per_unit": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav Per Unit",
+            "type": "string"
+          },
+          "payable": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Payable",
+            "type": "string"
+          },
+          "residual": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Residual",
+            "type": "string"
+          },
+          "residual_bound": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Residual Bound",
+            "type": "string"
+          },
+          "series_id": {
+            "title": "Series Id",
+            "type": "string"
+          },
+          "units": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Units",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series_id",
+          "units",
+          "nav_per_unit",
+          "payable",
+          "journal_payable",
+          "residual",
+          "residual_bound"
+        ],
+        "title": "RedemptionLine",
+        "type": "object"
+      },
       "RegimeQuestion": {
         "additionalProperties": false,
         "properties": {
@@ -3128,6 +3305,22 @@
             },
             "title": "Bots",
             "type": "array"
+          },
+          "certification": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pending",
+                  "certified",
+                  "broken"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Certification"
           },
           "chat": {
             "items": {
@@ -3818,6 +4011,38 @@
         "title": "Stress",
         "type": "object"
       },
+      "Strike": {
+        "additionalProperties": false,
+        "properties": {
+          "nav_per_unit": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Nav Per Unit",
+            "type": "string"
+          },
+          "net": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Net",
+            "type": "string"
+          },
+          "series_id": {
+            "title": "Series Id",
+            "type": "string"
+          },
+          "units": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Units",
+            "type": "string"
+          }
+        },
+        "required": [
+          "series_id",
+          "units",
+          "net",
+          "nav_per_unit"
+        ],
+        "title": "Strike",
+        "type": "object"
+      },
       "TerminalOrder": {
         "additionalProperties": false,
         "properties": {
@@ -3896,6 +4121,16 @@
             "pattern": "^-?\\d+(\\.\\d+)?$",
             "title": "Cash",
             "type": "string"
+          },
+          "certification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Certification"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "controls": {
             "$ref": "#/components/schemas/ControlReport"

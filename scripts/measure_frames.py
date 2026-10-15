@@ -11,7 +11,8 @@ trading desk and, while frames are recorded, POSTs joint skip-ready commands so 
 courier) and later notices arrive in the running client. The day-12 Tactical redemption notice is already in the
 first view, so the tactical LP visitor arrives with the world itself; use --warmup 0 to record those frames.
 The report's "events" list gives the worst frame within 3 s after each world effect.
-Extra engine flags (e.g. "--rendering-method gl_compatibility") go in --engine-args.
+Extra engine flags go in --engine-args with "=" (e.g. "--engine-args=--rendering-method gl_compatibility");
+"--engine-args=--no-prewarm" skips office3d.gd's visitor warm-up, to measure what it saves.
 
 Budget (scripts/budgets.json "frame"): p95 frame time <= 16.7 ms at the recorded resolution on the recorded
 adapter. This needs a real GPU and display; CI runners have neither, so CI checks only sizes.

@@ -12,11 +12,14 @@ static func facts(outcome: Dictionary) -> PackedStringArray:
 	if outcome.has("scenario"):
 		out.append("Scenario: %s" % outcome["scenario"])
 	if outcome.has("max_drawdown"):
-		out.append("Maximum drawdown: %.4f%% of NAV per unit, measured at business-day closes" % (float(outcome["max_drawdown"]) * 100.0))
+		out.append("Maximum drawdown: %s%% of NAV per unit, measured at business-day closes" % percent(outcome["max_drawdown"]))
 	if outcome.get("generated_days") != null and outcome.get("stressed_days") != null:
 		out.append("Generated market: %d stressed days out of %d generated days" % [int(outcome["stressed_days"]), int(outcome["generated_days"])])
 	if outcome.get("seed_commitment") != null:
 		out.append("Seed SHA-256: %s" % outcome["seed_commitment"])
+		var local := seed_hash(outcome.get("variant"))
+		if local != "" and local != str(outcome["seed_commitment"]):
+			out.append("WARNING: the revealed seed hashes to %s, not the served commitment" % local)
 	return out
 
 
@@ -56,6 +59,20 @@ static func money(s: Variant) -> String:
 	return ("-$" if neg else "$") + whole + out + "." + frac
 
 
+## A Decimal fraction string as a percentage by moving the point two places: "0.123456" -> "12.3456".
+## String-only, so every digit the server sent is kept and nothing is rounded.
+static func percent(s: Variant) -> String:
+	var t := str(s).strip_edges()
+	var neg := t.begins_with("-")
+	var parts := t.trim_prefix("-").split(".")
+	var frac: String = parts[1] if parts.size() > 1 else ""
+	while frac.length() < 2:
+		frac += "0"
+	var whole := (parts[0] + frac.substr(0, 2)).lstrip("0")
+	var rest := frac.substr(2)
+	return ("-" if neg else "") + (whole if whole != "" else "0") + ("." + rest if rest != "" else "")
+
+
 static func signed(s: Variant) -> String:
 	var t := str(s)
 	return t if t.begins_with("-") else "+" + t
@@ -83,10 +100,24 @@ static func rows(outcome: Dictionary, names: Dictionary, research: Dictionary, v
 			brier.append("%s %s (%d)" % [role.to_upper(), seat["mean_brier"], int(seat["theses"])])
 	if not brier.is_empty():
 		out.append(["Mean Brier", "  ".join(brier)])
+	if outcome.get("max_drawdown") != null:
+		out.append(["Max drawdown", "%s%% (NAV per unit, at closes)" % percent(outcome["max_drawdown"])])
+	if outcome.get("scenario") != null:
+		out.append(["Scenario", str(outcome["scenario"])])
+	if outcome.get("generated_days") != null and outcome.get("stressed_days") != null:
+		out.append(["Stressed days", "%d of %d generated" % [int(outcome["stressed_days"]), int(outcome["generated_days"])]])
 	var variant: Variant = outcome.get("variant", "base")
 	if str(variant).begins_with("seed:"):
 		out.append(["Seed", str(variant).substr(5)])
-		out.append(["Seed SHA-256", seed_hash(variant)])
+		# Prefer the server's commitment; the client hash of the revealed seed must match it.
+		var served: Variant = outcome.get("seed_commitment")
+		var local := seed_hash(variant)
+		if served == null:
+			out.append(["Seed SHA-256", local])
+		elif str(served) == local:
+			out.append(["Seed SHA-256", str(served)])
+		else:
+			out.append(["Seed SHA-256", "%s (does NOT match the revealed seed: %s)" % [served, local]])
 	else:
 		out.append(["Variant", str(variant)])
 	if verify.get("rules_version") != null:

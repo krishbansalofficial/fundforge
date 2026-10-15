@@ -399,6 +399,45 @@ export interface components {
              */
             type: "cancel";
         };
+        /**
+         * Certificate
+         * @description ``shadow.certify``: one NAV certificate per dealing close; dealing proceeds only when ``certified``.
+         */
+        Certificate: {
+            /** Book Nav */
+            book_nav: string;
+            /** Date */
+            date: string;
+            /** Day */
+            day: number;
+            /** Difference */
+            difference: string;
+            /** Independent Nav */
+            independent_nav: string;
+            /** Reasons */
+            reasons: ("shadow_nav" | "shadow_break" | "broker_break" | "broker_statement" | "settlement_break" | "lp_claim_mismatch" | "payable_residual")[];
+            /** Redemptions */
+            redemptions: components["schemas"]["RedemptionLine"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "certified" | "broken";
+            /** Strikes */
+            strikes: components["schemas"]["Strike"][];
+            /** Tolerance */
+            tolerance: string;
+        };
+        /** Certification */
+        Certification: {
+            /** Certificates */
+            certificates: components["schemas"]["Certificate"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "certified" | "broken";
+        };
         /** ChapterCheckpoint */
         ChapterCheckpoint: {
             /**
@@ -540,6 +579,8 @@ export interface components {
         Debrief: {
             /** Branch Id */
             branch_id: string;
+            /** Certificates */
+            certificates?: components["schemas"]["Certificate"][] | null;
             /** Finished */
             finished: boolean;
             /** Incidents */
@@ -1160,6 +1201,23 @@ export interface components {
             /** Resolved By */
             resolved_by: string | null;
         };
+        /** RedemptionLine */
+        RedemptionLine: {
+            /** Journal Payable */
+            journal_payable: string;
+            /** Nav Per Unit */
+            nav_per_unit: string;
+            /** Payable */
+            payable: string;
+            /** Residual */
+            residual: string;
+            /** Residual Bound */
+            residual_bound: string;
+            /** Series Id */
+            series_id: string;
+            /** Units */
+            units: string;
+        };
         /** RegimeQuestion */
         RegimeQuestion: {
             /** Evidence */
@@ -1305,6 +1363,8 @@ export interface components {
             attention: components["schemas"]["Attention"];
             /** Bots */
             bots: string[];
+            /** Certification */
+            certification?: ("pending" | "certified" | "broken") | null;
             /** Chat */
             chat: components["schemas"]["Chat"][];
             clock: components["schemas"]["Clock"];
@@ -1537,6 +1597,17 @@ export interface components {
             /** Short Shock */
             short_shock: string;
         };
+        /** Strike */
+        Strike: {
+            /** Nav Per Unit */
+            nav_per_unit: string;
+            /** Net */
+            net: string;
+            /** Series Id */
+            series_id: string;
+            /** Units */
+            units: string;
+        };
         /** TerminalOrder */
         TerminalOrder: {
             /** Filled */
@@ -1562,6 +1633,7 @@ export interface components {
         TerminalRisk: {
             /** Cash */
             cash: string;
+            certification?: components["schemas"]["Certification"] | null;
             controls: components["schemas"]["ControlReport"];
             /** Credit Left */
             credit_left: string;

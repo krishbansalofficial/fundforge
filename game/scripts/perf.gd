@@ -14,6 +14,10 @@ var _frames := PackedFloat64Array()
 var _gpu := PackedFloat64Array()
 var _at := PackedFloat64Array()  # seconds since recording began, per frame (to place hitches on the route)
 var _marks: Array = []  # [label, usec] for world events (courier, lp_visitor, ...) during the run
+var _spans: Array = []  # [label, start usec, duration usec] for timed handlers (main._on_view phases)
+var _proc := PackedFloat64Array()  # per recorded frame: process ms, draw calls, objects (to explain hitches)
+var _draws := PackedInt32Array()
+var _objs := PackedInt32Array()
 var _peak := {"draw_calls": 0, "primitives": 0, "objects": 0}
 var _sum := {"draw_calls": 0.0, "primitives": 0.0, "objects": 0.0, "process_ms": 0.0, "physics_ms": 0.0}
 
@@ -25,6 +29,11 @@ func _ready() -> void:
 ## Note a world event so the report can show the worst frame right after it.
 func mark(label: String) -> void:
 	_marks.append([label, Time.get_ticks_usec()])
+
+
+## Note how long a handler took (Time.get_ticks_usec() at its start), so hitches can be attributed.
+func span(label: String, start_usec: int) -> void:
+	_spans.append([label, start_usec, Time.get_ticks_usec() - start_usec])
 
 
 func _process(_delta: float) -> void:
@@ -48,7 +57,10 @@ func _process(_delta: float) -> void:
 		var val := int(Performance.get_monitor(mon[k]))
 		_peak[k] = maxi(_peak[k], val)
 		_sum[k] += val
-	_sum["process_ms"] += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	_draws.append(int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
+	_objs.append(int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))
+	_proc.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+	_sum["process_ms"] += _proc[-1]
 	_sum["physics_ms"] += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	if now - started_at >= (warmup + seconds) * 1e6:
 		set_process(false)
@@ -68,8 +80,7 @@ func _write() -> void:
 	var idx := range(_frames.size())
 	idx.sort_custom(func(i, j): return _frames[i] > _frames[j])
 	report["slowest"] = idx.slice(0, 5).map(func(i): return {"at_s": snappedf(_at[i], 0.01), "ms": snappedf(_frames[i], 0.1)})
-	report["events"] = _marks.map(func(m): return after_event(_at, _frames, (m[1] - started_at) / 1e6 - warmup, m[0]))
-	report["world_at_s"] = snappedf(started_at / 1e6, 0.01)  # seconds after engine start that the office appeared
+	report["events"] = _marks.map(func(m): return _explain(after_event(_at, _frames, (m[1] - started_at) / 1e6 - warmup, m[0])))
 	report["world_at_s"] = snappedf(started_at / 1e6, 0.01)  # seconds after engine start that the office appeared
 	report["warmup_s"] = warmup
 	report["seconds"] = seconds
@@ -88,6 +99,27 @@ func _write() -> void:
 	f.store_string(JSON.stringify(report, "  "))
 	f.close()
 	print("perf: wrote ", out_path)
+
+
+## Adds the worst frame's monitors and the handler spans that ran within 3 s of the event.
+func _explain(ev: Dictionary) -> Dictionary:
+	var i := -1
+	for j in range(_at.size()):
+		if snappedf(_at[j], 0.01) == ev["worst_at_s"] and snappedf(_frames[j], 0.1) == ev["worst_ms"]:
+			i = j
+			break
+	if i >= 0:
+		ev["worst_process_ms"] = snappedf(_proc[i], 0.01)
+		ev["worst_gpu_ms"] = snappedf(_gpu[i], 0.01)
+		ev["worst_draw_calls"] = _draws[i]
+		ev["worst_objects"] = _objs[i]
+	var t: float = ev["event_at_s"]
+	var spans: Array = []
+	for sp in _spans:
+		if absf((sp[1] - started_at) / 1e6 - warmup - t) < 3.0:
+			spans.append("%s %.2f ms" % [sp[0], sp[2] / 1000.0])
+	ev["spans"] = spans
+	return ev
 
 
 static func _mean(xs: PackedFloat64Array) -> float:

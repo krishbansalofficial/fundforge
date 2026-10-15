@@ -25,7 +25,7 @@ func _ready() -> void:
 	_dev_flags()
 
 
-## Dev/CI flags: --perf=out.json --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --thesis=0.4 --shot=path.png --shot-after=SECONDS --save-card=path.png --demo
+## Dev/CI flags: --perf=out.json --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --thesis=0.4 --shot=path.png --shot-after=SECONDS --save-card=path.png --certification-evidence=path.json --demo
 ## (env FUNDFORGE_SERVER also sets the default server)
 func _dev_flags() -> void:
 	var args := _args
@@ -81,12 +81,44 @@ func _dev_flags() -> void:
 			saved = await hud.save_card(str(args["save-card"]))
 		print("ending card: ", saved if saved != "" else "not saved (no finished room)")
 		get_tree().quit(0 if saved != "" else 1)
+	if args.has("certification-evidence"):
+		await _save_certification_evidence(str(args["certification-evidence"]))
+		return
 	if args.has("shot"):
 		await get_tree().create_timer(float(args.get("shot-after", "6"))).timeout
 		# Force a frame even when a hidden/minimized smoke-test window is occluded.
 		RenderingServer.force_draw(false)
 		get_viewport().get_texture().get_image().save_png(args["shot"])
 		get_tree().quit()
+
+
+func _save_certification_evidence(path: String) -> void:
+	# Programmatic headless label evidence; this does not establish graphical readability.
+	for _attempt in range(150):
+		if hud and not Api.view.is_empty():
+			hud.open_terminal()
+			break
+		await get_tree().create_timer(0.1).timeout
+	for _attempt in range(150):
+		if hud and hud.terminal.data.get("version", -1) == Api.view.get("version", -2):
+			hud.terminal.navigate("RISK")
+			await get_tree().process_frame
+			var labels: Array[String] = []
+			for label in hud.terminal.find_children("*", "Label", true, false):
+				if "CERTIFICATION:" in label.text or "Certification blocked:" in label.text:
+					labels.append(label.text)
+			var evidence := {"kind": "headless programmatic label evidence", "role": Api.view.get("role"),
+				"version": Api.view.get("version"), "certification": Api.view.get("certification"),
+				"hud_stats": hud._stats.text, "risk_labels": labels}
+			var file := FileAccess.open(path, FileAccess.WRITE)
+			if file:
+				file.store_string(JSON.stringify(evidence, "\t") + "\n")
+				file.close()
+			get_tree().quit(0 if file and not labels.is_empty() else 1)
+			return
+		await get_tree().create_timer(0.1).timeout
+	printerr("Certification evidence timed out waiting for matching room and terminal views.")
+	get_tree().quit(1)
 
 
 func _build_menu() -> void:
@@ -205,14 +237,23 @@ func _on_view(view: Dictionary) -> void:
 	if _perf:
 		for e in effects:
 			_perf.mark(e)
+	var t := Time.get_ticks_usec()
 	var fills := Sfx.fill_count(view)
 	if _seen_fills >= 0:
 		hud.sfx.play_effects(effects)
 		if fills > _seen_fills:
 			hud.sfx.play("fill")
 	_seen_fills = fills
+	if _perf and effects.size() > 0:
+		_perf.span("sfx", t)
+	t = Time.get_ticks_usec()
 	office.apply_view(view, effects)
+	if _perf and effects.size() > 0:
+		_perf.span("office.apply_view", t)
+	t = Time.get_ticks_usec()
 	hud.apply_view(view)
+	if _perf and effects.size() > 0:
+		_perf.span("hud.apply_view", t)
 
 
 func _process(delta: float) -> void:
