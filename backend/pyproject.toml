@@ -46,7 +46,7 @@ warn_redundant_casts = true
 module = [
     "fundforge.money", "fundforge.journal", "fundforge.series", "fundforge.execution", "fundforge.risk",
     "fundforge.tape", "fundforge.compliance", "fundforge.market", "fundforge.engine", "fundforge.shadow",
-    "fundforge.terminal",
+    "fundforge.terminal", "fundforge.cure",
 ]
 strict = true
 

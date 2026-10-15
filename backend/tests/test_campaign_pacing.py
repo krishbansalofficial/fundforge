@@ -34,3 +34,29 @@ def test_skip_ready_matches_stepping_in_bounded_rounds(variant, max_skip_rounds)
     assert skipped_label == stepped_label
     assert stepped_rounds == 60  # one ready pair per barrier: 30 business days, two execution barriers each
     assert skipped_rounds <= max_skip_rounds
+
+
+@pytest.mark.parametrize("seed", [f"seed:{i}-0" for i in range(1, 13)])
+def test_skip_ready_matches_stepping_on_generated_seeds(seed):
+    """Generated markets: 12 measured seeds, skip takes 5-8 rounds against 18 stepped (bound 10).
+
+    Every measured seed ends in SURVIVAL, so this covers the digest equivalence, not outcome variety.
+    """
+    stepped_digest, stepped_rounds, _ = run_generated(seed, skip=False)
+    skipped_digest, skipped_rounds, _ = run_generated(seed, skip=True)
+    assert skipped_digest == stepped_digest
+    assert stepped_rounds == 18
+    assert skipped_rounds <= 10
+
+
+def run_generated(seed: str, skip: bool) -> tuple[str, int, str]:
+    e = Engine(store._tape(store.GENERATED, seed))
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": "ben"})
+    rounds = 0
+    while not s.e.finished():
+        rounds += 1
+        body = {"type": "ready", "skip": True} if skip else {"type": "ready"}
+        s.handle("ana", f"a{rounds}", dict(body))
+        s.handle("ben", f"b{rounds}", dict(body))
+    return s.e.j.digest(), rounds, s.e.outcome()["label"]
