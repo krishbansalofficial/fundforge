@@ -27,7 +27,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from . import presence as presence_rules
 from .debrief import replay
 from .engine import CommandRejected
-from .liquidity import project
+from .liquidity import STRATEGIES, project
 from .observability import REJECTIONS, JsonFormatter, context, request_id
 from .presence import hub
 from .schemas import COMMAND_TAGS, DECIMAL_PATTERN, CommandBody, LedgerPage, NewRoomResponse, RoomView
@@ -373,7 +373,7 @@ def liquidity(room_id: str, body: LiquidityRequest, user: str = Depends(seat)) -
             raise HTTPException(409, "room changed; refresh before running the liquidity lab")
         return {"version": version, "as_of": {"day": s.e.ev.day, "phase": s.e.ev.phase},
                 "comparisons": [project(s.e, body.long_shock, body.short_shock, body.horizon,
-                                        body.volume_scale, strategy) for strategy in ("cost", "longs_first")]}
+                                        body.volume_scale, strategy) for strategy in STRATEGIES]}
     except RoomIncompatible as e:
         raise HTTPException(409, str(e)) from e
     except ValueError as e:

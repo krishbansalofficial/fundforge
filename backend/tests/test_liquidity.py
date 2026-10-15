@@ -7,7 +7,7 @@ from test_engine import CASE1
 
 from fundforge.engine import Engine
 from fundforge.governance import Session
-from fundforge.liquidity import _quantity, project
+from fundforge.liquidity import _leg, _quantity, project
 from fundforge.money import D
 from fundforge.tape import load
 
@@ -87,8 +87,7 @@ def test_insolvency_and_funding_shortfall_are_not_reported_as_cures():
 def test_cure_quantity_matches_small_exhaustive_relief_oracle():
     e = observed()
     e.marks["ALTO"] = D(100)
-    e.deficit = lambda: D(1000)
-    q, _, _ = _quantity(e, "ALTO", 1000)
+    q, _, _ = _quantity(_leg(e, "ALTO", 1000), D(1000))
     # 35% maintenance, 5bps spread, 2000bps quadratic impact, no previous flow.
     eligible = []
     for n in range(1, 51):
@@ -132,7 +131,7 @@ def test_authenticated_versioned_api_and_no_commands(monkeypatch):
     before = (s.e.j.digest(), len(s.log), s.version)
     result = c.post(url, headers=headers, json={"version": 0, "long_shock": "-0.30", "short_shock": "0.50"})
     assert result.status_code == 200
-    assert len(result.json()["comparisons"]) == 2
+    assert [c["strategy"] for c in result.json()["comparisons"]] == ["cost", "longs_first", "min_impact"]
     assert (s.e.j.digest(), len(s.log), s.version) == before
 
 

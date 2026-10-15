@@ -589,3 +589,18 @@ Both then mark Ready to the end. The test reads the API only to know the clock.
 - My local runner initially left a `next-server` holding the port (fixed with a process group); that affected only the local harness.
 
 **One next task:** the owner decisions are unchanged (music, license, generator gate, Case1 LP confidences, ticker rename, deployment). The next unblocked items are a server-side test hook to pin a room's variant for deterministic end-to-end coverage of both markets (test-only, so it needs care not to leak the variant), or the web desk's journal using the ledger cursor.
+
+## Margin cure solver (P4 milestone), 15 October 2026
+
+**Done in this worktree (uncommitted until the commit below):**
+- `backend/src/fundforge/cure.py`: minimum-impact cure by shared-multiplier bisection in Decimal, whole-share flooring, give-back pass and pairwise local search. Method and bounds in [CURE_SOLVER](CURE_SOLVER.md).
+- `liquidity.py` now draws its cure plans from `cure.solve`; `api.py` and `test_liquidity.py` updated to match.
+- `backend/tests/test_cure_oracle.py`: CVXPY continuous optimum, exhaustive integer oracle and greedy comparison, plus a check that runtime code never imports cvxpy. CVXPY is a dev-only dependency in `backend/pyproject.toml`.
+
+**Checks:** full backend suite `420 passed, 37 skipped` (`uv run pytest -q`); `ruff check src tests` clean; cure oracle and liquidity tests `176 passed`.
+
+**Not checked:** `lint-imports` is not configured in the backend project, so the boundary rule was not run here. Mypy was not run on `cure.py`.
+
+**Limitations:** the solver is a local optimum of the integer problem, with no global-optimum claim. The tolerances are measured, not proven: worst observed gap to the convex optimum was 7.5% on small caps.
+
+**One next task:** run `uv run mypy src/fundforge/cure.py` (domain modules are mypy-strict per CLAUDE.md) and fix any findings.
