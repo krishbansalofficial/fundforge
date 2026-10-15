@@ -26,6 +26,8 @@ var _run_record_api: Node  # injectable transport for asynchronous recovery test
 var terminal: ForgeTerminal
 var sfx: Sfx
 var _mute_button: Button
+var music: Music
+var _music_button: Button
 var _cure_draft: Array = []
 var _cure_version := -1
 var _cure_sending := false
@@ -57,7 +59,13 @@ func _ready() -> void:
 	_mute_button = Button.new()
 	_mute_button.pressed.connect(toggle_mute)
 	row.add_child(_mute_button)
+	music = Music.new()
+	add_child(music)
+	_music_button = Button.new()
+	_music_button.pressed.connect(cycle_music)
+	row.add_child(_music_button)
 	_show_mute()
+	music.refresh(sfx.muted)
 	_clock = Label.new()
 	_clock.add_theme_font_size_override("font_size", 18)
 	_clock.custom_minimum_size = Vector2(330, 0)
@@ -189,6 +197,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_set_speed(1 if paused else 0)
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		toggle_mute()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
+		cycle_music()
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
 		if _open_location == "street":
 			close_panel()
@@ -294,11 +304,18 @@ func open_panel(location: String) -> void:
 
 func toggle_mute() -> void:
 	sfx.set_muted(not sfx.muted)
+	music.refresh(sfx.muted)
+	_show_mute()
+
+
+func cycle_music() -> void:
+	music.cycle(sfx.muted)
 	_show_mute()
 
 
 func _show_mute() -> void:
 	_mute_button.text = "Sound off [M]" if sfx.muted else "Sound on [M]"
+	_music_button.text = "Music %s [N]%s" % [Music.LEVEL_NAMES[music.level], " (muted)" if sfx.muted and music.level > 0 else ""]
 
 
 func close_panel() -> void:
@@ -664,7 +681,7 @@ func _show_debrief(o: Dictionary) -> void:
 	var body := Label.new()
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.text = "%s\n\nScore %s bps (fund %s bps vs passive book %s bps, minus forced-action penalties)\nEnding NAV %s\nTactical redemption paid %s\nRecall resolved by %s\nForced actions: %s\nUnpaid: %s\nReplay proof: tape %s, journal %s" % [
-		CardRules.market_text(o.get("variant")), o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
+		CardRules.market_text(o.get("variant"), o.get("scenario")), o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
 		WorldRules.money(o["nav"]), WorldRules.money(o["redemption_paid"]), str(o.get("recall_resolved_by", "unresolved")),
 		"none" if o["forced"].is_empty() else "; ".join(o["forced"]), "none" if o["unpaid"].is_empty() else "; ".join(o["unpaid"]),
 		str(o["tape_digest"]).substr(0, 12), str(o["journal_digest"]).substr(0, 12)]
@@ -741,7 +758,7 @@ func _card(o: Dictionary, rows: Array) -> Control:
 	big.add_theme_color_override("font_color", {"WIN": Color("#6cbf8f"), "SURVIVAL": Color("#e0a14a")}.get(o["label"], Color("#ec6d62")))
 	v.add_child(big)
 	var market := Label.new()
-	market.text = CardRules.market_text(o.get("variant"))
+	market.text = CardRules.market_text(o.get("variant"), o.get("scenario"))
 	market.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	market.custom_minimum_size.x = CardRules.SIZE.x - 80
 	market.add_theme_font_size_override("font_size", 18)
