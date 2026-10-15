@@ -1229,7 +1229,7 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 
 **Limitations:** the solver is a local optimum of the integer problem, with no global-optimum claim. The tolerances are measured, not proven: worst observed gap to the convex optimum was 7.5% on small caps.
 
-**One next task:** run `uv run mypy src/fundforge/cure.py` (domain modules are mypy-strict per CLAUDE.md) and fix any findings.
+**Mypy:** `fundforge.cure` added to the strict override list in `backend/pyproject.toml`; `mypy --strict` passes.
 
 ## Campaign pacing (P4 milestone), 15 October 2026
 
@@ -1241,4 +1241,8 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 
 **Limitations:** the bound is per variant, not a general pacing guarantee. Only the four named variants are covered.
 
-**One next task:** add the campaign's seeded variants to the pacing test so the bound holds across generator seeds, not only the fixed variants.
+**Generated seeds (15 October 2026):** `test_skip_ready_matches_stepping_on_generated_seeds` covers `case1-generated` seeds 1-12. Digests match; skip takes 5-8 rounds against 18 stepped; bound 10. All 12 end in SURVIVAL, so outcome variety is untested. Campaign-v1 has authored variants only, not seeds.
+
+**Checks after merge:** backend `527 passed, 42 skipped`; `ruff check` clean; `mypy --strict` clean on `cure.py`.
+
+**One next task:** make the generated-seed pacing test cover a non-SURVIVAL outcome, by finding seeds that end in another label or by adding a tight-credit generated variant.
