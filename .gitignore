@@ -32,3 +32,7 @@ logs/
 .playwright-mcp/
 *.tsbuildinfo
 next-env.d.ts
+mlflow.db
+ml/results/*.zip
+deploy/kafka/plugins/
+ml/.venv-train/

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fundforge.local/contracts/outbox_event/ml-contracts-2026.10.1",
+  "title": "FundForge outbox event",
+  "description": "One row of the transactional outbox, written in the same PostgreSQL transaction as the accepted command that produced it, then relayed to Kafka by Debezium. Kafka is downstream only: Postgres stays the authority, and replaying a topic from offset 0 must reproduce the batch features. Money and rates are decimal strings, never floats.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "event_id", "room_id", "seq", "idx", "kind", "audience", "rules_version", "tape_digest", "day", "phase", "sim_date", "chain_head", "payload"],
+  "properties": {
+    "contract_version": {"const": "ml-contracts-2026.10.1"},
+    "event_id": {"type": "string", "description": "UUIDv5 of room_id|seq|kind|idx. Unique economic identity; consumers deduplicate on it.", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+    "room_id": {"type": "string", "minLength": 1, "description": "Kafka partition key, so each room is totally ordered."},
+    "seq": {"type": "integer", "minimum": 1, "description": "Room version of the accepted command that produced this event."},
+    "idx": {"type": "integer", "minimum": 0, "description": "Position of this event among the events of one command."},
+    "kind": {"enum": ["command", "journal_entry", "observation", "notice", "incident", "outcome"], "description": "Topic is fundforge.<kind>s."},
+    "audience": {"enum": ["public", "pm", "mp", "internal"], "description": "Who may see it in play. Seat-facing feature builders read public and that seat only; internal is for audit and anomaly jobs. Never widened downstream."},
+    "rules_version": {"type": "string", "minLength": 1},
+    "tape_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "day": {"type": "integer", "minimum": 0},
+    "phase": {"type": "string", "minLength": 1},
+    "sim_date": {"type": "string", "format": "date", "description": "Simulated business date when the event became available. Never wall time."},
+    "chain_head": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Command-log hash chain head after seq, for verification."},
+    "payload": {"type": "object", "description": "Kind-specific body. Must not contain hidden-truth keys (variant, seed, gen_seed, tape, factors, regime, true_state) unless kind is outcome."}
+  }
+}

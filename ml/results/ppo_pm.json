@@ -1,0 +1,85 @@
+{
+  "params": {
+    "role": "pm",
+    "steps": 200000,
+    "families_drawn": 200,
+    "seed": 0,
+    "train_families": 73,
+    "test_families": 7,
+    "contract": "ml-contracts-2026.10.1",
+    "encoder": "obs-v1",
+    "actions": "actions-v1",
+    "reward": "reward-v1",
+    "net": "128x128",
+    "n_steps": 256,
+    "batch_size": 256,
+    "gamma": 0.99,
+    "learning_rate": 0.0003,
+    "ent_coef": 0.01
+  },
+  "rejected": {
+    "cover_recall_only_does_not_win": 112
+  },
+  "train_seconds": 1422.1,
+  "model_sha256": "258ed586ee652a9da14fe2856153b428616651963263e74bb0267fa76bdce828",
+  "test_worlds": [
+    "ppo-22/base",
+    "ppo-22/rally",
+    "ppo-96/base",
+    "ppo-96/rally",
+    "ppo-116/base",
+    "ppo-116/rally",
+    "ppo-140/base",
+    "ppo-140/rally",
+    "ppo-142/base",
+    "ppo-142/rally",
+    "ppo-146/base",
+    "ppo-146/rally",
+    "ppo-180/base",
+    "ppo-180/rally"
+  ],
+  "report": {
+    "ppo": {
+      "n": 14,
+      "mean_reward": 8.011,
+      "ci95": 1.086,
+      "mean_score_bps": 301.1,
+      "labels": {
+        "WIN": 14
+      }
+    },
+    "rules": {
+      "n": 14,
+      "mean_reward": -2.453,
+      "ci95": 0.396,
+      "mean_score_bps": -245.3,
+      "labels": {
+        "SURVIVAL": 14
+      }
+    },
+    "random": {
+      "n": 70,
+      "mean_reward": 5.635,
+      "ci95": 0.25,
+      "mean_score_bps": 63.5,
+      "labels": {
+        "WIN": 70
+      }
+    },
+    "wait": {
+      "n": 14,
+      "mean_reward": -2.506,
+      "ci95": 0.372,
+      "mean_score_bps": -250.6,
+      "labels": {
+        "SURVIVAL": 14
+      }
+    },
+    "ppo_minus_random_paired": {
+      "n_worlds": 14,
+      "mean": 2.376,
+      "ci95": 1.013,
+      "ppo_better_worlds": 13
+    }
+  }
+}

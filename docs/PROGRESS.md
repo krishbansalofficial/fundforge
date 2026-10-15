@@ -1027,3 +1027,181 @@ Validation: 7 browser tests passed: 3 recovery cases, the existing delayed-respo
 Limitations: browser transport failures and Godot asynchronous failures are injected; no graphical human playtest was performed. Room/token snapshot isolation is enforced in code, while browser tests directly cover paused-room retry, retained state and old-version response rejection. No backend rules/schema/economics changed; rules remain 2026.10.12. Temporary8030/3011 processes stopped and existing gameplay servers preserved. No commit, push or deployment.
 
 **One next task:** explicit stale/disconnected status for the Godot main HUD when room polling fails, so old NAV and clock views cannot look live; retain last data with a visible age and recover on successful polling.
+
+## ML lane, day 1: decisions, contracts and boundaries, 13 October 2026
+
+The owner asked to make FundForge an ML project as well as a game. Their decisions, recorded in DECISIONS (13 October 2026):
+- add Kafka, Spark and Kubernetes, each behind a tested boundary;
+- zero spend;
+- public deployment authorized;
+- up to four parallel lanes.
+
+Plan: [ML_PLAN](ML_PLAN.md). Contracts: [ML_CONTRACTS](ML_CONTRACTS.md). CLAUDE.md gained one ML/platform paragraph.
+
+**New:**
+- `ml/`: a separate uv project, `fundforge_ml`, depending on the backend by path.
+- `contracts.py`:
+  - `CONTRACT_VERSION`;
+  - `split_of` (80/10/10 by seed family, fixed salt);
+  - `hidden_paths`;
+  - `observe`, the only sanctioned observation: `Session.view` plus a hidden-key check before the debrief.
+- `ml/contracts/`: outbox event and dataset JSON schemas.
+- `scripts/sim_benchmark.py`.
+- A CI `ml` job: `lint-imports`, ruff, mypy strict, pytest.
+
+**Checks:**
+- `ml` pytest **8 passed**, including the future-headline canary on both variants with a positive control.
+- `lint-imports` kept, ruff passed, mypy strict passed.
+- Both boundary checks failed on a deliberately planted `import fundforge_ml` in the backend and passed once it was removed.
+
+**Measured** with `sim_benchmark.py` on this 4-core container: 135–174 ms per Case1 episode (5.7–7.4 episodes/s/core). Under cProfile, 93% of the time is `copy.deepcopy` in `Session.handle`'s rollback snapshot.
+
+No backend source, fixture, rules version or golden changed, so the backend suite was not re-run for this change. Nothing has been deployed yet.
+
+**Limitations:**
+- Contracts only; no environment, model, Kafka, Spark or Kubernetes code yet.
+- The Oracle free-tier limits have conflicting 2026 reports and must be checked in the tenancy.
+
+**One next task:** lane A replaces the deepcopy rollback snapshot with an undo log. The stateful Hypothesis test and goldens must stay unchanged, and the speed-up must be measured with `sim_benchmark.py`.
+
+## Faster rollback snapshot, 13 October 2026
+
+`Session.handle` snapshots the session before every command, so it can roll back if the command fails. It now does this with `pickle` instead of `copy.deepcopy`. New `governance.snapshot`/`restore` share the pinned tape by reference, exactly as the old deepcopy memo did, and the bytes are unpickled only when a command fails. Rollback semantics are unchanged. No rules version, fixture or golden changed.
+
+**Tests:** new `backend/tests/test_snapshot.py` (3) checks that:
+- a restored copy matches deepcopy (same journal digest, NAV and session state);
+- the restored copy is independent of the live session and shares only the tape;
+- a rejected command leaves the view, digest and version identical;
+- an unknown persistent id is refused.
+
+**Checks:**
+- Full backend suite **298 passed** with a local PostgreSQL 16 (CI uses 17); none skipped.
+- Ruff passed; mypy passed (29 files).
+- `ml` tests still pass.
+
+**Measured** with `scripts/sim_benchmark.py` on 4 cores: **65–76 ms per Case1 episode, 13–15 episodes/s/core**, against 135–174 ms before (about 2.2×). Under cProfile the snapshot is still 75% of the remaining time.
+
+**Limitation:** this is a cheaper copy, not an undo log. Pickle is used only for in-process rollback bytes created by the server itself, never for loading external data.
+
+**One next task:** lanes B, C and D start their day 2–3 items once PR #5 merges. Lane A takes the settlement-obligations task; the undo log comes only if RL training time needs it.
+
+## ML lane: Gymnasium environment (lane B, day 2), 13 October 2026
+
+New code in `ml/src/fundforge_ml/`:
+- `worlds.py`: authored or generated worlds, cached, behind the existing balance gate, with seed families for splitting.
+- `encoding.py`: `obs-v1`, a 96-float vector built only from the partner's view and public scenario facts.
+- `env.py`: `FundForgeEnv`, one seat as a Gymnasium env; `bot:v1` plays the other seat through normal commands.
+  - **Actions** (`actions-v1`, 46 in total): wait; reduce any position by 25%, 50% or 100%, always proposed as a joint package that the partner must countersign; research a topic; share it; accept replacement borrow.
+  - **Mask:** built from the observation only, exposed as `action_masks()` for MaskablePPO.
+  - **Reward** (`reward-v1`): the engine's own score in percent plus a tier bonus, with optional NAV shaping.
+
+`ml/tests/test_env.py` (11 tests) covers:
+- Gymnasium's `check_env` for both seats;
+- full scored episodes with a reconciliation check;
+- identical journal digests and observations for the same seed and actions;
+- trades requiring the partner's countersignature;
+- role-specific masks;
+- no hidden keys in `info` before the debrief;
+- **numeric canary:** ALTO is doubled from the last public mark onward. Every earlier observation and mask must be identical to a clean run, and the change must appear afterwards (positive control).
+
+**Checks:** `ml` 19 passed; ruff, mypy strict and `lint-imports` pass.
+
+**Measured** with `ml/scripts/env_baselines.py` (this container, 40 seed families, 20 episodes per row):
+- **Balance gate:** 23/40 generated families pass for both variants. All 17 rejections are `cover_recall_only_does_not_win`.
+- **Speed:** 6–7 decisions per episode with skip pacing; 38–123 env steps/s.
+- **Baselines** on 4 test-split families:
+
+| Seat | Never act | Uniform random over valid actions |
+|---|---|---|
+| PM | mean reward −2.03 ± 0.29, 20 Survival | +6.43 ± 0.65, 20 Win |
+| MP | +0.07 ± 1.26, 15 Survival / 5 Win | +6.02 ± 0.54, 20 Win |
+
+**Finding:** in these worlds, random valid play wins every time. The masked action set plus the bot partner makes the current Case1 decisions too easy. That is a balance problem for the game lane, and RL results must be reported against this random baseline, not against doing nothing.
+
+**Limitations:**
+- No learned policy yet.
+- The two-seat PettingZoo env, the dataset export and the `visit`/`resolve_statement`/`set_reserve` actions are not in v1.
+
+**One next task:** train MaskablePPO on train-split families and compare it on test-split families against the random baseline, with MLflow tracking.
+
+## Data lane: transactional outbox, Debezium and Kafka (lane D), 13 October 2026
+
+**Outbox** (`backend/src/fundforge/outbox.py`, migration `0007_outbox.sql`):
+- `Store._apply` writes outbox rows in the **same transaction** as each command and its journal rows.
+- Each command emits:
+  - the command itself (public);
+  - its journal entries (internal);
+  - new notices (the owner's seat if the notice has an owner, otherwise public);
+  - new incidents;
+  - the outcome when the game ends.
+- `Session.log` entries now record counts after each command, so events are attributed to the exact command, bot commands included.
+- The table is append-only with a foreign key to `commands`. Nothing in the game reads it.
+
+**Tests and checks:**
+- Backend `test_outbox.py` (4, PostgreSQL) checks:
+  - journal events match `journal_entries`, and every event's chain head matches its command row;
+  - research evidence is MP-private;
+  - exactly one outcome event carries the variant;
+  - rejected or retried commands write no events;
+  - the table is append-only;
+  - in solo rooms, bot commands get their own events.
+- Full backend suite **302 passed** with local PostgreSQL 16.
+- `ml/tests/test_outbox_contract.py` validates full-game rows against the frozen JSON schema and checks that the backend and ML contract versions agree.
+
+**Streaming features** (`fundforge_ml/stream.py`, `stream-features-v1`): per-seat, order-independent features (counts, maxima, set unions), deduplicated by `event_id`, reading only public events and the seat's own. `test_stream.py` checks that shuffled and redelivered streams equal the batch result, that seats stay isolated, that Debezium dates are normalized, and that hidden truth is refused.
+
+**Kafka stack** (`deploy/kafka/`):
+- single-node KRaft Kafka 3.9.1;
+- a Kafka Connect worker on the stock `apache/kafka` image, with the Debezium Postgres connector 3.2.0.Final from Maven Central, verified against Maven's SHA-1 (quay.io is blocked from this container);
+- an Outbox Event Router routing to `fundforge.<kind>s`, keyed by room.
+
+**End-to-end** (`ml/scripts/kafka_e2e.py`, measured here, `ml/results/kafka_e2e.json`):
+
+| Phase | Result |
+|---|---|
+| Live | 29/29 events delivered, correct topics, streamed features equal batch |
+| Kafka stopped | Game finished and verified (43 commands) |
+| After restart | All 306 outbox events arrived (335 messages, 29 redelivered); streamed features equal batch |
+
+The new CI job `kafka` runs the same check.
+
+**Finding:** a single Connect worker coordinates through the broker. After a broker outage its source task cannot stop cleanly: first the producer failed sends, then, with blocking sends, a rebalance could not stop the task. The working recovery is restarting the Connect worker. Debezium resumes from its offsets and the replication slot, so delivery is at least once and deduplicated by `event_id`.
+
+**Limitations:**
+- The room's opening entries are not emitted, since they are derivable from the pinned tape.
+- `verify()` does not yet re-derive the outbox.
+- Kafka is not part of the production compose, and nothing is deployed.
+
+## ML lane: MaskablePPO on held-out worlds (lane B), 14 October 2026
+
+`ml/scripts/train_ppo.py` with MaskablePPO (sb3-contrib 2.9, PyTorch 2.14, CPU), tracked in MLflow (SQLite backend):
+
+**Data:** 200 generated seed families went through the balance gate.
+- 88 passed both variants: 73 train / 8 val / 7 test by `split_of`.
+- 112 were rejected, all `cover_recall_only_does_not_win`, and recorded.
+
+**Training:** PM seat, 200,000 steps on train families only, 4 worker processes, 1,422 s (141 steps/s). MLP 128×128, n_steps 256, batch 256, γ 0.99, lr 3e-4, entropy 0.01, seed 0.
+
+**Results** (`ml/results/ppo_pm.json`, model SHA-256 recorded; the model file is not committed) on the **14 held-out test worlds** (7 families × 2 variants):
+
+| Policy | Mean reward ± 95% CI | Mean score | Outcomes |
+|---|---|---|---|
+| MaskablePPO, deterministic | 8.01 ± 1.09 | +301 bps | 14 Win |
+| Random valid action, 5 seeds per world | 5.64 ± 0.25 | +64 bps | 70 Win |
+| `bot:v1` rules in the PM seat | −2.45 ± 0.40 | −245 bps | 14 Survival |
+| Wait | −2.51 ± 0.37 | −251 bps | 14 Survival |
+
+Paired against random on each world: **+2.38 ± 1.01**, with PPO ahead on **13 of 14** worlds.
+
+**Notes:**
+- The engine's score is excess return over the passive opening book minus forced-action penalties, so the PPO gain is in score, not tier: random play already wins every world.
+- `bot:v1` as PM is capped by the 5% solo-ticket limit, so its margin cure is too small in the base market. It is no stronger than waiting here.
+- The first 200k run was lost to an environment mistake: a concurrent `uv sync` removed torch from the shared venv during training. Training now uses an isolated `ml/.venv-train`.
+
+**Limitations:**
+- One seed and one seat (PM).
+- 14 test worlds is a small sample.
+- No hyperparameter search; the validation split is unused so far.
+- Evaluation is on the authored Case1 skeleton with generated marks only (no scenario randomiser yet).
+
+**One next task:** train the MP seat and repeat with 3 seeds to report variance across seeds. Then run Optuna on the validation split.
