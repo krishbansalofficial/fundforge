@@ -87,6 +87,10 @@ func _initialize() -> void:
 	check("sell-off and short squeeze" in CardRules.market_text("base"), "case1 base market text")
 	check("sell-off and short squeeze" in CardRules.market_text(null), "missing variant reads as base")
 	check("broad rally" in CardRules.market_text("rally"), "case1 rally market text")
+	check("broad rally" in CardRules.market_text("rally", "case1-generated") and "sell-off" in CardRules.market_text("base", "case1"),
+			"case1-family scenarios keep the day 16 text")
+	var camp_text := CardRules.market_text("lean-company", "campaign-v1")
+	check("campaign-v1" in camp_text and "lean-company" in camp_text and not "day 16" in camp_text, "campaign ending names its own variant")
 	var gen_text := CardRules.market_text("seed:card-test")
 	check("generated" in gen_text and "card-test" in gen_text and not "rally" in gen_text and not "squeeze" in gen_text,
 			"generated market text reveals the seed, not a case1 variant")
@@ -267,8 +271,8 @@ func _initialize() -> void:
 	check(TerminalRules.prices([], "BRIN").is_empty(), "empty chart safe")
 	check(TerminalRules.pct(null) == "--" and TerminalRules.bps("-12.5") == "-12.5", "undefined and negative analytics formatting")
 	var keys := WorldRules.SCENARIOS.map(func(sc): return sc[0])
-	check(keys == ["case1", "case1-controls", "case1-settlement", "case1-generated"],
-			"menu offers standard, broker, settlement and generated scenarios")
+	check(keys == ["case1", "case1-controls", "case1-settlement", "case1-generated", "campaign-v1"],
+			"menu offers standard, broker, settlement, generated and campaign scenarios")
 	var frames := PackedFloat64Array()
 	for i in range(1, 101):
 		frames.append(float(i))  # 1..100 ms

@@ -664,7 +664,7 @@ func _show_debrief(o: Dictionary) -> void:
 	var body := Label.new()
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.text = "%s\n\nScore %s bps (fund %s bps vs passive book %s bps, minus forced-action penalties)\nEnding NAV %s\nTactical redemption paid %s\nRecall resolved by %s\nForced actions: %s\nUnpaid: %s\nReplay proof: tape %s, journal %s" % [
-		CardRules.market_text(o.get("variant")), o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
+		CardRules.market_text(o.get("variant"), o.get("scenario")), o.get("score", "?"), o.get("fund_return_bps", "?"), o.get("benchmark_return_bps", "?"),
 		WorldRules.money(o["nav"]), WorldRules.money(o["redemption_paid"]), str(o.get("recall_resolved_by", "unresolved")),
 		"none" if o["forced"].is_empty() else "; ".join(o["forced"]), "none" if o["unpaid"].is_empty() else "; ".join(o["unpaid"]),
 		str(o["tape_digest"]).substr(0, 12), str(o["journal_digest"]).substr(0, 12)]
@@ -741,7 +741,7 @@ func _card(o: Dictionary, rows: Array) -> Control:
 	big.add_theme_color_override("font_color", {"WIN": Color("#6cbf8f"), "SURVIVAL": Color("#e0a14a")}.get(o["label"], Color("#ec6d62")))
 	v.add_child(big)
 	var market := Label.new()
-	market.text = CardRules.market_text(o.get("variant"))
+	market.text = CardRules.market_text(o.get("variant"), o.get("scenario"))
 	market.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	market.custom_minimum_size.x = CardRules.SIZE.x - 80
 	market.add_theme_font_size_override("font_size", 18)
