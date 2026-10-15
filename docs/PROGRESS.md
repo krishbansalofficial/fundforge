@@ -1246,3 +1246,15 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 **Checks after merge:** backend `527 passed, 42 skipped`; `ruff check` clean; `mypy --strict` clean on `cure.py`.
 
 **One next task:** make the generated-seed pacing test cover a non-SURVIVAL outcome, by finding seeds that end in another label or by adding a tight-credit generated variant.
+
+## Parallel milestone checkpoint, 15 October 2026
+
+**Merged into `main`:**
+- Settlement reconstruction (`backend/src/fundforge/settlement_recon.py`, 17 tests): recomputes dated obligations and receipts from execution identities without importing posting code; reports typed breaks, never repairs. Not wired into `engine.control_report`; no RISK display; no per-ledger cash reconciliation; loan-return and borrow-fee dating not done.
+- Generator gate (`store.py`, migration `0008_gate_record.sql`): an explicit generated seed is now gated too, a seed-free gate record is kept per room and revealed only after finish. Measured acceptance with `scripts/generator_acceptance.py`, N=10: default 3/10, calmer 5/10, quiet 6/10; earlier N=20 figures were 7/20, 10/20, 11/20. Default acceptance is about 30%, so 12 consecutive rejections fail room creation with "try again". That chance is not measured as a rate.
+
+**Not merged:** `worktree-agent-abe46a9428f44dc4b` (shadow certification). It adds a second `certify()` that conflicts with the existing NAV certificate gate in `shadow.py`, which `engine.py` already runs at every dealing close. Merging needs an owner decision on which gate stays.
+
+**Checks:** backend `564 passed, 42 skipped`; ruff clean; mypy clean on `store.py` and `cure.py`. Postgres-gated tests were skipped here because `DATABASE_URL` is unset.
+
+**One next task:** decide the shadow merge (keep the existing `certify()` and port only the independent-strike checks that are missing), then run the Postgres-gated suite against a scratch database.
