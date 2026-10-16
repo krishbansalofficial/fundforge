@@ -83,21 +83,52 @@ def phantom_expense(amount):
 
 def test_balanced_but_economically_wrong_posting_fails_certification_and_blocks_dealing():
     e, units = phantom_expense("100.00")
-    assert e.status_at_deal == "checked"  # every pre-existing control passes this posting at the gate
+    assert e.status_at_deal == "break"  # the expense-accrual control flags it before dealing
     [cert] = e.certificates
-    assert cert["status"] == "broken" and cert["reasons"] == ["shadow_nav"] and cert["difference"] == "-100.00"
+    assert cert["status"] == "broken" and cert["reasons"] == ["shadow_break", "shadow_nav"]
+    assert cert["difference"] == "-100.00"
     assert sum(s.units for s in e.series) == units and not e.administrator.claims
     assert e.bal("redemption_payable") == 0
     incident = e.incident_events[-1]
-    assert incident["code"] == "dealing_blocked" and incident["refs"]["reasons"] == "shadow_nav"
+    assert incident["code"] == "dealing_blocked" and incident["refs"]["reasons"] == "shadow_break,shadow_nav"
     assert incident["amounts"] == {"nav_difference": "-100.00"}
+
+
+def test_unsupported_expense_accrual_is_flagged_between_dealing_closes():
+    e = Engine(load(CASE1))
+    e.advance()
+    while e.ev.day < 10:
+        e.advance()
+    assert not e.certificates and not [b for b in e.control_report()["breaks"] if b["code"] == "expense_accrual"]
+    e._post("Unsupported expense accrual", ("common_pnl", D("250.00")), ("accrued_expense", D("-250.00")))
+    e.reconcile()  # balanced: trial balance, positions and series capital still agree
+    report = e.control_report()
+    assert report["status"] == "break" and not e.certificates
+    assert [b for b in report["breaks"] if b["code"] == "expense_accrual"] == [
+        {"code": "expense_accrual", "subject": "accrued_expense", "actual": "-250.00", "expected": "0.00"}]
+    assert e.bal("accrued_expense") == D("-250.00")  # reported, never repaired
+
+
+def test_golden_paths_carry_no_expense_accrual_break_at_any_barrier():
+    from test_golden import PATHS
+    for name, script in PATHS.items():
+        e = Engine(load(CASE1))
+        e.advance()
+        while not e.finished():
+            nxt = e.next_event()
+            if e.at_barrier():
+                assert not [b for b in e.control_report()["breaks"] if b["code"] == "expense_accrual"], name
+            if (nxt.day, nxt.phase) in script:
+                script[(nxt.day, nxt.phase)](e)
+            e.advance()
+        assert not [b for b in e.control_report()["breaks"] if b["code"] == "expense_accrual"], name
 
 
 def test_one_cent_engine_boundary():
     e, units = phantom_expense("0.01")
     assert e.certificates[-1]["status"] == "certified" and sum(s.units for s in e.series) < units
     e, units = phantom_expense("0.02")
-    assert e.certificates[-1]["reasons"] == ["shadow_nav"] and sum(s.units for s in e.series) == units
+    assert e.certificates[-1]["reasons"] == ["shadow_break", "shadow_nav"] and sum(s.units for s in e.series) == units
 
 
 def test_open_broker_statement_break_blocks_certification_and_dealing():
