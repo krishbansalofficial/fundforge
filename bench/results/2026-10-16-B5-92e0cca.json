@@ -1,0 +1,7460 @@
+{
+  "benchmark": "B5-control-detection",
+  "commit": "92e0cca",
+  "rules_version": "case1-rules-2026.10.15",
+  "measured_at": "2026-10-16T21:40:10+00:00",
+  "python": "3.13.12",
+  "machine": "Windows AMD64, Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, 32 logical CPUs",
+  "seeds_per_class": 40,
+  "layers": {
+    "reconcile": "Engine.reconcile at injection, or a reconcile InvariantError later in the season",
+    "controls": "Engine.control_report breaks or open statement at injection",
+    "certificate": "shadow.certify struck at injection (includes control breaks plus shadow_nav)",
+    "verify": "database-free Store.verify core: replay tape and script, compare journal digest"
+  },
+  "not_done": "mutation testing (mutmut) over journal, series, shadow, broker, administrator",
+  "summary": {
+    "per_class": {
+      "balanced_unsupported_posting": {
+        "n": 40,
+        "reconcile": 3,
+        "controls": 30,
+        "certificate": 40,
+        "verify": 40,
+        "independent": 40,
+        "missed_by_controls": [
+          "accrued_expense"
+        ],
+        "variants": {
+          "accrued_expense": {
+            "reconcile": "0/10",
+            "controls": "0/10",
+            "certificate": "10/10",
+            "verify": "10/10"
+          },
+          "accrued_interest": {
+            "reconcile": "0/4",
+            "controls": "4/4",
+            "certificate": "4/4",
+            "verify": "4/4"
+          },
+          "cash": {
+            "reconcile": "0/2",
+            "controls": "2/2",
+            "certificate": "2/2",
+            "verify": "2/2"
+          },
+          "collateral": {
+            "reconcile": "0/4",
+            "controls": "4/4",
+            "certificate": "4/4",
+            "verify": "4/4"
+          },
+          "debt": {
+            "reconcile": "0/6",
+            "controls": "6/6",
+            "certificate": "6/6",
+            "verify": "6/6"
+          },
+          "long_securities": {
+            "reconcile": "3/3",
+            "controls": "3/3",
+            "certificate": "3/3",
+            "verify": "3/3"
+          },
+          "mgmt_fee_payable": {
+            "reconcile": "0/11",
+            "controls": "11/11",
+            "certificate": "11/11",
+            "verify": "11/11"
+          }
+        }
+      },
+      "phantom_or_missing_position": {
+        "n": 40,
+        "reconcile": 4,
+        "controls": 40,
+        "certificate": 40,
+        "verify": 32,
+        "independent": 40,
+        "missed_by_controls": [],
+        "variants": {
+          "add_long": {
+            "reconcile": "0/15",
+            "controls": "15/15",
+            "certificate": "15/15",
+            "verify": "15/15"
+          },
+          "add_short": {
+            "reconcile": "4/4",
+            "controls": "4/4",
+            "certificate": "4/4",
+            "verify": "4/4"
+          },
+          "drop_confirmation": {
+            "reconcile": "0/8",
+            "controls": "8/8",
+            "certificate": "8/8",
+            "verify": "0/8"
+          },
+          "remove_long": {
+            "reconcile": "0/13",
+            "controls": "13/13",
+            "certificate": "13/13",
+            "verify": "13/13"
+          }
+        }
+      },
+      "settlement": {
+        "n": 40,
+        "reconcile": 0,
+        "controls": 40,
+        "certificate": 40,
+        "verify": 0,
+        "independent": 40,
+        "missed_by_controls": [],
+        "variants": {
+          "drop_receipt": {
+            "reconcile": "0/7",
+            "controls": "7/7",
+            "certificate": "7/7",
+            "verify": "0/7"
+          },
+          "duplicate_receipt": {
+            "reconcile": "0/10",
+            "controls": "10/10",
+            "certificate": "10/10",
+            "verify": "0/10"
+          },
+          "misallocate_pending": {
+            "reconcile": "0/1",
+            "controls": "1/1",
+            "certificate": "1/1",
+            "verify": "0/1"
+          },
+          "misamount_receipt": {
+            "reconcile": "0/14",
+            "controls": "14/14",
+            "certificate": "14/14",
+            "verify": "0/14"
+          },
+          "misdate_receipt": {
+            "reconcile": "0/8",
+            "controls": "8/8",
+            "certificate": "8/8",
+            "verify": "0/8"
+          }
+        }
+      },
+      "financing": {
+        "n": 40,
+        "reconcile": 0,
+        "controls": 40,
+        "certificate": 40,
+        "verify": 30,
+        "independent": 40,
+        "missed_by_controls": [],
+        "variants": {
+          "date_shift": {
+            "reconcile": "0/17",
+            "controls": "17/17",
+            "certificate": "17/17",
+            "verify": "17/17"
+          },
+          "day_count_365": {
+            "reconcile": "0/13",
+            "controls": "13/13",
+            "certificate": "13/13",
+            "verify": "13/13"
+          },
+          "wrong_rate": {
+            "reconcile": "0/10",
+            "controls": "10/10",
+            "certificate": "10/10",
+            "verify": "0/10"
+          }
+        }
+      },
+      "lp_fee": {
+        "n": 40,
+        "reconcile": 0,
+        "controls": 40,
+        "certificate": 40,
+        "verify": 31,
+        "independent": 40,
+        "missed_by_controls": [],
+        "variants": {
+          "fee_date_shift": {
+            "reconcile": "0/5",
+            "controls": "5/5",
+            "certificate": "5/5",
+            "verify": "5/5"
+          },
+          "fee_rate": {
+            "reconcile": "0/9",
+            "controls": "9/9",
+            "certificate": "9/9",
+            "verify": "0/9"
+          },
+          "provision": {
+            "reconcile": "0/9",
+            "controls": "9/9",
+            "certificate": "9/9",
+            "verify": "9/9"
+          },
+          "series_misallocation": {
+            "reconcile": "0/7",
+            "controls": "7/7",
+            "certificate": "7/7",
+            "verify": "7/7"
+          },
+          "unearned_receivable": {
+            "reconcile": "0/10",
+            "controls": "10/10",
+            "certificate": "10/10",
+            "verify": "10/10"
+          }
+        }
+      },
+      "statement": {
+        "n": 40,
+        "reconcile": 0,
+        "controls": 40,
+        "certificate": 40,
+        "verify": 0,
+        "independent": 40,
+        "missed_by_controls": [],
+        "variants": {
+          "authored_mismatch": {
+            "reconcile": "0/21",
+            "controls": "21/21",
+            "certificate": "21/21",
+            "verify": "0/21"
+          },
+          "broker_record": {
+            "reconcile": "0/19",
+            "controls": "19/19",
+            "certificate": "19/19",
+            "verify": "0/19"
+          }
+        }
+      }
+    },
+    "clean": {
+      "seasons": 8,
+      "checkpoints": 152,
+      "flagged_checkpoints": 0,
+      "flagged_seasons": []
+    }
+  },
+  "faults": [
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 0,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "accrued_interest",
+      "params": {
+        "amount": "-9001.77"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-9001.77",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 1,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "collateral",
+      "params": {
+        "amount": "2798.13"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "2798.13",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 2,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-6645.60"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-6645.60",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 3,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "accrued_interest",
+      "params": {
+        "amount": "-1004.12"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-1004.12",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 4,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "long_securities",
+      "params": {
+        "amount": "5035.21"
+      },
+      "reconcile_code": "long_securities",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "5035.21",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 5,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-6886.99"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6886.99",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 6,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-4879.67"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-4879.67",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 7,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "cash",
+      "params": {
+        "amount": "4687.73"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "4687.73",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 8,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "collateral",
+      "params": {
+        "amount": "311.82"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "311.82",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 9,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-8925.76"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-8925.76",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 10,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-6788.90"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6788.90",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 11,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-8803.67"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-8803.67",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 12,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "long_securities",
+      "params": {
+        "amount": "8406.19"
+      },
+      "reconcile_code": "long_securities",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "8406.19",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 13,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-9637.64"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-9637.64",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 14,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-5379.82"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-5379.82",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 15,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "accrued_interest",
+      "params": {
+        "amount": "-9662.36"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-9662.36",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 16,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-6837.74"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6837.74",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 17,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-5533.43"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-5533.43",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 18,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-4253.21"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-4253.21",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 19,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "collateral",
+      "params": {
+        "amount": "8095.98"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "8095.98",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 20,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-8326.17"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-8326.17",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 21,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-5039.07"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-5039.07",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 22,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-7075.26"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-7075.26",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 23,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-1778.83"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-1778.83",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 24,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-6830.47"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6830.47",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 25,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "collateral",
+      "params": {
+        "amount": "1674.33"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "1674.33",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 26,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-1594.64"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-1594.64",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 27,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-8754.29"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-8754.29",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 28,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "debt",
+      "params": {
+        "amount": "-4313.54"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-4313.54",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 29,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-987.13"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-987.13",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 30,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "cash",
+      "params": {
+        "amount": "3871.15"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "3871.15",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 31,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-2468.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-2468.49",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 32,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-7209.61"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-7209.61",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 33,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-3677.39"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-3677.39",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 34,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-6376.77"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6376.77",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 35,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "long_securities",
+      "params": {
+        "amount": "8252.48"
+      },
+      "reconcile_code": "long_securities",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "8252.48",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 36,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "accrued_interest",
+      "params": {
+        "amount": "-3349.81"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-3349.81",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 37,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-6867.78"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-6867.78",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 38,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "mgmt_fee_payable",
+      "params": {
+        "amount": "-819.72"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-819.72",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "balanced_unsupported_posting",
+      "seed": 39,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "accrued_expense",
+      "params": {
+        "amount": "-1890.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [],
+      "certificate_reasons": [
+        "shadow_nav"
+      ],
+      "nav_difference": "-1890.50",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": false,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 0,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "IONA",
+        "qty": 2178
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "207032.98",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 1,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "BEAM",
+        "qty": 4821
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "458487.65",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 2,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-877869.94",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 3,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-1906459.32",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 4,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 2889
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-288900.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 5,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 2746
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-260829.95",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 6,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "BEAM",
+        "qty": 3832
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "383200.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 7,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "IONA",
+        "qty": 1398
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "139800.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 8,
+      "path": "F1_inaction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "ELAN",
+        "qty": 3945
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "394500.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 9,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-878735.30",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 10,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 1587
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "158700.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 11,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-352376.37",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 12,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 1978
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-187910.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 13,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "JUNO",
+        "qty": 2543
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "254300.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 14,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "JUNO",
+        "qty": 4901
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-465871.73",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 15,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "BEAM",
+        "qty": 2423
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-218552.61",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 16,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 1079
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "107900.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 17,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "BEAM",
+        "qty": 4608
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "439683.27",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 18,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 2086
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-198167.98",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 19,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 1286
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-128600.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 20,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "ELAN",
+        "qty": 4174
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-417400.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 21,
+      "path": "F1_inaction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 557
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "55700.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 22,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "add_short",
+      "params": {
+        "sym": "HELI",
+        "qty": 4420
+      },
+      "reconcile_code": "borrow_position",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-490260.50",
+      "propagation": "invariant:borrow_position",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 23,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 268
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-25460.85",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 24,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 2123
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "212300.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 25,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "IONA",
+        "qty": 2235
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "223500.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 26,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "receipt_before_due",
+        "settlement_misallocated",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "137645.06",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 27,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 1248
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-124800.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 28,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "settlement_misallocated",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "125018.54",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 29,
+      "path": "F1_inaction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "ALTO",
+        "qty": 3997
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "399700.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 30,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "JUNO",
+        "qty": 83
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "8300.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 31,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "receipt_before_due",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-879905.81",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 32,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "drop_confirmation",
+      "params": {
+        "confirmation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position",
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-345696.28",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 33,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "COVE",
+        "qty": 3506
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-333009.66",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 34,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "add_short",
+      "params": {
+        "sym": "HELI",
+        "qty": 200
+      },
+      "reconcile_code": "borrow_position",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-22003.28",
+      "propagation": "invariant:borrow_position",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 35,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "BEAM",
+        "qty": 2410
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-230628.42",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 36,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "add_long",
+      "params": {
+        "sym": "GALA",
+        "qty": 1745
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "165766.95",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 37,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "add_short",
+      "params": {
+        "sym": "BRIN",
+        "qty": 4085
+      },
+      "reconcile_code": "borrow_position",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-408500.00",
+      "propagation": "invariant:borrow_position",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 38,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "remove_long",
+      "params": {
+        "sym": "GALA",
+        "qty": 4187
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "conditional_nav",
+        "long_valuation",
+        "position"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-418700.00",
+      "propagation": "invariant:administrator_controls",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "phantom_or_missing_position",
+      "seed": 39,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "add_short",
+      "params": {
+        "sym": "DART",
+        "qty": 3309
+      },
+      "reconcile_code": "borrow_position",
+      "control_codes": [
+        "conditional_nav",
+        "position",
+        "short_valuation"
+      ],
+      "certificate_reasons": [
+        "shadow_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-330900.00",
+      "propagation": "invariant:borrow_position",
+      "detected": {
+        "reconcile": true,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 0,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 1,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 2,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 3,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 4,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 5,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 6,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 7,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 8,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 9,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 10,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 11,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 12,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 13,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 14,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 15,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 16,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 17,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 18,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 19,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 20,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 21,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 22,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 23,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 24,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 25,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "misallocate_pending",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-35.34",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 26,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 27,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 28,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 29,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 30,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 31,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 32,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 33,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 34,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misdate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "receipt_before_due"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 35,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 36,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "drop_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_missing"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 37,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 38,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "duplicate_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_duplicate"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "settlement",
+      "seed": 39,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "misamount_receipt",
+      "params": {
+        "obligation": "X1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settlement_misallocated"
+      ],
+      "certificate_reasons": [
+        "settlement_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 0,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 1,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-HELI",
+        "rate": "0.0369"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 2,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-FENN",
+        "rate": "0.0356"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 3,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-20",
+        "amount": "18.11"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 4,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-HELI",
+        "rate": "0.0632"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 5,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-27",
+        "amount": "48.88"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 6,
+      "path": "F1_inaction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-FENN",
+        "rate": "0.0398"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 7,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-23",
+        "posted": "69.45",
+        "act365": "68.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 8,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 9,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-21",
+        "amount": "24.42"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 10,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-20",
+        "amount": "30.48"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 11,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-26",
+        "amount": "6.47"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 12,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-HELI",
+        "rate": "0.0334"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 13,
+      "path": "F1_inaction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-22",
+        "amount": "26.38"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 14,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-24",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 15,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-replacement-BRIN",
+        "rate": "0.4377"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 16,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-BRIN",
+        "rate": "0.0536"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 17,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-21",
+        "amount": "7.32"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 18,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-21",
+        "amount": "90.70"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 19,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-DART",
+        "rate": "0.0463"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 20,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-21",
+        "amount": "0.29"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 21,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 22,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-20",
+        "amount": "3.65"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 23,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-23",
+        "amount": "94.41"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 24,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-21",
+        "posted": "69.45",
+        "act365": "68.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 25,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-21",
+        "posted": "69.45",
+        "act365": "68.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 26,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-24",
+        "amount": "79.18"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 27,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-BRIN",
+        "rate": "0.0424"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 28,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "wrong_rate",
+      "params": {
+        "loan": "L-open-DART",
+        "rate": "0.0691"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "settled_loan"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 29,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 30,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-21",
+        "amount": "27.89"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 31,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-25",
+        "posted": "69.45",
+        "act365": "68.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 32,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 33,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-26",
+        "posted": "76.74",
+        "act365": "75.69"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "1.05",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 34,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-22",
+        "amount": "53.01"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 35,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-20",
+        "amount": "3.63"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 36,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-20",
+        "amount": "88.74"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 37,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-20",
+        "posted": "69.44",
+        "act365": "68.49"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 38,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "date_shift",
+      "params": {
+        "from": "2026-01-24",
+        "amount": "73.95"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "financing",
+      "seed": 39,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "day_count_365",
+      "params": {
+        "date": "2026-01-21",
+        "posted": "69.45",
+        "act365": "68.50"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "financing_accrued",
+        "financing_date"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "0.95",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 0,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "368.38"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-368.38",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 1,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Seed",
+        "amount": "154.85"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 2,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Seed",
+        "amount": "414.76"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 3,
+      "path": "S1_early_reduction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Tactical",
+        "amount": "68.15"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 4,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "1.1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-718.94",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 5,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Patient",
+        "amount": "293.52"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 6,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Seed",
+        "amount": "576.05",
+        "to": "Tactical"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 7,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "712.05"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-712.05",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 8,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Patient",
+        "amount": "260.49",
+        "to": "Seed"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 9,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "fee_date_shift",
+      "params": {
+        "series": "Seed",
+        "amount": "898.34",
+        "from": "2026-01-20"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "management_fee_date"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 10,
+      "path": "S1_early_reduction",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "0.5"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "4543.29",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 11,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Tactical",
+        "amount": "345.17"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 12,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Seed",
+        "amount": "12.41"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 13,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Seed",
+        "amount": "911.28",
+        "to": "Tactical"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 14,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-8125.41",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 15,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "709.75"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-709.75",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 16,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Patient",
+        "amount": "430.73"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 17,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "0.5"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "3594.90",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 18,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Seed",
+        "amount": "59.56"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 19,
+      "path": "F1_inaction",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Tactical",
+        "amount": "813.00"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 20,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Seed",
+        "amount": "791.06",
+        "to": "Tactical"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 21,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "fee_date_shift",
+      "params": {
+        "series": "Seed",
+        "amount": "415.50",
+        "from": "2026-01-25"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "management_fee_date"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 22,
+      "path": "F1_inaction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "fee_date_shift",
+      "params": {
+        "series": "Seed",
+        "amount": "389.67",
+        "from": "2026-01-23"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "management_fee_date"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 23,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "652.23"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-652.23",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 24,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-8128.69",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 25,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "fee_date_shift",
+      "params": {
+        "series": "Patient",
+        "amount": "649.61",
+        "from": "2026-01-20"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "management_fee_date"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 26,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Seed",
+        "amount": "742.32"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-742.32",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 27,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Seed",
+        "amount": "977.71",
+        "to": "Tactical"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 28,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "fee_date_shift",
+      "params": {
+        "series": "Tactical",
+        "amount": "496.80",
+        "from": "2026-01-21"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "management_fee_date"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 29,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "2"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-3081.74",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 30,
+      "path": "S1_early_reduction",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "1.1"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-718.60",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 31,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "unearned_receivable",
+      "params": {
+        "series": "Seed",
+        "amount": "81.09"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 32,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "670.75"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-670.75",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 33,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Tactical",
+        "amount": "230.25"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-230.25",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 34,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Tactical",
+        "amount": "307.15",
+        "to": "Patient"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 35,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Tactical",
+        "amount": "821.94"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-821.94",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 36,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "provision",
+      "params": {
+        "series": "Patient",
+        "amount": "418.52"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_provision",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "-418.52",
+      "propagation": "completed",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 37,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "series_misallocation",
+      "params": {
+        "series": "Seed",
+        "amount": "351.22",
+        "to": "Tactical"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "lp_capital",
+        "lp_series"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": true
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 38,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "0.5"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "3594.90",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "lp_fee",
+      "seed": 39,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "fee_rate",
+      "params": {
+        "factor": "0.5"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "admin_claim",
+        "lp_capital",
+        "lp_series",
+        "management_fee_date",
+        "manager_receivable",
+        "manager_revenue"
+      ],
+      "certificate_reasons": [
+        "lp_claim_mismatch",
+        "shadow_nav"
+      ],
+      "nav_difference": "3081.50",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 0,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "cash",
+        "delta": "708.70"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-708.70",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 1,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "413.33"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "413.33",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 2,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "463046.75",
+        "statement": "463577.97"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 3,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "cash",
+        "delta": "981.93"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-981.93",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 4,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "467.32"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "467.32",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 5,
+      "path": "S1_early_reduction",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "cash",
+        "delta": "622.43"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-622.43",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 6,
+      "path": "F1_inaction",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "196.20"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 7,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "623.14"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "623.14",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 8,
+      "path": "F1_inaction",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "3085349.62",
+        "statement": "3085525.58"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 9,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5000000",
+        "statement": "5000914.99"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 10,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "736.14"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "736.14",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 11,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5000000",
+        "statement": "5000818.15"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 12,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "189.00"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-189.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 13,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "648.98"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-648.98",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 14,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "213.90"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 15,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "22.06"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 16,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "640.39"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 17,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5000000",
+        "statement": "5000443.93"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 18,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "270.17"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-270.17",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 19,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "896.35"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-896.35",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 20,
+      "path": "F1_inaction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "4875395.50",
+        "statement": "4875472.10"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 21,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "2500000",
+        "statement": "2500452.32"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 22,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "944.83"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "944.83",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 23,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        13,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "2500000",
+        "statement": "2500267.95"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 24,
+      "path": "F1_inaction",
+      "at": [
+        16,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "2500589.88",
+        "statement": "2501520.60"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 25,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "debt",
+        "delta": "259.72"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "259.72",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 26,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "632.91"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 27,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "166.94"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-166.94",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 28,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        17,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5545300.92",
+        "statement": "5546045.10"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 29,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        15,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "576.13"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-576.13",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 30,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        18,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5511691.21",
+        "statement": "5511790.53"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 31,
+      "path": "S1_early_reduction",
+      "at": [
+        16,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "76.86"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-76.86",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 32,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "409.83"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 33,
+      "path": "S2_replacement_and_cure",
+      "at": [
+        13,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "815.22"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-815.22",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 34,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "2500000",
+        "statement": "2500739.46"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 35,
+      "path": "S1_early_reduction",
+      "at": [
+        14,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "cash",
+        "record": "0",
+        "statement": "568.76"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 36,
+      "path": "S1_early_reduction",
+      "at": [
+        18,
+        "EXEC_A"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "collateral",
+        "record": "5373383.42",
+        "statement": "5374058.51"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 37,
+      "path": "F1_inaction",
+      "at": [
+        19,
+        "EXEC_B"
+      ],
+      "variant": "authored_mismatch",
+      "params": {
+        "account": "debt",
+        "record": "3085349.62",
+        "statement": "3085395.53"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "statement_open"
+      ],
+      "certificate_reasons": [
+        "broker_statement"
+      ],
+      "nav_difference": "0.00",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 38,
+      "path": "F2_replacement_without_cure",
+      "at": [
+        19,
+        "EXEC_A"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "cash",
+        "delta": "356.64"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-356.64",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    },
+    {
+      "class": "statement",
+      "seed": 39,
+      "path": "F1_inaction",
+      "at": [
+        14,
+        "EXEC_B"
+      ],
+      "variant": "broker_record",
+      "params": {
+        "account": "collateral",
+        "delta": "651.82"
+      },
+      "reconcile_code": "",
+      "control_codes": [
+        "broker_balance"
+      ],
+      "certificate_reasons": [
+        "broker_break",
+        "shadow_nav"
+      ],
+      "nav_difference": "-651.82",
+      "propagation": "dealing_blocked",
+      "detected": {
+        "reconcile": false,
+        "controls": true,
+        "certificate": true,
+        "verify": false
+      }
+    }
+  ]
+}
