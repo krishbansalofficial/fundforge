@@ -121,7 +121,7 @@ def inspect_expense_accrual(accruals: Iterable[Decimal], posted: Decimal) -> lis
     posting to the account is unsupported. A future expense rule must feed its dated charges here.
     """
     with localcontext(CONTEXT):
-        expected = -sum(accruals, Decimal(0)).quantize(CENT)
+        expected = -sum(accruals, Decimal(0)).quantize(CENT, rounding=ROUND_HALF_EVEN)
         if abs(posted - expected) > CENT:
             return [{"code": "expense_accrual", "subject": "accrued_expense",
                      "actual": str(posted), "expected": str(expected)}]
