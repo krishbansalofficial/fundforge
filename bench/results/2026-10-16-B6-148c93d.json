@@ -1,0 +1,8373 @@
+{
+ "benchmark": "B6-game-balance",
+ "commit": "148c93d",
+ "rules_version": "case1-rules-2026.10.15",
+ "generator_version": "gen-2026.10.1",
+ "gate_rule": "balance-v1",
+ "measured_at": "2026-10-16T21:49:28+00:00",
+ "python": "3.13.12",
+ "machine": "Windows AMD64, Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, 32 logical CPUs",
+ "seeds_drawn": 400,
+ "seed_list": "seed:b6-0 .. seed:b6-399, built by store._tape('case1-generated', seed)",
+ "designed": [
+  "derisk_floor",
+  "S1_balanced",
+  "cover_recall_only"
+ ],
+ "degenerate": [
+  "passive",
+  "flatten_d12"
+ ],
+ "interval": "Wilson score, z=1.96, Decimal, rounded outward to 4 dp",
+ "caveat": "on accepted seeds the gate requires every designed line to WIN and passive not to, and flatten_d12 must replay passive's journal; the accepted verdict holds by construction",
+ "accepted": {
+  "n": 186,
+  "policies": {
+   "passive": {
+    "win": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    },
+    "survival": {
+     "k": 186,
+     "n": 186,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9797",
+      "1.0000"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    }
+   },
+   "flatten_d12": {
+    "win": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    },
+    "survival": {
+     "k": 186,
+     "n": 186,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9797",
+      "1.0000"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    }
+   },
+   "derisk_floor": {
+    "win": {
+     "k": 186,
+     "n": 186,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9797",
+      "1.0000"
+     ]
+    },
+    "survival": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    }
+   },
+   "S1_balanced": {
+    "win": {
+     "k": 186,
+     "n": 186,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9797",
+      "1.0000"
+     ]
+    },
+    "survival": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    }
+   },
+   "cover_recall_only": {
+    "win": {
+     "k": 186,
+     "n": 186,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9797",
+      "1.0000"
+     ]
+    },
+    "survival": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 186,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0203"
+     ]
+    }
+   }
+  },
+  "best_score_count": {
+   "S1_balanced": 9,
+   "derisk_floor": 164,
+   "cover_recall_only": 13
+  },
+  "verdict": {
+   "best_designed": "derisk_floor",
+   "dominant_degenerate": [],
+   "pass": true
+  }
+ },
+ "ungated": {
+  "n": 400,
+  "policies": {
+   "passive": {
+    "win": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    },
+    "survival": {
+     "k": 400,
+     "n": 400,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9904",
+      "1.0000"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    }
+   },
+   "flatten_d12": {
+    "win": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    },
+    "survival": {
+     "k": 400,
+     "n": 400,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9904",
+      "1.0000"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    }
+   },
+   "derisk_floor": {
+    "win": {
+     "k": 400,
+     "n": 400,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9904",
+      "1.0000"
+     ]
+    },
+    "survival": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    }
+   },
+   "S1_balanced": {
+    "win": {
+     "k": 400,
+     "n": 400,
+     "rate": "1.0000",
+     "wilson95": [
+      "0.9904",
+      "1.0000"
+     ]
+    },
+    "survival": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    }
+   },
+   "cover_recall_only": {
+    "win": {
+     "k": 186,
+     "n": 400,
+     "rate": "0.4650",
+     "wilson95": [
+      "0.4166",
+      "0.5140"
+     ]
+    },
+    "survival": {
+     "k": 214,
+     "n": 400,
+     "rate": "0.5350",
+     "wilson95": [
+      "0.4860",
+      "0.5834"
+     ]
+    },
+    "distress": {
+     "k": 0,
+     "n": 400,
+     "rate": "0.0000",
+     "wilson95": [
+      "0.0000",
+      "0.0096"
+     ]
+    }
+   }
+  },
+  "best_score_count": {
+   "S1_balanced": 43,
+   "derisk_floor": 344,
+   "cover_recall_only": 13
+  },
+  "verdict": {
+   "best_designed": "derisk_floor",
+   "dominant_degenerate": [],
+   "pass": true
+  }
+ },
+ "seeds": [
+  {
+   "seed": "seed:b6-0",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-317.8",
+    "flatten_d12": "-317.8",
+    "derisk_floor": "-42.6",
+    "S1_balanced": "-18.3",
+    "cover_recall_only": "-23.4"
+   }
+  },
+  {
+   "seed": "seed:b6-1",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-300.8",
+    "flatten_d12": "-300.8",
+    "derisk_floor": "106.8",
+    "S1_balanced": "23.2",
+    "cover_recall_only": "6.6"
+   }
+  },
+  {
+   "seed": "seed:b6-2",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.8",
+    "flatten_d12": "-307.8",
+    "derisk_floor": "197.5",
+    "S1_balanced": "21.5",
+    "cover_recall_only": "-0.9"
+   }
+  },
+  {
+   "seed": "seed:b6-3",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.8",
+    "flatten_d12": "-461.8",
+    "derisk_floor": "115.2",
+    "S1_balanced": "49.6",
+    "cover_recall_only": "-313.3"
+   }
+  },
+  {
+   "seed": "seed:b6-4",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.5",
+    "flatten_d12": "-458.5",
+    "derisk_floor": "244.0",
+    "S1_balanced": "89.2",
+    "cover_recall_only": "-310.4"
+   }
+  },
+  {
+   "seed": "seed:b6-5",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-486.9",
+    "flatten_d12": "-486.9",
+    "derisk_floor": "-170.3",
+    "S1_balanced": "-34.0",
+    "cover_recall_only": "-334.8"
+   }
+  },
+  {
+   "seed": "seed:b6-6",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-471.6",
+    "flatten_d12": "-471.6",
+    "derisk_floor": "-55.3",
+    "S1_balanced": "32.3",
+    "cover_recall_only": "-321.5"
+   }
+  },
+  {
+   "seed": "seed:b6-7",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.3",
+    "flatten_d12": "-462.3",
+    "derisk_floor": "370.3",
+    "S1_balanced": "67.0",
+    "cover_recall_only": "-316.8"
+   }
+  },
+  {
+   "seed": "seed:b6-8",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.0",
+    "flatten_d12": "-462.0",
+    "derisk_floor": "221.0",
+    "S1_balanced": "73.2",
+    "cover_recall_only": "-311.7"
+   }
+  },
+  {
+   "seed": "seed:b6-9",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-467.8",
+    "flatten_d12": "-467.8",
+    "derisk_floor": "37.9",
+    "S1_balanced": "41.6",
+    "cover_recall_only": "-314.8"
+   }
+  },
+  {
+   "seed": "seed:b6-10",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.6",
+    "flatten_d12": "-306.6",
+    "derisk_floor": "-66.4",
+    "S1_balanced": "-0.7",
+    "cover_recall_only": "-7.4"
+   }
+  },
+  {
+   "seed": "seed:b6-11",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-471.6",
+    "flatten_d12": "-471.6",
+    "derisk_floor": "112.3",
+    "S1_balanced": "51.6",
+    "cover_recall_only": "-315.4"
+   }
+  },
+  {
+   "seed": "seed:b6-12",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.1",
+    "flatten_d12": "-459.1",
+    "derisk_floor": "208.6",
+    "S1_balanced": "56.8",
+    "cover_recall_only": "-309.7"
+   }
+  },
+  {
+   "seed": "seed:b6-13",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.6",
+    "flatten_d12": "-308.6",
+    "derisk_floor": "-79.6",
+    "S1_balanced": "-17.4",
+    "cover_recall_only": "-16.0"
+   }
+  },
+  {
+   "seed": "seed:b6-14",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.8",
+    "flatten_d12": "-462.8",
+    "derisk_floor": "213.4",
+    "S1_balanced": "5.1",
+    "cover_recall_only": "-314.4"
+   }
+  },
+  {
+   "seed": "seed:b6-15",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.0",
+    "flatten_d12": "-459.0",
+    "derisk_floor": "147.6",
+    "S1_balanced": "34.5",
+    "cover_recall_only": "-309.1"
+   }
+  },
+  {
+   "seed": "seed:b6-16",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.5",
+    "flatten_d12": "-466.5",
+    "derisk_floor": "-36.2",
+    "S1_balanced": "6.5",
+    "cover_recall_only": "-317.0"
+   }
+  },
+  {
+   "seed": "seed:b6-17",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-449.3",
+    "flatten_d12": "-449.3",
+    "derisk_floor": "210.7",
+    "S1_balanced": "-23.2",
+    "cover_recall_only": "-300.6"
+   }
+  },
+  {
+   "seed": "seed:b6-18",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.3",
+    "flatten_d12": "-310.3",
+    "derisk_floor": "227.0",
+    "S1_balanced": "77.5",
+    "cover_recall_only": "-0.9"
+   }
+  },
+  {
+   "seed": "seed:b6-19",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-464.6",
+    "flatten_d12": "-464.6",
+    "derisk_floor": "192.0",
+    "S1_balanced": "90.7",
+    "cover_recall_only": "-11.6"
+   }
+  },
+  {
+   "seed": "seed:b6-20",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.1",
+    "flatten_d12": "-306.1",
+    "derisk_floor": "140.5",
+    "S1_balanced": "32.8",
+    "cover_recall_only": "-8.2"
+   }
+  },
+  {
+   "seed": "seed:b6-21",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.7",
+    "flatten_d12": "-306.7",
+    "derisk_floor": "107.6",
+    "S1_balanced": "-37.7",
+    "cover_recall_only": "-0.6"
+   }
+  },
+  {
+   "seed": "seed:b6-22",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.7",
+    "flatten_d12": "-460.7",
+    "derisk_floor": "142.1",
+    "S1_balanced": "21.2",
+    "cover_recall_only": "-310.5"
+   }
+  },
+  {
+   "seed": "seed:b6-23",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.0",
+    "flatten_d12": "-459.0",
+    "derisk_floor": "164.3",
+    "S1_balanced": "49.4",
+    "cover_recall_only": "-310.4"
+   }
+  },
+  {
+   "seed": "seed:b6-24",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.2",
+    "flatten_d12": "-463.2",
+    "derisk_floor": "-88.1",
+    "S1_balanced": "-7.8",
+    "cover_recall_only": "-315.9"
+   }
+  },
+  {
+   "seed": "seed:b6-25",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.2",
+    "flatten_d12": "-453.2",
+    "derisk_floor": "126.5",
+    "S1_balanced": "-7.8",
+    "cover_recall_only": "-303.2"
+   }
+  },
+  {
+   "seed": "seed:b6-26",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.3",
+    "flatten_d12": "-307.3",
+    "derisk_floor": "263.0",
+    "S1_balanced": "6.6",
+    "cover_recall_only": "-0.7"
+   }
+  },
+  {
+   "seed": "seed:b6-27",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.8",
+    "flatten_d12": "-459.8",
+    "derisk_floor": "297.1",
+    "S1_balanced": "78.4",
+    "cover_recall_only": "-319.5"
+   }
+  },
+  {
+   "seed": "seed:b6-28",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-308.9",
+    "flatten_d12": "-308.9",
+    "derisk_floor": "61.9",
+    "S1_balanced": "41.4",
+    "cover_recall_only": "-314.9"
+   }
+  },
+  {
+   "seed": "seed:b6-29",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.6",
+    "flatten_d12": "-466.6",
+    "derisk_floor": "177.1",
+    "S1_balanced": "28.3",
+    "cover_recall_only": "-316.7"
+   }
+  },
+  {
+   "seed": "seed:b6-30",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.5",
+    "flatten_d12": "-303.5",
+    "derisk_floor": "154.4",
+    "S1_balanced": "22.7",
+    "cover_recall_only": "-0.8"
+   }
+  },
+  {
+   "seed": "seed:b6-31",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.4",
+    "flatten_d12": "-457.4",
+    "derisk_floor": "605.1",
+    "S1_balanced": "154.0",
+    "cover_recall_only": "-309.8"
+   }
+  },
+  {
+   "seed": "seed:b6-32",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.5",
+    "flatten_d12": "-305.5",
+    "derisk_floor": "82.7",
+    "S1_balanced": "-11.6",
+    "cover_recall_only": "-3.2"
+   }
+  },
+  {
+   "seed": "seed:b6-33",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.7",
+    "flatten_d12": "-309.7",
+    "derisk_floor": "105.6",
+    "S1_balanced": "10.9",
+    "cover_recall_only": "-18.2"
+   }
+  },
+  {
+   "seed": "seed:b6-34",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.0",
+    "flatten_d12": "-466.0",
+    "derisk_floor": "-70.8",
+    "S1_balanced": "-12.8",
+    "cover_recall_only": "-313.2"
+   }
+  },
+  {
+   "seed": "seed:b6-35",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.5",
+    "flatten_d12": "-463.5",
+    "derisk_floor": "-59.3",
+    "S1_balanced": "28.9",
+    "cover_recall_only": "-315.1"
+   }
+  },
+  {
+   "seed": "seed:b6-36",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.0",
+    "flatten_d12": "-462.0",
+    "derisk_floor": "133.4",
+    "S1_balanced": "14.2",
+    "cover_recall_only": "-313.2"
+   }
+  },
+  {
+   "seed": "seed:b6-37",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-463.7",
+    "flatten_d12": "-463.7",
+    "derisk_floor": "-51.0",
+    "S1_balanced": "-58.9",
+    "cover_recall_only": "-16.9"
+   }
+  },
+  {
+   "seed": "seed:b6-38",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.9",
+    "flatten_d12": "-311.9",
+    "derisk_floor": "334.0",
+    "S1_balanced": "31.3",
+    "cover_recall_only": "-6.9"
+   }
+  },
+  {
+   "seed": "seed:b6-39",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.4",
+    "flatten_d12": "-455.4",
+    "derisk_floor": "145.6",
+    "S1_balanced": "28.0",
+    "cover_recall_only": "-307.5"
+   }
+  },
+  {
+   "seed": "seed:b6-40",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.5",
+    "flatten_d12": "-307.5",
+    "derisk_floor": "-35.9",
+    "S1_balanced": "-11.5",
+    "cover_recall_only": "-10.6"
+   }
+  },
+  {
+   "seed": "seed:b6-41",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.6",
+    "flatten_d12": "-461.6",
+    "derisk_floor": "174.2",
+    "S1_balanced": "18.8",
+    "cover_recall_only": "-311.4"
+   }
+  },
+  {
+   "seed": "seed:b6-42",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-466.2",
+    "flatten_d12": "-466.2",
+    "derisk_floor": "141.5",
+    "S1_balanced": "61.1",
+    "cover_recall_only": "-10.1"
+   }
+  },
+  {
+   "seed": "seed:b6-43",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.7",
+    "flatten_d12": "-453.7",
+    "derisk_floor": "234.7",
+    "S1_balanced": "52.5",
+    "cover_recall_only": "-304.4"
+   }
+  },
+  {
+   "seed": "seed:b6-44",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.1",
+    "flatten_d12": "-460.1",
+    "derisk_floor": "104.4",
+    "S1_balanced": "56.4",
+    "cover_recall_only": "-310.8"
+   }
+  },
+  {
+   "seed": "seed:b6-45",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.1",
+    "flatten_d12": "-303.1",
+    "derisk_floor": "473.2",
+    "S1_balanced": "83.8",
+    "cover_recall_only": "19.6"
+   }
+  },
+  {
+   "seed": "seed:b6-46",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.9",
+    "flatten_d12": "-307.9",
+    "derisk_floor": "154.0",
+    "S1_balanced": "-27.3",
+    "cover_recall_only": "-15.4"
+   }
+  },
+  {
+   "seed": "seed:b6-47",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.3",
+    "flatten_d12": "-308.3",
+    "derisk_floor": "180.4",
+    "S1_balanced": "41.2",
+    "cover_recall_only": "3.8"
+   }
+  },
+  {
+   "seed": "seed:b6-48",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-432.8",
+    "flatten_d12": "-432.8",
+    "derisk_floor": "717.4",
+    "S1_balanced": "184.6",
+    "cover_recall_only": "-285.7"
+   }
+  },
+  {
+   "seed": "seed:b6-49",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.9",
+    "flatten_d12": "-458.9",
+    "derisk_floor": "311.7",
+    "S1_balanced": "17.3",
+    "cover_recall_only": "-310.0"
+   }
+  },
+  {
+   "seed": "seed:b6-50",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.6",
+    "flatten_d12": "-311.6",
+    "derisk_floor": "475.2",
+    "S1_balanced": "43.4",
+    "cover_recall_only": "1.2"
+   }
+  },
+  {
+   "seed": "seed:b6-51",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.6",
+    "flatten_d12": "-306.6",
+    "derisk_floor": "242.5",
+    "S1_balanced": "41.2",
+    "cover_recall_only": "4.1"
+   }
+  },
+  {
+   "seed": "seed:b6-52",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-474.9",
+    "flatten_d12": "-474.9",
+    "derisk_floor": "-45.0",
+    "S1_balanced": "27.9",
+    "cover_recall_only": "-169.3"
+   }
+  },
+  {
+   "seed": "seed:b6-53",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.9",
+    "flatten_d12": "-457.9",
+    "derisk_floor": "270.1",
+    "S1_balanced": "61.3",
+    "cover_recall_only": "-308.4"
+   }
+  },
+  {
+   "seed": "seed:b6-54",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.6",
+    "flatten_d12": "-465.6",
+    "derisk_floor": "-75.1",
+    "S1_balanced": "3.1",
+    "cover_recall_only": "-316.1"
+   }
+  },
+  {
+   "seed": "seed:b6-55",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-446.5",
+    "flatten_d12": "-446.5",
+    "derisk_floor": "659.3",
+    "S1_balanced": "126.3",
+    "cover_recall_only": "-296.7"
+   }
+  },
+  {
+   "seed": "seed:b6-56",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.5",
+    "flatten_d12": "-306.5",
+    "derisk_floor": "38.2",
+    "S1_balanced": "15.2",
+    "cover_recall_only": "-14.0"
+   }
+  },
+  {
+   "seed": "seed:b6-57",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.2",
+    "flatten_d12": "-303.2",
+    "derisk_floor": "68.7",
+    "S1_balanced": "-12.8",
+    "cover_recall_only": "-8.0"
+   }
+  },
+  {
+   "seed": "seed:b6-58",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-451.1",
+    "flatten_d12": "-451.1",
+    "derisk_floor": "232.0",
+    "S1_balanced": "89.3",
+    "cover_recall_only": "-303.2"
+   }
+  },
+  {
+   "seed": "seed:b6-59",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.7",
+    "flatten_d12": "-459.7",
+    "derisk_floor": "173.3",
+    "S1_balanced": "31.5",
+    "cover_recall_only": "-306.4"
+   }
+  },
+  {
+   "seed": "seed:b6-60",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-320.5",
+    "flatten_d12": "-320.5",
+    "derisk_floor": "268.1",
+    "S1_balanced": "24.9",
+    "cover_recall_only": "-13.0"
+   }
+  },
+  {
+   "seed": "seed:b6-61",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-452.5",
+    "flatten_d12": "-452.5",
+    "derisk_floor": "253.9",
+    "S1_balanced": "92.9",
+    "cover_recall_only": "-155.4"
+   }
+  },
+  {
+   "seed": "seed:b6-62",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.6",
+    "flatten_d12": "-455.6",
+    "derisk_floor": "213.4",
+    "S1_balanced": "40.9",
+    "cover_recall_only": "-306.0"
+   }
+  },
+  {
+   "seed": "seed:b6-63",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.3",
+    "flatten_d12": "-309.3",
+    "derisk_floor": "92.6",
+    "S1_balanced": "32.6",
+    "cover_recall_only": "-21.6"
+   }
+  },
+  {
+   "seed": "seed:b6-64",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.4",
+    "flatten_d12": "-461.4",
+    "derisk_floor": "190.0",
+    "S1_balanced": "54.4",
+    "cover_recall_only": "-313.4"
+   }
+  },
+  {
+   "seed": "seed:b6-65",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.9",
+    "flatten_d12": "-465.9",
+    "derisk_floor": "-37.5",
+    "S1_balanced": "1.4",
+    "cover_recall_only": "-316.1"
+   }
+  },
+  {
+   "seed": "seed:b6-66",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.9",
+    "flatten_d12": "-462.9",
+    "derisk_floor": "108.7",
+    "S1_balanced": "30.7",
+    "cover_recall_only": "-311.7"
+   }
+  },
+  {
+   "seed": "seed:b6-67",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "-57.8",
+    "S1_balanced": "-9.6",
+    "cover_recall_only": "-20.9"
+   }
+  },
+  {
+   "seed": "seed:b6-68",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.0",
+    "flatten_d12": "-461.0",
+    "derisk_floor": "113.7",
+    "S1_balanced": "27.9",
+    "cover_recall_only": "-310.3"
+   }
+  },
+  {
+   "seed": "seed:b6-69",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.6",
+    "flatten_d12": "-461.6",
+    "derisk_floor": "273.1",
+    "S1_balanced": "46.7",
+    "cover_recall_only": "-155.4"
+   }
+  },
+  {
+   "seed": "seed:b6-70",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.2",
+    "flatten_d12": "-306.2",
+    "derisk_floor": "183.2",
+    "S1_balanced": "46.1",
+    "cover_recall_only": "-4.8"
+   }
+  },
+  {
+   "seed": "seed:b6-71",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.2",
+    "flatten_d12": "-465.2",
+    "derisk_floor": "134.6",
+    "S1_balanced": "50.7",
+    "cover_recall_only": "-166.8"
+   }
+  },
+  {
+   "seed": "seed:b6-72",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-446.1",
+    "flatten_d12": "-446.1",
+    "derisk_floor": "319.4",
+    "S1_balanced": "77.2",
+    "cover_recall_only": "-294.7"
+   }
+  },
+  {
+   "seed": "seed:b6-73",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.5",
+    "flatten_d12": "-455.5",
+    "derisk_floor": "246.1",
+    "S1_balanced": "52.6",
+    "cover_recall_only": "-306.2"
+   }
+  },
+  {
+   "seed": "seed:b6-74",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.2",
+    "flatten_d12": "-465.2",
+    "derisk_floor": "332.4",
+    "S1_balanced": "100.7",
+    "cover_recall_only": "-318.5"
+   }
+  },
+  {
+   "seed": "seed:b6-75",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.5",
+    "flatten_d12": "-307.5",
+    "derisk_floor": "118.6",
+    "S1_balanced": "39.1",
+    "cover_recall_only": "-10.3"
+   }
+  },
+  {
+   "seed": "seed:b6-76",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.6",
+    "flatten_d12": "-458.6",
+    "derisk_floor": "193.7",
+    "S1_balanced": "46.8",
+    "cover_recall_only": "-308.1"
+   }
+  },
+  {
+   "seed": "seed:b6-77",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.5",
+    "flatten_d12": "-463.5",
+    "derisk_floor": "88.1",
+    "S1_balanced": "39.7",
+    "cover_recall_only": "-313.6"
+   }
+  },
+  {
+   "seed": "seed:b6-78",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.2",
+    "flatten_d12": "-456.2",
+    "derisk_floor": "427.6",
+    "S1_balanced": "113.8",
+    "cover_recall_only": "-308.9"
+   }
+  },
+  {
+   "seed": "seed:b6-79",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.2",
+    "flatten_d12": "-309.2",
+    "derisk_floor": "30.3",
+    "S1_balanced": "10.6",
+    "cover_recall_only": "-21.5"
+   }
+  },
+  {
+   "seed": "seed:b6-80",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.2",
+    "flatten_d12": "-308.2",
+    "derisk_floor": "205.1",
+    "S1_balanced": "38.5",
+    "cover_recall_only": "-3.7"
+   }
+  },
+  {
+   "seed": "seed:b6-81",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.0",
+    "flatten_d12": "-457.0",
+    "derisk_floor": "224.7",
+    "S1_balanced": "29.7",
+    "cover_recall_only": "-305.2"
+   }
+  },
+  {
+   "seed": "seed:b6-82",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "222.2",
+    "S1_balanced": "14.8",
+    "cover_recall_only": "-5.5"
+   }
+  },
+  {
+   "seed": "seed:b6-83",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.2",
+    "flatten_d12": "-307.2",
+    "derisk_floor": "358.6",
+    "S1_balanced": "40.0",
+    "cover_recall_only": "-2.2"
+   }
+  },
+  {
+   "seed": "seed:b6-84",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.7",
+    "flatten_d12": "-458.7",
+    "derisk_floor": "75.1",
+    "S1_balanced": "5.6",
+    "cover_recall_only": "-311.0"
+   }
+  },
+  {
+   "seed": "seed:b6-85",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.1",
+    "flatten_d12": "-457.1",
+    "derisk_floor": "282.5",
+    "S1_balanced": "40.8",
+    "cover_recall_only": "-301.6"
+   }
+  },
+  {
+   "seed": "seed:b6-86",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.9",
+    "flatten_d12": "-306.9",
+    "derisk_floor": "147.3",
+    "S1_balanced": "25.9",
+    "cover_recall_only": "7.4"
+   }
+  },
+  {
+   "seed": "seed:b6-87",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.3",
+    "flatten_d12": "-463.3",
+    "derisk_floor": "35.5",
+    "S1_balanced": "-15.1",
+    "cover_recall_only": "-312.9"
+   }
+  },
+  {
+   "seed": "seed:b6-88",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.6",
+    "flatten_d12": "-462.6",
+    "derisk_floor": "275.3",
+    "S1_balanced": "-22.9",
+    "cover_recall_only": "-314.8"
+   }
+  },
+  {
+   "seed": "seed:b6-89",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-435.8",
+    "flatten_d12": "-435.8",
+    "derisk_floor": "601.3",
+    "S1_balanced": "91.2",
+    "cover_recall_only": "-136.8"
+   }
+  },
+  {
+   "seed": "seed:b6-90",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.6",
+    "flatten_d12": "-465.6",
+    "derisk_floor": "252.2",
+    "S1_balanced": "47.9",
+    "cover_recall_only": "-316.3"
+   }
+  },
+  {
+   "seed": "seed:b6-91",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.5",
+    "flatten_d12": "-466.5",
+    "derisk_floor": "295.3",
+    "S1_balanced": "45.0",
+    "cover_recall_only": "-165.5"
+   }
+  },
+  {
+   "seed": "seed:b6-92",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-313.2",
+    "flatten_d12": "-313.2",
+    "derisk_floor": "496.3",
+    "S1_balanced": "44.9",
+    "cover_recall_only": "8.6"
+   }
+  },
+  {
+   "seed": "seed:b6-93",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.4",
+    "flatten_d12": "-465.4",
+    "derisk_floor": "21.8",
+    "S1_balanced": "7.1",
+    "cover_recall_only": "-315.9"
+   }
+  },
+  {
+   "seed": "seed:b6-94",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.7",
+    "flatten_d12": "-306.7",
+    "derisk_floor": "244.7",
+    "S1_balanced": "38.8",
+    "cover_recall_only": "7.7"
+   }
+  },
+  {
+   "seed": "seed:b6-95",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.5",
+    "flatten_d12": "-456.5",
+    "derisk_floor": "342.1",
+    "S1_balanced": "78.9",
+    "cover_recall_only": "-307.7"
+   }
+  },
+  {
+   "seed": "seed:b6-96",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.0",
+    "flatten_d12": "-305.0",
+    "derisk_floor": "339.8",
+    "S1_balanced": "22.3",
+    "cover_recall_only": "-3.9"
+   }
+  },
+  {
+   "seed": "seed:b6-97",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.0",
+    "flatten_d12": "-304.0",
+    "derisk_floor": "199.7",
+    "S1_balanced": "41.1",
+    "cover_recall_only": "1.7"
+   }
+  },
+  {
+   "seed": "seed:b6-98",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.6",
+    "flatten_d12": "-310.6",
+    "derisk_floor": "243.8",
+    "S1_balanced": "21.9",
+    "cover_recall_only": "6.1"
+   }
+  },
+  {
+   "seed": "seed:b6-99",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-483.6",
+    "flatten_d12": "-483.6",
+    "derisk_floor": "123.1",
+    "S1_balanced": "49.9",
+    "cover_recall_only": "-20.0"
+   }
+  },
+  {
+   "seed": "seed:b6-100",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-452.3",
+    "flatten_d12": "-452.3",
+    "derisk_floor": "309.3",
+    "S1_balanced": "-33.1",
+    "cover_recall_only": "-302.9"
+   }
+  },
+  {
+   "seed": "seed:b6-101",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-464.8",
+    "flatten_d12": "-464.8",
+    "derisk_floor": "208.6",
+    "S1_balanced": "31.3",
+    "cover_recall_only": "-163.6"
+   }
+  },
+  {
+   "seed": "seed:b6-102",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.5",
+    "flatten_d12": "-308.5",
+    "derisk_floor": "348.7",
+    "S1_balanced": "52.6",
+    "cover_recall_only": "-2.4"
+   }
+  },
+  {
+   "seed": "seed:b6-103",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.9",
+    "flatten_d12": "-458.9",
+    "derisk_floor": "262.8",
+    "S1_balanced": "57.6",
+    "cover_recall_only": "-307.4"
+   }
+  },
+  {
+   "seed": "seed:b6-104",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.7",
+    "flatten_d12": "-306.7",
+    "derisk_floor": "135.4",
+    "S1_balanced": "38.2",
+    "cover_recall_only": "-14.2"
+   }
+  },
+  {
+   "seed": "seed:b6-105",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.2",
+    "flatten_d12": "-308.2",
+    "derisk_floor": "181.6",
+    "S1_balanced": "45.8",
+    "cover_recall_only": "3.3"
+   }
+  },
+  {
+   "seed": "seed:b6-106",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.5",
+    "flatten_d12": "-307.5",
+    "derisk_floor": "198.9",
+    "S1_balanced": "-11.8",
+    "cover_recall_only": "1.7"
+   }
+  },
+  {
+   "seed": "seed:b6-107",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-467.8",
+    "flatten_d12": "-467.8",
+    "derisk_floor": "45.1",
+    "S1_balanced": "45.3",
+    "cover_recall_only": "-313.0"
+   }
+  },
+  {
+   "seed": "seed:b6-108",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.8",
+    "flatten_d12": "-457.8",
+    "derisk_floor": "338.3",
+    "S1_balanced": "78.9",
+    "cover_recall_only": "-306.7"
+   }
+  },
+  {
+   "seed": "seed:b6-109",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.1",
+    "flatten_d12": "-465.1",
+    "derisk_floor": "-43.2",
+    "S1_balanced": "1.1",
+    "cover_recall_only": "-319.6"
+   }
+  },
+  {
+   "seed": "seed:b6-110",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.3",
+    "flatten_d12": "-460.3",
+    "derisk_floor": "185.5",
+    "S1_balanced": "65.0",
+    "cover_recall_only": "-312.3"
+   }
+  },
+  {
+   "seed": "seed:b6-111",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-471.3",
+    "flatten_d12": "-471.3",
+    "derisk_floor": "26.0",
+    "S1_balanced": "13.9",
+    "cover_recall_only": "-323.2"
+   }
+  },
+  {
+   "seed": "seed:b6-112",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.7",
+    "flatten_d12": "-455.7",
+    "derisk_floor": "309.1",
+    "S1_balanced": "41.1",
+    "cover_recall_only": "-303.7"
+   }
+  },
+  {
+   "seed": "seed:b6-113",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.7",
+    "flatten_d12": "-302.7",
+    "derisk_floor": "222.8",
+    "S1_balanced": "42.7",
+    "cover_recall_only": "-4.2"
+   }
+  },
+  {
+   "seed": "seed:b6-114",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.1",
+    "flatten_d12": "-302.1",
+    "derisk_floor": "570.6",
+    "S1_balanced": "102.1",
+    "cover_recall_only": "31.7"
+   }
+  },
+  {
+   "seed": "seed:b6-115",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.6",
+    "flatten_d12": "-307.6",
+    "derisk_floor": "389.8",
+    "S1_balanced": "15.5",
+    "cover_recall_only": "17.4"
+   }
+  },
+  {
+   "seed": "seed:b6-116",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.1",
+    "flatten_d12": "-459.1",
+    "derisk_floor": "101.3",
+    "S1_balanced": "23.9",
+    "cover_recall_only": "-308.6"
+   }
+  },
+  {
+   "seed": "seed:b6-117",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.1",
+    "flatten_d12": "-455.1",
+    "derisk_floor": "218.4",
+    "S1_balanced": "57.6",
+    "cover_recall_only": "-307.4"
+   }
+  },
+  {
+   "seed": "seed:b6-118",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-452.3",
+    "flatten_d12": "-452.3",
+    "derisk_floor": "285.2",
+    "S1_balanced": "48.7",
+    "cover_recall_only": "-300.1"
+   }
+  },
+  {
+   "seed": "seed:b6-119",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.3",
+    "flatten_d12": "-309.3",
+    "derisk_floor": "-128.7",
+    "S1_balanced": "-1.8",
+    "cover_recall_only": "-32.3"
+   }
+  },
+  {
+   "seed": "seed:b6-120",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-313.2",
+    "flatten_d12": "-313.2",
+    "derisk_floor": "78.6",
+    "S1_balanced": "-6.8",
+    "cover_recall_only": "-7.3"
+   }
+  },
+  {
+   "seed": "seed:b6-121",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-318.5",
+    "flatten_d12": "-318.5",
+    "derisk_floor": "325.3",
+    "S1_balanced": "31.2",
+    "cover_recall_only": "-6.3"
+   }
+  },
+  {
+   "seed": "seed:b6-122",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.5",
+    "flatten_d12": "-304.5",
+    "derisk_floor": "151.7",
+    "S1_balanced": "24.4",
+    "cover_recall_only": "-3.4"
+   }
+  },
+  {
+   "seed": "seed:b6-123",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.2",
+    "flatten_d12": "-458.2",
+    "derisk_floor": "190.4",
+    "S1_balanced": "54.0",
+    "cover_recall_only": "-309.2"
+   }
+  },
+  {
+   "seed": "seed:b6-124",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.9",
+    "flatten_d12": "-460.9",
+    "derisk_floor": "261.5",
+    "S1_balanced": "26.2",
+    "cover_recall_only": "-308.1"
+   }
+  },
+  {
+   "seed": "seed:b6-125",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-463.0",
+    "flatten_d12": "-463.0",
+    "derisk_floor": "-126.6",
+    "S1_balanced": "-57.1",
+    "cover_recall_only": "-25.0"
+   }
+  },
+  {
+   "seed": "seed:b6-126",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.3",
+    "flatten_d12": "-456.3",
+    "derisk_floor": "245.2",
+    "S1_balanced": "43.9",
+    "cover_recall_only": "-307.1"
+   }
+  },
+  {
+   "seed": "seed:b6-127",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.0",
+    "flatten_d12": "-307.0",
+    "derisk_floor": "116.0",
+    "S1_balanced": "8.1",
+    "cover_recall_only": "-1.3"
+   }
+  },
+  {
+   "seed": "seed:b6-128",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "177.9",
+    "S1_balanced": "35.7",
+    "cover_recall_only": "-20.6"
+   }
+  },
+  {
+   "seed": "seed:b6-129",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.3",
+    "flatten_d12": "-307.3",
+    "derisk_floor": "416.6",
+    "S1_balanced": "52.7",
+    "cover_recall_only": "9.2"
+   }
+  },
+  {
+   "seed": "seed:b6-130",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.0",
+    "flatten_d12": "-462.0",
+    "derisk_floor": "59.4",
+    "S1_balanced": "31.4",
+    "cover_recall_only": "-312.7"
+   }
+  },
+  {
+   "seed": "seed:b6-131",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.6",
+    "flatten_d12": "-303.6",
+    "derisk_floor": "248.5",
+    "S1_balanced": "47.6",
+    "cover_recall_only": "-0.3"
+   }
+  },
+  {
+   "seed": "seed:b6-132",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.6",
+    "flatten_d12": "-453.6",
+    "derisk_floor": "199.1",
+    "S1_balanced": "28.0",
+    "cover_recall_only": "-303.4"
+   }
+  },
+  {
+   "seed": "seed:b6-133",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.3",
+    "flatten_d12": "-308.3",
+    "derisk_floor": "169.4",
+    "S1_balanced": "13.1",
+    "cover_recall_only": "-0.4"
+   }
+  },
+  {
+   "seed": "seed:b6-134",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.2",
+    "flatten_d12": "-454.2",
+    "derisk_floor": "314.0",
+    "S1_balanced": "75.6",
+    "cover_recall_only": "-305.3"
+   }
+  },
+  {
+   "seed": "seed:b6-135",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.5",
+    "flatten_d12": "-460.5",
+    "derisk_floor": "175.4",
+    "S1_balanced": "16.3",
+    "cover_recall_only": "-310.4"
+   }
+  },
+  {
+   "seed": "seed:b6-136",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.3",
+    "flatten_d12": "-309.3",
+    "derisk_floor": "106.4",
+    "S1_balanced": "53.3",
+    "cover_recall_only": "-19.5"
+   }
+  },
+  {
+   "seed": "seed:b6-137",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-470.2",
+    "flatten_d12": "-470.2",
+    "derisk_floor": "-11.9",
+    "S1_balanced": "3.0",
+    "cover_recall_only": "-318.6"
+   }
+  },
+  {
+   "seed": "seed:b6-138",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.5",
+    "flatten_d12": "-302.5",
+    "derisk_floor": "168.5",
+    "S1_balanced": "50.3",
+    "cover_recall_only": "-1.3"
+   }
+  },
+  {
+   "seed": "seed:b6-139",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.0",
+    "flatten_d12": "-305.0",
+    "derisk_floor": "249.3",
+    "S1_balanced": "24.5",
+    "cover_recall_only": "2.1"
+   }
+  },
+  {
+   "seed": "seed:b6-140",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.2",
+    "flatten_d12": "-303.2",
+    "derisk_floor": "443.2",
+    "S1_balanced": "-8.1",
+    "cover_recall_only": "10.1"
+   }
+  },
+  {
+   "seed": "seed:b6-141",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.2",
+    "flatten_d12": "-309.2",
+    "derisk_floor": "180.3",
+    "S1_balanced": "31.8",
+    "cover_recall_only": "-0.3"
+   }
+  },
+  {
+   "seed": "seed:b6-142",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-490.7",
+    "flatten_d12": "-490.7",
+    "derisk_floor": "-138.1",
+    "S1_balanced": "16.6",
+    "cover_recall_only": "-180.9"
+   }
+  },
+  {
+   "seed": "seed:b6-143",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.9",
+    "flatten_d12": "-454.9",
+    "derisk_floor": "194.4",
+    "S1_balanced": "40.5",
+    "cover_recall_only": "-304.3"
+   }
+  },
+  {
+   "seed": "seed:b6-144",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "274.9",
+    "S1_balanced": "42.8",
+    "cover_recall_only": "2.0"
+   }
+  },
+  {
+   "seed": "seed:b6-145",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.1",
+    "flatten_d12": "-304.1",
+    "derisk_floor": "248.0",
+    "S1_balanced": "52.3",
+    "cover_recall_only": "-0.2"
+   }
+  },
+  {
+   "seed": "seed:b6-146",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.0",
+    "flatten_d12": "-309.0",
+    "derisk_floor": "88.0",
+    "S1_balanced": "21.6",
+    "cover_recall_only": "-9.9"
+   }
+  },
+  {
+   "seed": "seed:b6-147",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.7",
+    "flatten_d12": "-459.7",
+    "derisk_floor": "177.1",
+    "S1_balanced": "35.4",
+    "cover_recall_only": "-309.8"
+   }
+  },
+  {
+   "seed": "seed:b6-148",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-316.6",
+    "flatten_d12": "-316.6",
+    "derisk_floor": "544.6",
+    "S1_balanced": "29.2",
+    "cover_recall_only": "8.3"
+   }
+  },
+  {
+   "seed": "seed:b6-149",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.4",
+    "flatten_d12": "-461.4",
+    "derisk_floor": "446.2",
+    "S1_balanced": "107.2",
+    "cover_recall_only": "-312.5"
+   }
+  },
+  {
+   "seed": "seed:b6-150",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.9",
+    "flatten_d12": "-456.9",
+    "derisk_floor": "287.8",
+    "S1_balanced": "81.0",
+    "cover_recall_only": "-308.2"
+   }
+  },
+  {
+   "seed": "seed:b6-151",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.1",
+    "flatten_d12": "-459.1",
+    "derisk_floor": "137.1",
+    "S1_balanced": "7.9",
+    "cover_recall_only": "-312.0"
+   }
+  },
+  {
+   "seed": "seed:b6-152",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.7",
+    "flatten_d12": "-306.7",
+    "derisk_floor": "158.6",
+    "S1_balanced": "28.0",
+    "cover_recall_only": "-9.2"
+   }
+  },
+  {
+   "seed": "seed:b6-153",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "188.2",
+    "S1_balanced": "19.1",
+    "cover_recall_only": "-1.7"
+   }
+  },
+  {
+   "seed": "seed:b6-154",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-316.8",
+    "flatten_d12": "-316.8",
+    "derisk_floor": "-172.0",
+    "S1_balanced": "-66.9",
+    "cover_recall_only": "-28.1"
+   }
+  },
+  {
+   "seed": "seed:b6-155",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.9",
+    "flatten_d12": "-465.9",
+    "derisk_floor": "-165.4",
+    "S1_balanced": "-29.4",
+    "cover_recall_only": "-315.6"
+   }
+  },
+  {
+   "seed": "seed:b6-156",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.9",
+    "flatten_d12": "-460.9",
+    "derisk_floor": "243.3",
+    "S1_balanced": "51.7",
+    "cover_recall_only": "-310.5"
+   }
+  },
+  {
+   "seed": "seed:b6-157",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.6",
+    "flatten_d12": "-307.6",
+    "derisk_floor": "199.5",
+    "S1_balanced": "26.7",
+    "cover_recall_only": "0.5"
+   }
+  },
+  {
+   "seed": "seed:b6-158",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.4",
+    "flatten_d12": "-306.4",
+    "derisk_floor": "510.9",
+    "S1_balanced": "54.7",
+    "cover_recall_only": "10.9"
+   }
+  },
+  {
+   "seed": "seed:b6-159",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.6",
+    "flatten_d12": "-462.6",
+    "derisk_floor": "555.2",
+    "S1_balanced": "132.4",
+    "cover_recall_only": "-316.1"
+   }
+  },
+  {
+   "seed": "seed:b6-160",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.0",
+    "flatten_d12": "-307.0",
+    "derisk_floor": "-120.1",
+    "S1_balanced": "-37.9",
+    "cover_recall_only": "-15.7"
+   }
+  },
+  {
+   "seed": "seed:b6-161",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.9",
+    "flatten_d12": "-309.9",
+    "derisk_floor": "146.9",
+    "S1_balanced": "49.7",
+    "cover_recall_only": "-4.9"
+   }
+  },
+  {
+   "seed": "seed:b6-162",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.4",
+    "flatten_d12": "-465.4",
+    "derisk_floor": "300.0",
+    "S1_balanced": "106.0",
+    "cover_recall_only": "-317.4"
+   }
+  },
+  {
+   "seed": "seed:b6-163",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.4",
+    "flatten_d12": "-456.4",
+    "derisk_floor": "497.9",
+    "S1_balanced": "87.8",
+    "cover_recall_only": "-307.6"
+   }
+  },
+  {
+   "seed": "seed:b6-164",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-452.8",
+    "flatten_d12": "-452.8",
+    "derisk_floor": "-81.3",
+    "S1_balanced": "-28.8",
+    "cover_recall_only": "-304.7"
+   }
+  },
+  {
+   "seed": "seed:b6-165",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.4",
+    "flatten_d12": "-307.4",
+    "derisk_floor": "278.3",
+    "S1_balanced": "40.8",
+    "cover_recall_only": "-4.5"
+   }
+  },
+  {
+   "seed": "seed:b6-166",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-471.8",
+    "flatten_d12": "-471.8",
+    "derisk_floor": "-39.8",
+    "S1_balanced": "25.8",
+    "cover_recall_only": "-322.7"
+   }
+  },
+  {
+   "seed": "seed:b6-167",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.0",
+    "flatten_d12": "-460.0",
+    "derisk_floor": "136.3",
+    "S1_balanced": "63.0",
+    "cover_recall_only": "-311.0"
+   }
+  },
+  {
+   "seed": "seed:b6-168",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.6",
+    "flatten_d12": "-455.6",
+    "derisk_floor": "240.1",
+    "S1_balanced": "74.9",
+    "cover_recall_only": "-303.8"
+   }
+  },
+  {
+   "seed": "seed:b6-169",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "289.3",
+    "S1_balanced": "57.4",
+    "cover_recall_only": "8.2"
+   }
+  },
+  {
+   "seed": "seed:b6-170",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.8",
+    "flatten_d12": "-305.8",
+    "derisk_floor": "247.1",
+    "S1_balanced": "11.6",
+    "cover_recall_only": "-1.2"
+   }
+  },
+  {
+   "seed": "seed:b6-171",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-464.5",
+    "flatten_d12": "-464.5",
+    "derisk_floor": "-2.0",
+    "S1_balanced": "1.3",
+    "cover_recall_only": "-316.0"
+   }
+  },
+  {
+   "seed": "seed:b6-172",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-483.5",
+    "flatten_d12": "-483.5",
+    "derisk_floor": "-91.9",
+    "S1_balanced": "5.9",
+    "cover_recall_only": "-330.0"
+   }
+  },
+  {
+   "seed": "seed:b6-173",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.7",
+    "flatten_d12": "-309.7",
+    "derisk_floor": "65.2",
+    "S1_balanced": "12.6",
+    "cover_recall_only": "-16.6"
+   }
+  },
+  {
+   "seed": "seed:b6-174",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-467.0",
+    "flatten_d12": "-467.0",
+    "derisk_floor": "64.1",
+    "S1_balanced": "31.7",
+    "cover_recall_only": "-317.6"
+   }
+  },
+  {
+   "seed": "seed:b6-175",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-464.0",
+    "flatten_d12": "-464.0",
+    "derisk_floor": "253.6",
+    "S1_balanced": "75.3",
+    "cover_recall_only": "-163.2"
+   }
+  },
+  {
+   "seed": "seed:b6-176",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.5",
+    "flatten_d12": "-462.5",
+    "derisk_floor": "290.4",
+    "S1_balanced": "46.8",
+    "cover_recall_only": "-314.1"
+   }
+  },
+  {
+   "seed": "seed:b6-177",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.4",
+    "flatten_d12": "-462.4",
+    "derisk_floor": "-119.2",
+    "S1_balanced": "-63.4",
+    "cover_recall_only": "-312.8"
+   }
+  },
+  {
+   "seed": "seed:b6-178",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.8",
+    "flatten_d12": "-454.8",
+    "derisk_floor": "376.6",
+    "S1_balanced": "36.2",
+    "cover_recall_only": "-306.2"
+   }
+  },
+  {
+   "seed": "seed:b6-179",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.9",
+    "flatten_d12": "-457.9",
+    "derisk_floor": "196.4",
+    "S1_balanced": "48.2",
+    "cover_recall_only": "-307.9"
+   }
+  },
+  {
+   "seed": "seed:b6-180",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.8",
+    "flatten_d12": "-308.8",
+    "derisk_floor": "-220.6",
+    "S1_balanced": "-43.1",
+    "cover_recall_only": "-19.6"
+   }
+  },
+  {
+   "seed": "seed:b6-181",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.3",
+    "flatten_d12": "-460.3",
+    "derisk_floor": "242.7",
+    "S1_balanced": "21.7",
+    "cover_recall_only": "-311.1"
+   }
+  },
+  {
+   "seed": "seed:b6-182",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-442.0",
+    "flatten_d12": "-442.0",
+    "derisk_floor": "474.9",
+    "S1_balanced": "129.0",
+    "cover_recall_only": "-298.1"
+   }
+  },
+  {
+   "seed": "seed:b6-183",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.6",
+    "flatten_d12": "-459.6",
+    "derisk_floor": "89.9",
+    "S1_balanced": "63.6",
+    "cover_recall_only": "-310.1"
+   }
+  },
+  {
+   "seed": "seed:b6-184",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-319.4",
+    "flatten_d12": "-319.4",
+    "derisk_floor": "205.3",
+    "S1_balanced": "17.5",
+    "cover_recall_only": "-10.8"
+   }
+  },
+  {
+   "seed": "seed:b6-185",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.5",
+    "flatten_d12": "-308.5",
+    "derisk_floor": "217.5",
+    "S1_balanced": "34.6",
+    "cover_recall_only": "-1.2"
+   }
+  },
+  {
+   "seed": "seed:b6-186",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.9",
+    "flatten_d12": "-459.9",
+    "derisk_floor": "-72.3",
+    "S1_balanced": "-2.1",
+    "cover_recall_only": "-309.8"
+   }
+  },
+  {
+   "seed": "seed:b6-187",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.8",
+    "flatten_d12": "-308.8",
+    "derisk_floor": "135.6",
+    "S1_balanced": "-1.9",
+    "cover_recall_only": "-8.4"
+   }
+  },
+  {
+   "seed": "seed:b6-188",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.6",
+    "flatten_d12": "-459.6",
+    "derisk_floor": "500.7",
+    "S1_balanced": "125.8",
+    "cover_recall_only": "-311.6"
+   }
+  },
+  {
+   "seed": "seed:b6-189",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-314.6",
+    "flatten_d12": "-314.6",
+    "derisk_floor": "-69.5",
+    "S1_balanced": "26.0",
+    "cover_recall_only": "-319.4"
+   }
+  },
+  {
+   "seed": "seed:b6-190",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.4",
+    "flatten_d12": "-305.4",
+    "derisk_floor": "344.0",
+    "S1_balanced": "44.3",
+    "cover_recall_only": "-1.3"
+   }
+  },
+  {
+   "seed": "seed:b6-191",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.2",
+    "flatten_d12": "-465.2",
+    "derisk_floor": "-29.0",
+    "S1_balanced": "-22.4",
+    "cover_recall_only": "-315.0"
+   }
+  },
+  {
+   "seed": "seed:b6-192",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.5",
+    "flatten_d12": "-454.5",
+    "derisk_floor": "270.8",
+    "S1_balanced": "58.8",
+    "cover_recall_only": "-300.5"
+   }
+  },
+  {
+   "seed": "seed:b6-193",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.8",
+    "flatten_d12": "-454.8",
+    "derisk_floor": "500.9",
+    "S1_balanced": "43.0",
+    "cover_recall_only": "-306.1"
+   }
+  },
+  {
+   "seed": "seed:b6-194",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-464.2",
+    "flatten_d12": "-464.2",
+    "derisk_floor": "17.4",
+    "S1_balanced": "11.8",
+    "cover_recall_only": "-313.2"
+   }
+  },
+  {
+   "seed": "seed:b6-195",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.9",
+    "flatten_d12": "-459.9",
+    "derisk_floor": "142.0",
+    "S1_balanced": "32.0",
+    "cover_recall_only": "-310.2"
+   }
+  },
+  {
+   "seed": "seed:b6-196",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.5",
+    "flatten_d12": "-305.5",
+    "derisk_floor": "250.1",
+    "S1_balanced": "63.4",
+    "cover_recall_only": "-1.9"
+   }
+  },
+  {
+   "seed": "seed:b6-197",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "217.8",
+    "S1_balanced": "46.9",
+    "cover_recall_only": "9.3"
+   }
+  },
+  {
+   "seed": "seed:b6-198",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.8",
+    "flatten_d12": "-308.8",
+    "derisk_floor": "295.6",
+    "S1_balanced": "43.7",
+    "cover_recall_only": "-0.3"
+   }
+  },
+  {
+   "seed": "seed:b6-199",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.3",
+    "flatten_d12": "-303.3",
+    "derisk_floor": "234.5",
+    "S1_balanced": "51.9",
+    "cover_recall_only": "4.5"
+   }
+  },
+  {
+   "seed": "seed:b6-200",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-444.0",
+    "flatten_d12": "-444.0",
+    "derisk_floor": "494.4",
+    "S1_balanced": "99.0",
+    "cover_recall_only": "-291.5"
+   }
+  },
+  {
+   "seed": "seed:b6-201",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.4",
+    "flatten_d12": "-462.4",
+    "derisk_floor": "367.7",
+    "S1_balanced": "55.6",
+    "cover_recall_only": "-312.2"
+   }
+  },
+  {
+   "seed": "seed:b6-202",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.4",
+    "flatten_d12": "-305.4",
+    "derisk_floor": "-5.4",
+    "S1_balanced": "38.6",
+    "cover_recall_only": "1.2"
+   }
+  },
+  {
+   "seed": "seed:b6-203",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.6",
+    "flatten_d12": "-308.6",
+    "derisk_floor": "-31.3",
+    "S1_balanced": "-13.9",
+    "cover_recall_only": "-12.5"
+   }
+  },
+  {
+   "seed": "seed:b6-204",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.3",
+    "flatten_d12": "-303.3",
+    "derisk_floor": "18.1",
+    "S1_balanced": "42.0",
+    "cover_recall_only": "-1.8"
+   }
+  },
+  {
+   "seed": "seed:b6-205",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.5",
+    "flatten_d12": "-302.5",
+    "derisk_floor": "31.4",
+    "S1_balanced": "-41.6",
+    "cover_recall_only": "-1.6"
+   }
+  },
+  {
+   "seed": "seed:b6-206",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.2",
+    "flatten_d12": "-459.2",
+    "derisk_floor": "82.5",
+    "S1_balanced": "70.2",
+    "cover_recall_only": "-313.0"
+   }
+  },
+  {
+   "seed": "seed:b6-207",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "96.3",
+    "S1_balanced": "-23.4",
+    "cover_recall_only": "-5.1"
+   }
+  },
+  {
+   "seed": "seed:b6-208",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.6",
+    "flatten_d12": "-309.6",
+    "derisk_floor": "252.6",
+    "S1_balanced": "33.9",
+    "cover_recall_only": "-7.6"
+   }
+  },
+  {
+   "seed": "seed:b6-209",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-301.8",
+    "flatten_d12": "-301.8",
+    "derisk_floor": "330.7",
+    "S1_balanced": "72.4",
+    "cover_recall_only": "7.2"
+   }
+  },
+  {
+   "seed": "seed:b6-210",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-441.6",
+    "flatten_d12": "-441.6",
+    "derisk_floor": "486.1",
+    "S1_balanced": "57.4",
+    "cover_recall_only": "-141.2"
+   }
+  },
+  {
+   "seed": "seed:b6-211",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.4",
+    "flatten_d12": "-455.4",
+    "derisk_floor": "475.9",
+    "S1_balanced": "110.0",
+    "cover_recall_only": "-149.6"
+   }
+  },
+  {
+   "seed": "seed:b6-212",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.8",
+    "flatten_d12": "-461.8",
+    "derisk_floor": "165.5",
+    "S1_balanced": "62.2",
+    "cover_recall_only": "-310.2"
+   }
+  },
+  {
+   "seed": "seed:b6-213",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.4",
+    "flatten_d12": "-306.4",
+    "derisk_floor": "249.4",
+    "S1_balanced": "39.0",
+    "cover_recall_only": "-2.5"
+   }
+  },
+  {
+   "seed": "seed:b6-214",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.5",
+    "flatten_d12": "-305.5",
+    "derisk_floor": "198.1",
+    "S1_balanced": "47.6",
+    "cover_recall_only": "2.3"
+   }
+  },
+  {
+   "seed": "seed:b6-215",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.2",
+    "flatten_d12": "-306.2",
+    "derisk_floor": "189.3",
+    "S1_balanced": "39.1",
+    "cover_recall_only": "-1.3"
+   }
+  },
+  {
+   "seed": "seed:b6-216",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-460.8",
+    "flatten_d12": "-460.8",
+    "derisk_floor": "345.8",
+    "S1_balanced": "106.4",
+    "cover_recall_only": "-7.1"
+   }
+  },
+  {
+   "seed": "seed:b6-217",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.4",
+    "flatten_d12": "-453.4",
+    "derisk_floor": "367.3",
+    "S1_balanced": "52.2",
+    "cover_recall_only": "-304.5"
+   }
+  },
+  {
+   "seed": "seed:b6-218",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.3",
+    "flatten_d12": "-460.3",
+    "derisk_floor": "209.6",
+    "S1_balanced": "1.3",
+    "cover_recall_only": "-309.6"
+   }
+  },
+  {
+   "seed": "seed:b6-219",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.0",
+    "flatten_d12": "-307.0",
+    "derisk_floor": "302.3",
+    "S1_balanced": "31.4",
+    "cover_recall_only": "7.9"
+   }
+  },
+  {
+   "seed": "seed:b6-220",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.9",
+    "flatten_d12": "-463.9",
+    "derisk_floor": "-53.7",
+    "S1_balanced": "-19.8",
+    "cover_recall_only": "-314.2"
+   }
+  },
+  {
+   "seed": "seed:b6-221",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.1",
+    "flatten_d12": "-308.1",
+    "derisk_floor": "433.9",
+    "S1_balanced": "28.6",
+    "cover_recall_only": "13.3"
+   }
+  },
+  {
+   "seed": "seed:b6-222",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.6",
+    "flatten_d12": "-456.6",
+    "derisk_floor": "243.3",
+    "S1_balanced": "34.7",
+    "cover_recall_only": "-307.3"
+   }
+  },
+  {
+   "seed": "seed:b6-223",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.2",
+    "flatten_d12": "-302.2",
+    "derisk_floor": "285.3",
+    "S1_balanced": "74.9",
+    "cover_recall_only": "4.3"
+   }
+  },
+  {
+   "seed": "seed:b6-224",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "497.9",
+    "S1_balanced": "45.8",
+    "cover_recall_only": "19.0"
+   }
+  },
+  {
+   "seed": "seed:b6-225",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.9",
+    "flatten_d12": "-456.9",
+    "derisk_floor": "185.7",
+    "S1_balanced": "-39.6",
+    "cover_recall_only": "-309.0"
+   }
+  },
+  {
+   "seed": "seed:b6-226",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.8",
+    "flatten_d12": "-309.8",
+    "derisk_floor": "133.5",
+    "S1_balanced": "-11.1",
+    "cover_recall_only": "-8.5"
+   }
+  },
+  {
+   "seed": "seed:b6-227",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.7",
+    "flatten_d12": "-455.7",
+    "derisk_floor": "-6.7",
+    "S1_balanced": "-38.0",
+    "cover_recall_only": "-307.1"
+   }
+  },
+  {
+   "seed": "seed:b6-228",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-451.2",
+    "flatten_d12": "-451.2",
+    "derisk_floor": "556.8",
+    "S1_balanced": "62.6",
+    "cover_recall_only": "-148.0"
+   }
+  },
+  {
+   "seed": "seed:b6-229",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.4",
+    "flatten_d12": "-310.4",
+    "derisk_floor": "270.9",
+    "S1_balanced": "-2.9",
+    "cover_recall_only": "-1.6"
+   }
+  },
+  {
+   "seed": "seed:b6-230",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.0",
+    "flatten_d12": "-461.0",
+    "derisk_floor": "366.5",
+    "S1_balanced": "47.3",
+    "cover_recall_only": "-310.5"
+   }
+  },
+  {
+   "seed": "seed:b6-231",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.2",
+    "flatten_d12": "-309.2",
+    "derisk_floor": "271.1",
+    "S1_balanced": "-34.9",
+    "cover_recall_only": "-15.7"
+   }
+  },
+  {
+   "seed": "seed:b6-232",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.2",
+    "flatten_d12": "-459.2",
+    "derisk_floor": "-5.4",
+    "S1_balanced": "32.3",
+    "cover_recall_only": "-309.5"
+   }
+  },
+  {
+   "seed": "seed:b6-233",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.8",
+    "flatten_d12": "-453.8",
+    "derisk_floor": "343.4",
+    "S1_balanced": "53.0",
+    "cover_recall_only": "-305.3"
+   }
+  },
+  {
+   "seed": "seed:b6-234",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.9",
+    "flatten_d12": "-309.9",
+    "derisk_floor": "153.0",
+    "S1_balanced": "-0.3",
+    "cover_recall_only": "-12.7"
+   }
+  },
+  {
+   "seed": "seed:b6-235",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-467.0",
+    "flatten_d12": "-467.0",
+    "derisk_floor": "245.8",
+    "S1_balanced": "7.6",
+    "cover_recall_only": "-318.6"
+   }
+  },
+  {
+   "seed": "seed:b6-236",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-474.7",
+    "flatten_d12": "-474.7",
+    "derisk_floor": "284.5",
+    "S1_balanced": "18.9",
+    "cover_recall_only": "-9.7"
+   }
+  },
+  {
+   "seed": "seed:b6-237",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.4",
+    "flatten_d12": "-307.4",
+    "derisk_floor": "151.5",
+    "S1_balanced": "24.6",
+    "cover_recall_only": "-20.6"
+   }
+  },
+  {
+   "seed": "seed:b6-238",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.6",
+    "flatten_d12": "-454.6",
+    "derisk_floor": "314.6",
+    "S1_balanced": "36.8",
+    "cover_recall_only": "-305.4"
+   }
+  },
+  {
+   "seed": "seed:b6-239",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "16.7",
+    "S1_balanced": "-28.5",
+    "cover_recall_only": "-11.1"
+   }
+  },
+  {
+   "seed": "seed:b6-240",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.5",
+    "flatten_d12": "-459.5",
+    "derisk_floor": "198.9",
+    "S1_balanced": "23.7",
+    "cover_recall_only": "-309.1"
+   }
+  },
+  {
+   "seed": "seed:b6-241",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.7",
+    "flatten_d12": "-305.7",
+    "derisk_floor": "157.7",
+    "S1_balanced": "13.1",
+    "cover_recall_only": "-1.0"
+   }
+  },
+  {
+   "seed": "seed:b6-242",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-314.8",
+    "flatten_d12": "-314.8",
+    "derisk_floor": "374.4",
+    "S1_balanced": "59.3",
+    "cover_recall_only": "-6.7"
+   }
+  },
+  {
+   "seed": "seed:b6-243",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.6",
+    "flatten_d12": "-307.6",
+    "derisk_floor": "13.9",
+    "S1_balanced": "-11.6",
+    "cover_recall_only": "-10.3"
+   }
+  },
+  {
+   "seed": "seed:b6-244",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-313.1",
+    "flatten_d12": "-313.1",
+    "derisk_floor": "401.2",
+    "S1_balanced": "8.7",
+    "cover_recall_only": "1.8"
+   }
+  },
+  {
+   "seed": "seed:b6-245",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.0",
+    "flatten_d12": "-307.0",
+    "derisk_floor": "168.6",
+    "S1_balanced": "16.6",
+    "cover_recall_only": "-1.1"
+   }
+  },
+  {
+   "seed": "seed:b6-246",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.1",
+    "flatten_d12": "-465.1",
+    "derisk_floor": "185.1",
+    "S1_balanced": "62.5",
+    "cover_recall_only": "-315.6"
+   }
+  },
+  {
+   "seed": "seed:b6-247",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.5",
+    "flatten_d12": "-306.5",
+    "derisk_floor": "-208.8",
+    "S1_balanced": "-27.6",
+    "cover_recall_only": "-28.8"
+   }
+  },
+  {
+   "seed": "seed:b6-248",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.8",
+    "flatten_d12": "-456.8",
+    "derisk_floor": "306.4",
+    "S1_balanced": "35.0",
+    "cover_recall_only": "-305.8"
+   }
+  },
+  {
+   "seed": "seed:b6-249",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.5",
+    "flatten_d12": "-304.5",
+    "derisk_floor": "249.6",
+    "S1_balanced": "41.8",
+    "cover_recall_only": "4.1"
+   }
+  },
+  {
+   "seed": "seed:b6-250",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.5",
+    "flatten_d12": "-459.5",
+    "derisk_floor": "146.6",
+    "S1_balanced": "38.5",
+    "cover_recall_only": "-309.2"
+   }
+  },
+  {
+   "seed": "seed:b6-251",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "182.9",
+    "S1_balanced": "31.0",
+    "cover_recall_only": "-3.0"
+   }
+  },
+  {
+   "seed": "seed:b6-252",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.8",
+    "flatten_d12": "-309.8",
+    "derisk_floor": "137.1",
+    "S1_balanced": "17.8",
+    "cover_recall_only": "-9.3"
+   }
+  },
+  {
+   "seed": "seed:b6-253",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-449.6",
+    "flatten_d12": "-449.6",
+    "derisk_floor": "551.9",
+    "S1_balanced": "180.7",
+    "cover_recall_only": "10.4"
+   }
+  },
+  {
+   "seed": "seed:b6-254",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.7",
+    "flatten_d12": "-459.7",
+    "derisk_floor": "133.5",
+    "S1_balanced": "66.2",
+    "cover_recall_only": "-309.7"
+   }
+  },
+  {
+   "seed": "seed:b6-255",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.4",
+    "flatten_d12": "-306.4",
+    "derisk_floor": "213.9",
+    "S1_balanced": "21.6",
+    "cover_recall_only": "-9.3"
+   }
+  },
+  {
+   "seed": "seed:b6-256",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.4",
+    "flatten_d12": "-311.4",
+    "derisk_floor": "225.7",
+    "S1_balanced": "28.7",
+    "cover_recall_only": "2.5"
+   }
+  },
+  {
+   "seed": "seed:b6-257",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.8",
+    "flatten_d12": "-308.8",
+    "derisk_floor": "220.4",
+    "S1_balanced": "13.4",
+    "cover_recall_only": "-7.2"
+   }
+  },
+  {
+   "seed": "seed:b6-258",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-483.6",
+    "flatten_d12": "-483.6",
+    "derisk_floor": "-92.5",
+    "S1_balanced": "-13.2",
+    "cover_recall_only": "-326.7"
+   }
+  },
+  {
+   "seed": "seed:b6-259",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.6",
+    "flatten_d12": "-456.6",
+    "derisk_floor": "221.3",
+    "S1_balanced": "41.3",
+    "cover_recall_only": "-306.7"
+   }
+  },
+  {
+   "seed": "seed:b6-260",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.6",
+    "flatten_d12": "-457.6",
+    "derisk_floor": "268.8",
+    "S1_balanced": "53.3",
+    "cover_recall_only": "-309.3"
+   }
+  },
+  {
+   "seed": "seed:b6-261",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.4",
+    "flatten_d12": "-303.4",
+    "derisk_floor": "209.9",
+    "S1_balanced": "-6.9",
+    "cover_recall_only": "-0.2"
+   }
+  },
+  {
+   "seed": "seed:b6-262",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.4",
+    "flatten_d12": "-308.4",
+    "derisk_floor": "28.9",
+    "S1_balanced": "1.2",
+    "cover_recall_only": "-6.2"
+   }
+  },
+  {
+   "seed": "seed:b6-263",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.1",
+    "flatten_d12": "-308.1",
+    "derisk_floor": "114.4",
+    "S1_balanced": "32.1",
+    "cover_recall_only": "-17.9"
+   }
+  },
+  {
+   "seed": "seed:b6-264",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "216.2",
+    "S1_balanced": "30.7",
+    "cover_recall_only": "-5.5"
+   }
+  },
+  {
+   "seed": "seed:b6-265",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.0",
+    "flatten_d12": "-461.0",
+    "derisk_floor": "197.3",
+    "S1_balanced": "35.9",
+    "cover_recall_only": "-310.9"
+   }
+  },
+  {
+   "seed": "seed:b6-266",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-468.4",
+    "flatten_d12": "-468.4",
+    "derisk_floor": "70.0",
+    "S1_balanced": "14.3",
+    "cover_recall_only": "-319.8"
+   }
+  },
+  {
+   "seed": "seed:b6-267",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-469.6",
+    "flatten_d12": "-469.6",
+    "derisk_floor": "142.9",
+    "S1_balanced": "41.2",
+    "cover_recall_only": "-321.6"
+   }
+  },
+  {
+   "seed": "seed:b6-268",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.1",
+    "flatten_d12": "-454.1",
+    "derisk_floor": "318.6",
+    "S1_balanced": "61.4",
+    "cover_recall_only": "-150.3"
+   }
+  },
+  {
+   "seed": "seed:b6-269",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.8",
+    "flatten_d12": "-462.8",
+    "derisk_floor": "191.1",
+    "S1_balanced": "50.0",
+    "cover_recall_only": "-159.5"
+   }
+  },
+  {
+   "seed": "seed:b6-270",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-312.6",
+    "flatten_d12": "-312.6",
+    "derisk_floor": "438.2",
+    "S1_balanced": "59.6",
+    "cover_recall_only": "1.3"
+   }
+  },
+  {
+   "seed": "seed:b6-271",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.0",
+    "flatten_d12": "-458.0",
+    "derisk_floor": "183.7",
+    "S1_balanced": "45.9",
+    "cover_recall_only": "-307.9"
+   }
+  },
+  {
+   "seed": "seed:b6-272",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-467.5",
+    "flatten_d12": "-467.5",
+    "derisk_floor": "115.6",
+    "S1_balanced": "47.0",
+    "cover_recall_only": "-173.0"
+   }
+  },
+  {
+   "seed": "seed:b6-273",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.8",
+    "flatten_d12": "-303.8",
+    "derisk_floor": "113.6",
+    "S1_balanced": "41.4",
+    "cover_recall_only": "2.4"
+   }
+  },
+  {
+   "seed": "seed:b6-274",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.4",
+    "flatten_d12": "-455.4",
+    "derisk_floor": "243.8",
+    "S1_balanced": "11.4",
+    "cover_recall_only": "-307.2"
+   }
+  },
+  {
+   "seed": "seed:b6-275",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.8",
+    "flatten_d12": "-454.8",
+    "derisk_floor": "187.6",
+    "S1_balanced": "35.1",
+    "cover_recall_only": "-305.7"
+   }
+  },
+  {
+   "seed": "seed:b6-276",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.9",
+    "flatten_d12": "-458.9",
+    "derisk_floor": "144.7",
+    "S1_balanced": "37.9",
+    "cover_recall_only": "-308.8"
+   }
+  },
+  {
+   "seed": "seed:b6-277",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.9",
+    "flatten_d12": "-461.9",
+    "derisk_floor": "69.4",
+    "S1_balanced": "37.0",
+    "cover_recall_only": "-312.7"
+   }
+  },
+  {
+   "seed": "seed:b6-278",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.7",
+    "flatten_d12": "-462.7",
+    "derisk_floor": "-140.0",
+    "S1_balanced": "28.4",
+    "cover_recall_only": "-316.0"
+   }
+  },
+  {
+   "seed": "seed:b6-279",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.6",
+    "flatten_d12": "-458.6",
+    "derisk_floor": "150.3",
+    "S1_balanced": "37.6",
+    "cover_recall_only": "-309.4"
+   }
+  },
+  {
+   "seed": "seed:b6-280",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.5",
+    "flatten_d12": "-306.5",
+    "derisk_floor": "62.8",
+    "S1_balanced": "8.8",
+    "cover_recall_only": "-11.5"
+   }
+  },
+  {
+   "seed": "seed:b6-281",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.7",
+    "flatten_d12": "-304.7",
+    "derisk_floor": "343.5",
+    "S1_balanced": "50.4",
+    "cover_recall_only": "12.3"
+   }
+  },
+  {
+   "seed": "seed:b6-282",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.7",
+    "flatten_d12": "-458.7",
+    "derisk_floor": "234.7",
+    "S1_balanced": "42.6",
+    "cover_recall_only": "-309.8"
+   }
+  },
+  {
+   "seed": "seed:b6-283",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.0",
+    "flatten_d12": "-311.0",
+    "derisk_floor": "-126.3",
+    "S1_balanced": "-57.8",
+    "cover_recall_only": "-12.5"
+   }
+  },
+  {
+   "seed": "seed:b6-284",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.1",
+    "flatten_d12": "-306.1",
+    "derisk_floor": "199.2",
+    "S1_balanced": "47.5",
+    "cover_recall_only": "-5.6"
+   }
+  },
+  {
+   "seed": "seed:b6-285",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-450.8",
+    "flatten_d12": "-450.8",
+    "derisk_floor": "256.2",
+    "S1_balanced": "39.5",
+    "cover_recall_only": "-302.1"
+   }
+  },
+  {
+   "seed": "seed:b6-286",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-315.3",
+    "flatten_d12": "-315.3",
+    "derisk_floor": "359.9",
+    "S1_balanced": "96.1",
+    "cover_recall_only": "-315.4"
+   }
+  },
+  {
+   "seed": "seed:b6-287",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.1",
+    "flatten_d12": "-308.1",
+    "derisk_floor": "362.9",
+    "S1_balanced": "59.5",
+    "cover_recall_only": "2.4"
+   }
+  },
+  {
+   "seed": "seed:b6-288",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-448.5",
+    "flatten_d12": "-448.5",
+    "derisk_floor": "428.2",
+    "S1_balanced": "72.4",
+    "cover_recall_only": "-298.9"
+   }
+  },
+  {
+   "seed": "seed:b6-289",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-441.1",
+    "flatten_d12": "-441.1",
+    "derisk_floor": "689.8",
+    "S1_balanced": "147.4",
+    "cover_recall_only": "-292.6"
+   }
+  },
+  {
+   "seed": "seed:b6-290",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-476.3",
+    "flatten_d12": "-476.3",
+    "derisk_floor": "-130.8",
+    "S1_balanced": "19.0",
+    "cover_recall_only": "-321.8"
+   }
+  },
+  {
+   "seed": "seed:b6-291",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.3",
+    "flatten_d12": "-453.3",
+    "derisk_floor": "391.2",
+    "S1_balanced": "65.8",
+    "cover_recall_only": "-305.0"
+   }
+  },
+  {
+   "seed": "seed:b6-292",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.1",
+    "flatten_d12": "-459.1",
+    "derisk_floor": "229.1",
+    "S1_balanced": "27.5",
+    "cover_recall_only": "-309.6"
+   }
+  },
+  {
+   "seed": "seed:b6-293",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.6",
+    "flatten_d12": "-311.6",
+    "derisk_floor": "245.9",
+    "S1_balanced": "18.5",
+    "cover_recall_only": "-6.2"
+   }
+  },
+  {
+   "seed": "seed:b6-294",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.9",
+    "flatten_d12": "-304.9",
+    "derisk_floor": "611.6",
+    "S1_balanced": "82.9",
+    "cover_recall_only": "14.3"
+   }
+  },
+  {
+   "seed": "seed:b6-295",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.6",
+    "flatten_d12": "-305.6",
+    "derisk_floor": "285.8",
+    "S1_balanced": "58.1",
+    "cover_recall_only": "1.1"
+   }
+  },
+  {
+   "seed": "seed:b6-296",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.5",
+    "flatten_d12": "-306.5",
+    "derisk_floor": "280.8",
+    "S1_balanced": "30.6",
+    "cover_recall_only": "0.3"
+   }
+  },
+  {
+   "seed": "seed:b6-297",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.9",
+    "flatten_d12": "-460.9",
+    "derisk_floor": "378.7",
+    "S1_balanced": "71.2",
+    "cover_recall_only": "-313.6"
+   }
+  },
+  {
+   "seed": "seed:b6-298",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.4",
+    "flatten_d12": "-310.4",
+    "derisk_floor": "61.7",
+    "S1_balanced": "25.2",
+    "cover_recall_only": "-15.6"
+   }
+  },
+  {
+   "seed": "seed:b6-299",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-415.5",
+    "flatten_d12": "-415.5",
+    "derisk_floor": "801.8",
+    "S1_balanced": "152.1",
+    "cover_recall_only": "34.8"
+   }
+  },
+  {
+   "seed": "seed:b6-300",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.6",
+    "flatten_d12": "-453.6",
+    "derisk_floor": "339.7",
+    "S1_balanced": "62.1",
+    "cover_recall_only": "-303.0"
+   }
+  },
+  {
+   "seed": "seed:b6-301",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.5",
+    "flatten_d12": "-307.5",
+    "derisk_floor": "-26.9",
+    "S1_balanced": "28.0",
+    "cover_recall_only": "3.5"
+   }
+  },
+  {
+   "seed": "seed:b6-302",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.7",
+    "flatten_d12": "-462.7",
+    "derisk_floor": "0.6",
+    "S1_balanced": "10.9",
+    "cover_recall_only": "-313.9"
+   }
+  },
+  {
+   "seed": "seed:b6-303",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.1",
+    "flatten_d12": "-454.1",
+    "derisk_floor": "337.6",
+    "S1_balanced": "101.2",
+    "cover_recall_only": "-301.7"
+   }
+  },
+  {
+   "seed": "seed:b6-304",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.2",
+    "flatten_d12": "-466.2",
+    "derisk_floor": "60.0",
+    "S1_balanced": "-26.3",
+    "cover_recall_only": "-312.5"
+   }
+  },
+  {
+   "seed": "seed:b6-305",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.5",
+    "flatten_d12": "-459.5",
+    "derisk_floor": "359.4",
+    "S1_balanced": "52.4",
+    "cover_recall_only": "-308.0"
+   }
+  },
+  {
+   "seed": "seed:b6-306",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.3",
+    "flatten_d12": "-457.3",
+    "derisk_floor": "196.8",
+    "S1_balanced": "39.6",
+    "cover_recall_only": "-308.7"
+   }
+  },
+  {
+   "seed": "seed:b6-307",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.2",
+    "flatten_d12": "-454.2",
+    "derisk_floor": "534.5",
+    "S1_balanced": "111.7",
+    "cover_recall_only": "-305.8"
+   }
+  },
+  {
+   "seed": "seed:b6-308",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.4",
+    "flatten_d12": "-305.4",
+    "derisk_floor": "485.5",
+    "S1_balanced": "48.7",
+    "cover_recall_only": "5.3"
+   }
+  },
+  {
+   "seed": "seed:b6-309",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-449.7",
+    "flatten_d12": "-449.7",
+    "derisk_floor": "298.2",
+    "S1_balanced": "85.8",
+    "cover_recall_only": "-301.2"
+   }
+  },
+  {
+   "seed": "seed:b6-310",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.6",
+    "flatten_d12": "-466.6",
+    "derisk_floor": "50.5",
+    "S1_balanced": "11.8",
+    "cover_recall_only": "-317.0"
+   }
+  },
+  {
+   "seed": "seed:b6-311",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.8",
+    "flatten_d12": "-307.8",
+    "derisk_floor": "139.8",
+    "S1_balanced": "8.0",
+    "cover_recall_only": "-7.9"
+   }
+  },
+  {
+   "seed": "seed:b6-312",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.9",
+    "flatten_d12": "-305.9",
+    "derisk_floor": "212.5",
+    "S1_balanced": "37.8",
+    "cover_recall_only": "1.4"
+   }
+  },
+  {
+   "seed": "seed:b6-313",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-457.8",
+    "flatten_d12": "-457.8",
+    "derisk_floor": "98.1",
+    "S1_balanced": "7.4",
+    "cover_recall_only": "-11.2"
+   }
+  },
+  {
+   "seed": "seed:b6-314",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-462.8",
+    "flatten_d12": "-462.8",
+    "derisk_floor": "-132.6",
+    "S1_balanced": "-63.2",
+    "cover_recall_only": "-28.5"
+   }
+  },
+  {
+   "seed": "seed:b6-315",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.1",
+    "flatten_d12": "-458.1",
+    "derisk_floor": "156.2",
+    "S1_balanced": "41.0",
+    "cover_recall_only": "-309.3"
+   }
+  },
+  {
+   "seed": "seed:b6-316",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-445.4",
+    "flatten_d12": "-445.4",
+    "derisk_floor": "514.9",
+    "S1_balanced": "86.8",
+    "cover_recall_only": "-293.8"
+   }
+  },
+  {
+   "seed": "seed:b6-317",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.3",
+    "flatten_d12": "-463.3",
+    "derisk_floor": "241.8",
+    "S1_balanced": "99.3",
+    "cover_recall_only": "-308.8"
+   }
+  },
+  {
+   "seed": "seed:b6-318",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.5",
+    "flatten_d12": "-455.5",
+    "derisk_floor": "220.4",
+    "S1_balanced": "50.2",
+    "cover_recall_only": "-304.4"
+   }
+  },
+  {
+   "seed": "seed:b6-319",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.1",
+    "flatten_d12": "-462.1",
+    "derisk_floor": "136.8",
+    "S1_balanced": "66.5",
+    "cover_recall_only": "-315.8"
+   }
+  },
+  {
+   "seed": "seed:b6-320",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-455.8",
+    "flatten_d12": "-455.8",
+    "derisk_floor": "-140.2",
+    "S1_balanced": "-54.8",
+    "cover_recall_only": "-19.9"
+   }
+  },
+  {
+   "seed": "seed:b6-321",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.8",
+    "flatten_d12": "-304.8",
+    "derisk_floor": "322.9",
+    "S1_balanced": "51.6",
+    "cover_recall_only": "-8.4"
+   }
+  },
+  {
+   "seed": "seed:b6-322",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-508.8",
+    "flatten_d12": "-508.8",
+    "derisk_floor": "-71.5",
+    "S1_balanced": "7.6",
+    "cover_recall_only": "-73.7"
+   }
+  },
+  {
+   "seed": "seed:b6-323",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-451.5",
+    "flatten_d12": "-451.5",
+    "derisk_floor": "439.8",
+    "S1_balanced": "103.5",
+    "cover_recall_only": "-300.7"
+   }
+  },
+  {
+   "seed": "seed:b6-324",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.9",
+    "flatten_d12": "-307.9",
+    "derisk_floor": "97.2",
+    "S1_balanced": "5.1",
+    "cover_recall_only": "-6.5"
+   }
+  },
+  {
+   "seed": "seed:b6-325",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.1",
+    "flatten_d12": "-307.1",
+    "derisk_floor": "229.1",
+    "S1_balanced": "47.4",
+    "cover_recall_only": "-1.8"
+   }
+  },
+  {
+   "seed": "seed:b6-326",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.5",
+    "flatten_d12": "-459.5",
+    "derisk_floor": "249.0",
+    "S1_balanced": "62.7",
+    "cover_recall_only": "-308.6"
+   }
+  },
+  {
+   "seed": "seed:b6-327",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.6",
+    "flatten_d12": "-311.6",
+    "derisk_floor": "136.4",
+    "S1_balanced": "16.4",
+    "cover_recall_only": "-14.8"
+   }
+  },
+  {
+   "seed": "seed:b6-328",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.5",
+    "flatten_d12": "-456.5",
+    "derisk_floor": "514.5",
+    "S1_balanced": "96.7",
+    "cover_recall_only": "-146.0"
+   }
+  },
+  {
+   "seed": "seed:b6-329",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.3",
+    "flatten_d12": "-461.3",
+    "derisk_floor": "152.4",
+    "S1_balanced": "38.4",
+    "cover_recall_only": "-313.5"
+   }
+  },
+  {
+   "seed": "seed:b6-330",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.3",
+    "flatten_d12": "-466.3",
+    "derisk_floor": "40.0",
+    "S1_balanced": "22.5",
+    "cover_recall_only": "-315.9"
+   }
+  },
+  {
+   "seed": "seed:b6-331",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.1",
+    "flatten_d12": "-459.1",
+    "derisk_floor": "192.5",
+    "S1_balanced": "50.0",
+    "cover_recall_only": "-309.4"
+   }
+  },
+  {
+   "seed": "seed:b6-332",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-312.6",
+    "flatten_d12": "-312.6",
+    "derisk_floor": "511.2",
+    "S1_balanced": "86.2",
+    "cover_recall_only": "11.7"
+   }
+  },
+  {
+   "seed": "seed:b6-333",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-312.6",
+    "flatten_d12": "-312.6",
+    "derisk_floor": "68.2",
+    "S1_balanced": "4.9",
+    "cover_recall_only": "-15.4"
+   }
+  },
+  {
+   "seed": "seed:b6-334",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-314.5",
+    "flatten_d12": "-314.5",
+    "derisk_floor": "277.0",
+    "S1_balanced": "34.3",
+    "cover_recall_only": "11.0"
+   }
+  },
+  {
+   "seed": "seed:b6-335",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-465.4",
+    "flatten_d12": "-465.4",
+    "derisk_floor": "-62.4",
+    "S1_balanced": "-28.7",
+    "cover_recall_only": "-316.2"
+   }
+  },
+  {
+   "seed": "seed:b6-336",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.8",
+    "flatten_d12": "-453.8",
+    "derisk_floor": "307.1",
+    "S1_balanced": "47.7",
+    "cover_recall_only": "-303.2"
+   }
+  },
+  {
+   "seed": "seed:b6-337",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.1",
+    "flatten_d12": "-460.1",
+    "derisk_floor": "208.1",
+    "S1_balanced": "66.5",
+    "cover_recall_only": "-308.6"
+   }
+  },
+  {
+   "seed": "seed:b6-338",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.7",
+    "flatten_d12": "-303.7",
+    "derisk_floor": "147.1",
+    "S1_balanced": "35.5",
+    "cover_recall_only": "-1.1"
+   }
+  },
+  {
+   "seed": "seed:b6-339",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.3",
+    "flatten_d12": "-455.3",
+    "derisk_floor": "220.7",
+    "S1_balanced": "-26.9",
+    "cover_recall_only": "-307.1"
+   }
+  },
+  {
+   "seed": "seed:b6-340",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-317.8",
+    "flatten_d12": "-317.8",
+    "derisk_floor": "268.8",
+    "S1_balanced": "50.4",
+    "cover_recall_only": "-6.8"
+   }
+  },
+  {
+   "seed": "seed:b6-341",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.0",
+    "flatten_d12": "-308.0",
+    "derisk_floor": "229.3",
+    "S1_balanced": "4.6",
+    "cover_recall_only": "2.1"
+   }
+  },
+  {
+   "seed": "seed:b6-342",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.8",
+    "flatten_d12": "-466.8",
+    "derisk_floor": "243.2",
+    "S1_balanced": "42.9",
+    "cover_recall_only": "-164.6"
+   }
+  },
+  {
+   "seed": "seed:b6-343",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.5",
+    "flatten_d12": "-304.5",
+    "derisk_floor": "311.1",
+    "S1_balanced": "22.0",
+    "cover_recall_only": "0.9"
+   }
+  },
+  {
+   "seed": "seed:b6-344",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.7",
+    "flatten_d12": "-306.7",
+    "derisk_floor": "157.2",
+    "S1_balanced": "16.3",
+    "cover_recall_only": "-5.4"
+   }
+  },
+  {
+   "seed": "seed:b6-345",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-466.9",
+    "flatten_d12": "-466.9",
+    "derisk_floor": "-76.2",
+    "S1_balanced": "58.4",
+    "cover_recall_only": "-318.1"
+   }
+  },
+  {
+   "seed": "seed:b6-346",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.4",
+    "flatten_d12": "-306.4",
+    "derisk_floor": "301.6",
+    "S1_balanced": "57.7",
+    "cover_recall_only": "-2.2"
+   }
+  },
+  {
+   "seed": "seed:b6-347",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-321.1",
+    "flatten_d12": "-321.1",
+    "derisk_floor": "228.1",
+    "S1_balanced": "29.5",
+    "cover_recall_only": "-19.2"
+   }
+  },
+  {
+   "seed": "seed:b6-348",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.3",
+    "flatten_d12": "-307.3",
+    "derisk_floor": "238.3",
+    "S1_balanced": "43.4",
+    "cover_recall_only": "-3.0"
+   }
+  },
+  {
+   "seed": "seed:b6-349",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-464.8",
+    "flatten_d12": "-464.8",
+    "derisk_floor": "307.2",
+    "S1_balanced": "84.1",
+    "cover_recall_only": "-10.4"
+   }
+  },
+  {
+   "seed": "seed:b6-350",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.5",
+    "flatten_d12": "-310.5",
+    "derisk_floor": "226.5",
+    "S1_balanced": "41.3",
+    "cover_recall_only": "-7.3"
+   }
+  },
+  {
+   "seed": "seed:b6-351",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.8",
+    "flatten_d12": "-455.8",
+    "derisk_floor": "298.0",
+    "S1_balanced": "70.0",
+    "cover_recall_only": "-307.2"
+   }
+  },
+  {
+   "seed": "seed:b6-352",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.2",
+    "flatten_d12": "-306.2",
+    "derisk_floor": "147.6",
+    "S1_balanced": "82.0",
+    "cover_recall_only": "-4.3"
+   }
+  },
+  {
+   "seed": "seed:b6-353",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-305.4",
+    "flatten_d12": "-305.4",
+    "derisk_floor": "291.3",
+    "S1_balanced": "49.5",
+    "cover_recall_only": "5.6"
+   }
+  },
+  {
+   "seed": "seed:b6-354",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.1",
+    "flatten_d12": "-463.1",
+    "derisk_floor": "80.2",
+    "S1_balanced": "15.5",
+    "cover_recall_only": "-311.7"
+   }
+  },
+  {
+   "seed": "seed:b6-355",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.0",
+    "flatten_d12": "-458.0",
+    "derisk_floor": "155.9",
+    "S1_balanced": "14.7",
+    "cover_recall_only": "-312.0"
+   }
+  },
+  {
+   "seed": "seed:b6-356",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-453.7",
+    "flatten_d12": "-453.7",
+    "derisk_floor": "477.9",
+    "S1_balanced": "87.3",
+    "cover_recall_only": "-303.2"
+   }
+  },
+  {
+   "seed": "seed:b6-357",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-454.9",
+    "flatten_d12": "-454.9",
+    "derisk_floor": "333.5",
+    "S1_balanced": "65.3",
+    "cover_recall_only": "-303.1"
+   }
+  },
+  {
+   "seed": "seed:b6-358",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-304.9",
+    "flatten_d12": "-304.9",
+    "derisk_floor": "437.6",
+    "S1_balanced": "82.4",
+    "cover_recall_only": "22.2"
+   }
+  },
+  {
+   "seed": "seed:b6-359",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.2",
+    "flatten_d12": "-456.2",
+    "derisk_floor": "285.3",
+    "S1_balanced": "49.8",
+    "cover_recall_only": "-300.0"
+   }
+  },
+  {
+   "seed": "seed:b6-360",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.4",
+    "flatten_d12": "-308.4",
+    "derisk_floor": "161.5",
+    "S1_balanced": "6.4",
+    "cover_recall_only": "-0.8"
+   }
+  },
+  {
+   "seed": "seed:b6-361",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.6",
+    "flatten_d12": "-455.6",
+    "derisk_floor": "287.5",
+    "S1_balanced": "71.5",
+    "cover_recall_only": "-306.0"
+   }
+  },
+  {
+   "seed": "seed:b6-362",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.9",
+    "flatten_d12": "-306.9",
+    "derisk_floor": "245.2",
+    "S1_balanced": "36.5",
+    "cover_recall_only": "5.2"
+   }
+  },
+  {
+   "seed": "seed:b6-363",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-456.2",
+    "flatten_d12": "-456.2",
+    "derisk_floor": "485.8",
+    "S1_balanced": "77.1",
+    "cover_recall_only": "-307.0"
+   }
+  },
+  {
+   "seed": "seed:b6-364",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-302.3",
+    "flatten_d12": "-302.3",
+    "derisk_floor": "339.7",
+    "S1_balanced": "27.2",
+    "cover_recall_only": "8.4"
+   }
+  },
+  {
+   "seed": "seed:b6-365",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-306.0",
+    "flatten_d12": "-306.0",
+    "derisk_floor": "220.4",
+    "S1_balanced": "43.1",
+    "cover_recall_only": "-8.9"
+   }
+  },
+  {
+   "seed": "seed:b6-366",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.8",
+    "flatten_d12": "-458.8",
+    "derisk_floor": "151.7",
+    "S1_balanced": "34.6",
+    "cover_recall_only": "-308.0"
+   }
+  },
+  {
+   "seed": "seed:b6-367",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-460.0",
+    "flatten_d12": "-460.0",
+    "derisk_floor": "195.1",
+    "S1_balanced": "86.8",
+    "cover_recall_only": "-311.6"
+   }
+  },
+  {
+   "seed": "seed:b6-368",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.0",
+    "flatten_d12": "-311.0",
+    "derisk_floor": "170.3",
+    "S1_balanced": "8.1",
+    "cover_recall_only": "-7.4"
+   }
+  },
+  {
+   "seed": "seed:b6-369",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-318.1",
+    "flatten_d12": "-318.1",
+    "derisk_floor": "303.8",
+    "S1_balanced": "48.7",
+    "cover_recall_only": "-4.2"
+   }
+  },
+  {
+   "seed": "seed:b6-370",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.1",
+    "flatten_d12": "-463.1",
+    "derisk_floor": "304.5",
+    "S1_balanced": "71.4",
+    "cover_recall_only": "-315.1"
+   }
+  },
+  {
+   "seed": "seed:b6-371",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-455.3",
+    "flatten_d12": "-455.3",
+    "derisk_floor": "302.4",
+    "S1_balanced": "37.2",
+    "cover_recall_only": "-304.6"
+   }
+  },
+  {
+   "seed": "seed:b6-372",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.3",
+    "flatten_d12": "-458.3",
+    "derisk_floor": "111.5",
+    "S1_balanced": "16.2",
+    "cover_recall_only": "-308.6"
+   }
+  },
+  {
+   "seed": "seed:b6-373",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-469.7",
+    "flatten_d12": "-469.7",
+    "derisk_floor": "122.7",
+    "S1_balanced": "50.7",
+    "cover_recall_only": "-314.0"
+   }
+  },
+  {
+   "seed": "seed:b6-374",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.4",
+    "flatten_d12": "-309.4",
+    "derisk_floor": "169.9",
+    "S1_balanced": "-4.6",
+    "cover_recall_only": "-13.1"
+   }
+  },
+  {
+   "seed": "seed:b6-375",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.5",
+    "flatten_d12": "-309.5",
+    "derisk_floor": "127.0",
+    "S1_balanced": "28.9",
+    "cover_recall_only": "-16.1"
+   }
+  },
+  {
+   "seed": "seed:b6-376",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.0",
+    "flatten_d12": "-457.0",
+    "derisk_floor": "305.5",
+    "S1_balanced": "63.1",
+    "cover_recall_only": "-312.3"
+   }
+  },
+  {
+   "seed": "seed:b6-377",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-316.9",
+    "flatten_d12": "-316.9",
+    "derisk_floor": "394.0",
+    "S1_balanced": "45.5",
+    "cover_recall_only": "-7.1"
+   }
+  },
+  {
+   "seed": "seed:b6-378",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.4",
+    "flatten_d12": "-307.4",
+    "derisk_floor": "237.9",
+    "S1_balanced": "34.1",
+    "cover_recall_only": "-1.7"
+   }
+  },
+  {
+   "seed": "seed:b6-379",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-463.7",
+    "flatten_d12": "-463.7",
+    "derisk_floor": "9.0",
+    "S1_balanced": "37.5",
+    "cover_recall_only": "-315.1"
+   }
+  },
+  {
+   "seed": "seed:b6-380",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-458.5",
+    "flatten_d12": "-458.5",
+    "derisk_floor": "7.0",
+    "S1_balanced": "30.4",
+    "cover_recall_only": "-310.5"
+   }
+  },
+  {
+   "seed": "seed:b6-381",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-461.9",
+    "flatten_d12": "-461.9",
+    "derisk_floor": "465.8",
+    "S1_balanced": "103.2",
+    "cover_recall_only": "-314.2"
+   }
+  },
+  {
+   "seed": "seed:b6-382",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-464.0",
+    "flatten_d12": "-464.0",
+    "derisk_floor": "93.1",
+    "S1_balanced": "19.2",
+    "cover_recall_only": "-311.5"
+   }
+  },
+  {
+   "seed": "seed:b6-383",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.3",
+    "flatten_d12": "-307.3",
+    "derisk_floor": "-79.6",
+    "S1_balanced": "-61.6",
+    "cover_recall_only": "-16.4"
+   }
+  },
+  {
+   "seed": "seed:b6-384",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-310.4",
+    "flatten_d12": "-310.4",
+    "derisk_floor": "120.2",
+    "S1_balanced": "10.8",
+    "cover_recall_only": "-8.2"
+   }
+  },
+  {
+   "seed": "seed:b6-385",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-447.4",
+    "flatten_d12": "-447.4",
+    "derisk_floor": "530.4",
+    "S1_balanced": "100.5",
+    "cover_recall_only": "-297.9"
+   }
+  },
+  {
+   "seed": "seed:b6-386",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-309.6",
+    "flatten_d12": "-309.6",
+    "derisk_floor": "216.7",
+    "S1_balanced": "36.7",
+    "cover_recall_only": "-12.4"
+   }
+  },
+  {
+   "seed": "seed:b6-387",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.1",
+    "flatten_d12": "-307.1",
+    "derisk_floor": "90.2",
+    "S1_balanced": "28.0",
+    "cover_recall_only": "-14.3"
+   }
+  },
+  {
+   "seed": "seed:b6-388",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-308.1",
+    "flatten_d12": "-308.1",
+    "derisk_floor": "179.5",
+    "S1_balanced": "29.4",
+    "cover_recall_only": "-7.2"
+   }
+  },
+  {
+   "seed": "seed:b6-389",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-307.5",
+    "flatten_d12": "-307.5",
+    "derisk_floor": "245.9",
+    "S1_balanced": "43.1",
+    "cover_recall_only": "-12.9"
+   }
+  },
+  {
+   "seed": "seed:b6-390",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-324.1",
+    "flatten_d12": "-324.1",
+    "derisk_floor": "326.3",
+    "S1_balanced": "34.5",
+    "cover_recall_only": "-3.3"
+   }
+  },
+  {
+   "seed": "seed:b6-391",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.7",
+    "flatten_d12": "-462.7",
+    "derisk_floor": "48.9",
+    "S1_balanced": "28.2",
+    "cover_recall_only": "-313.9"
+   }
+  },
+  {
+   "seed": "seed:b6-392",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.0",
+    "flatten_d12": "-462.0",
+    "derisk_floor": "94.6",
+    "S1_balanced": "45.1",
+    "cover_recall_only": "-313.6"
+   }
+  },
+  {
+   "seed": "seed:b6-393",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-457.6",
+    "flatten_d12": "-457.6",
+    "derisk_floor": "313.9",
+    "S1_balanced": "55.4",
+    "cover_recall_only": "-308.1"
+   }
+  },
+  {
+   "seed": "seed:b6-394",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-469.3",
+    "flatten_d12": "-469.3",
+    "derisk_floor": "-57.8",
+    "S1_balanced": "7.6",
+    "cover_recall_only": "-317.9"
+   }
+  },
+  {
+   "seed": "seed:b6-395",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-311.8",
+    "flatten_d12": "-311.8",
+    "derisk_floor": "152.4",
+    "S1_balanced": "6.8",
+    "cover_recall_only": "-11.3"
+   }
+  },
+  {
+   "seed": "seed:b6-396",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-459.4",
+    "flatten_d12": "-459.4",
+    "derisk_floor": "539.5",
+    "S1_balanced": "83.9",
+    "cover_recall_only": "-308.2"
+   }
+  },
+  {
+   "seed": "seed:b6-397",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-303.9",
+    "flatten_d12": "-303.9",
+    "derisk_floor": "151.1",
+    "S1_balanced": "-26.9",
+    "cover_recall_only": "-4.6"
+   }
+  },
+  {
+   "seed": "seed:b6-398",
+   "accepted": true,
+   "failures": [],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "WIN"
+   },
+   "scores": {
+    "passive": "-317.0",
+    "flatten_d12": "-317.0",
+    "derisk_floor": "-121.4",
+    "S1_balanced": "-40.3",
+    "cover_recall_only": "-19.6"
+   }
+  },
+  {
+   "seed": "seed:b6-399",
+   "accepted": false,
+   "failures": [
+    "cover_recall_only_does_not_win"
+   ],
+   "labels": {
+    "passive": "SURVIVAL",
+    "flatten_d12": "SURVIVAL",
+    "derisk_floor": "WIN",
+    "S1_balanced": "WIN",
+    "cover_recall_only": "SURVIVAL"
+   },
+   "scores": {
+    "passive": "-462.7",
+    "flatten_d12": "-462.7",
+    "derisk_floor": "139.0",
+    "S1_balanced": "24.9",
+    "cover_recall_only": "-312.8"
+   }
+  }
+ ]
+}
