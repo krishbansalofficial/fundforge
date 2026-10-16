@@ -43,13 +43,43 @@ uv run python ../scripts/bench_engine.py --compare ../bench/results/<baseline>.j
 
 **Next.** Wire B1 into CI as an A/B job: check out the PR base and head in the same job on the same runner, run both, and fail on regression. Comparing against a result file from another machine is meaningless.
 
-### B2: Store command latency and replay with Postgres (planned)
+### B2: Store command latency and replay with Postgres (implemented; local result only, no CI run)
 
 **Question.** What do accepted commands and cold room replays cost end to end, including the row lock, idempotency check, hash chain and journal insert?
 
-**Method.** A pytest module behind `DATABASE_URL` drives the S2 command script through `Store.apply` against a real Postgres 16, then clears the cache and rebuilds the room. Record per command type p50, p95, p99 and replay time as a function of room version (10, 50, 200 commands, the last built by repeating clock ticks). Also time `Store.verify`.
+**Method.** `scripts/bench_store.py` (needs `DATABASE_URL` pointing at a scratch database: it creates rooms, and the append-only triggers keep them) drives the S2 golden path as partner commands (MP borrow research at day 12, MP replacement acceptance at 14, ALTO cure package at 16, BEAM package at 18, both partners `ready` at every barrier; 42 commands, outcome WIN) through `Store.apply` on case1/base, after 2 untimed warmup rooms, and times each call by command type. It then builds clock rooms of 10, 50 and 200 commands, clears the session cache and times `Store.session` (cold replay) and `Store.verify`, 20 samples each after 2 warmups. Case1 has only 18 execution windows, so a clock room is `set_speed`, then a `tick` whenever the clock runs and `set_speed` when it auto-pauses, until the season ends; remaining commands are accepted `pause` commands on the finished season. The run refuses to report if the 10 S2 rooms disagree on the verified journal digest or if any replay or verify of a clock room yields a different digest. The result file records commit, rules version, Python version, Postgres server version, machine and date.
 
-**Target.** p95 `apply` under 50 ms for every command type on the CI runner; replay linear in command count. Targets are revised after the first recorded run.
+```bash
+cd backend
+DATABASE_URL=postgresql://.../scratch uv run python ../scripts/bench_store.py --out ../bench/results
+```
+
+`backend/tests/test_bench_store.py` (skipped without `DATABASE_URL`) runs a reduced version (1 S2 room, clock rooms of 50 and 150 commands, 3 samples) and asserts the S2 outcome, digest equality (inside `run`) and that the fastest replay of the 150-command room is at most 2x linear growth over the 50-command room (ratio at most 6; a per-command cost growing with room version would give about 9). Both rooms finish all 18 windows, so the comparison isolates per-command cost; 10 versus 50 does not, because the 10-command room covers only a few windows.
+
+**First result, local, not CI** (`bench/results/2026-10-16-B2-45c0e7e.json`; commit `45c0e7e`, rules `case1-rules-2026.10.15`, Python 3.13.12, Windows AMD64 Intel Family 6 Model 183, 32 logical CPUs, Postgres 17.11 in local Docker; the container reports 17, not the 16 named above). Command latency over 10 S2 rooms plus the clock rooms:
+
+| Command | n | p50 | p95 | p99 |
+|---|---|---|---|---|
+| `research` | 10 | 107.4 ms | 111.6 ms | 111.6 ms |
+| `accept_replacement` | 10 | 109.6 ms | 119.2 ms | 119.2 ms |
+| `propose` | 20 | 115.5 ms | 125.4 ms | 130.8 ms |
+| `sign` | 20 | 119.2 ms | 130.6 ms | 131.0 ms |
+| `ready` | 360 | 124.9 ms | 187.2 ms | 195.9 ms |
+| `tick` | 44 | 169.4 ms | 198.2 ms | 199.5 ms |
+| `set_speed` | 14 | 118.9 ms | 131.9 ms | 134.6 ms |
+| `pause` | 202 | 131.2 ms | 145.0 ms | 151.9 ms |
+
+| Room version | Journal entries | Cold replay min / p50 / p95 | `verify` min / p50 / p95 |
+|---|---|---|---|
+| 10 | 91 | 17.4 / 20.5 / 34.0 ms | 22.5 / 29.8 / 45.4 ms |
+| 50 | 246 | 147.6 / 168.9 / 217.3 ms | 169.1 / 198.2 / 225.9 ms |
+| 200 | 246 | 678.4 / 744.1 / 852.3 ms | 768.3 / 823.2 / 977.9 ms |
+
+`verify` of a 42-command S2 room: p50 117.2 ms, p95 142.0 ms. On this machine no command type meets the 50 ms p95 target; every type, including a `pause` that writes no journal entry, costs at least about 100 ms. A cProfile of 10 `pause` applies put about 89% of the time in psycopg `executemany` (journal entries, journal lines and outbox; about 33 ms per call even for tiny batches) and 96% in socket waits overall, not in the engine or ordinary queries. That points at the Windows client and Docker networking path, not established as the cause; the CI runner has not been measured. From 50 to 200 commands replay (fastest samples) grows about 4.6x for 4x the commands with the engine work fixed; the extra cost is roughly 3.5 ms per replayed command (each `Session.handle` takes a rollback snapshot).
+
+**Not done.** No CI job runs B2; no negative check yet (a deliberately quadratic replay tripping the linearity assertion); the `executemany` floor is a diagnosis lead, not a fix. Targets are not revised until a CI run exists.
+
+**Target.** p95 `apply` under 50 ms for every command type on the CI runner; replay linear in command count.
 
 ### B3: API load (planned)
 
