@@ -113,12 +113,27 @@ def inspect_settlements(confirmations: Iterable[ExecutionConfirmation],
     return breaks
 
 
+def inspect_expense_accrual(accruals: Iterable[Decimal], posted: Decimal) -> list[dict[str, Any]]:
+    """Recompute the fund accrued_expense balance from its authored sources; report, never repair.
+
+    accruals: authored dated expense charges (positive). The opening book posts no accrued_expense and the
+    current rules author no fund operating-expense accrual, so a valid book carries zero and any balanced
+    posting to the account is unsupported. A future expense rule must feed its dated charges here.
+    """
+    with localcontext(CONTEXT):
+        expected = -sum(accruals, Decimal(0)).quantize(CENT)
+        if abs(posted - expected) > CENT:
+            return [{"code": "expense_accrual", "subject": "accrued_expense",
+                     "actual": str(posted), "expected": str(expected)}]
+        return []
+
+
 # ---------- NAV certificate per dealing close (FUND_ACCOUNTING §5a) ----------
 NAV_TOLERANCE = CENT  # inclusive: |independent - book| <= 0.01 certifies; 0.01 + anything breaks
 STRIKE = PRICE  # NAV per unit struck at 6dp HALF_EVEN
 REASONS = {  # control break code -> certificate blocking reason
     **dict.fromkeys(("invalid_confirmation", "fill_price", "fill_amount", "position_direction", "position",
-                     "long_valuation", "short_valuation", "conditional_nav"), "shadow_break"),
+                     "long_valuation", "short_valuation", "conditional_nav", "expense_accrual"), "shadow_break"),
     **dict.fromkeys(("broker_balance", "financing_accrued", "financing_invoiced", "settled_loan",
                      "financing_date"), "broker_break"),
     **dict.fromkeys(("settlement_misallocated", "settlement_unexplained_delay", "settlement_missing",
