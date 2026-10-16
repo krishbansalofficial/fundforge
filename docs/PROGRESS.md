@@ -1280,3 +1280,23 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 - Worktrees cut from older commits duplicated code already on main. New agents now merge main first, and each result is checked against main before merging.
 
 **One next task:** decide the shadow merge: keep main's `certify()` and port only the independent-strike checks that are missing.
+
+## Review of the 15 October merges, 16 October 2026
+
+**Defects found and fixed (`84275f4`):**
+- The solo bot refused to countersign a redemption gate but would countersign a campaign winddown, which redeems every unit. Both kinds now need a human partner's consent (`bot.REFUSED`; `test_solo_bot_never_countersigns_a_winddown`).
+- `settlement_recon.py` did its Decimal arithmetic outside `money.CTX`. It raised `InvalidOperation` once called from the engine. Its arithmetic now runs under `localcontext(CTX)` with explicit rounding.
+- `settlement_recon.py` was not called anywhere. `engine.control_report` now adds its dated codes beside `shadow.inspect_settlements`: `receipt_before_due`, `receipt_future`, `receipt_unknown_date`, `failure_outside_window`. It uses only days up to the current clock, and certificates map these codes to `settlement_break`. Identity, economics and delay codes stay with `inspect_settlements`, so one defect is not reported twice.
+- Basis-point `quantize` calls in `engine.py` now state `ROUND_HALF_EVEN`. Values are unchanged.
+
+**Reviewed and found correct:** broker break aging (clock-day aging; the resolution day comes from a logged command); the generator gate in `store.py`, including the hand-resolved merge (explicit variants stay test-only and are refused by default); the `min_impact` liquidity strategy (the Godot RISK view iterates any number of comparisons); and the campaign winddown package (digest-bound, no self-approval, new risk blocked).
+
+**Superseded branches, not to be merged:** shadow certification (`abe46a9…`). Main's `certify()` is wired into dealing, and `test_balanced_but_economically_wrong_posting_fails_certification_and_blocks_dealing` already covers its acceptance test. LP confidence (`abc23e8…`) is superseded by main's `lp.review()`.
+
+**Checks:** `uv run pytest -q` gives `572 passed, 42 skipped` without a database. Against a scratch Postgres database (`fundforge_review_test` in the local `fundforge-db-1` container) it gives `610 passed, 4 skipped`; the four skips need the `pg_dump` client, which is not installed here. Ruff is clean, mypy is clean on 34 modules, and golden digests are unchanged. `RULES_VERSION` was not bumped, because no rule output changes on any valid path.
+
+**Generator retry risk:** at the measured acceptance of 84 of 199 seeds, 12 attempts fail about 0.14% of generated-room creations, and each attempt takes about 1-2 s. Raising the attempt count or retuning the Spec is an owner decision.
+
+**Limitations:** the frozen cover-collateral comparison in `settlement_recon` is not surfaced, because its economics codes overlap `inspect_settlements`. Research posteriors still have no authored priors.
+
+**One next task:** author priors and likelihood ratios for the research topics in `fixtures/case1.json` (owner content), then wire `research.posterior` into the PM's role view.

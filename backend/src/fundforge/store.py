@@ -41,7 +41,9 @@ FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().pa
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json",
              "case1-generated": "case1.json", "campaign-v1": "campaign_v1.json"}
 GENERATED = "case1-generated"
-GENERATION_ATTEMPTS = 12  # default Spec measured 3 of 6 accepted; a room needs one accepted tape
+# Default Spec: 84 of 199 seeds accepted (seed:{i}-0, 15 Oct 2026), so 12 attempts fail about 0.14% of
+# room creations; a 3-of-10 sample would put it near 1.4%. A room needs one accepted tape.
+GENERATION_ATTEMPTS = 12
 CACHE_ROOMS = 256
 SECONDS_PER_WINDOW = float(os.environ.get("FUNDFORGE_SECONDS_PER_WINDOW", "8"))
 ROOM_TTL_HOURS = float(os.environ.get("FUNDFORGE_ROOM_TTL_HOURS", "72"))  # a game is a 60-90 minute sitting
