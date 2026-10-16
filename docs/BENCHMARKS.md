@@ -67,7 +67,7 @@ uv run python ../scripts/bench_engine.py --compare ../bench/results/<baseline>.j
 
 **Target.** p99 frame time at or under 16.7 ms at 1280x720 on the integrated GPU laptop; no frame over 100 ms after the first 10 s. A pipeline cache or warmup that removes the first frame hitch is recorded with before and after captures in this document.
 
-### B5: Control detection and mutation score (planned)
+### B5: Control detection and mutation score (detection corpus implemented; mutation testing planned)
 
 **Question.** How much of the integrity story is real? When the books are wrong, which layer catches it?
 
@@ -85,6 +85,25 @@ uv run python ../scripts/bench_engine.py --compare ../bench/results/<baseline>.j
 For every injected fault record whether internal reconciliation, the independent controls (`shadow`, `broker`, `administrator`) and `verify` detect it. Report detection rate per class per layer, plus false positive rate on clean seasons. Separately run mutation testing (mutmut) over `journal.py`, `series.py`, `shadow.py`, `broker.py` and `administrator.py` and report the killed mutant percentage per module, listing survivors.
 
 **Target.** 100% detection by the independent controls for every authored class, 0 false positives on clean seasons. The interesting result is the gap between internal reconciliation and independent controls, so report both.
+
+**Implemented.** `backend/tests/fault_corpus.py` holds one seeded generator per class above (`random.Random("B5:<class>:<seed>")`). Each fault picks a golden path and a decision barrier on days 13 to 19 (17 to 19 for settlement, so receipts exist), is injected with the techniques the existing tests already use, and is scored on four layers: `reconcile` (at injection, or a reconcile `InvariantError` later in the season), `controls` (`control_report` breaks or an open statement), `certificate` (`shadow.certify` struck at injection as the dealing gate strikes it, without redemption lines; it includes every control break plus `shadow_nav`) and `verify` (the database-free core of `Store.verify`: replay the same tape and script from scratch and compare the journal digest). False positives are counted at every barrier of eight clean seasons: the four golden paths, and each again with a broker statement that matches the broker record. `backend/tests/test_fault_corpus.py` runs 4 seeds per class and asserts every class is caught by controls or certificate with zero false positives. `scripts/bench_controls.py --seeds 40 --out ../bench/results` writes the result file.
+
+**First result** (`bench/results/2026-10-16-B5-92e0cca.json`, commit `92e0cca`, rules `case1-rules-2026.10.15`, Python 3.13.12, Windows AMD64, 32 logical CPUs). 40 faults per class:
+
+| Fault class | reconcile | controls | certificate | verify |
+|---|---|---|---|---|
+| Balanced but unsupported posting | 3/40 | 30/40 | 40/40 | 40/40 |
+| Phantom or missing position | 4/40 | 40/40 | 40/40 | 32/40 |
+| Settlement fault | 0/40 | 40/40 | 40/40 | 0/40 |
+| Financing fault | 0/40 | 40/40 | 40/40 | 30/40 |
+| LP and fee fault | 0/40 | 40/40 | 40/40 | 31/40 |
+| Statement fault | 0/40 | 40/40 | 40/40 | 0/40 |
+
+Clean seasons: 0 of 152 barrier checkpoints flagged across 8 seasons.
+
+**Findings.** (1) `control_report` misses a balanced posting to an account no control owns: all 10 `accrued_expense` faults passed it; only the certificate's `shadow_nav` caught them, so the gap is closed only at a dealing close. The 100% target therefore holds for controls plus certificate, not for `control_report` alone. (2) Internal reconciliation caught only faults that break a stored identity (`long_securities` postings, extra shorts without a borrow); everything coherent passed it, which is the gap the independent controls exist for. (3) `verify` replay catches only faults that change the journal; tape faults, rule faults (a scaled fee function replays identically), loan-state, settlement-row and confirmation tampering replay clean. (4) Pending-obligation variants fall back to receipt variants when nothing is pending at the barrier; only 1 of 40 settlement faults touched a pending row, so pending coverage still rests on `test_settlement_recon.py` and `test_shadow.py`.
+
+**Not done.** Mutation testing (mutmut) has not been run; no killed-mutant figures exist.
 
 This corpus is also the task generator for the external `fundforge-rl` research repository (an agent repairs the injected fault and the independent controls grade it). That work stays outside the product: FundForge itself keeps the no LLM decision.
 
