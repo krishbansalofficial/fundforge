@@ -25,6 +25,7 @@ from .lp import Book
 from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
+from .settlement_recon import DATED_SETTLEMENT_CODES, reconstruct
 from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_settlements
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
@@ -35,6 +36,7 @@ OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
 RULES_VERSION = "case1-rules-2026.10.15"
+TENTH = Decimal("0.1")  # basis-point display step
 
 
 class CommandRejected(ValueError):
@@ -382,6 +384,23 @@ class Engine:
             self.lp.deal_day = None
         self._notice("Both partners declared a controlled winddown: no new buying or shorting; liquidate the book "
                      "so every unit can be redeemed.", code="winddown_declared")
+
+    def _dated_settlement_breaks(self) -> list[dict[str, Any]]:
+        """Receipt dating and failure windows from the independent reconstruction (settlement_recon).
+
+        Only the dated codes are taken: identity, economics and delay breaks already come from
+        inspect_settlements, and reporting them twice would double-count one defect.
+        """
+        known = {ev.day: ev.date.isoformat() for ev in self.tape.events if ev.day <= self.ev.day}
+        breaks = reconstruct(
+            self.confirmations, day_dates=known,
+            pending=[(p.obligation, p.kind, p.sym, p.qty, p.amount, p.frozen, p.settle_day) for p in self.pending],
+            receipts=[(a.obligation, a.kind, a.date, a.amount, a.frozen)
+                      for a in self.broker.activities if a.obligation],
+            failures=self.settlement_failures, day=self.ev.day)
+        return [{"code": b["code"], "subject": str(b["subject"]),
+                 **{k: str(b[k]) for k in ("actual", "expected") if k in b}}
+                for b in breaks if b["code"] in DATED_SETTLEMENT_CODES]
 
     def _winddown_flat(self) -> bool:
         return all(q == 0 for q in self.pos.values()) and not self.loans and not self.pending
@@ -936,6 +955,7 @@ class Engine:
             [(p.obligation, p.kind, p.sym, p.qty, p.amount, p.settle_day) for p in self.pending],
             [(a.obligation, a.kind, a.amount) for a in self.broker.activities if a.obligation],
             self.settlement_failures, self.ev.day)
+        report["breaks"] += self._dated_settlement_breaks()
         open_ids = {p.obligation for p in self.pending}
         report["settlements"] = [
             {"obligation": f"X{n}", "kind": c.side, "sym": c.sym, "qty": c.qty, "amount": str(c.amount),
@@ -1044,7 +1064,8 @@ class Engine:
         with localcontext(CTX):
             unit_nav = self.reported_unit_nav()
             ours = {"id": "you", "name": "Your fund", "style": "long/short", "status": "active",
-                    "return_bps": str(((unit_nav / 100 - 1) * 10000).quantize(Decimal("0.1"))), "nav": str(self.nav())}
+                    "return_bps": str(((unit_nav / 100 - 1) * 10000).quantize(TENTH, ROUND_HALF_EVEN)),
+                    "nav": str(self.nav())}
         return sorted([*self.market.league(self.marks), ours], key=lambda x: (-Decimal(x["return_bps"]), x["id"]))
 
     # ---------- outcome ----------
@@ -1059,9 +1080,9 @@ class Engine:
             moves = (q * (self.marks[s] - self._opening_marks[s]) for s, q in open_pos.items())
             bench = sum(moves, Decimal(0)) / open_nav
             fund = self.reported_unit_nav() / 100 - 1
-            excess = ((fund - bench) * 10000).quantize(Decimal("0.1"))
-            return {"fund_return_bps": str((fund * 10000).quantize(Decimal("0.1"))),
-                    "benchmark_return_bps": str((bench * 10000).quantize(Decimal("0.1"))),
+            excess = ((fund - bench) * 10000).quantize(TENTH, ROUND_HALF_EVEN)
+            return {"fund_return_bps": str((fund * 10000).quantize(TENTH, ROUND_HALF_EVEN)),
+                    "benchmark_return_bps": str((bench * 10000).quantize(TENTH, ROUND_HALF_EVEN)),
                     "excess_bps": str(excess), "score": str(excess - self.FORCED_PENALTY_BPS * n_forced)}
 
     def drags(self) -> dict[str, Any]:
@@ -1075,8 +1096,8 @@ class Engine:
             impact = sum((c.qty * abs(c.price - c.reference) for c in self.confirmations), Decimal(0))
             breaches = sum(1 for o in self.orders for f in o.fills if str(f.get("rejected", "")).startswith("mandate:"))
             claims = sum(1 for i in self.incident_events if i["code"] == "claim_unpaid")
-            return {"financing_drag_bps": str((financing / open_nav * 10000).quantize(Decimal("0.1"))),
-                    "impact_drag_bps": str((impact / open_nav * 10000).quantize(Decimal("0.1"))),
+            return {"financing_drag_bps": str((financing / open_nav * 10000).quantize(TENTH, ROUND_HALF_EVEN)),
+                    "impact_drag_bps": str((impact / open_nav * 10000).quantize(TENTH, ROUND_HALF_EVEN)),
                     "claims_unpaid": claims, "claims_on_time": claims == 0,
                     "mandate_breaches": breaches}
 

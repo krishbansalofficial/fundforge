@@ -166,10 +166,30 @@ def test_reconstruction_module_has_no_engine_or_posting_imports():
     source = Path(recon.__file__).read_text(encoding="utf-8")
     imported = {node.module for node in ast.walk(ast.parse(source)) if isinstance(node, ast.ImportFrom) and node.module}
     assert not {m for m in imported if m.lstrip(".") in ("engine", "broker", "journal", "store", "ml")}
-    assert "from .money import CENT, cents" in source
+    assert "from .money import CENT, CTX, cents" in source
 
 
 def replace_list(rows, key, value):
     out = dict(rows)
     out[key] = value
     return out
+
+
+def test_engine_control_report_flags_a_receipt_dated_before_its_due_day():
+    """The dated checks are wired into control_report and block certification as a settlement break."""
+    import dataclasses
+
+    from fundforge.shadow import REASONS
+
+    e = run(PATHS["S1_early_reduction"])
+    assert not [b for b in e.control_report()["breaks"] if b["code"] in recon.DATED_SETTLEMENT_CODES]
+    acts = list(e.broker.activities)
+    i = next(i for i, a in enumerate(acts) if a.obligation)
+    oid = acts[i].obligation
+    due = e.confirmations[int(oid[1:]) - 1].day + 1
+    early = next(ev.date.isoformat() for ev in e.tape.events if ev.day == due - 1)
+    acts[i] = dataclasses.replace(acts[i], date=early)
+    e.broker.activities = type(e.broker.activities)(acts)
+    breaks = e.control_report()["breaks"]
+    assert {"code": "receipt_before_due", "subject": oid, "actual": str(due - 1), "expected": str(due)} in breaks
+    assert REASONS["receipt_before_due"] == "settlement_break"

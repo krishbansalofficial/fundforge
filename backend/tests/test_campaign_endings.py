@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from fundforge import store
+from fundforge import bot, store
 from fundforge.engine import CommandRejected, Engine
 from fundforge.governance import Session
 
@@ -189,6 +189,16 @@ def test_winddown_is_a_joint_package_not_a_unilateral_command():
     assert s.e.winddown is None  # a rejected command restores the snapshot, so read the engine through the session
     s.handle("ben", "p3", {"type": "sign", "package_id": "w1", "digest": d["digest"]})
     assert s.e.winddown == 1
+
+
+def test_solo_bot_never_countersigns_a_winddown():
+    e = Engine(store._tape("campaign-v1", "base"))
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": bot.BOT_VERSION})
+    s.handle("ana", "p1", {"type": "propose_winddown", "package_id": "w1"})
+    plan = bot.plan(s, "mp")
+    assert plan[0] == {"type": "say", "ref": "pkg:w1", "text": bot.REFUSED["winddown"]}
+    assert all(c["type"] != "sign" for c in plan)
 
 
 def test_winddown_is_refused_outside_campaign_rooms():
