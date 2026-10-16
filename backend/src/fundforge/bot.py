@@ -13,6 +13,10 @@ from .governance import TICKET_NAV_LIMIT, Session
 from .money import cents
 
 BOT_VERSION = "bot:v1"
+REFUSED = {  # package kinds the bot will not countersign, with the reason it says instead
+    "gate": "I won't elect a redemption gate: that needs a human partner's consent.",
+    "winddown": "I won't declare a winddown: ending the fund needs a human partner's consent.",
+}
 
 
 def _said(s: Session, ref: str) -> bool:
@@ -34,9 +38,9 @@ def plan(s: Session, role: str) -> list[dict[str, Any]]:
     # 1. review the human partner's packages: countersign or explain the refusal
     for p in s.packages.values():
         if p.status == "PENDING_APPROVAL" and p.proposer != role and not _said(s, f"pkg:{p.package_id}"):
-            if p.kind == "gate":  # a material LP exception needs distinct human consent; the bot never supplies it
-                out.append({"type": "say", "ref": f"pkg:{p.package_id}",
-                            "text": "I won't elect a redemption gate: that needs a human partner's consent."})
+            # material exceptions need distinct human consent; the bot never supplies it
+            if p.kind in REFUSED:
+                out.append({"type": "say", "ref": f"pkg:{p.package_id}", "text": REFUSED[p.kind]})
                 continue
             out.append({"type": "sign", "package_id": p.package_id, "digest": p.digest,
                         "_ref": f"pkg:{p.package_id}"})

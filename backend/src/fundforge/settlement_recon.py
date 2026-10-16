@@ -11,12 +11,15 @@ cents rounding helper from ``money`` are used. The inputs are plain rows extract
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 
-from .money import CENT, cents
+from .money import CENT, CTX, cents
 from .shadow import ExecutionConfirmation
 
 ZERO = Decimal(0)
+# Codes only this module can raise; the engine reports these beside shadow.inspect_settlements.
+DATED_SETTLEMENT_CODES = frozenset({"receipt_before_due", "receipt_future", "receipt_unknown_date",
+                                    "failure_outside_window"})
 
 
 @dataclass(frozen=True)
@@ -37,18 +40,19 @@ class Obligation:
 def expected_obligations(confirmations: Iterable[ExecutionConfirmation]) -> dict[str, Obligation]:
     """One expected obligation per confirmation, numbered in execution order."""
     out: dict[str, Obligation] = {}
-    for n, c in enumerate(confirmations, start=1):
-        if c.side not in ("BUY", "SELL", "SHORT", "COVER") or c.qty <= 0:
-            raise ValueError(f"unsupported confirmation side {c.side!r} for X{n}")
-        amount = cents(Decimal(c.qty) * c.price)
-        frozen = cents(Decimal(c.qty) * c.reference) if c.side == "COVER" else ZERO
-        cash, collateral = {
-            "BUY": (-amount, ZERO),
-            "SELL": (amount, ZERO),
-            "SHORT": (ZERO, amount),
-            "COVER": (frozen - amount, -frozen),
-        }[c.side]
-        out[f"X{n}"] = Obligation(f"X{n}", c.side, c.sym, c.qty, amount, frozen, c.day + 1, cash, collateral)
+    with localcontext(CTX):
+        for n, c in enumerate(confirmations, start=1):
+            if c.side not in ("BUY", "SELL", "SHORT", "COVER") or c.qty <= 0:
+                raise ValueError(f"unsupported confirmation side {c.side!r} for X{n}")
+            amount = cents(Decimal(c.qty) * c.price)
+            frozen = cents(Decimal(c.qty) * c.reference) if c.side == "COVER" else ZERO
+            cash, collateral = {
+                "BUY": (-amount, ZERO),
+                "SELL": (amount, ZERO),
+                "SHORT": (ZERO, amount),
+                "COVER": (frozen - amount, -frozen),
+            }[c.side]
+            out[f"X{n}"] = Obligation(f"X{n}", c.side, c.sym, c.qty, amount, frozen, c.day + 1, cash, collateral)
     return out
 
 
@@ -136,8 +140,10 @@ def reconstruct(
 def expected_cash_receipts(confirmations: Iterable[ExecutionConfirmation]) -> dict[int, dict[str, Decimal]]:
     """Expected cash and collateral movement per due day, summed over obligations (for dated reporting)."""
     out: dict[int, dict[str, Decimal]] = {}
-    for ob in expected_obligations(confirmations).values():
-        row = out.setdefault(ob.due_day, {"cash": ZERO, "collateral": ZERO})
-        row["cash"] += ob.cash
-        row["collateral"] += ob.collateral
-    return {d: {k: v.quantize(CENT) for k, v in row.items()} for d, row in sorted(out.items())}
+    with localcontext(CTX):
+        for ob in expected_obligations(confirmations).values():
+            row = out.setdefault(ob.due_day, {"cash": ZERO, "collateral": ZERO})
+            row["cash"] += ob.cash
+            row["collateral"] += ob.collateral
+    return {d: {k: v.quantize(CENT, rounding=ROUND_HALF_EVEN) for k, v in row.items()}
+            for d, row in sorted(out.items())}
