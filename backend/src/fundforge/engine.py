@@ -26,7 +26,7 @@ from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
 from .settlement_recon import DATED_SETTLEMENT_CODES, reconstruct
-from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_settlements
+from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_expense_accrual, inspect_settlements
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
 Side = Literal["BUY", "SELL", "SHORT", "COVER"]
@@ -956,6 +956,7 @@ class Engine:
             [(a.obligation, a.kind, a.amount) for a in self.broker.activities if a.obligation],
             self.settlement_failures, self.ev.day)
         report["breaks"] += self._dated_settlement_breaks()
+        report["breaks"] += inspect_expense_accrual((), self.bal("accrued_expense"))  # no authored expense rule
         open_ids = {p.obligation for p in self.pending}
         report["settlements"] = [
             {"obligation": f"X{n}", "kind": c.side, "sym": c.sym, "qty": c.qty, "amount": str(c.amount),
