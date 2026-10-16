@@ -107,13 +107,34 @@ Clean seasons: 0 of 152 barrier checkpoints flagged across 8 seasons.
 
 This corpus is also the task generator for the external `fundforge-rl` research repository (an agent repairs the injected fault and the independent controls grade it). That work stays outside the product: FundForge itself keeps the no LLM decision.
 
-### B6: Game balance across seeds (planned)
+### B6: Game balance across seeds (implemented)
 
 **Question.** Is there still no dominant degenerate strategy once markets are generated rather than authored?
 
-**Method.** Run the `policy_grid.py` policies over a fixed list of generator seeds and report win, survival and distress rates per policy with Wilson 95% intervals. This also implements the open generator balance gate.
+**Method.** `scripts/bench_balance.py` draws the fixed seed list `seed:b6-0` .. `seed:b6-(N-1)`, builds each tape exactly as a generated room does (`store._tape("case1-generated", seed)`, `GEN_VERSION` plus LP agents) and runs the existing grid through `balance.accept`, which plays every `balance.POLICIES` line through the real Session. Designed lines are `balance.RECALL_LINES` (`derisk_floor`, `S1_balanced`, `cover_recall_only`); degenerate lines are `passive` and `flatten_d12`. Win, survival and distress rates carry Wilson 95% intervals (z = 1.96) computed in Decimal and rounded outward to 4 dp. The verdict fails if any degenerate win interval's lower bound exceeds the best designed line's upper bound. Rooms run only gate-accepted seeds, so the accepted subset is the primary population; the ungated draw is reported as well, because on accepted seeds the gate itself requires every designed line to win, passive not to win and `flatten_d12` to replay passive's journal, so the accepted verdict holds by construction. The generator balance gate already lives in `store.py` (`balance-v1`); B6 measures it and does not change it. `backend/tests/test_bench_balance.py` checks the Wilson arithmetic against hand-worked cases, that the verdict flags a synthetic dominant policy, and a 4-seed run.
 
-**Target.** No degenerate policy's win rate interval lies above the best designed line's.
+```bash
+cd backend
+uv run python ../scripts/bench_balance.py --seeds 400 --out ../bench/results   # exits 1 if the accepted verdict fails
+```
+
+**First result** (`bench/results/2026-10-16-B6-148c93d.json`, commit `148c93d` with `backend/src` clean and the script uncommitted, rules `case1-rules-2026.10.15`, generator `gen-2026.10.1`, gate `balance-v1`, Python 3.13.12, Windows AMD64, 32 logical CPUs). 400 seeds drawn, 186 accepted by the gate; every rejection was `cover_recall_only_does_not_win`. 400 is the number drawn so the accepted subset exceeds 150 seeds; the per-seed list with labels and scores is in the result file.
+
+| Policy | Accepted win (n=186) | Accepted survival | Accepted distress | Ungated win (n=400) | Ungated survival |
+|---|---|---|---|---|---|
+| passive (degenerate) | 0 [0.0000, 0.0203] | 186 [0.9797, 1.0000] | 0 [0.0000, 0.0203] | 0 [0.0000, 0.0096] | 400 [0.9904, 1.0000] |
+| flatten_d12 (degenerate) | 0 [0.0000, 0.0203] | 186 [0.9797, 1.0000] | 0 [0.0000, 0.0203] | 0 [0.0000, 0.0096] | 400 [0.9904, 1.0000] |
+| derisk_floor | 186 [0.9797, 1.0000] | 0 [0.0000, 0.0203] | 0 [0.0000, 0.0203] | 400 [0.9904, 1.0000] | 0 [0.0000, 0.0096] |
+| S1_balanced | 186 [0.9797, 1.0000] | 0 [0.0000, 0.0203] | 0 [0.0000, 0.0203] | 400 [0.9904, 1.0000] | 0 [0.0000, 0.0096] |
+| cover_recall_only | 186 [0.9797, 1.0000] | 0 [0.0000, 0.0203] | 0 [0.0000, 0.0203] | 186 [0.4166, 0.5140] | 214 [0.4860, 0.5834] |
+
+No policy reached DISTRESS on any of the 400 seeds.
+
+**Verdict.** Pass on both populations: no degenerate policy wins on any seed, so no degenerate interval lies above `derisk_floor`'s. On the accepted population this is guaranteed by the gate; the ungated draw is the non-trivial evidence, and it agrees.
+
+**Findings.** (1) Outcome labels separate designed from degenerate lines completely, so win rate cannot detect dominance *among* designed lines. By score, `derisk_floor` was the best policy on 164 of 186 accepted seeds (344 of 400 ungated), `cover_recall_only` on 13 and `S1_balanced` on 9; the authored-world property "no policy is best in every world" holds, but `derisk_floor` is the near-dominant choice in generated markets. (2) The gate rejects 214 of 400 seeds, all because the minimal `cover_recall_only` line falls into a forced action; generated markets are harsher than the authored ones on that line.
+
+**Not done.** Only the fixed knowledge-free grid is measured; no human, bot-seat or learned policy is included, and no score-dominance target is set.
 
 ## Methodology rules
 
