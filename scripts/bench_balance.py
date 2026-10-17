@@ -7,7 +7,9 @@ seeds, so the primary population is the accepted subset; the ungated draw is rep
 because on accepted seeds the gate itself forces every designed line to WIN and passive not to.
 
 Rates carry Wilson 95% intervals computed in Decimal. Verdict: FAIL if any degenerate policy's win
-interval lies wholly above the best designed line's. No database, no network.
+interval lies wholly above the best designed line's. Score balance (stated before measuring): among the
+designed lines only, FAIL if any line's best-score share interval lies wholly above SHARE_LIMIT. No
+database, no network.
 
     cd backend && uv run python ../scripts/bench_balance.py --seeds 200 --out ../bench/results
 """
@@ -36,6 +38,8 @@ DEGENERATE = ("passive", "flatten_d12")
 OUTCOMES = {"win": "WIN", "survival": "SURVIVAL", "distress": "DISTRESS"}
 Z = Decimal("1.96")
 Q = Decimal("0.0001")
+SHARE_LIMIT = Decimal("0.5")  # design choice: no designed line may be the best answer in most worlds
+DIAG = ("fund_return_bps", "benchmark_return_bps", "excess_bps", "financing_drag_bps", "impact_drag_bps")
 
 
 def wilson(k: int, n: int, z: Decimal = Z) -> tuple[Decimal, Decimal]:
@@ -70,21 +74,74 @@ def verdict(table: dict[str, dict[str, dict[str, object]]]) -> dict[str, object]
     return {"best_designed": best, "dominant_degenerate": dominant, "pass": not dominant}
 
 
+def quantile(xs: list[Decimal], f: Decimal) -> Decimal:
+    """Linear-interpolated quantile of a non-empty list, in Decimal."""
+    xs = sorted(xs)
+    pos = (len(xs) - 1) * f
+    i = int(pos)
+    return xs[i] if i + 1 >= len(xs) else xs[i] + (xs[i + 1] - xs[i]) * (pos - i)
+
+
+def spread(xs: list[Decimal]) -> dict[str, str]:
+    return {k: str(quantile(xs, Decimal(f))) for k, f in
+            (("min", 0), ("p25", "0.25"), ("median", "0.5"), ("p75", "0.75"), ("max", 1))}
+
+
+def score_balance(scores: list[dict[str, str]], lines: tuple[str, ...] = DESIGNED) -> dict[str, object]:
+    """Best-score share among `lines` per seed (strict best; ties counted apart) and each line's margin over
+    the best other line. FAIL if any share's Wilson lower bound exceeds SHARE_LIMIT."""
+    n, best, ties = len(scores), Counter[str](), 0
+    margins: dict[str, list[Decimal]] = {p: [] for p in lines}
+    for sc in scores:
+        v = {p: Decimal(sc[p]) for p in lines}
+        winners = [p for p in lines if v[p] == max(v.values())]
+        if len(winners) == 1:
+            best[winners[0]] += 1
+        else:
+            ties += 1
+        for p in lines:
+            margins[p].append(v[p] - max(v[q] for q in lines if q != p))
+    out: dict[str, dict[str, object]] = {}
+    for p in lines:
+        lo, hi = wilson(best[p], n)
+        out[p] = {"k": best[p], "n": n, "share": str((Decimal(best[p]) / n).quantize(Q)),
+                  "wilson95": [str(lo), str(hi)], "margin_bps": spread(margins[p])}
+    dominant = [p for p in lines if Decimal(str(out[p]["wilson95"][0])) > SHARE_LIMIT]  # type: ignore[index]
+    return {"lines": out, "ties": ties, "share_limit": str(SHARE_LIMIT), "dominant": dominant, "pass": not dominant}
+
+
+def diagnose(rows: list[dict[str, object]]) -> dict[str, object]:
+    """Per designed line, the spread of each score component, and best-score share split by benchmark sign."""
+    comp = {p: {k: spread([Decimal(r["outcomes"][p][k]) for r in rows]) for k in DIAG}  # type: ignore[index]
+            for p in DESIGNED}
+    split: dict[str, object] = {}
+    for name, down in (("benchmark_down", True), ("benchmark_up", False)):
+        sub = [r for r in rows
+               if (Decimal(r["outcomes"][DESIGNED[0]]["benchmark_return_bps"]) < 0) == down]  # type: ignore[index]
+        split[name] = score_balance([r["scores"] for r in sub])["lines"] if sub else None  # type: ignore[misc]
+    return {"components": comp, "by_benchmark_sign": split}
+
+
 def summarise(rows: list[dict[str, object]]) -> dict[str, object]:
     policies = list(balance.POLICIES)
     table = {p: rates([r["labels"][p] for r in rows]) for p in policies}  # type: ignore[index]
     best_score = Counter(max(policies, key=lambda p: Decimal(r["scores"][p])) for r in rows)  # type: ignore[index]
-    return {"n": len(rows), "policies": table, "best_score_count": dict(best_score), "verdict": verdict(table)}
+    return {"n": len(rows), "policies": table, "best_score_count": dict(best_score), "verdict": verdict(table),
+            "score_balance": score_balance([r["scores"] for r in rows]), "diagnosis": diagnose(rows)}  # type: ignore[misc]
 
 
 def run(n: int) -> dict[str, object]:
     rows = []
     for i in range(n):
         seed = f"seed:b6-{i}"
-        ok, report = balance.accept(store._tape(store.GENERATED, seed))
+        tape = store._tape(store.GENERATED, seed)
+        ok, report = balance.accept(tape)
+        # the gate report keeps label and score only; replay the designed lines (deterministic) for components
+        outcomes = {p: balance.play(tape, balance.POLICIES[p]) for p in DESIGNED}
         rows.append({"seed": seed, "accepted": ok, "failures": report["failures"],
                      "labels": {p: v["label"] for p, v in report["policies"].items()},
-                     "scores": {p: v["score"] for p, v in report["policies"].items()}})
+                     "scores": {p: v["score"] for p, v in report["policies"].items()},
+                     "outcomes": {p: {k: r[k] for k in DIAG} for p, r in outcomes.items()}})
     accepted = [r for r in rows if r["accepted"]]
     return {"accepted": summarise(accepted) if accepted else None, "ungated": summarise(rows), "seeds": rows}
 
@@ -124,13 +181,17 @@ def main() -> int:
         print(f"{pop}: n={s['n']} verdict={s['verdict']} best_score={s['best_score_count']}")  # type: ignore[index]
         for p, t in s["policies"].items():  # type: ignore[index]
             print(f"  {p:18s} " + "  ".join(f"{o} {t[o]['k']}/{t[o]['n']} {t[o]['wilson95']}" for o in OUTCOMES))
+        sb = s["score_balance"]  # type: ignore[index]
+        print(f"  score balance pass={sb['pass']} dominant={sb['dominant']} ties={sb['ties']}")
+        for p, t in sb["lines"].items():
+            print(f"  {p:18s} best {t['k']}/{t['n']} {t['wilson95']} margin {t['margin_bps']}")
     if args.out:
         args.out.mkdir(parents=True, exist_ok=True)
         name = f"{doc['measured_at'][:10]}-B6-{doc['commit'].replace('+', '_')}.json"
         (args.out / name).write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
         print(f"wrote {args.out / name}")
     acc = result["accepted"]
-    return 0 if acc and acc["verdict"]["pass"] else 1  # type: ignore[index]
+    return 0 if acc and acc["verdict"]["pass"] and acc["score_balance"]["pass"] else 1  # type: ignore[index]
 
 
 if __name__ == "__main__":
