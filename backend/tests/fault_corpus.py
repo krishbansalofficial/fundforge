@@ -151,11 +151,28 @@ def phantom_or_missing_position(f: Fault, rng: random.Random) -> None:
 
 def settlement(f: Fault, rng: random.Random) -> None:
     f.variant = rng.choice(["duplicate_receipt", "drop_receipt", "misamount_receipt", "misdate_receipt",
-                            "duplicate_pending", "misallocate_pending", "drop_pending"])
+                            "duplicate_pending", "misallocate_pending", "drop_pending", "misfreeze_cover"])
     pick, delta = rng.random(), cents(rng, 100_000)
 
     def inject(e: Engine) -> None:
         variant = f.variant
+        if variant == "misfreeze_cover":  # wrong frozen cover collateral on a COVER pending row or receipt
+            f.params = {}
+            covers = [i for i, p in enumerate(e.pending) if p.kind == "COVER"]
+            if covers:
+                p = e.pending[covers[int(pick * len(covers))]]
+                e.pending[e.pending.index(p)] = replace(p, frozen=p.frozen + delta)
+                f.params["obligation"] = p.obligation
+                return
+            acts = list(e.broker.activities)
+            covers = [i for i, a in enumerate(acts) if a.obligation and a.kind == "COVER"]
+            if covers:
+                i = covers[int(pick * len(covers))]
+                acts[i] = replace(acts[i], frozen=acts[i].frozen + delta)
+                f.params["obligation"] = acts[i].obligation
+                e.broker.activities = tuple(acts)
+                return
+            variant = f.variant = "misamount_receipt"  # path has no cover yet
         if variant.endswith("_pending") and not e.pending:
             variant = f.variant = variant.replace("pending", "receipt").replace("misallocate", "misamount")
         f.params = {}

@@ -17,9 +17,10 @@ from .money import CENT, CTX, cents
 from .shadow import ExecutionConfirmation
 
 ZERO = Decimal(0)
-# Codes only this module can raise; the engine reports these beside shadow.inspect_settlements.
-DATED_SETTLEMENT_CODES = frozenset({"receipt_before_due", "receipt_future", "receipt_unknown_date",
-                                    "failure_outside_window"})
+# Codes only this module can raise; the engine reports these beside shadow.inspect_settlements, which checks
+# kind/sym/qty/amount/due but neither receipt dates nor frozen cover collateral.
+RECON_ONLY_CODES = frozenset({"receipt_before_due", "receipt_future", "receipt_unknown_date",
+                              "failure_outside_window", "settlement_collateral"})
 
 
 @dataclass(frozen=True)
@@ -87,13 +88,15 @@ def reconstruct(
         if want is None:
             brk("obligation_unknown", oid, detail="pending instruction has no execution identity")
             continue
-        if (kind, sym, qty, amount, frozen) != (want.kind, want.sym, want.qty, want.amount, want.frozen):
+        if (kind, sym, qty, amount) != (want.kind, want.sym, want.qty, want.amount):
             brk(
                 "obligation_economics",
                 oid,
-                actual=f"{kind} {qty} {sym} {amount} {frozen}",
-                expected=f"{want.kind} {want.qty} {want.sym} {want.amount} {want.frozen}",
+                actual=f"{kind} {qty} {sym} {amount}",
+                expected=f"{want.kind} {want.qty} {want.sym} {want.amount}",
             )
+        if frozen != want.frozen:
+            brk("settlement_collateral", oid, actual=str(frozen), expected=str(want.frozen))
         if due != want.due_day:
             brk("obligation_misdated", oid, actual=due, expected=want.due_day)
         if want.due_day <= day and not any(d >= want.due_day and o == oid for d, o in failures):
@@ -105,13 +108,10 @@ def reconstruct(
         if want is None:
             brk("obligation_unknown", oid, detail="receipt has no execution identity")
             continue
-        if (kind, amount, frozen) != (want.kind, want.amount, want.frozen):
-            brk(
-                "receipt_economics",
-                oid,
-                actual=f"{kind} {amount} {frozen}",
-                expected=f"{want.kind} {want.amount} {want.frozen}",
-            )
+        if (kind, amount) != (want.kind, want.amount):
+            brk("receipt_economics", oid, actual=f"{kind} {amount}", expected=f"{want.kind} {want.amount}")
+        if frozen != want.frozen:
+            brk("settlement_collateral", oid, actual=str(frozen), expected=str(want.frozen))
         d = by_date.get(iso)
         if d is None:
             brk("receipt_unknown_date", oid, actual=iso)
