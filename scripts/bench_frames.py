@@ -40,7 +40,8 @@ def machine_state() -> dict:
     battery = ps("(Get-CimInstance Win32_Battery | Select-Object -First 1).BatteryStatus")
     gpus = json.loads(ps("Get-CimInstance Win32_VideoController | Select-Object Name, DriverVersion | ConvertTo-Json"))
     return {"cpu_load_pct_at_start": float(load or "nan"), "busy_python_pids": busy.split() if busy else [],
-            "power_source": "AC" if battery == "2" else ("no battery" if battery == "" else f"battery (status {battery})"),
+            "power_source": ("AC" if battery == "2"
+                             else "no battery" if battery == "" else f"battery (status {battery})"),
             "power_plan": ps("powercfg /getactivescheme"),
             "gpus": gpus if isinstance(gpus, list) else [gpus]}
 
@@ -115,7 +116,8 @@ def main() -> int:
     out = Path(a.out) / f"{datetime.now().date()}-B4-{commit}-{a.tag}-r{a.run}.json"
     out.write_text(json.dumps(result, indent=1) + "\n")
     print(json.dumps({k: result[k] for k in ("adapter_used", "renderer", "resolution", "machine_busy",
-                                             "cpu_load_pct_at_start", "settle_first_10s", "steady", "target")}, indent=1))
+                                             "cpu_load_pct_at_start", "settle_first_10s", "steady",
+                                             "target")}, indent=1))
     print(f"wrote {out}")
     return 0
 
