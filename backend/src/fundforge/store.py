@@ -402,24 +402,36 @@ class Store:
                 "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1), "version": row[5]}
 
     @staticmethod
+    def _insert_rows(c: Conn, head: str, rows: Sequence[tuple]) -> None:
+        """Multi-row ``insert ... values`` in plain statements, never ``executemany``.
+
+        ``executemany`` runs in libpq pipeline mode, which stalls about 50 ms per call over Docker
+        Desktop's IPv6 loopback forwarder on Windows (``localhost`` resolves to ``::1`` first); see B2.
+        Rows go in input order, so the deferred balance check and every trigger see the same rows.
+        """
+        if not rows:
+            return
+        per = max(1, 60000 // len(rows[0]))  # Postgres caps a statement at 65535 bind parameters
+        for i in range(0, len(rows), per):
+            chunk = rows[i:i + per]
+            ph = "(" + ",".join(["%s"] * len(chunk[0])) + ")"
+            c.execute(f"{head} values {','.join([ph] * len(chunk))}", [v for r in chunk for v in r])
+
+    @staticmethod
     def _append_journal(c: Conn, room: str, entries: Sequence[Entry], seq: int) -> None:
-        with c.cursor() as cur:
-            cur.executemany(
-                "insert into journal_entries values (%s,%s,%s,%s,%s,%s,%s)",
-                [(room, x.entry_id, x.entity, x.date, x.memo, Jsonb(x.canonical()["postings"]), seq) for x in entries])
-            cur.executemany(
-                "insert into journal_lines (room_id, entry_id, line_no, entity, account, amount)"
-                " values (%s,%s,%s,%s,%s,%s)",
-                [(room, x.entry_id, i, x.entity, p.account, p.amount)
-                 for x in entries for i, p in enumerate(x.postings)])
+        Store._insert_rows(c, "insert into journal_entries",
+                           [(room, x.entry_id, x.entity, x.date, x.memo, Jsonb(x.canonical()["postings"]), seq)
+                            for x in entries])
+        Store._insert_rows(c, "insert into journal_lines (room_id, entry_id, line_no, entity, account, amount)",
+                           [(room, x.entry_id, i, x.entity, p.account, p.amount)
+                            for x in entries for i, p in enumerate(x.postings)])
 
     @staticmethod
     def _append_outbox(c: Conn, events: Sequence[dict]) -> None:
         cols = ("event_id", "contract_version", "room_id", "seq", "idx", "kind", "audience", "rules_version",
                 "tape_digest", "day", "phase", "sim_date", "chain_head", "payload")
-        with c.cursor() as cur:
-            cur.executemany(f"insert into outbox ({', '.join(cols)}) values ({', '.join(['%s'] * len(cols))})",
-                            [tuple(Jsonb(ev[k]) if k == "payload" else ev[k] for k in cols) for ev in events])
+        Store._insert_rows(c, f"insert into outbox ({', '.join(cols)})",
+                           [tuple(Jsonb(ev[k]) if k == "payload" else ev[k] for k in cols) for ev in events])
 
     def outbox(self, room: str, after_seq: int = 0) -> list[dict]:
         """Outbox events of a room in relay order (for tests and the Kafka relay's backfill)."""
