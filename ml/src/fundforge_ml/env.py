@@ -15,6 +15,7 @@ return over the passive opening book, minus forced-action penalties) in percent,
 bonus. Optional dense shaping adds the change in observed NAV, in percent of opening NAV.
 """
 
+import contextlib
 import hashlib
 import math
 from collections.abc import Callable
@@ -113,8 +114,14 @@ class FundForgeEnv(gym.Env[npt.NDArray[np.float32], int]):
         except CommandRejected:  # e.g. a package the partner refused is still pending: no skip
             self._send({"type": "ready", "version": s.version})
         self._bot("ready")
-        if s.e.cursor == cursor and not s.e.finished():
-            raise RuntimeError("time did not advance after both seats were ready")
+        stalled = s.e.cursor == cursor and not s.e.finished()
+        if stalled:
+            # A refused countersign writes a chat note, and any non-ready command clears both votes,
+            # so the partner may need to vote again. Still stuck: truncate, do not crash training.
+            with contextlib.suppress(CommandRejected):
+                self._send({"type": "ready", "version": s.version})
+            self._bot("ready")
+            stalled = s.e.cursor == cursor and not s.e.finished()
         self.view = observe(s, self.user)
         nav = float(self.view["fund"]["nav"])
         reward = 0.0
@@ -122,8 +129,8 @@ class FundForgeEnv(gym.Env[npt.NDArray[np.float32], int]):
             reward += (nav - self.last_nav) / float(self.opening["fund"]["nav"]) * 100.0
         self.last_nav = nav
         terminated = s.e.finished()
-        truncated = not terminated and self.steps >= MAX_STEPS
-        info = self._info(reject)
+        truncated = stalled or (not terminated and self.steps >= MAX_STEPS)
+        info = self._info(reject) | {"stalled": stalled}
         if terminated:
             outcome = self.view["outcome"]
             reward += float(outcome["score"]) / 100.0 + TIER_BONUS[outcome["label"]]

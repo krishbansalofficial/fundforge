@@ -1,0 +1,132 @@
+{
+  "role": "pm",
+  "split_used": "val",
+  "test_split_touched": false,
+  "trials": 9,
+  "steps_per_trial": 40000,
+  "seed": 0,
+  "val_worlds": 32,
+  "val_families": 16,
+  "best_value_val_mean_reward": 7.708,
+  "best_params": {
+    "n_steps": 256,
+    "learning_rate": 0.0006885649427795251,
+    "ent_coef": 0.0013865929918426318,
+    "batch_size": 256,
+    "gamma": 0.99,
+    "width": 64
+  },
+  "trial_table": [
+    {
+      "number": 0,
+      "val_mean_reward": 7.271,
+      "params": {
+        "n_steps": 256,
+        "learning_rate": 0.0003,
+        "ent_coef": 0.01,
+        "batch_size": 256,
+        "gamma": 0.99,
+        "width": 128
+      }
+    },
+    {
+      "number": 1,
+      "val_mean_reward": 7.369,
+      "params": {
+        "n_steps": 256,
+        "learning_rate": 0.0003506575410186655,
+        "ent_coef": 0.00422463807424846,
+        "batch_size": 256,
+        "gamma": 0.98,
+        "width": 128
+      }
+    },
+    {
+      "number": 2,
+      "val_mean_reward": 7.057,
+      "params": {
+        "n_steps": 128,
+        "learning_rate": 0.00010476552591086524,
+        "ent_coef": 0.016977763163336622,
+        "batch_size": 256,
+        "gamma": 0.98,
+        "width": 128
+      }
+    },
+    {
+      "number": 3,
+      "val_mean_reward": 7.489,
+      "params": {
+        "n_steps": 256,
+        "learning_rate": 0.0002598136355466343,
+        "ent_coef": 0.002459125638339734,
+        "batch_size": 64,
+        "gamma": 0.99,
+        "width": 128
+      }
+    },
+    {
+      "number": 4,
+      "val_mean_reward": 7.277,
+      "params": {
+        "n_steps": 128,
+        "learning_rate": 0.0004984610132094826,
+        "ent_coef": 0.001227327101284403,
+        "batch_size": 128,
+        "gamma": 0.995,
+        "width": 64
+      }
+    },
+    {
+      "number": 5,
+      "val_mean_reward": 7.2,
+      "params": {
+        "n_steps": 128,
+        "learning_rate": 0.00014498047486180492,
+        "ent_coef": 0.009219772166898657,
+        "batch_size": 128,
+        "gamma": 0.995,
+        "width": 128
+      }
+    },
+    {
+      "number": 6,
+      "val_mean_reward": 7.708,
+      "params": {
+        "n_steps": 256,
+        "learning_rate": 0.0006885649427795251,
+        "ent_coef": 0.0013865929918426318,
+        "batch_size": 256,
+        "gamma": 0.99,
+        "width": 64
+      }
+    },
+    {
+      "number": 7,
+      "val_mean_reward": 7.584,
+      "params": {
+        "n_steps": 512,
+        "learning_rate": 0.0002595750787932577,
+        "ent_coef": 0.0012438088147597639,
+        "batch_size": 64,
+        "gamma": 0.995,
+        "width": 64
+      }
+    },
+    {
+      "number": 8,
+      "val_mean_reward": 7.108,
+      "params": {
+        "n_steps": 512,
+        "learning_rate": 0.00019471799676808733,
+        "ent_coef": 0.0018646436842137202,
+        "batch_size": 256,
+        "gamma": 0.99,
+        "width": 128
+      }
+    }
+  ],
+  "mean_val_all_trials": 7.34,
+  "tune_seconds": 1900.5,
+  "reproduce": "uv run --group train python scripts/tune_ppo.py --role pm --trials 9 --steps 40000 --workers 8"
+}

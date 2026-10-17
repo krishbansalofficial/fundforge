@@ -24,6 +24,7 @@ train = [
     "sb3-contrib>=2.6",
     "stable-baselines3>=2.6",
     "mlflow>=3.0",
+    "optuna>=4.0",
 ]
 stream = [
     "confluent-kafka>=2.6",
