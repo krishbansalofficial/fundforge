@@ -86,3 +86,58 @@ Lane B day 2 done: `FundForgeEnv` with masks, determinism and numeric canary tes
 ## Next task
 
 The cheaper snapshot is done (above). Lanes B, C and D start on their day 2–3 items once the day-1 change is merged. Lane A continues with the settlement-obligations task; the undo log is taken up only if RL training time demands it.
+
+## Revision proposal, 16 October 2026
+
+Audit of `main` at `45c0e7e` against the lane schedule above, then a proposed lean schedule. **The cuts below are a recommendation; the 13 October platform decisions stand until the owner records a change in DECISIONS.**
+
+### Status by lane (calendar day 4 of 15)
+
+| Item | State | Evidence |
+|---|---|---|
+| Boundary, contracts, canary | Done | `ml/tests/test_boundary.py`, `test_canary.py` |
+| Rollback snapshot speed | Done (pickle, about 2.2x); undo log not started | ML_PLAN baseline section |
+| Gymnasium env with masks | Done | `ml/src/fundforge_ml/env.py`, `test_env.py` |
+| MaskablePPO, PM seat | Done, thin evaluation | `ml/results/ppo_pm.json`: 14 test worlds, 1 seed |
+| Forecasting vs exact Bayes filter | Done, strong | `ml/results/forecast.json`: LightGBM Brier gap +0.0004 (SE 0.0001) on 2,082 held out families |
+| Outbox, Debezium, Kafka, stopped broker test | Done | `ml/results/kafka_e2e.json` |
+| Polars point in time features, Parquet dataset | Done | `test_features_parity.py`, `test_dataset.py` |
+| Scenario randomiser and generator gate | Done | `gen-2026.10.2`; gate accepts 84 of 199 scanned seeds |
+| PettingZoo, MAPPO, share action | Not started | |
+| `bot:v2` ONNX | Not started | |
+| Exploit hunter RL, Optuna | Not started | |
+| Anomaly detection | Not started | |
+| Spark, Helm/kind, Dagster, DVC, Ray, Argo CD, Redis, Evidently, Oracle deploy | Not started | |
+| Evaluation report, model and data cards | Not started | |
+
+### Evaluation problems to fix before adding anything
+
+1. **Random valid play wins every test world.** PPO's gain (+2.38 reward paired, 13 of 14 worlds) is a score gain over a baseline that already always wins. The headline needs worlds where tier is at stake: use the randomiser's harder settings and report the share of worlds where random play does not win.
+2. **Sample size.** 7 test families (14 worlds) and one training seed. Target at least 100 test families and 5 training seeds, reporting variance across seeds.
+3. **Validation split unused.** Hyperparameters must be chosen on validation, never on test.
+
+### Proposed lean schedule
+
+Assumes Claude Code builds and the owner reviews about 3 to 4 hours a day; training runs overnight on the owner's machine.
+
+| Order | Work | Days | Acceptance |
+|---|---|---|---|
+| 1 | Undo log snapshot plus vectorized environments | 2 | Goldens unchanged; measured episodes per second before and after |
+| 2 | PPO evaluation hardening: harder worlds, 5 seeds, at least 100 test families, MP seat, masking ablation, Optuna on validation | 3 | `ppo_pm.json` and `ppo_mp.json` with per seed results and paired intervals |
+| 3 | `bot:v2` as frozen ONNX in the disclosed bot seat | 2 | Deterministic replay equals the journal digest; refused exactly like a human on illegal proposals |
+| 4 | Exploit hunter: RL rewarded for degenerate wins the balance gate should have rejected; a CI gate fails on any found exploit | 3 | Planted exploit found; current gate passes or the found exploits are recorded and fixed |
+| 5 | Anomaly detection on the books: Isolation Forest over journal and control features, trained on clean seasons, scored on the BENCHMARKS B5 fault corpus, compared with the deterministic controls | 3 | Detection rate per fault class for both the model and the controls; false positive rate on clean seasons |
+| 6 | Two seats with private information (PettingZoo, MAPPO, share action) | 4 | Stretch; cut first |
+| 7 | Evaluation report, model and data cards, architecture diagram, README, demo video | 3 | Every number links to a result file |
+
+Total about 16 working days without step 6, 20 with it.
+
+**Recommended platform cuts.** Spark (the dataset is about 180k rows and Polars already matches it), Ray (one machine already reaches the measured training budget), Dagster, DVC, Argo CD and Kubernetes on the public host. Keep MLflow, the Kafka outbox (built, with a real stopped broker test) and Prometheus. Each cut tool would be a weak interview answer to "why did you need this at this data size", and together they are roughly 15 to 20 lane days.
+
+### Working with Claude Code
+
+* **Two lanes at most, not four.** The 15 October review found worktrees cut from old commits duplicating code already on `main` (shadow certification, LP confidence). Each lane starts from current `main`, merges `main` before every PR, and owns disjoint paths.
+* **Acceptance test first.** Every task begins with the failing test or result file it must produce, written in the PR description.
+* **Review gate.** Changes touching `backend/src/fundforge` get the `finance-reviewer` agent; changes touching API, views or observations get `security-reviewer`. No merge with goldens changed unless `RULES_VERSION` is bumped in the same commit.
+* **Owner explain back.** After each merged step the owner writes, without Claude, a half page in their own words: what the step does, one design choice and its alternative, and how the result could be wrong. Interviewers will probe these.
+

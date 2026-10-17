@@ -40,7 +40,7 @@ MACRO_SERIES = "STREET_ACTIVITY"
 TENTH = Decimal("0.1")
 PRICE = Decimal("0.000001")
 BP = Decimal("0.0001")
-SPLIT_SALT = "fundforge-split-v1"  # same salt as fundforge_ml.contracts.split_of
+SPLIT_SALT = "fundforge-split-v1"  # same salt as the ML package's contracts.split_of (ml/)
 
 
 class Stream:
@@ -284,7 +284,7 @@ def family_of(seed: str) -> str:
 def split_of(seed: str) -> Literal["train", "val", "test"]:
     """Deterministic 80/10/10 split by seed family, so whole families are held out together.
 
-    Same hash and salt as ``fundforge_ml.contracts.split_of``: for a family string both return the same split.
+    Same hash and salt as the ML package's ``contracts.split_of``: for a family string both return the same split.
     """
     family = family_of(seed)
     if not family:
