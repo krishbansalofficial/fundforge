@@ -77,7 +77,24 @@ DATABASE_URL=postgresql://.../scratch uv run python ../scripts/bench_store.py --
 
 `verify` of a 42-command S2 room: p50 117.2 ms, p95 142.0 ms. On this machine no command type meets the 50 ms p95 target; every type, including a `pause` that writes no journal entry, costs at least about 100 ms. A cProfile of 10 `pause` applies put about 89% of the time in psycopg `executemany` (journal entries, journal lines and outbox; about 33 ms per call even for tiny batches) and 96% in socket waits overall, not in the engine or ordinary queries. That points at the Windows client and Docker networking path, not established as the cause; the CI runner has not been measured. From 50 to 200 commands replay (fastest samples) grows about 4.6x for 4x the commands with the engine work fixed; the extra cost is roughly 3.5 ms per replayed command (each `Session.handle` takes a rollback snapshot).
 
-**Not done.** No CI job runs B2; no negative check yet (a deliberately quadratic replay tripping the linearity assertion); the `executemany` floor is a diagnosis lead, not a fix. Targets are not revised until a CI run exists.
+**Diagnosis of the floor (this machine, not CI).** psycopg 3.3.6 (binary, libpq 18.4) against the same container, 30 calls each, p50: on `localhost` a `select 1` takes 0.74 ms and a single-row `execute` insert 0.77 ms, but `executemany` takes 24.8 ms with 0 rows and 50.0 ms with 1 or 5 rows, an explicit `conn.pipeline()` of 3 inserts 50.1 ms, and one multi-row `insert ... values` of 5 rows 1.29 ms. On `127.0.0.1` every one of these is 0.9 to 1.4 ms. `localhost` resolves to `::1` first, so the stall is libpq pipeline mode (which psycopg's `executemany` uses) over Docker Desktop's IPv6 loopback forwarder: a client and network effect, not per-statement server cost. The store now writes journal entries, journal lines and outbox rows with one plain multi-row `insert ... values` per table (`Store._insert_rows`: chunked under Postgres's 65535 bind-parameter cap, skipped when empty, rows in input order), inside the same transaction, after the same row lock, idempotency check and hash chain, with the deferred balance trigger unchanged. Pointing `DATABASE_URL` at `127.0.0.1` would also remove the stall without a code change.
+
+**Second result, local, not CI** (`bench/results/2026-10-17-B2-55036d9.json`; commit `55036d9`, same machine, Python, Postgres and `localhost` URL as the first result). Every journal digest matches the first result (S2 `d7aaeb27...`, clock rooms `258600ba...` and `67c220ce...`).
+
+| Command | n | p50 before / after | p95 before / after |
+|---|---|---|---|
+| `research` | 10 | 107.4 / 8.5 ms | 111.6 / 13.3 ms |
+| `accept_replacement` | 10 | 109.6 / 9.9 ms | 119.2 / 12.3 ms |
+| `propose` | 20 | 115.5 / 13.7 ms | 125.4 / 16.8 ms |
+| `sign` | 20 | 119.2 / 14.1 ms | 130.6 / 16.2 ms |
+| `ready` | 360 | 124.9 / 14.8 ms | 187.2 / 162.2 ms |
+| `tick` | 44 | 169.4 / 19.2 ms | 198.2 / 166.6 ms |
+| `set_speed` | 14 | 118.9 / 10.6 ms | 131.9 / 15.5 ms |
+| `pause` | 202 | 131.2 / 17.5 ms | 145.0 / 20.1 ms |
+
+Cold replay p50 for 10 / 50 / 200 commands: 13.0 / 99.0 / 445.8 ms (was 20.5 / 168.9 / 744.1); `verify` of the S2 room p50 75.9 ms, p95 82.0 ms. Six of eight command types now meet the 50 ms p95 target on this machine. `ready` and `tick` still have a p95 of about 165 ms while their p50 is under 20 ms; the slow tail is not diagnosed (a likely lead is the commands that cross a barrier and advance the engine, not measured).
+
+**Not done.** No CI job runs B2; no negative check yet (a deliberately quadratic replay tripping the linearity assertion); the `ready`/`tick` p95 tail is not diagnosed. Targets are not revised until a CI run exists.
 
 **Target.** p95 `apply` under 50 ms for every command type on the CI runner; replay linear in command count.
 

@@ -55,6 +55,16 @@ def _close_pools():
         s.close()
 
 
+def test_insert_rows_chunks_past_the_bind_parameter_cap():
+    rows = [(i, f"r{i}") for i in range(70000)]  # 140000 parameters: three statements, order kept
+    with psycopg.connect(DSN) as c:
+        c.execute("create temp table chunked (n int, s text)")
+        Store._insert_rows(c, "insert into chunked (n, s)", rows)
+        Store._insert_rows(c, "insert into chunked (n, s)", [])
+        assert c.execute("select count(*), min(n), max(n), sum(n) from chunked").fetchone() == (
+            70000, 0, 69999, sum(range(70000)))
+
+
 def test_concurrent_duplicate_signatures_authorize_once(room):
     st, rid, u = room
     pkg = st.apply(rid, u["pm"], "p", {"type": "propose", "package_id": "p1",
