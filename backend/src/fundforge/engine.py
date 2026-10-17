@@ -25,7 +25,7 @@ from .lp import Book
 from .market import Market
 from .money import CTX, Accrual, D, allocate, cents
 from .series import Series, mgmt_fee_exact, redeem, reprovision
-from .settlement_recon import DATED_SETTLEMENT_CODES, reconstruct
+from .settlement_recon import RECON_ONLY_CODES, reconstruct
 from .shadow import ExecutionConfirmation, certify, inspect_book, inspect_expense_accrual, inspect_settlements
 from .tape import EXEC_PHASES, MarketEvent, Tape
 
@@ -386,9 +386,9 @@ class Engine:
                      "so every unit can be redeemed.", code="winddown_declared")
 
     def _dated_settlement_breaks(self) -> list[dict[str, Any]]:
-        """Receipt dating and failure windows from the independent reconstruction (settlement_recon).
+        """Receipt dating, failure windows and frozen cover collateral from settlement_recon.
 
-        Only the dated codes are taken: identity, economics and delay breaks already come from
+        Only the recon-only codes are taken: identity, economics and delay breaks already come from
         inspect_settlements, and reporting them twice would double-count one defect.
         """
         known = {ev.day: ev.date.isoformat() for ev in self.tape.events if ev.day <= self.ev.day}
@@ -400,7 +400,7 @@ class Engine:
             failures=self.settlement_failures, day=self.ev.day)
         return [{"code": b["code"], "subject": str(b["subject"]),
                  **{k: str(b[k]) for k in ("actual", "expected") if k in b}}
-                for b in breaks if b["code"] in DATED_SETTLEMENT_CODES]
+                for b in breaks if b["code"] in RECON_ONLY_CODES]
 
     def _winddown_flat(self) -> bool:
         return all(q == 0 for q in self.pos.values()) and not self.loans and not self.pending

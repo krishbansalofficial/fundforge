@@ -138,7 +138,7 @@ REASONS = {  # control break code -> certificate blocking reason
                      "financing_date"), "broker_break"),
     **dict.fromkeys(("settlement_misallocated", "settlement_unexplained_delay", "settlement_missing",
                      "settlement_duplicate", "receipt_before_due", "receipt_future", "receipt_unknown_date",
-                     "failure_outside_window"), "settlement_break"),
+                     "failure_outside_window", "settlement_collateral"), "settlement_break"),
     **dict.fromkeys(("lp_series", "lp_capital", "lp_provision", "admin_claim", "manager_receivable",
                      "manager_revenue", "management_fee_date"), "lp_claim_mismatch"),
 }

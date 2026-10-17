@@ -182,7 +182,7 @@ def test_engine_control_report_flags_a_receipt_dated_before_its_due_day():
     from fundforge.shadow import REASONS
 
     e = run(PATHS["S1_early_reduction"])
-    assert not [b for b in e.control_report()["breaks"] if b["code"] in recon.DATED_SETTLEMENT_CODES]
+    assert not [b for b in e.control_report()["breaks"] if b["code"] in recon.RECON_ONLY_CODES]
     acts = list(e.broker.activities)
     i = next(i for i, a in enumerate(acts) if a.obligation)
     oid = acts[i].obligation
@@ -193,3 +193,79 @@ def test_engine_control_report_flags_a_receipt_dated_before_its_due_day():
     breaks = e.control_report()["breaks"]
     assert {"code": "receipt_before_due", "subject": oid, "actual": str(due - 1), "expected": str(due)} in breaks
     assert REASONS["receipt_before_due"] == "settlement_break"
+
+
+def barriers(e: Engine, script=None):
+    """Yield the engine at every decision barrier of a season and once at the end."""
+    e.advance()
+    while not e.finished():
+        yield e
+        nxt = e.next_event()
+        if script and (nxt.day, nxt.phase) in script:
+            script[(nxt.day, nxt.phase)](e)
+        e.advance()
+    yield e
+
+
+def test_frozen_collateral_is_its_own_code_not_economics():
+    cover = ExecutionConfirmation(
+        1, "ALTO", "COVER", 1000, D("50.123456"), D("50123.46"), D("50.000000"), 100000, 0, D(5), D(2000), day=4
+    )
+    rows = dict(confirmations=[cover], day_dates={5: "2026-01-06"}, failures=[], day=5,
+                pending=[], receipts=[("X1", "COVER", "2026-01-06", D("50123.46"), D("50000.01"))])
+    assert recon.reconstruct(**rows) == [
+        {"code": "settlement_collateral", "subject": "X1", "actual": "50000.01", "expected": "50000.00"}]
+    rows.update(receipts=[], failures=[(5, "X1")],
+                pending=[("X1", "COVER", "ALTO", 1000, D("50123.46"), D("49999.99"), 5)])
+    assert codes(recon.reconstruct(**rows)) == ["settlement_collateral"]
+
+
+def test_control_report_flags_wrong_frozen_on_a_cover_receipt():
+    import dataclasses
+
+    from fundforge.shadow import REASONS
+
+    e = run(PATHS["S1_early_reduction"])
+    acts = list(e.broker.activities)
+    i = next(i for i, a in enumerate(acts) if a.obligation and a.kind == "COVER")
+    acts[i] = dataclasses.replace(acts[i], frozen=acts[i].frozen + D("0.01"))
+    e.broker.activities = type(e.broker.activities)(acts)
+    breaks = e.control_report()["breaks"]
+    assert [(b["code"], b["subject"]) for b in breaks] == [("settlement_collateral", acts[i].obligation)]
+    assert REASONS["settlement_collateral"] == "settlement_break"
+
+
+def test_control_report_flags_wrong_frozen_on_a_pending_cover_mid_game():
+    import dataclasses
+
+    covers: list[int] = []
+    for e in barriers(Engine(load(CASE1)), PATHS["S1_early_reduction"]):
+        covers = [k for k, p in enumerate(e.pending) if p.kind == "COVER"]
+        if covers:
+            break
+    assert covers, "S1 should hold a pending cover at some barrier"
+    p = e.pending[covers[0]]
+    e.pending[covers[0]] = dataclasses.replace(p, frozen=p.frozen - D("1.00"))
+    breaks = e.control_report()["breaks"]
+    assert [(b["code"], b["subject"]) for b in breaks] == [("settlement_collateral", p.obligation)]
+
+
+def _valid_seasons():
+    from test_campaign_pacing import gate_accepted_seeds
+
+    from fundforge import store
+
+    out = [(name, lambda: load(CASE1), script) for name, script in PATHS.items()]
+    out += [(f"campaign-v1:{v}", lambda v=v: store._tape("campaign-v1", v), None)
+            for v in ("base", "rally", "lean-company", "tight-credit")]
+    out += [(seed, lambda seed=seed: store._tape(store.GENERATED, seed), None) for seed in gate_accepted_seeds(2)]
+    return out
+
+
+VALID_SEASONS = _valid_seasons()
+
+
+@pytest.mark.parametrize(("name", "tape", "script"), VALID_SEASONS, ids=[s[0] for s in VALID_SEASONS])
+def test_valid_seasons_raise_no_break_at_any_barrier(name, tape, script):
+    for e in barriers(Engine(tape()), script):
+        assert e.control_report()["breaks"] == [], (name, e.ev.day)
