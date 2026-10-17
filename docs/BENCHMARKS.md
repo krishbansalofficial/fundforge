@@ -181,7 +181,25 @@ No policy reached DISTRESS on any of the 400 seeds.
 
 **Findings.** (1) Outcome labels separate designed from degenerate lines completely, so win rate cannot detect dominance *among* designed lines. By score, `derisk_floor` was the best policy on 164 of 186 accepted seeds (344 of 400 ungated), `cover_recall_only` on 13 and `S1_balanced` on 9; the authored-world property "no policy is best in every world" holds, but `derisk_floor` is the near-dominant choice in generated markets. (2) The gate rejects 214 of 400 seeds, all because the minimal `cover_recall_only` line falls into a forced action; generated markets are harsher than the authored ones on that line.
 
-**Not done.** Only the fixed knowledge-free grid is measured; no human, bot-seat or learned policy is included, and no score-dominance target is set.
+**Not done (first result).** Only the fixed knowledge-free grid is measured; no human, bot-seat or learned policy is included, and no score-dominance target was set.
+
+#### B6 score balance among designed lines
+
+**Rule (stated before the second run).** Per seed, the designed line with the strictly highest `score` is that seed's best line; ties are counted separately and credit no line. For each designed line the script reports its best-score share with a Wilson 95% interval and the spread (min, p25, median, p75, max) of its margin over the best *other* designed line, in score bps (negative when it is not the best). **Fail if any designed line's best-score share interval lies wholly above 50%** (Wilson lower bound > 0.5, `SHARE_LIMIT` in the script). 50% is a design choice, not a measured figure: with three designed lines, a line that is the right answer in most generated worlds makes the other two lines decoration. The first result's count (164 of 186) was already known when the threshold was chosen; the threshold was not tuned to it, and the engine, scoring rules, policies and gate are unchanged. The script exits 1 if either verdict fails on the accepted population. Diagnosis: the script replays each designed line (deterministic) to record `fund_return_bps`, `benchmark_return_bps`, `excess_bps`, `financing_drag_bps` and `impact_drag_bps`, and splits best-score shares by the sign of the seed's benchmark return. `backend/tests/test_bench_balance.py` checks the share, tie, margin and verdict arithmetic on synthetic scores.
+
+**Second result** (`bench/results/2026-10-17-B6-f3d0104.json`, commit `f3d0104` with `backend/src` clean and the script change uncommitted, same rules, generator, gate, Python and machine as the first result, same seed list `seed:b6-0` .. `seed:b6-399`). The gate accepted the same 186 seeds and the label table is identical to the first result. No ties.
+
+| Designed line | Accepted best-score share (n=186) | Margin over next best, median [p25, p75] (min, max) | Ungated share (n=400) | Ungated median margin |
+|---|---|---|---|---|
+| derisk_floor | 164 [0.8274, 0.9206] | +169.25 [+91.05, +238.93] (-201.0, +649.7) | 344 [0.8225, 0.8906] | +159.95 |
+| S1_balanced | 9 [0.0256, 0.0894] | -171.85 [-238.93, -92.65] (-649.7, +79.1) | 43 [0.0807, 0.1417] | -160.90 |
+| cover_recall_only | 13 [0.0412, 0.1159] | -198.75 [-281.08, -126.53] (-767.0, +45.3) | 13 [0.0190, 0.0549] | -352.75 |
+
+**Verdict: FAIL.** `derisk_floor`'s best-score share interval [0.8274, 0.9206] lies wholly above 50% on the accepted population (and [0.8225, 0.8906] ungated). It is the dominant designed line in generated markets; the script exits 1.
+
+**Why `derisk_floor` wins.** On accepted seeds every designed line wins, so no forced-action penalty applies and score equals excess return over the passive opening book; the benchmark is the same for every line on a seed, so the ranking is purely fund return. The generated market falls on 184 of 186 accepted seeds (median benchmark -796.4 bps). `derisk_floor` sells 100,000 long shares (BEAM 50k, ALTO 25k, COVE 25k) on day 12, so it carries the least long exposure into the decline: median fund return -571.7 bps against -767.1 for `S1_balanced` (sells 20k BEAM on day 14) and -797.4 for `cover_recall_only`, giving median excess +199.1, +29.3 and -4.1 bps. The drags do not explain it: median financing drag is 1.7 / 2.7 / 3.7 bps and impact drag 3.3 / 0.5 / 0.2 bps (derisk_floor pays the most impact and still wins by ~170 bps). Of the 22 accepted seeds where `derisk_floor` is not best, 20 have a milder benchmark than the median (16 above -320 bps) and 2 have a rising benchmark. The finding is a market-direction bias in generated tapes interacting with a de-risking line, not a cost or penalty imbalance; a fix belongs to the generator's return distribution or to the designed-line set, and is not attempted here.
+
+**Not done.** No engine, scoring, policy, gate or generator change; no fix for the dominance. The split by benchmark sign has only 2 rising-market accepted seeds, too few to say how the lines rank when markets rise.
 
 ## Methodology rules
 
