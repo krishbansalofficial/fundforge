@@ -38,26 +38,36 @@ function entry(n: number, entity = "fund") {
     postings: [["cash", "1.00"], ["capital", "-1.00"]] };
 }
 
-test("journal drains multiple pages, appends new entries and refreshes an empty-page digest", async ({ page, request }) => {
+/** The endpoint's contract: no `after` is the newest 1,000 entries; `after` is the 1,000 following it. */
+function ledgerPage(after: string | null, count: number, digest: string) {
+  const start = after == null ? Math.max(0, count - 1000) : Math.min(Number(after), count);
+  const next = Math.min(start + 1000, count);
+  return { entity: "fund", digest, next, entries: Array.from({ length: next - start }, (_, i) => entry(start + i)) };
+}
+const afterOf = (url: string) => new URL(url).searchParams.get("after");
+
+test("journal loads the newest page, loads older pages on demand, appends new entries and refreshes an empty-page digest", async ({ page, request }) => {
   const d = await desk(page, request);
   let count = 1002;
   let digest = "a".repeat(64);
-  const cursors: number[] = [];
+  const cursors: (string | null)[] = [];
   await page.route(`**/api/rooms/${d.room}/ledger?*`, (route) => {
-    const after = Number(new URL(route.request().url()).searchParams.get("after"));
+    const after = afterOf(route.request().url());
     cursors.push(after);
-    const next = Math.min(after + 1000, count);
-    return route.fulfill({ json: { entity: "fund", digest, next,
-      entries: Array.from({ length: next - after }, (_, i) => entry(after + i)) } });
+    return route.fulfill({ json: ledgerPage(after, count, digest) });
   });
   await d.open();
   const rows = page.locator(".ledger tbody tr");
   await expect(rows).toHaveCount(2 * WINDOW); // bounded DOM: one window of two-posting entries
-  await expect(page.getByText("Showing 1–100 of 1,002 journal entries")).toBeVisible();
-  // Development Strict Mode may start and cancel an extra initial request.
-  expect(cursors.filter((n) => n !== 0)).toEqual([1000]);
-  expect(cursors[0]).toBe(0);
+  await expect(page.getByText("Showing 1–100 of 1,000 loaded journal entries")).toBeVisible();
   await expect(rows.first()).toContainText("fund entry 1001");
+  // Development Strict Mode may start and cancel an extra initial request.
+  expect(cursors.every((n) => n === null)).toBe(true);
+  const loadOlder = page.getByRole("button", { name: /Load older journal entries \(2 not loaded\)/ });
+  await loadOlder.click();
+  await expect(page.getByText("Showing 1–100 of 1,002 loaded journal entries")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Load older journal entries/ })).toHaveCount(0);
+  expect(cursors.filter((n) => n !== null)).toEqual(["0"]);
   const search = page.getByRole("searchbox", { name: "Search journal" });
   await search.fill("fund entry 1001");
   await expect(rows).toHaveCount(2);
@@ -72,15 +82,16 @@ test("journal drains multiple pages, appends new entries and refreshes an empty-
   count = 1003;
   digest = "b".repeat(64);
   d.view.version++;
-  await expect(page.getByText("Showing 1–100 of 1,003 journal entries")).toBeVisible();
+  await expect(page.getByText("Showing 1–100 of 1,003 loaded journal entries")).toBeVisible();
   await expect(rows.first()).toContainText("fund entry 1002");
-  expect(cursors.at(-1)).toBe(1002);
+  expect(cursors.at(-1)).toBe("1002");
   await expect(page.locator(".ledger .digest")).toContainText(digest.slice(0, 16));
   digest = "c".repeat(64);
   d.view.version++;
   await expect(page.locator(".ledger .digest")).toContainText(digest.slice(0, 16));
-  expect(cursors.at(-1)).toBe(1003);
-  await expect(page.getByText("Showing 1–100 of 1,003 journal entries")).toBeVisible();
+  expect(cursors.at(-1)).toBe("1003");
+  await expect(page.getByText("Showing 1–100 of 1,003 loaded journal entries")).toBeVisible();
+  expect(cursors.filter((n) => n !== null)).toEqual(["0", "1002", "1003"]); // no page fetched twice
 });
 
 test("late fund response cannot overwrite the management company journal", async ({ page, request }) => {
@@ -130,77 +141,74 @@ test("failed refresh retains entries and retries from the last committed cursor"
   await expect(page.locator(".ledger [role=alert]")).toHaveCount(0);
 });
 
-test("failed second page can be retried while the room is paused without losing or duplicating entries", async ({ page, request }) => {
+test("failed older page can be retried while the room is paused without losing or duplicating entries", async ({ page, request }) => {
   const d = await desk(page, request);
-  let failSecondPage = true;
-  const cursors: number[] = [];
+  let failOlderPage = true;
+  const cursors: (string | null)[] = [];
   await page.route(`**/api/rooms/${d.room}/ledger?*`, (route) => {
-    const after = Number(new URL(route.request().url()).searchParams.get("after"));
+    const after = afterOf(route.request().url());
     cursors.push(after);
-    if (after === 1000 && failSecondPage) {
-      return route.fulfill({ status: 503, json: { detail: "Second page unavailable" } });
+    if (after === "0" && failOlderPage) {
+      return route.fulfill({ status: 503, json: { detail: "Older page unavailable" } });
     }
-    const next = Math.min(after + 1000, 1002);
-    return route.fulfill({ json: { entity: "fund", digest: "d".repeat(64), next,
-      entries: Array.from({ length: next - after }, (_, i) => entry(after + i)) } });
+    return route.fulfill({ json: ledgerPage(after, 1002, "d".repeat(64)) });
   });
   await d.open();
-  await expect(page.locator(".ledger [role=alert]")).toContainText("Second page unavailable");
-  await expect(page.locator(".ledger tbody tr")).toHaveCount(0);
-  const firstAttemptRequests = cursors.length;
-  failSecondPage = false;
+  const loadOlder = page.getByRole("button", { name: /Load older journal entries/ });
+  await loadOlder.click();
+  await expect(page.locator(".ledger [role=alert]")).toContainText("Older page unavailable");
+  await expect(page.getByText("Showing 1–100 of 1,000 loaded journal entries")).toBeVisible();
+  failOlderPage = false;
   // No version change or economic command: recovery must also work in a paused room.
-  await page.getByRole("button", { name: "Retry journal" }).click();
-  await expect(page.getByText("Showing 1–100 of 1,002 journal entries")).toBeVisible();
-  expect(cursors.slice(firstAttemptRequests)).toEqual([0, 1000]);
+  await expect(loadOlder).toBeEnabled();
+  await loadOlder.click();
+  await expect(page.getByText("Showing 1–100 of 1,002 loaded journal entries")).toBeVisible();
+  expect(cursors.filter((n) => n !== null)).toEqual(["0", "0"]);
   expect(await allMemos(page)).toEqual(Array.from({ length: 1002 }, (_, i) => `fund entry ${1001 - i}`));
   await expect(page.locator(".ledger [role=alert]")).toHaveCount(0);
 });
 
-test("new room version supersedes a delayed second page without duplicating the first page", async ({ page, request }) => {
+test("room advancing while an older page is delayed merges both without duplicates", async ({ page, request }) => {
   const d = await desk(page, request);
   let release!: () => void;
   const delayed = new Promise<void>((resolve) => { release = resolve; });
   let delayedRequested = false;
   let newer = false;
   await page.route(`**/api/rooms/${d.room}/ledger?*`, async (route) => {
-    const after = Number(new URL(route.request().url()).searchParams.get("after"));
+    const after = afterOf(route.request().url());
     const obsolete = !newer;
-    const count = obsolete ? 1001 : 1003;
-    const next = Math.min(after + 1000, count);
-    if (after === 1000 && obsolete) { delayedRequested = true; await delayed; }
-    await route.fulfill({ json: { entity: "fund", digest: (obsolete ? "a" : "b").repeat(64), next,
-      entries: Array.from({ length: next - after }, (_, i) => entry(after + i)) } });
+    const json = ledgerPage(after, obsolete ? 1001 : 1003, (obsolete ? "a" : "b").repeat(64));
+    if (after === "0") { delayedRequested = true; await delayed; }
+    await route.fulfill({ json });
   });
   await d.open();
+  const loadOlder = page.getByRole("button", { name: /Load older journal entries/ });
+  await loadOlder.click();
   await expect.poll(() => delayedRequested).toBe(true);
+  await expect(page.getByRole("button", { name: "Loading older journal entries…" })).toBeDisabled();
   newer = true;
   d.view.version++;
   const rows = page.locator(".ledger tbody tr");
-  await expect(page.getByText("Showing 1–100 of 1,003 journal entries")).toBeVisible();
+  await expect(page.getByText("Showing 1–100 of 1,002 loaded journal entries")).toBeVisible();
   await expect(rows.first()).toContainText("fund entry 1002");
-  const finished = page.waitForResponse((r) => r.url().includes("ledger?entity=fund&after=1000"));
+  const finished = page.waitForResponse((r) => r.url().includes("ledger?entity=fund&after=0"));
   release();
   await finished;
   await expect(page.locator(".ledger .digest")).toContainText("b".repeat(16));
-  await expect(page.getByText("Showing 1–100 of 1,003 journal entries")).toBeVisible();
+  await expect(page.getByText("Showing 1–100 of 1,003 loaded journal entries")).toBeVisible();
   expect(await allMemos(page)).toEqual(Array.from({ length: 1003 }, (_, i) => `fund entry ${1002 - i}`));
 });
 
 test("journal window is bounded, pages search matches and keeps a reader's place when entries arrive", async ({ page, request }) => {
   const d = await desk(page, request);
   let count = 250;
-  await page.route(`**/api/rooms/${d.room}/ledger?*`, (route) => {
-    const after = Number(new URL(route.request().url()).searchParams.get("after"));
-    const next = Math.min(after + 1000, count);
-    return route.fulfill({ json: { entity: "fund", digest: "e".repeat(64), next,
-      entries: Array.from({ length: next - after }, (_, i) => entry(after + i)) } });
-  });
+  await page.route(`**/api/rooms/${d.room}/ledger?*`, (route) =>
+    route.fulfill({ json: ledgerPage(afterOf(route.request().url()), count, "e".repeat(64)) }));
   await d.open();
   const memos = page.locator(".ledger tbody tr.entry-start td:nth-child(2)");
   const newer = page.getByRole("button", { name: "Newer entries" });
   const older = page.getByRole("button", { name: "Older entries" });
-  await expect(page.getByText("Showing 1–100 of 250 journal entries")).toBeVisible();
+  await expect(page.getByText("Showing 1–100 of 250 loaded journal entries")).toBeVisible();
   await expect(newer).toBeDisabled();
   await older.click();
   await expect(page.getByText("Showing 101–200 of 250")).toBeVisible();
@@ -227,5 +235,5 @@ test("journal window is bounded, pages search matches and keeps a reader's place
     ...Array.from({ length: 100 }, (_, i) => `fund entry ${199 - i}`),
     ...Array.from({ length: 10 }, (_, i) => `fund entry ${19 - i}`), "fund entry 1"]);
   await search.fill("");
-  await expect(page.getByText("Showing 1–100 of 255 journal entries")).toBeVisible();
+  await expect(page.getByText("Showing 1–100 of 255 loaded journal entries")).toBeVisible();
 });
