@@ -294,6 +294,7 @@ func _initialize() -> void:
 	var fs := Perf.stats(frames)
 	check(fs["frames"] == 100 and fs["p50_ms"] == 50.0 and fs["p95_ms"] == 95.0 and fs["p99_ms"] == 99.0
 			and fs["worst_ms"] == 100.0 and fs["mean_ms"] == 50.5, "frame percentiles are nearest-rank")
+	check(fs["over_33_3ms"] == 67 and fs["over_100ms"] == 0, "frames over 33.3 ms and 100 ms are counted strictly")
 	check(Perf.stats(PackedFloat64Array())["frames"] == 0, "empty frame report safe")
 	var ats := PackedFloat64Array([0.5, 1.0, 1.5, 5.0])
 	var ev := Perf.after_event(ats, PackedFloat64Array([90.0, 10.0, 30.0, 80.0]), 0.9, "courier")

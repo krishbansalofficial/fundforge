@@ -45,6 +45,7 @@ def main() -> int:
     ap.add_argument("--crisis", action="store_true", help="pinned base room; skip-ready during the recording")
     ap.add_argument("--skip-at", default="5,9,13,17,21,25,29,33", help="--crisis: seconds after the world appears")
     ap.add_argument("--engine-args", default="", help="extra Godot flags, e.g. '--rendering-method gl_compatibility'")
+    ap.add_argument("--route", default=ROUTE, help="--goto route (location@seconds after joining, comma separated)")
     a = ap.parse_args()
 
     http = build_opener(ProxyHandler({}))
@@ -63,7 +64,7 @@ def main() -> int:
     out = Path(a.output).resolve()
     out.unlink(missing_ok=True)
     engine = [a.godot] if a.exported else [a.godot, "--path", str(ROOT / "game")]
-    route = "trading@0" if a.crisis else ROUTE
+    route = "trading@0" if a.crisis else a.route
     cmd = engine + shlex.split(a.engine_args) + ["--disable-vsync", "--max-fps", "0", "--resolution", a.resolution, "--",
                     f"--server={a.server}", f"--join={room['room_id']}:{token}", f"--goto={route}",
                     f"--perf={out}", f"--perf-warmup={a.warmup}", f"--perf-seconds={a.seconds}"]
