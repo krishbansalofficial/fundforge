@@ -16,7 +16,7 @@ import json
 import platform
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,7 +88,7 @@ def main() -> int:
         "benchmark": "B4-frame-time",
         "commit": commit,
         "dirty": bool(git("status", "--porcelain", "game", "scripts")),
-        "measured_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "measured_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "godot": frames["godot"],
         "machine": f"{platform.system()} {platform.release()} ({platform.version()}), {frames['cpu']}",
         "label": "one laptop, two GPUs (not two machines)",
