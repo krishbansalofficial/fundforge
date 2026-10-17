@@ -22,7 +22,7 @@ const command = (request: APIRequestContext, room: string, token: string, data: 
 
 test("a thesis for a question that is not live is refused with the server's message", async ({ page, request }) => {
   const created = await request.post("/api/rooms", {
-    data: { scenario: "case1-generated", pm_name: "Solo", solo_role: "pm", variant: "seed:thesis-e2e" },
+    data: { scenario: "case1-generated", pm_name: "Solo", solo_role: "pm", variant: "seed:thesis-e2e-1" },
   });
   expect(created.status()).toBe(201);
   const { room_id: room, tokens } = await created.json();

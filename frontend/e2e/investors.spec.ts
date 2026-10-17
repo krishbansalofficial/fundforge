@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 test("MP contacts an LP and both partners elect a gate through the web desk", async ({ browser, request }) => {
-  const created = await request.post("/api/rooms", { data: { pm_name: "Inbox PM", mp_name: "Inbox MP", scenario: "case1-generated", variant: "seed:lp-1" } });
+  const created = await request.post("/api/rooms", { data: { pm_name: "Inbox PM", mp_name: "Inbox MP", scenario: "case1-generated", variant: "seed:lp-2" } });
   expect(created.status()).toBe(201);
   const { room_id: room, tokens } = await created.json();
   const prefix = `/api/rooms/${room}`;
