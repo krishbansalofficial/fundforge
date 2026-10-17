@@ -1,8 +1,8 @@
 class_name Perf
 extends Node
 ## Frame-time recorder behind `--perf=out.json` (driven by scripts/measure_frames.py).
-## Starts once the office world exists, skips `warmup` seconds, then records the wall-clock time between
-## consecutive frames for `seconds` and writes a JSON summary. Run with --disable-vsync --max-fps 0 so the
+## Starts once the office world exists, records the `warmup` seconds separately as "settle" (shader compile
+## hitches), then records the wall-clock time between consecutive frames for `seconds` and writes a JSON summary. Run with --disable-vsync --max-fps 0 so the
 ## numbers are the frame's cost, not the display's refresh interval.
 
 var out_path := ""
@@ -11,6 +11,8 @@ var seconds := 30.0
 var started_at := -1  # usec when the world appeared; -1 until then
 var _last := 0
 var _frames := PackedFloat64Array()
+var _settle := PackedFloat64Array()  # frame ms during warm-up, reported apart from the steady window
+var _settle_proc := PackedFloat64Array()
 var _gpu := PackedFloat64Array()
 var _at := PackedFloat64Array()  # seconds since recording began, per frame (to place hitches on the route)
 var _marks: Array = []  # [label, usec] for world events (courier, lp_visitor, ...) during the run
@@ -45,6 +47,8 @@ func _process(_delta: float) -> void:
 			print("perf: world up at %.2f s" % (now / 1e6))  # measure_frames.py --crisis times its skips from this line
 		return
 	if now - started_at < warmup * 1e6:
+		_settle.append((now - _last) / 1000.0)
+		_settle_proc.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
 		_last = now
 		return
 	_frames.append((now - _last) / 1000.0)
@@ -71,6 +75,10 @@ func _process(_delta: float) -> void:
 func _write() -> void:
 	var n := float(_frames.size())
 	var report := stats(_frames)
+	report["process_ms_p50"] = stats(_proc)["p50_ms"]
+	report["process_ms_p99"] = stats(_proc)["p99_ms"]
+	report["settle"] = stats(_settle)
+	report["settle"]["process_ms_p99"] = stats(_settle_proc)["p99_ms"]
 	report["gpu_ms_mean"] = snappedf(_mean(_gpu), 0.001)
 	report["gpu_ms_p95"] = snappedf(stats(_gpu)["p95_ms"], 0.001)
 	for k in _sum:
@@ -147,9 +155,11 @@ static func stats(frames_ms: PackedFloat64Array) -> Dictionary:
 	xs.sort()
 	var n := xs.size()
 	if n == 0:
-		return {"frames": 0, "p50_ms": 0.0, "p95_ms": 0.0, "p99_ms": 0.0, "worst_ms": 0.0, "mean_ms": 0.0, "mean_fps": 0.0}
+		return {"frames": 0, "p50_ms": 0.0, "p95_ms": 0.0, "p99_ms": 0.0, "worst_ms": 0.0, "mean_ms": 0.0, "mean_fps": 0.0,
+				"over_33_3ms": 0, "over_100ms": 0}
 	var rank := func(p: float) -> float: return xs[clampi(ceili(p * n) - 1, 0, n - 1)]
 	var mean := _mean(xs)
 	return {"frames": n, "p50_ms": snappedf(rank.call(0.50), 0.001), "p95_ms": snappedf(rank.call(0.95), 0.001),
 			"p99_ms": snappedf(rank.call(0.99), 0.001), "worst_ms": snappedf(xs[n - 1], 0.001),
-			"mean_ms": snappedf(mean, 0.001), "mean_fps": snappedf(1000.0 / mean, 0.1)}
+			"mean_ms": snappedf(mean, 0.001), "mean_fps": snappedf(1000.0 / mean, 0.1),
+			"over_33_3ms": xs.size() - xs.bsearch(33.3, false), "over_100ms": xs.size() - xs.bsearch(100.0, false)}

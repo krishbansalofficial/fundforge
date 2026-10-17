@@ -1,0 +1,175 @@
+{
+ "benchmark": "B4-frame-time",
+ "commit": "f5a0733",
+ "dirty": false,
+ "measured_at": "2026-10-17T01:22:04+00:00",
+ "godot": "4.7.2-stable (official)",
+ "machine": "Windows 11 (10.0.26300), Intel(R) Core(TM) i9-14900HX",
+ "label": "one laptop, two GPUs (not two machines)",
+ "requested_gpu_index": 0,
+ "requested_rendering_driver": "d3d12",
+ "adapter_used": "NVIDIA GeForce RTX 4070 Laptop GPU",
+ "adapter_driver_version": "32.0.15.6094",
+ "renderer": "d3d12 / forward_plus (API 12_0)",
+ "resolution": "1280x720",
+ "vsync": false,
+ "route": "trading@0,committee@4,risk@8,lp@12,backoffice@16,research@20,street@24,broker@28,trading@34,trading@36,committee@40,risk@44,lp@48,backoffice@52,research@56,street@60,broker@64,trading@70",
+ "settle_s": 10,
+ "steady_s": 60,
+ "machine_busy": false,
+ "cpu_load_pct_at_start": 8.1,
+ "busy_python_pids": [],
+ "power_source": "AC",
+ "power_plan": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+ "gpus": [
+  {
+   "Name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+   "DriverVersion": "32.0.15.6094"
+  },
+  {
+   "Name": "Intel(R) UHD Graphics",
+   "DriverVersion": "32.0.101.6881"
+  }
+ ],
+ "settle_first_10s": {
+  "frames": 1974,
+  "mean_fps": 197.5,
+  "mean_ms": 5.064,
+  "over_100ms": 0,
+  "over_33_3ms": 0,
+  "p50_ms": 4.979,
+  "p95_ms": 5.248,
+  "p99_ms": 7.178,
+  "process_ms_p99": 1158.053,
+  "worst_ms": 24.638
+ },
+ "steady": {
+  "frames": 12217,
+  "p50_ms": 5.087,
+  "p95_ms": 5.58,
+  "p99_ms": 7.5,
+  "worst_ms": 10.638,
+  "mean_ms": 4.912,
+  "mean_fps": 203.6,
+  "over_33_3ms": 0,
+  "over_100ms": 0,
+  "process_ms_p50": 7.451,
+  "process_ms_p99": 10.553,
+  "gpu_ms_mean": 4.725,
+  "gpu_ms_p95": 5.323,
+  "slowest": [
+   {
+    "at_s": 16.6,
+    "ms": 10.6
+   },
+   {
+    "at_s": 52.63,
+    "ms": 10.4
+   },
+   {
+    "at_s": 52.73,
+    "ms": 9.7
+   },
+   {
+    "at_s": 16.57,
+    "ms": 9.5
+   },
+   {
+    "at_s": 16.56,
+    "ms": 9.4
+   }
+  ]
+ },
+ "target": {
+  "p99_ms_max": 16.7,
+  "steady_frame_ms_max": 100.0,
+  "applies_to": "integrated GPU at 1280x720",
+  "met": true
+ },
+ "raw": {
+  "adapter": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "api_version": "12_0",
+  "cpu": "Intel(R) Core(TM) i9-14900HX",
+  "driver": "d3d12",
+  "events": [
+   {
+    "event": "lp_visitor",
+    "event_at_s": -10.17,
+    "spans": [
+     "sfx 0.00 ms",
+     "office.apply_view 0.59 ms",
+     "hud.apply_view 0.14 ms"
+    ],
+    "worst_at_s": -1.0,
+    "worst_ms": -1.0
+   }
+  ],
+  "frames": 12217,
+  "godot": "4.7.2-stable (official)",
+  "gpu_ms_mean": 4.725,
+  "gpu_ms_p95": 5.323,
+  "max_draw_calls": 1295,
+  "max_objects": 2635,
+  "max_primitives": 278989,
+  "mean_draw_calls": 1010.23,
+  "mean_fps": 203.6,
+  "mean_ms": 4.912,
+  "mean_objects": 2095.08,
+  "mean_physics_ms": 0.02,
+  "mean_primitives": 184962.11,
+  "mean_process_ms": 7.27,
+  "method": "forward_plus",
+  "os": "Windows",
+  "over_100ms": 0,
+  "over_33_3ms": 0,
+  "p50_ms": 5.087,
+  "p95_ms": 5.58,
+  "p99_ms": 7.5,
+  "process_ms_p50": 7.451,
+  "process_ms_p99": 10.553,
+  "resolution": "1600x900",
+  "seconds": 60.0,
+  "settle": {
+   "frames": 1974,
+   "mean_fps": 197.5,
+   "mean_ms": 5.064,
+   "over_100ms": 0,
+   "over_33_3ms": 0,
+   "p50_ms": 4.979,
+   "p95_ms": 5.248,
+   "p99_ms": 7.178,
+   "process_ms_p99": 1158.053,
+   "worst_ms": 24.638
+  },
+  "slowest": [
+   {
+    "at_s": 16.6,
+    "ms": 10.6
+   },
+   {
+    "at_s": 52.63,
+    "ms": 10.4
+   },
+   {
+    "at_s": 52.73,
+    "ms": 9.7
+   },
+   {
+    "at_s": 16.57,
+    "ms": 9.5
+   },
+   {
+    "at_s": 16.56,
+    "ms": 9.4
+   }
+  ],
+  "vendor": "NVIDIA",
+  "vsync": false,
+  "warmup_s": 10.0,
+  "window": "1280x720",
+  "world_at_s": 2.41,
+  "worst_ms": 10.638,
+  "budget_p95_ms": 16.7,
+  "pass": true
+ }
+}

@@ -106,11 +106,37 @@ Cold replay p50 for 10 / 50 / 200 commands: 13.0 / 99.0 / 445.8 ms (was 20.5 / 1
 
 **Target.** p95 `GET /view` under 100 ms and zero 5xx at 100 concurrent rooms. Report the knee (first step where the target fails), not only a passing point.
 
-### B4: Game client frame time (planned)
+### B4: Game client frame time (implemented; one laptop, integrated target fails)
 
 **Question.** Does the Godot client hold the 60 fps budget, and how bad is the worst hitch?
 
-**Method.** A scripted camera route through the office and street (reuse `--goto` timed routes) records per frame `Performance.TIME_PROCESS` and real frame delta for 60 s after a 10 s settle, plus the first 10 s separately so shader compilation hitches are visible. Output p50, p99 and max frame time and the count of frames over 33.3 ms. Must run on real GPUs, not headless CI: record GPU, driver, OS, resolution and renderer. Minimum two machines: an integrated GPU laptop and a discrete GPU desktop.
+**Method.** `scripts/bench_frames.py` wraps `scripts/measure_frames.py`. It opens a solo case1 room on a running API and boots the real game window at 1280x720 with V-Sync off and no frame cap. The player then walks the existing `--goto` office-and-street route (trading, committee, risk, LP, back office, research, street, broker, trading) twice, covering about 70 s. `game/scripts/perf.gd` (`--perf`) records the real frame delta (wall clock between frames), `Performance.TIME_PROCESS` and the measured GPU time for every frame. It reports the first 10 s after the office appears separately (`settle_first_10s`, where shader compilation hitches show) and the following 60 s as `steady`: p50, p95, p99, max, frames over 33.3 ms and frames over 100 ms. The adapter is forced with Godot's `--gpu-index` (Forward+ only). The result records the adapter Godot actually used from `RenderingServer.get_video_adapter_name()`, so it never infers the GPU from the index. It also records the Windows driver version for that adapter, the renderer, resolution, power source (`Win32_Battery`), power plan (`powercfg`), CPU load at start and any running pytest or `bench_*` process. It refuses to record on battery. Without `--perf` the game does not create the recorder, so its behaviour is unchanged.
+
+```powershell
+# API against a scratch database, e.g. DATABASE_URL=.../fundforge_b4 uv run uvicorn fundforge.api:app --port 8044
+py -3 scripts/bench_frames.py --server http://127.0.0.1:8044 --gpu-index 1 --tag igpu --run 1
+```
+
+**GPU selection on this machine.** Godot's default Vulkan driver lists only the NVIDIA GPU (`--verbose` shows one device), so `--gpu-index` cannot select the Intel GPU under Vulkan. Under `--rendering-driver d3d12`, Godot lists NVIDIA as #0 and Intel UHD as #1, and the startup log confirms `Using Device #1: Intel - Intel(R) UHD Graphics`. Every run below therefore uses D3D12 Forward+, not the project's Vulkan default. The internal display is attached to the Intel GPU (Windows reports the 2560x1600 mode on it), so discrete GPU frames are copied to it for display.
+
+**Result: one laptop, two GPUs (not two machines).** Commit `f5a0733` (clean), Godot 4.7.2-stable official, Windows 11 (10.0.26300), Intel Core i9-14900HX, D3D12 Forward+, 1280x720 window, V-Sync off, on AC power, Balanced plan. No pytest or bench process was running at any start. CPU load at start was 5.4% and 17.3% for the two integrated runs and 4.3% and 8.1% for the two discrete runs. `igpu-r2` is marked `machine_busy` because its own 5 s sample read 17.3%, above the 15% threshold; a check just before it read 6.9%, and its numbers match r1.
+
+| Run | Adapter (driver) | Window | Frames | p50 | p99 | Max | > 33.3 ms | > 100 ms |
+|---|---|---|---|---|---|---|---|---|
+| `igpu-r1` | Intel UHD Graphics (32.0.101.6881) | first 10 s | 115 | 78.5 ms | 233.4 ms | 259.6 ms | 115 | 18 |
+| | | steady 60 s | 689 | 79.9 ms | 182.2 ms | 205.5 ms | 689 | 189 |
+| `igpu-r2` | Intel UHD Graphics (32.0.101.6881) | first 10 s | 115 | 78.9 ms | 231.3 ms | 257.8 ms | 115 | 17 |
+| | | steady 60 s | 687 | 80.2 ms | 182.2 ms | 205.6 ms | 687 | 187 |
+| `dgpu-r1` | RTX 4070 Laptop GPU (32.0.15.6094) | first 10 s | 1964 | 5.0 ms | 7.1 ms | 25.4 ms | 0 | 0 |
+| | | steady 60 s | 12170 | 5.1 ms | 7.5 ms | 10.8 ms | 0 | 0 |
+| `dgpu-r2` | RTX 4070 Laptop GPU (32.0.15.6094) | first 10 s | 1974 | 5.0 ms | 7.2 ms | 24.6 ms | 0 | 0 |
+| | | steady 60 s | 12217 | 5.1 ms | 7.5 ms | 10.6 ms | 0 | 0 |
+
+Result files: `bench/results/2026-10-16-B4-f5a0733-igpu-r1.json`, `-igpu-r2.json`, `-dgpu-r1.json`, `-dgpu-r2.json`. Each holds the full `perf.gd` report under `raw`, including the five slowest frames and their position on the route.
+
+**Verdict.** The integrated GPU fails the target. Its steady p99 is 182 ms against 16.7 ms, about 11.5 fps on average, and about 187 steady frames exceed 100 ms in each run, so the no-frame-over-100 ms rule also fails. Its measured GPU time averages about 87 ms per frame, so the bottleneck is GPU rendering. `TIME_PROCESS` (p50 about 113 ms) follows the frame time here, so it does not isolate script cost on this adapter. The discrete GPU meets both rules with a wide margin (steady p99 7.5 ms, max 10.8 ms). Its worst first-10 s frame is about 25 ms, so it shows no large shader compilation hitch after the office appears. No quality setting or game code was changed for these runs.
+
+**Not done.** The second machine (a discrete GPU desktop) has not been measured. The project's default Vulkan driver has not been measured on the integrated GPU, because Vulkan does not expose it here. The 2.1 s to 16.9 ms hitch claim in the audit table is still not reproduced. No pipeline cache or warmup before and after capture exists.
 
 **Target.** p99 frame time at or under 16.7 ms at 1280x720 on the integrated GPU laptop; no frame over 100 ms after the first 10 s. A pipeline cache or warmup that removes the first frame hitch is recorded with before and after captures in this document.
 
