@@ -5,6 +5,7 @@ import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
 import { api, exactPct, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
 import { Terminal, type Send, type Thesis } from "./terminal";
+import { cardRows, cardText, LABELS } from "../../card";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
@@ -678,7 +679,55 @@ function RunRecord({ v, roomId, token }: { v: View; roomId: string; token: strin
   if (error) return <div><p role="alert">Run record unavailable: {error}</p>
     <button type="button" onClick={() => { setLoading(true); setAttempt(a => a + 1); }}>Retry run record</button></div>;
   if (!d) return null;
-  return <><ResearchScores v={v} r={d.research} /><InvestorRecord investors={d.investors} /><Replay v={v} roomId={roomId} token={token} baseline={d} /></>;
+  return <>{d.source_outcome && <EndingCard o={d.source_outcome} names={v.names} rulesVersion={d.rules_version} />}<ResearchScores v={v} r={d.research} /><InvestorRecord investors={d.investors} /><Replay v={v} roomId={roomId} token={token} baseline={d} /></>;
+}
+
+/** Shareable ending card from the completed run record: a 1200x630 canvas PNG and the same rows as text. */
+function EndingCard({ o, names, rulesVersion }: { o: DebriefResponse["source_outcome"]; names: Record<string, string>; rulesVersion: string }) {
+  const [seedHash, setSeedHash] = useState<string>();
+  const [status, setStatus] = useState("");
+  useEffect(() => {
+    if (!o.variant.startsWith("seed:")) return;
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(o.variant.slice(5)))
+      .then((b) => setSeedHash([...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("")))
+      .catch(() => undefined); // insecure origin: the served commitment is shown unchecked
+  }, [o.variant]);
+  const rows = cardRows(o, names, rulesVersion, seedHash);
+  const download = () => {
+    const c = document.createElement("canvas");
+    c.width = 1200; c.height = 630;
+    const g = c.getContext("2d");
+    if (!g) return setStatus("This browser cannot draw the card.");
+    g.fillStyle = "#14181d"; g.fillRect(0, 0, 1200, 630);
+    g.fillStyle = "#e8e2d4"; g.font = "bold 28px sans-serif"; g.fillText("FundForge", 60, 70);
+    g.fillStyle = { WIN: "#7fc98f", SURVIVAL: "#e0b25a", DISTRESS: "#e07a6a" }[o.label] ?? "#e8e2d4";
+    g.font = "bold 64px sans-serif"; g.fillText(LABELS[o.label] ?? o.label, 60, 150);
+    rows.forEach(([k, val], i) => {
+      g.fillStyle = "#9aa3ad"; g.font = "18px sans-serif"; g.fillText(k, 60, 210 + i * 34);
+      g.fillStyle = "#e8e2d4"; g.font = "18px monospace"; g.fillText(val, 260, 210 + i * 34, 880);
+    });
+    g.fillStyle = "#9aa3ad"; g.font = "16px sans-serif"; g.fillText("Fictional fund. No real money, brokerage or investment advice.", 60, 600);
+    c.toBlob((blob) => {
+      if (!blob) return setStatus("The card could not be drawn.");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `fundforge-${o.scenario}-${o.label.toLowerCase()}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      setStatus("Card downloaded.");
+    }, "image/png");
+  };
+  const copy = () => navigator.clipboard.writeText(cardText(o, rows))
+    .then(() => setStatus("Card text copied."), () => setStatus("Copy is blocked here; select the card text instead."));
+  return <section className="ending-card" aria-labelledby="card-h">
+    <h2 id="card-h">Ending card</h2>
+    <dl>{rows.map(([k, val]) => <div key={k}><dt>{k}</dt><dd className={k.includes("SHA") || k === "Journal" ? "digest" : undefined}>{val}</dd></div>)}</dl>
+    <div className="row">
+      <button type="button" onClick={download}>Download PNG</button>
+      <button type="button" className="secondary" onClick={copy}>Copy text</button>
+    </div>
+    {status && <p role="status">{status}</p>}
+  </section>;
 }
 
 function InvestorRecord({ investors }: { investors: DebriefResponse["investors"] }) {

@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "test": "node --experimental-strip-types --test app/exclusive.test.ts app/seat.test.ts app/lib.test.ts",
+    "test": "node --experimental-strip-types --test app/exclusive.test.ts app/seat.test.ts app/lib.test.ts app/card.test.ts",
     "types": "openapi-typescript openapi.json --default-non-nullable false -o app/api-types.ts",
     "e2e": "playwright test"
   },
