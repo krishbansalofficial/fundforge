@@ -28,6 +28,11 @@ train = [
 stream = [
     "confluent-kafka>=2.6",
 ]
+# Anomaly lane (docs/ML_ANOMALY.md): Isolation Forest and a small autoencoder, CPU only.
+anomaly = [
+    "scikit-learn>=1.5",
+    "torch>=2.6",
+]
 
 [tool.uv.sources]
 fundforge = { path = "../backend", editable = true }
@@ -54,6 +59,11 @@ python_version = "3.13"
 mypy_path = "src:../backend/src"
 packages = ["fundforge_ml"]
 strict = true
+
+[[tool.mypy.overrides]]
+# scikit-learn ships no type stubs (anomaly lane, docs/ML_ANOMALY.md)
+module = ["sklearn", "sklearn.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # the backend is type-checked by its own job with its own strictness map

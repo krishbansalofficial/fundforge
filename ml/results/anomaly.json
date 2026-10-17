@@ -1,0 +1,623 @@
+{
+  "config": {
+    "families_requested": 200,
+    "injections_per_kind_per_family": 3,
+    "kinds": [
+      "wrong_date_fee",
+      "balanced_wrong_cash",
+      "phantom_position",
+      "duplicate_settlement",
+      "stale_mark",
+      "statement_break"
+    ],
+    "seed_prefix": "anom"
+  },
+  "copies": 2641,
+  "dataset": {
+    "accepted_families": 144,
+    "build_seconds": 197.4,
+    "copies": 2641,
+    "injections_applied": {
+      "balanced_wrong_cash": 432,
+      "duplicate_settlement": 432,
+      "phantom_position": 432,
+      "stale_mark": 337,
+      "statement_break": 432,
+      "wrong_date_fee": 432
+    },
+    "injections_not_applicable": {
+      "stale_mark": 95
+    },
+    "rejected": {
+      "anom-101": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-102": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-118": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-119": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-12": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-122": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-129": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-13": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-132": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-133": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-146": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-149": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-151": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-152": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-153": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-159": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-160": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-162": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-163": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-169": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-17": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-170": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-171": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-176": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-18": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-181": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-182": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-185": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-186": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-191": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-25": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-28": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-3": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-33": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-40": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-41": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-42": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-43": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-44": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-48": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-59": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-63": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-66": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-7": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-70": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-71": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-73": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-77": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-82": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-84": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-87": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-9": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-93": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-94": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-98": [
+        "cover_recall_only_does_not_win"
+      ],
+      "anom-99": [
+        "cover_recall_only_does_not_win"
+      ]
+    },
+    "requested_families": 200
+  },
+  "models": {
+    "autoencoder": {
+      "all_kinds_test": {
+        "both": 73,
+        "control_flagged_negatives": 0,
+        "control_only": 166,
+        "control_precision": 1.0,
+        "control_recall": 0.9019,
+        "ml_flagged_negatives": 85,
+        "ml_only": 0,
+        "ml_precision": 0.462,
+        "ml_recall": 0.2755,
+        "negative_rows": 5755,
+        "neither": 26,
+        "positive_rows": 265,
+        "pr_auc": 0.2331
+      },
+      "clean_test_false_positive_rate": 0.0179,
+      "clean_test_rows": 336,
+      "per_kind_test": {
+        "balanced_wrong_cash": {
+          "both": 6,
+          "control_flagged_negatives": 0,
+          "control_only": 30,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 18,
+          "ml_only": 0,
+          "ml_precision": 0.25,
+          "ml_recall": 0.1667,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.0986
+        },
+        "duplicate_settlement": {
+          "both": 36,
+          "control_flagged_negatives": 0,
+          "control_only": 0,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 1.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 15,
+          "ml_only": 0,
+          "ml_precision": 0.7059,
+          "ml_recall": 1.0,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.8366
+        },
+        "phantom_position": {
+          "both": 23,
+          "control_flagged_negatives": 0,
+          "control_only": 13,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 1.0
+          },
+          "ml_flagged_negatives": 22,
+          "ml_only": 0,
+          "ml_precision": 0.5111,
+          "ml_recall": 0.6389,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.4905
+        },
+        "stale_mark": {
+          "both": 1,
+          "control_flagged_negatives": 0,
+          "control_only": 22,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 1.0
+          },
+          "ml_flagged_negatives": 16,
+          "ml_only": 0,
+          "ml_precision": 0.0588,
+          "ml_recall": 0.0435,
+          "negative_rows": 957,
+          "neither": 0,
+          "positive_rows": 23,
+          "pr_auc": 0.0389
+        },
+        "statement_break": {
+          "both": 2,
+          "control_flagged_negatives": 0,
+          "control_only": 34,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 22,
+          "ml_only": 0,
+          "ml_precision": 0.0833,
+          "ml_recall": 0.0556,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.0527
+        },
+        "wrong_date_fee": {
+          "both": 5,
+          "control_flagged_negatives": 0,
+          "control_only": 67,
+          "control_precision": 1.0,
+          "control_recall": 0.7347,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.2653,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.4694,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 22,
+          "ml_only": 0,
+          "ml_precision": 0.1852,
+          "ml_recall": 0.051,
+          "negative_rows": 1246,
+          "neither": 26,
+          "positive_rows": 98,
+          "pr_auc": 0.0965
+        }
+      },
+      "threshold_from_validation": 0.422323,
+      "validation_positive_rows": 440
+    },
+    "controls": {
+      "clean_test_rows": 336,
+      "clean_test_rows_flagged": 0,
+      "clean_train_rows_flagged": 0
+    },
+    "feature_columns": [
+      "dated_entries",
+      "postings",
+      "gross",
+      "fee_entries",
+      "fee_gross",
+      "settle_entries",
+      "trade_entries",
+      "mark_gross",
+      "cash_net",
+      "pnl_gross",
+      "duplicate_memo_entries",
+      "advance_entries",
+      "posted_today",
+      "weekday",
+      "business_day"
+    ],
+    "fit_seconds": {
+      "autoencoder": 2.97,
+      "isolation_forest": 0.71
+    },
+    "isolation_forest": {
+      "all_kinds_test": {
+        "both": 153,
+        "control_flagged_negatives": 0,
+        "control_only": 86,
+        "control_precision": 1.0,
+        "control_recall": 0.9019,
+        "ml_flagged_negatives": 1281,
+        "ml_only": 10,
+        "ml_precision": 0.1129,
+        "ml_recall": 0.6151,
+        "negative_rows": 5755,
+        "neither": 16,
+        "positive_rows": 265,
+        "pr_auc": 0.093
+      },
+      "clean_test_false_positive_rate": 0.2232,
+      "clean_test_rows": 336,
+      "per_kind_test": {
+        "balanced_wrong_cash": {
+          "both": 21,
+          "control_flagged_negatives": 0,
+          "control_only": 15,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 284,
+          "ml_only": 0,
+          "ml_precision": 0.0689,
+          "ml_recall": 0.5833,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.0568
+        },
+        "duplicate_settlement": {
+          "both": 36,
+          "control_flagged_negatives": 0,
+          "control_only": 0,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 1.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 291,
+          "ml_only": 0,
+          "ml_precision": 0.1101,
+          "ml_recall": 1.0,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.0858
+        },
+        "phantom_position": {
+          "both": 31,
+          "control_flagged_negatives": 0,
+          "control_only": 5,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 1.0
+          },
+          "ml_flagged_negatives": 290,
+          "ml_only": 0,
+          "ml_precision": 0.0966,
+          "ml_recall": 0.8611,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.1317
+        },
+        "stale_mark": {
+          "both": 13,
+          "control_flagged_negatives": 0,
+          "control_only": 10,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 1.0
+          },
+          "ml_flagged_negatives": 219,
+          "ml_only": 0,
+          "ml_precision": 0.056,
+          "ml_recall": 0.5652,
+          "negative_rows": 957,
+          "neither": 0,
+          "positive_rows": 23,
+          "pr_auc": 0.0478
+        },
+        "statement_break": {
+          "both": 11,
+          "control_flagged_negatives": 0,
+          "control_only": 25,
+          "control_precision": 1.0,
+          "control_recall": 1.0,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.0,
+            "broker_cash": 1.0,
+            "broker_fee_date": 0.0,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 291,
+          "ml_only": 0,
+          "ml_precision": 0.0364,
+          "ml_recall": 0.3056,
+          "negative_rows": 1308,
+          "neither": 0,
+          "positive_rows": 36,
+          "pr_auc": 0.0366
+        },
+        "wrong_date_fee": {
+          "both": 41,
+          "control_flagged_negatives": 0,
+          "control_only": 31,
+          "control_precision": 1.0,
+          "control_recall": 0.7347,
+          "control_recall_by_control": {
+            "administrator_fee_date": 0.2653,
+            "broker_cash": 0.0,
+            "broker_fee_date": 0.4694,
+            "journal_integrity": 0.0,
+            "settlement_identity": 0.0,
+            "shadow_valuation": 0.0
+          },
+          "ml_flagged_negatives": 281,
+          "ml_only": 10,
+          "ml_precision": 0.1536,
+          "ml_recall": 0.5204,
+          "negative_rows": 1246,
+          "neither": 16,
+          "positive_rows": 98,
+          "pr_auc": 0.1371
+        }
+      },
+      "threshold_from_validation": 0.518401,
+      "validation_positive_rows": 440
+    },
+    "train_clean_rows": 3164
+  },
+  "positive_rows_per_split_kind": {
+    "test": {
+      "balanced_wrong_cash": 36,
+      "duplicate_settlement": 36,
+      "phantom_position": 36,
+      "stale_mark": 23,
+      "statement_break": 36,
+      "wrong_date_fee": 98
+    },
+    "train": {
+      "balanced_wrong_cash": 339,
+      "duplicate_settlement": 339,
+      "phantom_position": 339,
+      "stale_mark": 272,
+      "statement_break": 339,
+      "wrong_date_fee": 900
+    },
+    "val": {
+      "balanced_wrong_cash": 57,
+      "duplicate_settlement": 57,
+      "phantom_position": 57,
+      "stale_mark": 42,
+      "statement_break": 57,
+      "wrong_date_fee": 170
+    }
+  },
+  "reproduce": "cd ml && uv run python scripts/train_anomaly.py --families 200 --per-kind 3",
+  "rows": 73948,
+  "rows_per_split_kind": {
+    "test": {
+      "balanced_wrong_cash": 1008,
+      "clean": 336,
+      "duplicate_settlement": 1008,
+      "phantom_position": 1008,
+      "stale_mark": 644,
+      "statement_break": 1008,
+      "wrong_date_fee": 1008
+    },
+    "train": {
+      "balanced_wrong_cash": 9492,
+      "clean": 3164,
+      "duplicate_settlement": 9492,
+      "phantom_position": 9492,
+      "stale_mark": 7616,
+      "statement_break": 9492,
+      "wrong_date_fee": 9492
+    },
+    "val": {
+      "balanced_wrong_cash": 1596,
+      "clean": 532,
+      "duplicate_settlement": 1596,
+      "phantom_position": 1596,
+      "stale_mark": 1176,
+      "statement_break": 1596,
+      "wrong_date_fee": 1596
+    }
+  },
+  "splits_clean_rows": {
+    "test": 336,
+    "train": 3164,
+    "val": 532
+  },
+  "total_seconds": 201.2,
+  "versions": {
+    "numpy": "2.5.4",
+    "python": "3.13.12",
+    "scikit_learn": "1.9.1",
+    "torch": "2.14.1+cpu"
+  }
+}
