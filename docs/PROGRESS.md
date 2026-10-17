@@ -1300,3 +1300,10 @@ Measured (commit `3cbd8f3`, 2 CPU Xeon cloud sandbox): full season 17.08 to 17.7
 **Limitations:** the frozen cover-collateral comparison in `settlement_recon` is not surfaced, because its economics codes overlap `inspect_settlements`. Research posteriors still have no authored priors.
 
 **One next task:** author priors and likelihood ratios for the research topics in `fixtures/case1.json` (owner content), then wire `research.posterior` into the PM's role view.
+
+## ML plan revision proposal, 16 October 2026
+
+Audited `main` (`45c0e7e`) against ML_PLAN's lane schedule and appended a revision proposal to [ML_PLAN](ML_PLAN.md): status by lane, three evaluation problems in the PPO result (random play already wins every test world; 7 test families and one seed; validation unused), a lean 16 to 20 day schedule (undo log and vector envs, PPO hardening, `bot:v2`, exploit hunter, anomaly detection on the B5 fault corpus, optional two seat MAPPO, report), recommended platform cuts, and a Claude Code workflow (two lanes, acceptance test first, reviewer agents, owner explain back). Documents only; the 13 October platform decisions are unchanged until the owner records otherwise.
+
+**One next task:** owner decision on the recommended platform cuts; then step 1 (undo log snapshot and vectorized environments).
+
