@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
 import { api, exactPct, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
+import { LEDGER_PAGE, mergePage, olderCursor, type Journal } from "../../journal";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
 const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
@@ -482,58 +483,70 @@ const JOURNAL_WINDOW = 100; // entries in the DOM at once; search still covers e
 function Ledger({ roomId, token, version }: { roomId: string; token: string; version: number }) {
   const [entity, setEntity] = useState<"fund" | "firm">("fund");
   const [search, setSearch] = useState("");
-  const [data, setData] = useState<LedgerPage | null>(null);
+  const [data, setData] = useState<Journal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
-  const cache = useRef<{ roomId: string; token: string; entity: string; page: LedgerPage } | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const olderInFlight = useRef(false);
+  // Loaded pages survive room versions; the key says which journal they belong to.
+  const cache = useRef<{ key: string; journal: Journal | null }>({ key: "", journal: null });
+  const key = `${roomId}|${token}|${entity}`;
+  const fetchPage = useCallback((after: number | null): Promise<LedgerPage> =>
+    api(`/api/rooms/${roomId}/ledger?entity=${entity}${after == null ? "" : `&after=${after}`}`, token), [roomId, token, entity]);
   useEffect(() => {
     let cancelled = false;
-    const previous = cache.current;
-    const sameJournal = previous?.roomId === roomId && previous.token === token && previous.entity === entity;
-    if (!sameJournal) setData(null);
+    if (cache.current.key !== key) { cache.current = { key, journal: null }; setData(null); }
     setError(null);
     async function refresh() {
-      let cursor = sameJournal ? previous.page.next : 0;
-      const entries = sameJournal ? [...previous.page.entries] : [];
-      // A full page may have a successor. An empty page still refreshes the digest.
+      // First load: the newest page only. Afterwards only what follows the cursor, so no loaded page is refetched.
+      // A full page after the cursor may have a successor. An empty page still refreshes the digest.
       while (!cancelled) {
-        const page: LedgerPage = await api(`/api/rooms/${roomId}/ledger?entity=${entity}&after=${cursor}`, token);
-        if (cancelled) return;
-        if (page.next !== cursor + page.entries.length) throw new Error("Invalid journal cursor");
-        entries.push(...page.entries);
-        cursor = page.next;
-        if (page.entries.length < 1000) {
-          const complete = { ...page, entries };
-          cache.current = { roomId, token, entity, page: complete };
-          setData(complete);
-          return;
-        }
+        const known = cache.current.journal;
+        const page = await fetchPage(known ? known.next : null);
+        if (cancelled || cache.current.key !== key) return;
+        if (known && page.next !== known.next + page.entries.length) throw new Error("Invalid journal cursor");
+        const journal = mergePage(cache.current.journal, page);
+        cache.current = { key, journal };
+        setData(journal);
+        if (!known || page.entries.length < LEDGER_PAGE) return;
       }
     }
     refresh().catch((e: unknown) => {
       if (!cancelled) setError(e instanceof Error ? e.message : "Journal unavailable");
     });
     return () => { cancelled = true; };
-  }, [roomId, token, entity, version, retry]);
+  }, [key, fetchPage, version, retry]);
+  const loadOlder = () => exclusive(olderInFlight, async () => {
+    const known = cache.current.journal;
+    const after = known && olderCursor(known);
+    if (after == null) return;
+    setLoadingOlder(true);
+    try {
+      const page = await fetchPage(after);
+      if (cache.current.key !== key) return; // the reader switched journal meanwhile
+      const journal = mergePage(cache.current.journal, page);
+      cache.current = { key, journal };
+      setData(journal);
+      setError(null);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Journal unavailable");
+    } finally {
+      setLoadingOlder(false);
+    }
+  });
   const entries = useMemo(() => {
     const query = search.trim().toLowerCase();
     return (data ? [...data.entries].reverse() : []).filter((entry) => !query ||
       [entry.date, entry.id, entry.memo, ...entry.postings.map(([account]) => account)]
         .some((value) => value.toLowerCase().includes(query)));
   }, [data, search]);
-  // Render one window of the newest-first matches. A reader on an older window keeps the same entries
-  // when new ones arrive; switching journal or search returns to the newest.
-  const [start, setStart] = useState(0);
-  const seen = useRef({ view: "", count: 0 });
-  useEffect(() => {
-    const view = `${roomId}|${entity}|${search}`;
-    const grew = seen.current.view === view ? entries.length - seen.current.count : 0;
-    const changed = seen.current.view !== view;
-    seen.current = { view, count: entries.length };
-    setStart((s) => (changed ? 0 : s > 0 && grew > 0 ? s + grew : s));
-  }, [entries, roomId, entity, search]);
-  const first = start < entries.length ? start : Math.max(0, entries.length - JOURNAL_WINDOW);
+  // Render one window of the newest-first matches, anchored on its first entry's id: a reader on an older
+  // window keeps the same entries when newer or older pages arrive; switching journal or search returns to the newest.
+  const [anchor, setAnchor] = useState<string | null>(null);
+  useEffect(() => setAnchor(null), [roomId, entity, search]);
+  const first = anchor == null ? 0 : Math.max(0, entries.findIndex((e) => e.id === anchor));
   const visible = entries.slice(first, first + JOURNAL_WINDOW);
+  const goTo = (i: number) => setAnchor(i <= 0 ? null : entries[i]?.id ?? null);
   return (
     <section className="panel wide ledger">
       <div className="row">
@@ -548,13 +561,16 @@ function Ledger({ roomId, token, version }: { roomId: string; token: string; ver
       {data && entries.length > 0 && <div className="row">
         <p className="muted" role="status">
           Showing {num(first + 1)}–{num(first + visible.length)} of {num(entries.length)}{" "}
-          {search.trim() ? `matching entries (${num(data.entries.length)} loaded)` : "journal entries"}, newest first.
+          {search.trim() ? `matching entries (${num(data.entries.length)} loaded)` : "loaded journal entries"}, newest first.
         </p>
         <button type="button" className="secondary" disabled={first === 0}
-          onClick={() => setStart(Math.max(0, first - JOURNAL_WINDOW))}>Newer entries</button>
+          onClick={() => goTo(first - JOURNAL_WINDOW)}>Newer entries</button>
         <button type="button" className="secondary" disabled={first + JOURNAL_WINDOW >= entries.length}
-          onClick={() => setStart(first + JOURNAL_WINDOW)}>Older entries</button>
+          onClick={() => goTo(first + JOURNAL_WINDOW)}>Older entries</button>
       </div>}
+      {data && data.start > 0 && <button type="button" className="secondary" onClick={() => void loadOlder()}
+        disabled={loadingOlder} aria-busy={loadingOlder}>
+        {loadingOlder ? "Loading older journal entries…" : `Load older journal entries (${num(data.start)} not loaded)`}</button>}
       {data && entries.length === 0 && <p role="status">{search.trim() ? "No journal entries match your search." : "No journal entries yet."}</p>}
       {error && <div>
         <p role="alert">{error}. {data ? "Showing previously loaded entries." : "Journal could not be loaded."}</p>
