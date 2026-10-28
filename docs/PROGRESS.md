@@ -1395,3 +1395,22 @@ Replay is deterministic for both seats. cProfile confirms the ML_PLAN claim: the
 The README renders this row. **Checks:** 73 passed with the train, forecast and anomaly groups.
 
 **Rerun** on an idle machine at default sizes: `cd ml && uv run --group train python scripts/bench_env.py`.
+
+## ML VIPER distillation, 27 October 2026
+
+Merged PR #10. `ml/src/fundforge_ml/distill.py` runs a DAgger loop that distils the PPO teacher into a scikit-learn decision tree. It chooses the best valid action under the mask and exports readable rules with encoder feature names. Each sample is weighted by the spread of the teacher's log-probabilities across valid actions; this is a documented heuristic, because PPO has no Q-function. `ml/scripts/distill_viper.py` selects the tree on val and reports results on test through `evals`.
+
+`ml/results/viper_pm.json` is **smoke only**: an 8,192-step teacher and 2 test worlds, marked in its `status` field and in the README row.
+
+**Checks:** ruff clean; mypy clean (13 files); lint-imports 1 kept; 75 passed with the train, forecast and anomaly groups.
+
+**Full run (later):** `cd ml && uv run --group train --group anomaly python scripts/distill_viper.py --steps 600000 --families 400 --workers 16` (about 45 min). Then rewrite `comparison_note` from the printed tree.
+
+## Queued training (run after the generated-world InvariantError fix)
+
+1. `eval_ppo.py` full scale (Stage 1 headline).
+2. `train_voi.py`.
+3. `distill_viper.py` full.
+4. `bench_env.py` at default sizes on an idle machine.
+
+The world-difficulty gate change (`one_trade_wins` or a Spec margin buffer) is a backend task after the bug fix.
