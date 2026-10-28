@@ -25,8 +25,8 @@ class Series:
 
 def reprovision(s: Series, gross: Decimal) -> Series:
     """Given participation capital B after P&L/fees, reset F to its target and N = B - F."""
-    with localcontext(CTX):
-        f = cents(PERF_RATE * max(Decimal(0), gross / s.units - s.hwm) * s.units)
+    with localcontext(CTX):  # capital above HWM x units, no per-unit division: one rounding, ties stay ties
+        f = cents(PERF_RATE * max(Decimal(0), gross - s.hwm * s.units))
     return replace(s, net=gross - f, provision=f)
 
 
