@@ -91,8 +91,8 @@ class CurveToMlflow(BaseCallback):
             mlflow.log_metric("train_episode_reward", statistics.fmean(self.rewards[-200:]), step=self.num_timesteps)
 
 
-def play(role: str, seed: str, variant: str, policy: str, model: MaskablePPO | None, rng_seed: int) -> dict[str, Any]:
-    env = FundForgeEnv(role, policy_id=policy, world_fn=lambda o, r: worlds.world(seed, variant))
+def play(role: str, w: worlds.World, policy: str, model: MaskablePPO | None, rng_seed: int) -> dict[str, Any]:
+    env = FundForgeEnv(role, policy_id=policy, world_fn=lambda o, r: w)
     obs, info = env.reset(seed=rng_seed, options={"episode_tag": f"{policy}-{rng_seed}"})
     rng = np.random.default_rng(rng_seed)
     total, done, k = 0.0, False, 0
@@ -174,11 +174,12 @@ def main() -> None:
         rows: dict[str, list[dict[str, Any]]] = {p: [] for p in ("ppo", "rules", "random", "wait")}
         paired = []
         for s, v in test:
-            ppo = play(args.role, s, v, "ppo", model, 0)
+            w = worlds.world(s, v)
+            ppo = play(args.role, w, "ppo", model, 0)
             rows["ppo"].append(ppo)
-            rows["rules"].append(play(args.role, s, v, "rules", None, 0))
-            rows["wait"].append(play(args.role, s, v, "wait", None, 0))
-            rnd = [play(args.role, s, v, "random", None, k) for k in range(args.random_runs)]
+            rows["rules"].append(play(args.role, w, "rules", None, 0))
+            rows["wait"].append(play(args.role, w, "wait", None, 0))
+            rnd = [play(args.role, w, "random", None, k) for k in range(args.random_runs)]
             rows["random"] += rnd
             paired.append(ppo["reward"] - statistics.fmean(r["reward"] for r in rnd))
         report = {p: summarize(r) for p, r in rows.items()}
