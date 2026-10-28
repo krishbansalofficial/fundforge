@@ -1414,3 +1414,22 @@ Merged PR #10. `ml/src/fundforge_ml/distill.py` runs a DAgger loop that distils 
 4. `bench_env.py` at default sizes on an idle machine.
 
 The world-difficulty gate change (`one_trade_wins` or a Spec margin buffer) is a backend task after the bug fix.
+
+## Engine: redemption half-cent rounding, `case1-rules-2026.10.28`, 28 October 2026
+
+Merged `65e08aa`. `series.redeem` rounded units/U to 40 digits before multiplying by net. At an exact half-cent payable this broke the HALF_EVEN tie: 912,334.445 came out as .45 in the engine and .44 in the administrator, which raised `InvariantError administrator_claim` in 7 generated scenario-randomiser worlds. Engine and administrator now both compute net × units / U and round once to cents (FUND_ACCOUNTING §5a). `RULES_VERSION` moves from `case1-rules-2026.10.15` to `case1-rules-2026.10.28`; golden digests are unchanged; regression test `backend/tests/test_redemption_half_cent.py`.
+
+**Sibling scan** (200 seeds × scenario and harsh levels × both variants; random, bot:v1 and wait policies): `InvariantError` count went from 9 to 0 in the pm seat and is 0 in the mp seat.
+
+**Finance review: approve with follow-ups.**
+- `series.reprovision` (series.py:29) has the same divide-then-multiply tie bug and disagrees with administrator.py:84 at half-cent provisions. The fix is in progress with its own RULES_VERSION bump.
+- The reviewer also asked for stronger tests (non-zero provision tie; assert no administrator breaks).
+
+**Checks:** backend 595 passed, 44 skipped (no `DATABASE_URL`); ruff and mypy clean.
+
+**Open issues:**
+- The `credit_limit` failure on `ppo-7` could not be reproduced (it may come from a trained-policy action sequence).
+- New ml-env issue: in the mp seat, "time did not advance after both seats were ready" (40 episodes in 20 worlds, bot:v1 and wait policies). The pm-seat runs are not affected.
+- The ML training queue started on `case1-rules-2026.10.15`, so those results predate this fix; each JSON records its version.
+
+`docs/ARCHITECTURE.md`'s stale rules version was also updated.
