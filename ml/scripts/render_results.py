@@ -121,7 +121,24 @@ def viper(d: dict[str, Any]) -> Row:
     )
 
 
+def voi(d: dict[str, Any]) -> Row:
+    c, s = d["report"]["compare_reward"], d["scale"]
+
+    def diff(k: str) -> str:
+        x = c[k]["diff"]
+        return f"{_g(x['point'])} [{_g(x['lo'])}, {_g(x['hi'])}]"
+
+    return (
+        "Value of information: P(stressed) added to the PPO observation",
+        f"paired reward exact Bayes - none {diff('exact_vs_none')}; learned - none {diff('learned_vs_none')}",
+        f"{s['seeds_per_mode']} seeds per mode x {s['steps_per_run']} steps; "
+        f"{s['test_worlds']} test worlds ({s['test_families']} families)",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
+    "voi_pm.json": voi,
     "anomaly.json": anomaly,
     "viper_pm.json": viper,
     "bench_env.json": bench_env,

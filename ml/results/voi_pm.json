@@ -1,0 +1,298 @@
+{
+  "question": "Return bought by appending P(stressed) (none / learned / exact Bayes) to the PPO observation",
+  "reproduce": "cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --forecast-worlds 20000 --n-envs 4 --workers 4",
+  "larger_run": "cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 10 --steps 500000 --families 3000 --workers 30",
+  "scale": {
+    "seeds_per_mode": 3,
+    "steps_per_run": 100000,
+    "n_envs": 4,
+    "families_drawn": 1000,
+    "train_families": 344,
+    "test_families": 48,
+    "test_worlds": 96,
+    "forecaster_train_rows": 143550,
+    "forecast_worlds_drawn": 20000
+  },
+  "params": {
+    "role": "pm",
+    "net": [
+      128,
+      128
+    ],
+    "n_steps": 256,
+    "batch_size": 256,
+    "gamma": 0.99,
+    "learning_rate": 0.0003,
+    "ent_coef": 0.01,
+    "algo": "sb3-contrib MaskablePPO 2.9.0",
+    "learned_forecaster": "train_forecast.logreg (numpy IRLS, l2 1e-3) on forecast-<i> TRAIN families"
+  },
+  "versions": {
+    "belief": "belief-v1",
+    "feature": "forecast-features-2026.10.1",
+    "encoder": "obs-v1",
+    "actions": "actions-v1",
+    "reward": "reward-v1",
+    "contracts": "ml-contracts-2026.10.1",
+    "generator": "gen-2026.10.1",
+    "python": "3.13.12",
+    "torch": "2.14.1+cpu",
+    "platform": "Windows-11-10.0.26300-SP0"
+  },
+  "notes": "Scores are (seeds, worlds); evals.compare pairs on worlds. Reward = engine score / 100 + tier bonus (reward-v1). Belief rows: every as-of day with a published print on each test world; gap = model minus exact Brier on the same rows.",
+  "rejected": {
+    "cover_recall_only_does_not_win": 565
+  },
+  "seconds": {
+    "prep": 241.9,
+    "train_and_eval_wall": 5471.1,
+    "train_per_run": {
+      "none-0": 1942.7,
+      "none-1": 1933.8,
+      "none-2": 2014.9,
+      "learned-0": 1890.6,
+      "learned-1": 1545.0,
+      "learned-2": 1685.5,
+      "exact-0": 1706.3,
+      "exact-1": 1615.6,
+      "exact-2": 1993.4
+    }
+  },
+  "test_worlds": [
+    "ppo-22/base",
+    "ppo-22/rally",
+    "ppo-96/base",
+    "ppo-96/rally",
+    "ppo-116/base",
+    "ppo-116/rally",
+    "ppo-140/base",
+    "ppo-140/rally",
+    "ppo-142/base",
+    "ppo-142/rally",
+    "ppo-146/base",
+    "ppo-146/rally",
+    "ppo-180/base",
+    "ppo-180/rally",
+    "ppo-235/base",
+    "ppo-235/rally",
+    "ppo-242/base",
+    "ppo-242/rally",
+    "ppo-298/base",
+    "ppo-298/rally",
+    "ppo-303/base",
+    "ppo-303/rally",
+    "ppo-309/base",
+    "ppo-309/rally",
+    "ppo-375/base",
+    "ppo-375/rally",
+    "ppo-377/base",
+    "ppo-377/rally",
+    "ppo-390/base",
+    "ppo-390/rally",
+    "ppo-405/base",
+    "ppo-405/rally",
+    "ppo-432/base",
+    "ppo-432/rally",
+    "ppo-433/base",
+    "ppo-433/rally",
+    "ppo-462/base",
+    "ppo-462/rally",
+    "ppo-474/base",
+    "ppo-474/rally",
+    "ppo-513/base",
+    "ppo-513/rally",
+    "ppo-524/base",
+    "ppo-524/rally",
+    "ppo-576/base",
+    "ppo-576/rally",
+    "ppo-591/base",
+    "ppo-591/rally",
+    "ppo-596/base",
+    "ppo-596/rally",
+    "ppo-615/base",
+    "ppo-615/rally",
+    "ppo-616/base",
+    "ppo-616/rally",
+    "ppo-622/base",
+    "ppo-622/rally",
+    "ppo-643/base",
+    "ppo-643/rally",
+    "ppo-647/base",
+    "ppo-647/rally",
+    "ppo-742/base",
+    "ppo-742/rally",
+    "ppo-765/base",
+    "ppo-765/rally",
+    "ppo-822/base",
+    "ppo-822/rally",
+    "ppo-830/base",
+    "ppo-830/rally",
+    "ppo-831/base",
+    "ppo-831/rally",
+    "ppo-874/base",
+    "ppo-874/rally",
+    "ppo-878/base",
+    "ppo-878/rally",
+    "ppo-889/base",
+    "ppo-889/rally",
+    "ppo-892/base",
+    "ppo-892/rally",
+    "ppo-899/base",
+    "ppo-899/rally",
+    "ppo-930/base",
+    "ppo-930/rally",
+    "ppo-946/base",
+    "ppo-946/rally",
+    "ppo-947/base",
+    "ppo-947/rally",
+    "ppo-957/base",
+    "ppo-957/rally",
+    "ppo-976/base",
+    "ppo-976/rally",
+    "ppo-977/base",
+    "ppo-977/rally",
+    "ppo-994/base",
+    "ppo-994/rally",
+    "ppo-999/base",
+    "ppo-999/rally"
+  ],
+  "report": {
+    "summary_reward": {
+      "none": {
+        "runs": 3,
+        "worlds": 96,
+        "mean": {
+          "point": 8.129475694444444,
+          "lo": 7.770462152777777,
+          "hi": 8.483819618055556
+        },
+        "iqm": {
+          "point": 8.035597222222222,
+          "lo": 7.442341666666667,
+          "hi": 8.6307984375
+        }
+      },
+      "learned": {
+        "runs": 3,
+        "worlds": 96,
+        "mean": {
+          "point": 8.040944444444444,
+          "lo": 7.713433680555555,
+          "hi": 8.3938375
+        },
+        "iqm": {
+          "point": 7.945215277777777,
+          "lo": 7.484919618055555,
+          "hi": 8.446741493055557
+        }
+      },
+      "exact": {
+        "runs": 3,
+        "worlds": 96,
+        "mean": {
+          "point": 8.121517361111112,
+          "lo": 7.791323263888889,
+          "hi": 8.448182552083333
+        },
+        "iqm": {
+          "point": 7.9959999999999996,
+          "lo": 7.449098263888889,
+          "hi": 8.555853125
+        }
+      }
+    },
+    "mean_score_bps": {
+      "none": 312.9,
+      "learned": 304.1,
+      "exact": 312.2
+    },
+    "labels": {
+      "none": {
+        "WIN": 288
+      },
+      "learned": {
+        "WIN": 288
+      },
+      "exact": {
+        "WIN": 288
+      }
+    },
+    "compare_reward": {
+      "exact_vs_none": {
+        "n_worlds": 96,
+        "diff": {
+          "point": -0.007958333333333243,
+          "lo": -0.07729982638888869,
+          "hi": 0.06106032986111124
+        },
+        "x_better_worlds": 46,
+        "ties": 0,
+        "prob_improvement": 0.5341435185185185
+      },
+      "learned_vs_none": {
+        "n_worlds": 96,
+        "diff": {
+          "point": -0.08853124999999988,
+          "lo": -0.16372291666666655,
+          "hi": -0.007154947916666968
+        },
+        "x_better_worlds": 37,
+        "ties": 0,
+        "prob_improvement": 0.47800925925925924
+      },
+      "exact_vs_learned": {
+        "n_worlds": 96,
+        "diff": {
+          "point": 0.08057291666666662,
+          "lo": 0.014723611111111038,
+          "hi": 0.14079574652777763
+        },
+        "x_better_worlds": 62,
+        "ties": 0,
+        "prob_improvement": 0.5497685185185185
+      }
+    },
+    "belief_quality": {
+      "rows": 864,
+      "worlds": 96,
+      "stressed_rate": 0.24768518518518517,
+      "by_mode": {
+        "none": {
+          "n": 864,
+          "worlds": 96,
+          "brier": 0.24768518518518517,
+          "log_loss": 3.421898043292453,
+          "ece": 0.24768518518518517,
+          "gap_brier": 0.2141931469849537,
+          "gap_brier_se_by_world": 0.029585147561423452,
+          "gap_log_loss": 3.294903156919593,
+          "mean_abs_to_bayes": 0.2704975694444444
+        },
+        "learned": {
+          "n": 864,
+          "worlds": 96,
+          "brier": 0.0489652063514079,
+          "log_loss": 0.1772652457007647,
+          "ece": 0.06413885700250918,
+          "gap_brier": 0.015473168151176416,
+          "gap_brier_se_by_world": 0.00307934745480934,
+          "gap_log_loss": 0.05027035932790508,
+          "mean_abs_to_bayes": 0.067665591411512
+        },
+        "exact": {
+          "n": 864,
+          "worlds": 96,
+          "brier": 0.03349203820023147,
+          "log_loss": 0.12699488637285963,
+          "ece": 0.04420358796296294,
+          "gap_brier": 0.0,
+          "gap_brier_se_by_world": 0.0,
+          "gap_log_loss": 0.0,
+          "mean_abs_to_bayes": 0.0
+        }
+      },
+      "learned_brier_gap_to_exact": 0.015473168151176416,
+      "learned_brier_gap_se_by_world": 0.00307934745480934
+    }
+  }
+}

@@ -1504,3 +1504,13 @@ Merged `ba15868`: `ml/MODEL_CARDS.md` (PPO, forecasters, anomaly detectors, VIPE
   - bot:v1 in the pm seat never wins on hard.
   - `docs/RANDOMISER.md` and `docs/BENCHMARKS.md` don't yet describe HARD_VERSION.
 - **Next**: when the training queue ends, run `eval_ppo.py --levels hard` (same seeds and steps) and compare it with the base result.
+
+## 2026-10-28: full PPO evaluation and value-of-information results
+
+- **PPO** (`ml/results/ppo_pm.json`, commit 9049303, clean tree): 5 training seeds x 200,000 steps, config chosen on val (`lr1e-4_ent0.01`). On 274 test worlds (137 families), paired reward PPO - random 1.96 [1.72, 2.20]. PPO is better on 224/274 worlds; IQM 8.12 [7.74, 8.48].
+- **Value of information** (`ml/results/voi_pm.json`): 3 seeds per mode x 100,000 steps on 96 test worlds. Adding exact Bayes P(stressed) to the observation adds nothing: -0.008 [-0.077, 0.061]. The learned forecast is slightly worse: -0.089 [-0.164, -0.007].
+- **Renderer**: `render_results.py` has a `voi_pm.json` row; `ml/README.md` re-rendered; `--check` and `tests/test_render_results.py` pass (4).
+- **Limitations**:
+  - On base worlds random play still WINs every episode, so the PPO gap is reward size, not tier.
+  - VIPER, bench_env and the hard-level eval did not run: Claude Code stopped the queue on low memory.
+- **Next**: run `eval_ppo.py --levels base,hard` alone with `--procs 8`.
