@@ -1,0 +1,226 @@
+{
+  "status": "SMOKE RUN ONLY: teacher trained 8192 steps on 30 train worlds; 4 val and 2 test worlds. Not the intended ~1 hour scale: the numbers show the pipeline runs end to end, not what a trained teacher distils to.",
+  "comparison_note": "Hand-written from the exported depth-4 tree of this smoke run. It splits first on recall_offer_visible, then on day_frac, phase_EXEC_A, payroll_payable/firm_cash and DART.borrowed_frac, and every leaf is a reduce action (BRIN, GALA, DART, ALTO, FENN, ELAN). bot:v1's PM rules cover recalled BRIN while no replacement borrow is accepted, and sell the largest long on a margin call. The tree's root leaf (reduce BRIN 1.0 while the recall offer is not visible) touches the same name on a different trigger; the tree has no margin-call split. With an 8192-step teacher this is weak evidence either way.",
+  "commit":"bdcbac466163b70b01bbd58e478acf1fe6f04f68",
+  "worktree_dirty": true,
+  "reproduce": "cd ml && uv run --group train --with scikit-learn python scripts/distill_viper.py --steps 8192 --families 40 --workers 16 --depths 2,4 --iterations 2",
+  "versions": {
+    "python": "3.13.12",
+    "numpy": "2.5.4",
+    "torch": "2.14.1+cpu",
+    "sklearn": "1.9.1",
+    "sb3_contrib": "2.9.0",
+    "contract": "ml-contracts-2026.10.1",
+    "encoder": "obs-v1",
+    "actions": "actions-v1",
+    "reward": "reward-v1"
+  },
+  "seeds": {
+    "torch_and_ppo": 0,
+    "tree_random_state": 0,
+    "random_baseline": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "world_families": "ppo-0..ppo-39"
+  },
+  "scale": {
+    "teacher_steps": 8192,
+    "workers": 16,
+    "teacher_train_seconds": 37.0,
+    "teacher_hyperparameters": {
+      "net": [
+        128,
+        128
+      ],
+      "n_steps": 256,
+      "batch_size": 256,
+      "gamma": 0.99,
+      "learning_rate": 0.0003,
+      "ent_coef": 0.01
+    },
+    "viper_iterations": 2,
+    "families_drawn": 40,
+    "families": {
+      "train": 15,
+      "val": 2,
+      "test": 1
+    },
+    "rejected": {
+      "cover_recall_only_does_not_win": 22
+    },
+    "worlds": {
+      "train": 30,
+      "val": 4,
+      "test": 2
+    }
+  },
+  "teacher_sha256": "1d8816dbec3603ebdc4cb86584b6ee4f192d7148fa1965f3be53b4ff0d852826",
+  "weight_proxy": "max minus min masked log-probability of the teacher over valid actions (see distill.py)",
+  "selection": "per depth: VIPER iterate with best mean val reward; exported tree: depth <= 4 with best val reward (ties to the shallower)",
+  "test_worlds": [
+    "ppo-22/base",
+    "ppo-22/rally"
+  ],
+  "teacher": {
+    "summary": {
+      "runs": 1,
+      "worlds": 2,
+      "mean": {
+        "point": 5.8950000000000005,
+        "lo": 5.371,
+        "hi": 6.4190000000000005
+      },
+      "iqm": {
+        "point": 5.8950000000000005,
+        "lo": 5.371,
+        "hi": 6.4190000000000005
+      }
+    },
+    "val_mean_reward": 6.36825,
+    "test_states": 10,
+    "mean_score_bps": 89.5,
+    "labels": {
+      "WIN": 2
+    }
+  },
+  "random": {
+    "summary": {
+      "runs": 5,
+      "worlds": 2,
+      "mean": {
+        "point": 5.565799999999999,
+        "lo": 5.1011999999999995,
+        "hi": 5.98362
+      },
+      "iqm": {
+        "point": 5.575166666666667,
+        "lo": 5.045,
+        "hi": 6.099333333333334
+      }
+    }
+  },
+  "depths": {
+    "2": {
+      "dataset_states": 304,
+      "picked_iteration": 2,
+      "val_mean_reward_by_iteration": [
+        6.02825,
+        6.278250000000001
+      ],
+      "tree": {
+        "depth": 2,
+        "leaves": 3,
+        "nodes": 5
+      },
+      "fidelity_on_student_states": 0.7,
+      "fidelity_on_teacher_states": 0.6,
+      "test_states_student": 10,
+      "summary": {
+        "runs": 1,
+        "worlds": 2,
+        "mean": {
+          "point": 5.861000000000001,
+          "lo": 5.413,
+          "hi": 6.309
+        },
+        "iqm": {
+          "point": 5.861000000000001,
+          "lo": 5.413,
+          "hi": 6.309
+        }
+      },
+      "vs_teacher": {
+        "n_worlds": 2,
+        "diff": {
+          "point": -0.03400000000000025,
+          "lo": -0.11000000000000032,
+          "hi": 0.041999999999999815
+        },
+        "x_better_worlds": 1,
+        "ties": 0,
+        "prob_improvement": 0.5
+      },
+      "vs_random": {
+        "n_worlds": 2,
+        "diff": {
+          "point": 0.2951999999999999,
+          "lo": 0.07500000000000018,
+          "hi": 0.5153999999999996
+        },
+        "x_better_worlds": 2,
+        "ties": 0,
+        "prob_improvement": 0.8
+      },
+      "mean_score_bps": 86.1,
+      "labels": {
+        "WIN": 2
+      },
+      "rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- class: reduce:DART:1.0\n",
+      "seconds": 7.4
+    },
+    "4": {
+      "dataset_states": 304,
+      "picked_iteration": 1,
+      "val_mean_reward_by_iteration": [
+        6.36825,
+        6.36825
+      ],
+      "tree": {
+        "depth": 4,
+        "leaves": 6,
+        "nodes": 11
+      },
+      "fidelity_on_student_states": 0.9,
+      "fidelity_on_teacher_states": 0.9,
+      "test_states_student": 10,
+      "summary": {
+        "runs": 1,
+        "worlds": 2,
+        "mean": {
+          "point": 5.9465,
+          "lo": 5.474,
+          "hi": 6.4190000000000005
+        },
+        "iqm": {
+          "point": 5.9465,
+          "lo": 5.474,
+          "hi": 6.4190000000000005
+        }
+      },
+      "vs_teacher": {
+        "n_worlds": 2,
+        "diff": {
+          "point": 0.05149999999999988,
+          "lo": 0.0,
+          "hi": 0.10299999999999976
+        },
+        "x_better_worlds": 1,
+        "ties": 1,
+        "prob_improvement": 0.75
+      },
+      "vs_random": {
+        "n_worlds": 2,
+        "diff": {
+          "point": 0.38070000000000004,
+          "lo": 0.13600000000000012,
+          "hi": 0.6254
+        },
+        "x_better_worlds": 2,
+        "ties": 0,
+        "prob_improvement": 0.8
+      },
+      "mean_score_bps": 94.65,
+      "labels": {
+        "WIN": 2
+      },
+      "rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- phase_EXEC_A <= 0.50\n|   |   |   |--- payroll_payable/firm_cash <= 0.02\n|   |   |   |   |--- class: reduce:DART:1.0\n|   |   |   |--- payroll_payable/firm_cash >  0.02\n|   |   |   |   |--- class: reduce:ALTO:0.5\n|   |   |--- phase_EXEC_A >  0.50\n|   |   |   |--- DART.borrowed_frac <= 0.50\n|   |   |   |   |--- class: reduce:FENN:0.25\n|   |   |   |--- DART.borrowed_frac >  0.50\n|   |   |   |   |--- class: reduce:ELAN:1.0\n",
+      "seconds": 6.4
+    }
+  },
+  "exported_depth": 4,
+  "exported_rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- phase_EXEC_A <= 0.50\n|   |   |   |--- payroll_payable/firm_cash <= 0.02\n|   |   |   |   |--- class: reduce:DART:1.0\n|   |   |   |--- payroll_payable/firm_cash >  0.02\n|   |   |   |   |--- class: reduce:ALTO:0.5\n|   |   |--- phase_EXEC_A >  0.50\n|   |   |   |--- DART.borrowed_frac <= 0.50\n|   |   |   |   |--- class: reduce:FENN:0.25\n|   |   |   |--- DART.borrowed_frac >  0.50\n|   |   |   |   |--- class: reduce:ELAN:1.0\n"
+}
