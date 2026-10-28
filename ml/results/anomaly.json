@@ -1,0 +1,522 @@
+{
+  "experiment": "unsupervised anomaly detection on the books vs B5 rule-based controls",
+  "commit": "3785744",
+  "rules_version": "case1-rules-2026.10.15",
+  "feature_version": "anomaly-v1",
+  "n_features": 1077,
+  "versions": {
+    "python": "3.13.12",
+    "numpy": "2.5.4",
+    "scikit-learn": "1.9.1"
+  },
+  "reproduce": "cd ml && uv run --group anomaly python scripts/train_anomaly.py --seeds 40 --clean-seasons 40",
+  "seeds": {
+    "fault_corpus": "fault_corpus.make(cls, seed) for seed in range(40)",
+    "clean_random_policy": "random.Random('anomaly-clean:<seed>') for seed in range(40); train = seed < 30",
+    "isolation_forest_random_state": 20261027,
+    "bootstrap": "2000 reps, numpy default_rng(class index)"
+  },
+  "split": "by clean season seed; held-out clean = held-out random seasons + the 8 B5 golden clean seasons",
+  "sizes": {
+    "clean_checkpoints_by_group": {
+      "train": 570,
+      "heldout_random": 190,
+      "heldout_golden": 152
+    },
+    "random_seasons_failed_invariant": [],
+    "faults_per_class": 40,
+    "faults": 240
+  },
+  "random_clean_controls_audit": {
+    "checkpoints": 760,
+    "flagged_by_controls": 0
+  },
+  "threshold_rule": "score > t; t leaves at most floor(0.01 x n) held-out clean checkpoints flagged",
+  "controls_reference": {
+    "file": "bench/results/2026-10-17-B5-b1dc767.json",
+    "commit": "b1dc767",
+    "same_faults": true,
+    "clean": {
+      "seasons": 8,
+      "checkpoints": 152,
+      "flagged_checkpoints": 0,
+      "flagged_seasons": []
+    },
+    "per_class": {
+      "balanced_unsupported_posting": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 3,
+        "independent": 40
+      },
+      "phantom_or_missing_position": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 4,
+        "independent": 40
+      },
+      "settlement": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 0,
+        "independent": 40
+      },
+      "financing": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 0,
+        "independent": 40
+      },
+      "lp_fee": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 0,
+        "independent": 40
+      },
+      "statement": {
+        "n": 40,
+        "controls": 40,
+        "certificate": 40,
+        "reconcile": 0,
+        "independent": 40
+      }
+    }
+  },
+  "models": {
+    "isolation_forest": {
+      "threshold": 0.5734969364900816,
+      "allowed_false_positives": 3,
+      "held_out_clean": {
+        "n": 342,
+        "flagged": 3,
+        "fpr": 0.008771929824561403
+      },
+      "held_out_clean_by_group": {
+        "heldout_random": {
+          "n": 190,
+          "flagged": 3
+        },
+        "heldout_golden": {
+          "n": 152,
+          "flagged": 0
+        }
+      },
+      "per_class": {
+        "balanced_unsupported_posting": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.0648966318629248,
+            "lo": 0.0624713470520338,
+            "hi": 0.07391666426231078
+          },
+          "variants": {
+            "accrued_expense": "0/10",
+            "accrued_interest": "0/4",
+            "cash": "0/2",
+            "collateral": "0/4",
+            "debt": "0/6",
+            "long_securities": "0/3",
+            "mgmt_fee_payable": "0/11"
+          }
+        },
+        "phantom_or_missing_position": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.0666195953633703,
+            "lo": 0.06403198838918571,
+            "hi": 0.07631991802365377
+          },
+          "variants": {
+            "add_long": "0/15",
+            "add_short": "0/4",
+            "drop_confirmation": "0/8",
+            "remove_long": "0/13"
+          }
+        },
+        "settlement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.07233012783288692,
+            "lo": 0.06748840113659434,
+            "hi": 0.08528059433070788
+          },
+          "variants": {
+            "drop_receipt": "0/6",
+            "duplicate_receipt": "0/11",
+            "misamount_receipt": "0/13",
+            "misdate_receipt": "0/7",
+            "misfreeze_cover": "0/3"
+          }
+        },
+        "financing": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.07186595335418097,
+            "lo": 0.06797524454819796,
+            "hi": 0.08490364184551312
+          },
+          "variants": {
+            "date_shift": "0/17",
+            "day_count_365": "0/13",
+            "wrong_rate": "0/10"
+          }
+        },
+        "lp_fee": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.07172357552366859,
+            "lo": 0.06737647220081333,
+            "hi": 0.08567091676311181
+          },
+          "variants": {
+            "fee_date_shift": "0/5",
+            "fee_rate": "0/9",
+            "provision": "0/9",
+            "series_misallocation": "0/7",
+            "unearned_receivable": "0/10"
+          }
+        },
+        "statement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.07862109642090633,
+            "lo": 0.07321810423729956,
+            "hi": 0.0938686283473716
+          },
+          "variants": {
+            "authored_mismatch": "0/21",
+            "broker_record": "0/19"
+          }
+        }
+      }
+    },
+    "ledoit_wolf_mahalanobis": {
+      "threshold": 444.1827241975296,
+      "allowed_false_positives": 3,
+      "held_out_clean": {
+        "n": 342,
+        "flagged": 3,
+        "fpr": 0.008771929824561403
+      },
+      "held_out_clean_by_group": {
+        "heldout_random": {
+          "n": 190,
+          "flagged": 3
+        },
+        "heldout_golden": {
+          "n": 152,
+          "flagged": 0
+        }
+      },
+      "per_class": {
+        "balanced_unsupported_posting": {
+          "n": 40,
+          "detected": 33,
+          "recall_at_1pct_fpr": {
+            "point": 0.825,
+            "lo": 0.7,
+            "hi": 0.925
+          },
+          "pr_auc": {
+            "point": 0.8622011549151706,
+            "lo": 0.7646198695246694,
+            "hi": 0.9449106673038524
+          },
+          "variants": {
+            "accrued_expense": "10/10",
+            "accrued_interest": "2/4",
+            "cash": "0/2",
+            "collateral": "4/4",
+            "debt": "6/6",
+            "long_securities": "0/3",
+            "mgmt_fee_payable": "11/11"
+          }
+        },
+        "phantom_or_missing_position": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.12188381246462754,
+            "lo": 0.10651309278583165,
+            "hi": 0.16244238884018056
+          },
+          "variants": {
+            "add_long": "0/15",
+            "add_short": "0/4",
+            "drop_confirmation": "0/8",
+            "remove_long": "0/13"
+          }
+        },
+        "settlement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.10051431950968921,
+            "lo": 0.09102792447824488,
+            "hi": 0.12268845290213294
+          },
+          "variants": {
+            "drop_receipt": "0/6",
+            "duplicate_receipt": "0/11",
+            "misamount_receipt": "0/13",
+            "misdate_receipt": "0/7",
+            "misfreeze_cover": "0/3"
+          }
+        },
+        "financing": {
+          "n": 40,
+          "detected": 30,
+          "recall_at_1pct_fpr": {
+            "point": 0.75,
+            "lo": 0.6,
+            "hi": 0.875
+          },
+          "pr_auc": {
+            "point": 0.7944929064284756,
+            "lo": 0.6827399458720654,
+            "hi": 0.901490944814571
+          },
+          "variants": {
+            "date_shift": "17/17",
+            "day_count_365": "13/13",
+            "wrong_rate": "0/10"
+          }
+        },
+        "lp_fee": {
+          "n": 40,
+          "detected": 20,
+          "recall_at_1pct_fpr": {
+            "point": 0.5,
+            "lo": 0.35,
+            "hi": 0.65
+          },
+          "pr_auc": {
+            "point": 0.5993658682386402,
+            "lo": 0.45902033358751765,
+            "hi": 0.7303443234611413
+          },
+          "variants": {
+            "fee_date_shift": "5/5",
+            "fee_rate": "7/9",
+            "provision": "0/9",
+            "series_misallocation": "7/7",
+            "unearned_receivable": "1/10"
+          }
+        },
+        "statement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.07608779824013051,
+            "lo": 0.07147775969938285,
+            "hi": 0.08801430321393224
+          },
+          "variants": {
+            "authored_mismatch": "0/21",
+            "broker_record": "0/19"
+          }
+        }
+      }
+    },
+    "max_abs_z": {
+      "threshold": 13.731472381378627,
+      "allowed_false_positives": 3,
+      "held_out_clean": {
+        "n": 342,
+        "flagged": 3,
+        "fpr": 0.008771929824561403
+      },
+      "held_out_clean_by_group": {
+        "heldout_random": {
+          "n": 190,
+          "flagged": 3
+        },
+        "heldout_golden": {
+          "n": 152,
+          "flagged": 0
+        }
+      },
+      "per_class": {
+        "balanced_unsupported_posting": {
+          "n": 40,
+          "detected": 31,
+          "recall_at_1pct_fpr": {
+            "point": 0.775,
+            "lo": 0.65,
+            "hi": 0.9
+          },
+          "pr_auc": {
+            "point": 0.81565991478575,
+            "lo": 0.7018352902716662,
+            "hi": 0.9148701995927655
+          },
+          "variants": {
+            "accrued_expense": "10/10",
+            "accrued_interest": "0/4",
+            "cash": "0/2",
+            "collateral": "4/4",
+            "debt": "6/6",
+            "long_securities": "0/3",
+            "mgmt_fee_payable": "11/11"
+          }
+        },
+        "phantom_or_missing_position": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.08314900938334044,
+            "lo": 0.07141192067590343,
+            "hi": 0.108745834141392
+          },
+          "variants": {
+            "add_long": "0/15",
+            "add_short": "0/4",
+            "drop_confirmation": "0/8",
+            "remove_long": "0/13"
+          }
+        },
+        "settlement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.12456073601961712,
+            "lo": 0.09928180306170195,
+            "hi": 0.16282479575224423
+          },
+          "variants": {
+            "drop_receipt": "0/6",
+            "duplicate_receipt": "0/11",
+            "misamount_receipt": "0/13",
+            "misdate_receipt": "0/7",
+            "misfreeze_cover": "0/3"
+          }
+        },
+        "financing": {
+          "n": 40,
+          "detected": 30,
+          "recall_at_1pct_fpr": {
+            "point": 0.75,
+            "lo": 0.6,
+            "hi": 0.875
+          },
+          "pr_auc": {
+            "point": 0.8052025691437715,
+            "lo": 0.6977150322354061,
+            "hi": 0.9061785536389052
+          },
+          "variants": {
+            "date_shift": "17/17",
+            "day_count_365": "13/13",
+            "wrong_rate": "0/10"
+          }
+        },
+        "lp_fee": {
+          "n": 40,
+          "detected": 12,
+          "recall_at_1pct_fpr": {
+            "point": 0.3,
+            "lo": 0.175,
+            "hi": 0.45
+          },
+          "pr_auc": {
+            "point": 0.39477190357095865,
+            "lo": 0.25881620930977695,
+            "hi": 0.5226452549532984
+          },
+          "variants": {
+            "fee_date_shift": "5/5",
+            "fee_rate": "0/9",
+            "provision": "0/9",
+            "series_misallocation": "7/7",
+            "unearned_receivable": "0/10"
+          }
+        },
+        "statement": {
+          "n": 40,
+          "detected": 0,
+          "recall_at_1pct_fpr": {
+            "point": 0.0,
+            "lo": 0.0,
+            "hi": 0.0
+          },
+          "pr_auc": {
+            "point": 0.11695318247093286,
+            "lo": 0.09985950439850316,
+            "hi": 0.14646881512643523
+          },
+          "variants": {
+            "authored_mismatch": "0/21",
+            "broker_record": "0/19"
+          }
+        }
+      }
+    }
+  },
+  "wall_seconds": 55.5
+}
