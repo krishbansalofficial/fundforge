@@ -87,6 +87,7 @@ class Spec:
     crisis_days: int = 1  # crisis day moves by up to this many days (marks, volumes, stressed margin)
     crisis_points: int = 2  # each crisis mark (long and short) moves by up to this many points
     margin_points: int = 5  # both stressed coefficient pairs move by up to this many points
+    margin_buffer_points: int = 0  # then both pairs rise by this many points: the margin call bites unless the cure is sized
     rival_pct: int = 20  # each rival parameter is scaled by 100 +/- this percent
     redemption_pct: int = 20  # the scheduled redemption is scaled by 100 +/- this percent, in 500-unit steps
     book_pct: int = 5  # each opening position is scaled by 100 +/- this percent, in 100-share steps
@@ -102,6 +103,7 @@ class Spec:
                 self.crisis_days,
                 self.crisis_points,
                 self.margin_points,
+                self.margin_buffer_points,
                 self.rival_pct,
                 self.redemption_pct,
                 self.book_pct,
@@ -229,7 +231,7 @@ def randomise(
     # stressed margin: both pairs move together, and the public notice is rewritten to match
     stressed = next(m for m in raw["margin_schedule"] if m["from_day"] == d0)
     old_terms = _terms(stressed)
-    shift = Decimal(rng.integer(-spec.margin_points, spec.margin_points)) / 100
+    shift = Decimal(rng.integer(-spec.margin_points, spec.margin_points) + spec.margin_buffer_points) / 100
     for k in ("initial", "maintenance"):
         stressed[k] = {side: str(Decimal(v) + shift) for side, v in stressed[k].items()}
     stressed["from_day"] = d
