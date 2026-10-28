@@ -1325,3 +1325,15 @@ Researched what to add to make `ml/` a flagship portfolio project; wrote [ML_SHO
 **One next task:** owner writes `evals.prob_improvement`, then Tier 1 item 1 (PPO evaluation hardening).
 
 **Revision, same day:** at the owner's request, ML_SHOWCASE was rewritten for a junior developer who must build and defend the work. It now has an ownership audit (what to lead with, learn or drop) and four stages, each splitting what the owner hand-writes from where Claude assists: honest multi-seed evaluation; PPO from scratch compared against SB3; value of information; and a showcase with an AI-use statement. It ends with an interview drill. Platform and multi-agent items are moved out of scope.
+
+## ML lane 2: anomaly detection on the books, 27 October 2026
+
+Merged from the lane-2 worktree (`3785744`, `179e294`). `ml/src/fundforge_ml/anomaly.py` builds 1,077 features from the book state at a checkpoint. It reads no memos, tape or control outputs. `ml/scripts/train_anomaly.py` trains on 570 clean checkpoints (random-policy seasons, seeds 0–29) and holds out 342 (seeds 30–39 plus the 8 B5 golden seasons). It scores the same 240 B5 faults (40 per class) at 1% false-positive rate. Result: `ml/results/anomaly.json`.
+
+**Result (negative, reported as is):** IsolationForest detects 0/40 in every class. A Ledoit-Wolf Mahalanobis baseline detects 33/40 balanced unsupported postings, 30/40 financing and 20/40 LP-fee faults, and 0/40 of position, settlement and statement faults. The deterministic controls detect 40/40 in every class. The models catch only faults that create account pairs the clean books never contain.
+
+**Checks:** ruff clean; mypy clean (11 files); lint-imports 1 kept; `uv run --group anomaly pytest -q` gives 62 passed, 1 skipped.
+
+**Limitations:** the clean distribution comes from random-policy play; single model seed; the threshold and the FPR come from the same held-out set; corpus faults are small (at most $10k on $25m); no autoencoder.
+
+**One next task:** merge the remaining lanes (PPO evaluation, value of information, VIPER, M1 bench, results README) as they land.
