@@ -1433,3 +1433,11 @@ Merged `65e08aa`. `series.redeem` rounded units/U to 40 digits before multiplyin
 - The ML training queue started on `case1-rules-2026.10.15`, so those results predate this fix; each JSON records its version.
 
 `docs/ARCHITECTURE.md`'s stale rules version was also updated.
+
+## Local Postgres test database, 28 October 2026
+
+Started the compose `db` service (Postgres 17, `fundforge-db-1`, port 5432) and created database `fundforge_test`. With it, the backend suite runs the Postgres-gated tests:
+
+`cd backend && DATABASE_URL=postgresql://fundforge:fundforge@localhost:5432/fundforge_test uv run pytest -q` gives **635 passed, 4 skipped** on main at `9b03695` (7 min 9 s). Without the database it is 595 passed, 44 skipped. The 4 remaining skips need the `pg_dump` client.
+
+Docker Desktop must be running; `docker compose up -d --wait db` starts the database.
