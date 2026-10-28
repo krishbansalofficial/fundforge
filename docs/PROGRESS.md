@@ -1367,3 +1367,15 @@ These are recorded as rejections and are not yet diagnosed.
 **Full-scale command (not yet run):** `cd ml && uv run --group train python scripts/eval_ppo.py --seeds 5 --steps 200000 --families 3000` (about 1.5–2 h on 32 CPUs).
 
 **One next task:** diagnose the generated-world `InvariantError`s, then the gate or Spec change, then the full-scale run.
+
+## ML value of information pipeline, 27 October 2026
+
+Merged PR #8 (`cf5993d`): `ml/src/fundforge_ml/belief.py` appends P(stressed) to the observation in three modes: `none`, `learned` (logistic regression, train split only) and `exact` (`forecast.bayes`). It reads only the seat terminal's macro rows. Tests check terminal parity, run a future-print canary with a positive control, and check shapes. `ml/scripts/train_voi.py` trains MaskablePPO per mode and seed and reports results through `evals`.
+
+Logistic regression is used for `learned`, not LightGBM, so that `learned` sits between `none` and `exact`. LightGBM's 0.0004 gap would be indistinguishable from `exact`.
+
+**No result yet.** Only a smoke run (2,048 steps), in which all modes tied; it was not committed.
+
+**Checks:** ruff clean; mypy clean (12 files); 72 passed with the train and forecast groups.
+
+**Run later** (after the generated-world `InvariantError` fix lands, since the worlds may change): `cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --workers 9`.
