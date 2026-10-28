@@ -35,7 +35,7 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.28"  # .28: redemption pro-rata rounds once (exact half-cent ties)
+RULES_VERSION = "case1-rules-2026.10.29"  # .29: reprovision rounds capital above HWM once (exact ties)
 TENTH = Decimal("0.1")  # basis-point display step
 
 
