@@ -2,16 +2,20 @@
 
 A generated tape is accepted only if, in that single world: flattening the book on day 12 is
 refused by the mandate (same journal as doing nothing), doing nothing does not win, and every
-line that handles the recall wins. Cross-world dominance stays a property of a tape *family*
-(``tests/test_balance.py``). Plans are fixed in advance and read only public state (announced
-margin calls), never the tape.
+line that handles the recall wins. For ``generator.HARD_VERSION`` tapes the deliberate de-risk
+(``derisk_floor``) must win instead, and seeded random-valid play (``play_naive``) must lose most
+of its runs, so the tier depends on decisions rather than on any trade at all. Cross-world
+dominance stays a property of a tape *family* (``tests/test_balance.py``). Plans are fixed in
+advance and read only public state (announced margin calls), never the tape.
 """
 
 import contextlib
 from decimal import Decimal
 from typing import Any
 
+from . import bot
 from .engine import CommandRejected, Engine
+from .generator import HARD_VERSION, Stream
 from .governance import Session
 from .tape import EXEC_PHASES, Tape
 
@@ -74,6 +78,50 @@ def play(tape: Tape, plan: dict[Any, Any]) -> dict[str, Any]:
     return s.e.outcome()
 
 
+NAIVE_VERSION = "naive-v1"  # draw stream of the seeded random-valid gate policy
+NAIVE_SEEDS = 5  # a hard tape is rejected (naive_play_wins) when naive play wins a majority of these
+HARD_LINES = ("derisk_floor",)  # the line a hard tape must still let win
+NAIVE_GATED = frozenset({HARD_VERSION})  # generator versions whose tapes must also defeat naive play
+FRACTIONS = ((1, 4), (1, 2), (1, 1))  # the ML action space's reduce sizes (ceil of |position| x fraction)
+LIVE = ("QUEUED", "PARTIALLY_FILLED")
+
+
+def play_naive(tape: Tape, rng_seed: int) -> dict[str, Any]:
+    """Seeded random-valid investment partner with bot:v1 as managing partner: an untrained agent.
+
+    At each decision point (time skips quiet windows, as in solo play) it draws uniformly from: wait,
+    or reduce one held name without a live order by a quarter, half or all of the position. Research
+    moves are left out, so it trades at least as often as the ML random baseline.
+    """
+    e = Engine(tape)
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": "bot:mp"}, bots=frozenset({"mp"}))
+    rng = Stream(f"{tape.digest}|{rng_seed}", NAIVE_VERSION)
+    bot.act(s, "mp", "bot:mp", "n-open")
+    k = 0
+    while not s.e.finished():  # always s.e: a rejected command restores a snapshot, replacing the engine
+        k += 1
+        if k > 400:  # far above any Case1 run: a stuck clock is a bug, never a hang inside room creation
+            raise RuntimeError("naive play did not finish")
+        live = {x.sym for x in s.e.orders if x.status in LIVE}
+        moves = [None, *((sym, f) for sym, q in sorted(s.e.pos.items()) if q and sym not in live for f in FRACTIONS)]
+        move = moves[rng.integer(0, len(moves) - 1)]
+        if move is not None:
+            sym, (num, den) = move
+            q = s.e.pos[sym]
+            pid = f"n{k}"
+            with contextlib.suppress(CommandRejected):  # a mandate refusal is an ordinary outcome
+                s.handle("ana", pid, {"type": "propose", "package_id": pid, "orders": [
+                    o(f"{pid}-{sym}", sym, "SELL" if q > 0 else "COVER", -(-abs(q) * num // den))]})
+        bot.act(s, "mp", "bot:mp", f"n{k}-sign")
+        try:
+            s.handle("ana", f"r{k}", {"type": "ready", "skip": True})
+        except CommandRejected:  # a package the bot refused is still pending: no skip
+            s.handle("ana", f"r{k}", {"type": "ready"})
+        bot.act(s, "mp", "bot:mp", f"n{k}-ready")
+    return s.e.outcome()
+
+
 def accept(tape: Tape) -> tuple[bool, dict[str, Any]]:
     """Play the grid on one tape; returns (accepted, per-policy label/score and failed checks)."""
     results = {name: play(tape, plan) for name, plan in POLICIES.items()}
@@ -82,7 +130,22 @@ def accept(tape: Tape) -> tuple[bool, dict[str, Any]]:
         failures.append("flatten_not_refused")
     if results["passive"]["label"] == "WIN":
         failures.append("passive_wins")
-    failures += [f"{name}_does_not_win" for name in RECALL_LINES if results[name]["label"] != "WIN"]
-    report = {"policies": {n: {"label": r["label"], "score": r["score"]} for n, r in results.items()},
-              "failures": failures}
-    return not failures, report
+    # Versions before HARD_VERSION keep the old gate (naive play wins nearly all of them). In a hard
+    # world the minimal recall lines lose like naive play does, so the solvable line is the deliberate
+    # de-risk; and naive play must lose most of its seeded runs.
+    hard = (tape.raw.get("generator") or {}).get("version") in NAIVE_GATED
+    lines = HARD_LINES if hard else RECALL_LINES
+    failures += [f"{name}_does_not_win" for name in lines if results[name]["label"] != "WIN"]
+    policies = {n: {"label": r["label"], "score": r["score"]} for n, r in results.items()}
+    if hard and not failures:  # a world the designed line already fails needs no costlier naive check
+        wins = 0
+        for k in range(NAIVE_SEEDS):
+            r = play_naive(tape, k)
+            policies[f"naive_{k}"] = {"label": r["label"], "score": r["score"]}
+            wins += r["label"] == "WIN"
+            if wins > NAIVE_SEEDS // 2:
+                failures.append("naive_play_wins")
+                break
+            if wins + NAIVE_SEEDS - 1 - k <= NAIVE_SEEDS // 2:
+                break  # a majority of losses is already certain
+    return not failures, {"policies": policies, "failures": failures}
