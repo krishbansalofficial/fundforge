@@ -41,7 +41,7 @@ flowchart TB
 | `tape.py` | Loads an authored scenario and **materializes every default** into explicit `MarketEvent` records. Each business day has the phases `OPEN_ADMIN, PUBLIC_MARK, EXEC_A, EXEC_B, CLOSE`. It applies the variant's overrides. A missing or malformed record raises `TapeError`. The materialized tape is hashed (`tape.digest`). |
 | `compliance.py` | `Ruleset` is versioned Decimal data with a gross band, net band, issuer cap, exemptions and a restricted list. `evaluate()` refuses an order only when the resulting book breaks a limit *and* the order makes it worse, so de-risking is always legal. `Ruleset.digest` is bound into every package digest. |
 | `market.py` | The endogenous market (see below). |
-| `engine.py` | The dated Case1 session engine (see below). `RULES_VERSION = "case1-rules-2026.10.28"`. |
+| `engine.py` | The dated Case1 session engine (see below). `RULES_VERSION = "case1-rules-2026.10.29"`. |
 | `governance.py` | `Session`: two-partner authority, packages, ready, the real-time clock and chat (see below). |
 | `bot.py` | `bot:v1`, the solo partner policy (see below). |
 | `store.py` | The PostgreSQL authority: rooms, seats, command log, journal, cache, clock scheduling and `verify` (see below). |
