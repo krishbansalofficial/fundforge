@@ -39,6 +39,18 @@ def forecast(d: dict[str, Any]) -> Row:
 
 
 def ppo(d: dict[str, Any]) -> Row:
+    if "scale" in d:  # eval_ppo.py (Stage 1) format
+        s, t = d["scale"], d["test"]
+        c, iq = t["compare"]["ppo_vs_random"], t["policies"]["ppo"]["iqm"]
+        return (
+            f"MaskablePPO ({s['role']} seat) vs random, selected on val",
+            f"paired reward PPO - random {_g(c['diff']['point'])} [{_g(c['diff']['lo'])}, {_g(c['diff']['hi'])}]; "
+            f"P(PPO > random) {_g(c['prob_improvement'])}; PPO IQM {_g(iq['point'])} "
+            f"[{_g(iq['lo'])}, {_g(iq['hi'])}]; random never loses tier ({t['random_not_win']['share_episodes']:.0%})",
+            f"{len(s['training_seeds'])} training seeds x {s['steps_per_run']} steps; "
+            f"{s['test_worlds']} test worlds ({s['test_families']} families)",
+            d["reproduce"],
+        )
     p, r = d["params"], d["report"]
     paired = r["ppo_minus_random_paired"]
     return (

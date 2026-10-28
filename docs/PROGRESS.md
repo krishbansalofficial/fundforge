@@ -1337,3 +1337,33 @@ Merged from the lane-2 worktree (`3785744`, `179e294`). `ml/src/fundforge_ml/ano
 **Limitations:** the clean distribution comes from random-policy play; single model seed; the threshold and the FPR come from the same held-out set; corpus faults are small (at most $10k on $25m); no autoencoder.
 
 **One next task:** merge the remaining lanes (PPO evaluation, value of information, VIPER, M1 bench, results README) as they land.
+
+## ML lane 1: Stage 1 PPO evaluation pipeline, 27 October 2026
+
+Merged from the lane-1 worktree (`77445f6`, `8a736ea`). `ml/scripts/eval_ppo.py` covers the full Stage 1 evaluation:
+- a parallel gate that records every rejection;
+- a hyperparameter grid × N seeds;
+- selection on val IQM;
+- test results reported through `evals.summary` and `evals.compare` against random, rules and wait;
+- the share of worlds random play does not win;
+- `--levels` for difficulty.
+
+`ml/results/ppo_pm.json` now holds a **smoke-scale** run only (3 seeds × 2,048 steps, 20 test worlds); the earlier 200k-step result stays in git history. The README renderer reads both formats.
+
+**Key finding: harder settings don't make tier depend on skill.** Random play wins 100% of gate-accepted worlds at every difficulty level tried (base, scenario randomiser, harsh randomiser). There are two reasons:
+- The bot partner resolves the recall.
+- Almost any single reduce action avoids the day-16 margin call, and the balance gate (`balance.accept`) keeps only worlds where minimal recall lines win.
+
+A PPO-vs-random headline about tier needs a backend change: either a gate code such as `one_trade_wins`, or a generator `Spec` field that tightens the stressed margin. That is a lane A change needing finance review.
+
+**Engine defect found:** some scenario-randomiser worlds raise `InvariantError`:
+- `administrator_claim` at day 20 CLOSE on `ppo-0` and `ppo-43`;
+- `credit_limit` at day 12 OPEN_ADMIN on `ppo-7` with the harsher spec.
+
+These are recorded as rejections and are not yet diagnosed.
+
+**Checks:** ruff clean; mypy clean (11 files); `uv run --group train --group anomaly pytest -q` gives 69 passed.
+
+**Full-scale command (not yet run):** `cd ml && uv run --group train python scripts/eval_ppo.py --seeds 5 --steps 200000 --families 3000` (about 1.5–2 h on 32 CPUs).
+
+**One next task:** diagnose the generated-world `InvariantError`s, then the gate or Spec change, then the full-scale run.
