@@ -1,85 +1,1041 @@
 {
-  "params": {
-    "role": "pm",
-    "steps": 200000,
-    "families_drawn": 200,
-    "seed": 0,
-    "train_families": 73,
-    "test_families": 7,
-    "contract": "ml-contracts-2026.10.1",
-    "encoder": "obs-v1",
-    "actions": "actions-v1",
-    "reward": "reward-v1",
-    "net": "128x128",
-    "n_steps": 256,
-    "batch_size": 256,
-    "gamma": 0.99,
+ "stage": "ML_SHOWCASE stage 1: multi-seed, val-selected, evals-reported",
+ "commit": "77445f6e375b7b82a5e47788175b79c9114ad05f",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train python scripts/eval_ppo.py --seeds 3 --steps 2048 --families 300 --grid lr3e-4_ent0.01,lr1e-4_ent0.01,lr3e-4_ent0 --random-runs 5 --procs 24",
+ "scale": {
+  "role": "pm",
+  "training_seeds": [
+   0,
+   1,
+   2
+  ],
+  "steps_per_run": 2048,
+  "families_drawn": 300,
+  "random_runs": 5,
+  "envs_per_run": 4,
+  "split_families": {
+   "train": 115,
+   "val": 12,
+   "test": 10
+  },
+  "split_worlds": {
+   "train": 230,
+   "val": 24,
+   "test": 20
+  },
+  "test_families": 10,
+  "test_worlds": 20
+ },
+ "versions": {
+  "contract": "ml-contracts-2026.10.1",
+  "encoder": "obs-v1",
+  "actions": "actions-v1",
+  "reward": "reward-v1",
+  "python": "3.13.12",
+  "torch": "2.14.1+cpu",
+  "sb3": "2.9.0",
+  "sb3_contrib": "2.9.0",
+  "numpy": "2.5.4"
+ },
+ "levels": {
+  "base": {
+   "gen_version": "gen-2026.10.1",
+   "spec": {
+    "factor_bp": 150,
+    "stress_multiplier": 3,
+    "idio_bp": 100,
+    "switch_bp": 1500,
+    "beta": {
+     "BOND": "0"
+    },
+    "macro_level": 500,
+    "macro_regime": 25,
+    "macro_first_noise": 40,
+    "macro_revised_noise": 5,
+    "macro_revise_bp": 3000,
+    "macro_lag": 1,
+    "macro_revision_lag": 3,
+    "crisis_days": 1,
+    "crisis_points": 2,
+    "margin_points": 5,
+    "rival_pct": 20,
+    "redemption_pct": 20,
+    "book_pct": 5
+   }
+  },
+  "scenario": {
+   "gen_version": "gen-2026.10.2",
+   "spec": {
+    "factor_bp": 150,
+    "stress_multiplier": 3,
+    "idio_bp": 100,
+    "switch_bp": 1500,
+    "beta": {
+     "BOND": "0"
+    },
+    "macro_level": 500,
+    "macro_regime": 25,
+    "macro_first_noise": 40,
+    "macro_revised_noise": 5,
+    "macro_revise_bp": 3000,
+    "macro_lag": 1,
+    "macro_revision_lag": 3,
+    "crisis_days": 1,
+    "crisis_points": 2,
+    "margin_points": 5,
+    "rival_pct": 20,
+    "redemption_pct": 20,
+    "book_pct": 5
+   }
+  },
+  "harsh": {
+   "gen_version": "gen-2026.10.2",
+   "spec": {
+    "factor_bp": 400,
+    "stress_multiplier": 5,
+    "idio_bp": 250,
+    "switch_bp": 1500,
+    "beta": {
+     "BOND": "0"
+    },
+    "macro_level": 500,
+    "macro_regime": 25,
+    "macro_first_noise": 40,
+    "macro_revised_noise": 5,
+    "macro_revise_bp": 3000,
+    "macro_lag": 1,
+    "macro_revision_lag": 3,
+    "crisis_days": 1,
+    "crisis_points": 10,
+    "margin_points": 25,
+    "rival_pct": 20,
+    "redemption_pct": 20,
+    "book_pct": 5
+   }
+  }
+ },
+ "fixed_params": {
+  "n_steps": 256,
+  "batch_size": 256,
+  "gamma": 0.99,
+  "net_arch": [
+   128,
+   128
+  ]
+ },
+ "grid": {
+  "lr3e-4_ent0.01": {
+   "params": {
     "learning_rate": 0.0003,
     "ent_coef": 0.01
-  },
-  "rejected": {
-    "cover_recall_only_does_not_win": 112
-  },
-  "train_seconds": 1422.1,
-  "model_sha256": "258ed586ee652a9da14fe2856153b428616651963263e74bb0267fa76bdce828",
-  "test_worlds": [
-    "ppo-22/base",
-    "ppo-22/rally",
-    "ppo-96/base",
-    "ppo-96/rally",
-    "ppo-116/base",
-    "ppo-116/rally",
-    "ppo-140/base",
-    "ppo-140/rally",
-    "ppo-142/base",
-    "ppo-142/rally",
-    "ppo-146/base",
-    "ppo-146/rally",
-    "ppo-180/base",
-    "ppo-180/rally"
-  ],
-  "report": {
-    "ppo": {
-      "n": 14,
-      "mean_reward": 8.011,
-      "ci95": 1.086,
-      "mean_score_bps": 301.1,
-      "labels": {
-        "WIN": 14
-      }
+   },
+   "val_iqm": 6.410277777777777,
+   "val": {
+    "runs": 3,
+    "worlds": 24,
+    "mean": {
+     "point": 6.482277777777778,
+     "lo": 6.147968402777778,
+     "hi": 6.931761458333334
     },
-    "rules": {
-      "n": 14,
-      "mean_reward": -2.453,
-      "ci95": 0.396,
-      "mean_score_bps": -245.3,
-      "labels": {
-        "SURVIVAL": 14
-      }
+    "iqm": {
+     "point": 6.410277777777777,
+     "lo": 6.1224625,
+     "hi": 6.909897916666666
+    },
+    "per_run_mean_reward": [
+     6.2002,
+     6.3258,
+     6.9208
+    ],
+    "mean_score_bps": 148.2,
+    "labels": {
+     "WIN": 72
+    }
+   },
+   "runs": [
+    {
+     "seed": 0,
+     "seconds": 40.0,
+     "sha256": "d037ee0a0fb67a252ad296055141712123b4a021faa1faa5398fa17eaf21060b"
+    },
+    {
+     "seed": 1,
+     "seconds": 40.6,
+     "sha256": "e1ddd7f84eab106b3d31f008672396ff19205b1ac1d0a56e6e5e38a651c5eb43"
+    },
+    {
+     "seed": 2,
+     "seconds": 40.2,
+     "sha256": "42ff9997e189d3740fa9fd70af5c9131f4b18e2d934f280a9d964ea1f3040c82"
+    }
+   ]
+  },
+  "lr1e-4_ent0.01": {
+   "params": {
+    "learning_rate": 0.0001,
+    "ent_coef": 0.01
+   },
+   "val_iqm": 6.1485,
+   "val": {
+    "runs": 3,
+    "worlds": 24,
+    "mean": {
+     "point": 6.1774861111111115,
+     "lo": 5.887369791666667,
+     "hi": 6.455256944444445
+    },
+    "iqm": {
+     "point": 6.1485,
+     "lo": 5.8742312499999985,
+     "hi": 6.484500694444444
+    },
+    "per_run_mean_reward": [
+     6.2986,
+     6.3845,
+     5.8493
+    ],
+    "mean_score_bps": 117.7,
+    "labels": {
+     "WIN": 72
+    }
+   },
+   "runs": [
+    {
+     "seed": 0,
+     "seconds": 40.6,
+     "sha256": "5a08b8ad2c931bec6e993387e4642c085abcd457062da25d97a79c0acb526d06"
+    },
+    {
+     "seed": 1,
+     "seconds": 39.8,
+     "sha256": "4856f20ca0c70d6024d588a721525a65e07bf17223621ab131e247c83fad0f14"
+    },
+    {
+     "seed": 2,
+     "seconds": 40.5,
+     "sha256": "3373b1c27cc4bf43161f73c887ff61261864f0e248aa664f1c2a66c72e9b7e61"
+    }
+   ]
+  },
+  "lr3e-4_ent0": {
+   "params": {
+    "learning_rate": 0.0003,
+    "ent_coef": 0.0
+   },
+   "val_iqm": 6.407666666666667,
+   "val": {
+    "runs": 3,
+    "worlds": 24,
+    "mean": {
+     "point": 6.488791666666667,
+     "lo": 6.149776041666667,
+     "hi": 6.932223958333333
+    },
+    "iqm": {
+     "point": 6.407666666666667,
+     "lo": 6.121274305555556,
+     "hi": 6.910416666666666
+    },
+    "per_run_mean_reward": [
+     6.2002,
+     6.3454,
+     6.9208
+    ],
+    "mean_score_bps": 148.9,
+    "labels": {
+     "WIN": 72
+    }
+   },
+   "runs": [
+    {
+     "seed": 0,
+     "seconds": 39.9,
+     "sha256": "3b69a5213cb442548b8adca5ea407cafbd046e298904a3a78bec433b446efc3c"
+    },
+    {
+     "seed": 1,
+     "seconds": 40.1,
+     "sha256": "4f490acb210302619ee9c0a53662b97f1cdc6f852609c35734ce121a739d5cbb"
+    },
+    {
+     "seed": 2,
+     "seconds": 40.6,
+     "sha256": "8fa4cb484a69d9bb533efaf38485aed02fafe744232a50574fdceab6b1fe895d"
+    }
+   ]
+  }
+ },
+ "selection": {
+  "rule": "highest IQM of terminal reward on val worlds over all seeds",
+  "chosen": "lr3e-4_ent0.01",
+  "val_worlds": 24
+ },
+ "test": {
+  "policies": {
+   "ppo": {
+    "runs": 3,
+    "worlds": 20,
+    "mean": {
+     "point": 6.2476,
+     "lo": 5.809997499999999,
+     "hi": 6.667906666666665
+    },
+    "iqm": {
+     "point": 6.195166666666668,
+     "lo": 5.847028333333332,
+     "hi": 6.767969999999998
+    },
+    "per_run_mean_reward": [
+     5.8164,
+     6.5086,
+     6.4178
+    ],
+    "mean_score_bps": 124.8,
+    "labels": {
+     "WIN": 60
+    }
+   },
+   "random": {
+    "runs": 5,
+    "worlds": 20,
+    "mean": {
+     "point": 5.644310000000001,
+     "lo": 5.1647704999999995,
+     "hi": 6.1497535
+    },
+    "iqm": {
+     "point": 5.915420000000001,
+     "lo": 5.372555,
+     "hi": 6.382302
+    },
+    "per_run_mean_reward": [
+     5.6164,
+     5.5116,
+     5.5936,
+     5.5521,
+     5.9478
+    ],
+    "mean_score_bps": 64.4,
+    "labels": {
+     "WIN": 100
+    }
+   },
+   "rules": {
+    "runs": 1,
+    "worlds": 20,
+    "mean": {
+     "point": -2.4599,
+     "lo": -2.7983025,
+     "hi": -2.1138475
+    },
+    "iqm": {
+     "point": -2.4803,
+     "lo": -3.1242425000000003,
+     "hi": -1.8195700000000004
+    },
+    "per_run_mean_reward": [
+     -2.4599
+    ],
+    "mean_score_bps": -246.0,
+    "labels": {
+     "SURVIVAL": 20
+    }
+   },
+   "wait": {
+    "runs": 1,
+    "worlds": 20,
+    "mean": {
+     "point": -2.5100499999999997,
+     "lo": -2.8215712499999994,
+     "hi": -2.1888525000000008
+    },
+    "iqm": {
+     "point": -2.5343000000000004,
+     "lo": -3.1215,
+     "hi": -1.9286450000000002
+    },
+    "per_run_mean_reward": [
+     -2.51
+    ],
+    "mean_score_bps": -251.0,
+    "labels": {
+     "SURVIVAL": 20
+    }
+   }
+  },
+  "compare": {
+   "ppo_vs_random": {
+    "n_worlds": 20,
+    "diff": {
+     "point": 0.6032899999999998,
+     "lo": 0.25920183333333313,
+     "hi": 1.0044158333333328
+    },
+    "x_better_worlds": 15,
+    "ties": 0,
+    "prob_improvement": 0.6666666666666666
+   },
+   "ppo_vs_rules": {
+    "n_worlds": 20,
+    "diff": {
+     "point": 8.7075,
+     "lo": 8.527239583333333,
+     "hi": 8.880050833333332
+    },
+    "x_better_worlds": 20,
+    "ties": 0,
+    "prob_improvement": 1.0
+   },
+   "ppo_vs_wait": {
+    "n_worlds": 20,
+    "diff": {
+     "point": 8.75765,
+     "lo": 8.600216249999999,
+     "hi": 8.91066875
+    },
+    "x_better_worlds": 20,
+    "ties": 0,
+    "prob_improvement": 1.0
+   }
+  },
+  "random_not_win": {
+   "n_worlds": 20,
+   "share_worlds_any_run": 0.0,
+   "share_worlds_all_runs": 0.0,
+   "share_episodes": 0.0
+  }
+ },
+ "difficulty": {
+  "base": {
+   "gate_acceptance_test": 0.3846,
+   "ppo_vs_random": {
+    "n_worlds": 20,
+    "diff": {
+     "point": 0.6032899999999998,
+     "lo": 0.25920183333333313,
+     "hi": 1.0044158333333328
+    },
+    "x_better_worlds": 15,
+    "ties": 0,
+    "prob_improvement": 0.6666666666666666
+   },
+   "random_not_win": {
+    "n_worlds": 20,
+    "share_worlds_any_run": 0.0,
+    "share_worlds_all_runs": 0.0,
+    "share_episodes": 0.0
+   },
+   "labels": {
+    "ppo": {
+     "WIN": 60
     },
     "random": {
-      "n": 70,
-      "mean_reward": 5.635,
-      "ci95": 0.25,
-      "mean_score_bps": 63.5,
-      "labels": {
-        "WIN": 70
-      }
-    },
-    "wait": {
-      "n": 14,
-      "mean_reward": -2.506,
-      "ci95": 0.372,
-      "mean_score_bps": -250.6,
-      "labels": {
-        "SURVIVAL": 14
-      }
-    },
-    "ppo_minus_random_paired": {
-      "n_worlds": 14,
-      "mean": 2.376,
-      "ci95": 1.013,
-      "ppo_better_worlds": 13
+     "WIN": 100
     }
+   },
+   "iqm": {
+    "ppo": {
+     "point": 6.195166666666668,
+     "lo": 5.847028333333332,
+     "hi": 6.767969999999998
+    },
+    "random": {
+     "point": 5.915420000000001,
+     "lo": 5.372555,
+     "hi": 6.382302
+    }
+   }
+  },
+  "scenario": {
+   "gate_acceptance_test": 0.3077,
+   "n_worlds": 16,
+   "ppo_vs_random": {
+    "n_worlds": 16,
+    "diff": {
+     "point": -0.5329541666666666,
+     "lo": -0.9448242708333329,
+     "hi": -0.09681833333333385
+    },
+    "x_better_worlds": 4,
+    "ties": 0,
+    "prob_improvement": 0.4083333333333333
+   },
+   "random_not_win": {
+    "n_worlds": 16,
+    "share_worlds_any_run": 0.0,
+    "share_worlds_all_runs": 0.0,
+    "share_episodes": 0.0
+   },
+   "labels": {
+    "ppo": {
+     "WIN": 48
+    },
+    "random": {
+     "WIN": 80
+    }
+   },
+   "iqm": {
+    "ppo": {
+     "point": 6.4605,
+     "lo": 6.125664583333333,
+     "hi": 6.977501041666667
+    },
+    "random": {
+     "point": 6.945375,
+     "lo": 6.084091875,
+     "hi": 7.98317875
+    }
+   }
+  },
+  "harsh": {
+   "gate_acceptance_test": 0.3077,
+   "n_worlds": 16,
+   "ppo_vs_random": {
+    "n_worlds": 16,
+    "diff": {
+     "point": -0.6130375000000001,
+     "lo": -2.4286043750000004,
+     "hi": 1.0230691666666656
+    },
+    "x_better_worlds": 8,
+    "ties": 0,
+    "prob_improvement": 0.5
+   },
+   "random_not_win": {
+    "n_worlds": 16,
+    "share_worlds_any_run": 0.0,
+    "share_worlds_all_runs": 0.0,
+    "share_episodes": 0.0
+   },
+   "labels": {
+    "ppo": {
+     "WIN": 48
+    },
+    "random": {
+     "WIN": 80
+    }
+   },
+   "iqm": {
+    "ppo": {
+     "point": 6.0681666666666665,
+     "lo": 4.827116666666667,
+     "hi": 7.518638541666668
+    },
+    "random": {
+     "point": 6.433375000000001,
+     "lo": 3.7818631249999997,
+     "hi": 8.545333124999996
+    }
+   }
   }
+ },
+ "gate": {
+  "base": {
+   "families_gated": 300,
+   "accepted": 137,
+   "acceptance": 0.4567,
+   "test_families_gated": 26,
+   "test_accepted": 10,
+   "rejected_counts": {
+    "base:cover_recall_only_does_not_win": 157,
+    "rally:cover_recall_only_does_not_win": 16
+   },
+   "rejected_seeds": {
+    "base:cover_recall_only_does_not_win": [
+     "ppo-1",
+     "ppo-2",
+     "ppo-3",
+     "ppo-4",
+     "ppo-5",
+     "ppo-7",
+     "ppo-8",
+     "ppo-12",
+     "ppo-13",
+     "ppo-14",
+     "ppo-15",
+     "ppo-18",
+     "ppo-19",
+     "ppo-23",
+     "ppo-24",
+     "ppo-26",
+     "ppo-33",
+     "ppo-34",
+     "ppo-36",
+     "ppo-37",
+     "ppo-38",
+     "ppo-39",
+     "ppo-41",
+     "ppo-43",
+     "ppo-45",
+     "ppo-46",
+     "ppo-48",
+     "ppo-49",
+     "ppo-51",
+     "ppo-52",
+     "ppo-53",
+     "ppo-55",
+     "ppo-57",
+     "ppo-58",
+     "ppo-59",
+     "ppo-60",
+     "ppo-61",
+     "ppo-62",
+     "ppo-63",
+     "ppo-64",
+     "ppo-65",
+     "ppo-66",
+     "ppo-68",
+     "ppo-70",
+     "ppo-71",
+     "ppo-72",
+     "ppo-74",
+     "ppo-76",
+     "ppo-83",
+     "ppo-84",
+     "ppo-85",
+     "ppo-87",
+     "ppo-88",
+     "ppo-91",
+     "ppo-93",
+     "ppo-94",
+     "ppo-97",
+     "ppo-99",
+     "ppo-101",
+     "ppo-103",
+     "ppo-104",
+     "ppo-105",
+     "ppo-108",
+     "ppo-109",
+     "ppo-111",
+     "ppo-112",
+     "ppo-113",
+     "ppo-114",
+     "ppo-115",
+     "ppo-121",
+     "ppo-126",
+     "ppo-128",
+     "ppo-129",
+     "ppo-131",
+     "ppo-135",
+     "ppo-136",
+     "ppo-137",
+     "ppo-139",
+     "ppo-141",
+     "ppo-143",
+     "ppo-144",
+     "ppo-145",
+     "ppo-147",
+     "ppo-149",
+     "ppo-150",
+     "ppo-151",
+     "ppo-153",
+     "ppo-158",
+     "ppo-159",
+     "ppo-160",
+     "ppo-165",
+     "ppo-166",
+     "ppo-170",
+     "ppo-172",
+     "ppo-173",
+     "ppo-174",
+     "ppo-176",
+     "ppo-178",
+     "ppo-179",
+     "ppo-181",
+     "ppo-188",
+     "ppo-189",
+     "ppo-192",
+     "ppo-194",
+     "ppo-195",
+     "ppo-197",
+     "ppo-199",
+     "ppo-200",
+     "ppo-202",
+     "ppo-204",
+     "ppo-205",
+     "ppo-208",
+     "ppo-209",
+     "ppo-214",
+     "ppo-215",
+     "ppo-216",
+     "ppo-219",
+     "ppo-220",
+     "ppo-222",
+     "ppo-223",
+     "ppo-226",
+     "ppo-227",
+     "ppo-230",
+     "ppo-231",
+     "ppo-232",
+     "ppo-233",
+     "ppo-237",
+     "ppo-238",
+     "ppo-241",
+     "ppo-247",
+     "ppo-249",
+     "ppo-250",
+     "ppo-253",
+     "ppo-255",
+     "ppo-256",
+     "ppo-259",
+     "ppo-263",
+     "ppo-264",
+     "ppo-266",
+     "ppo-267",
+     "ppo-271",
+     "ppo-272",
+     "ppo-273",
+     "ppo-277",
+     "ppo-278",
+     "ppo-280",
+     "ppo-283",
+     "ppo-284",
+     "ppo-287",
+     "ppo-288",
+     "ppo-289",
+     "ppo-291",
+     "ppo-292",
+     "ppo-293",
+     "ppo-295",
+     "ppo-297",
+     "ppo-299"
+    ],
+    "rally:cover_recall_only_does_not_win": [
+     "ppo-13",
+     "ppo-45",
+     "ppo-53",
+     "ppo-78",
+     "ppo-91",
+     "ppo-102",
+     "ppo-111",
+     "ppo-113",
+     "ppo-114",
+     "ppo-122",
+     "ppo-134",
+     "ppo-147",
+     "ppo-154",
+     "ppo-245",
+     "ppo-259",
+     "ppo-263"
+    ]
+   },
+   "accepted_test_seeds": [
+    "ppo-22",
+    "ppo-96",
+    "ppo-116",
+    "ppo-140",
+    "ppo-142",
+    "ppo-146",
+    "ppo-180",
+    "ppo-235",
+    "ppo-242",
+    "ppo-298"
+   ],
+   "candidates_by_split": {
+    "train": 239,
+    "val": 35,
+    "test": 26
+   },
+   "accepted_by_split": {
+    "train": 115,
+    "val": 12,
+    "test": 10
+   }
+  },
+  "scenario": {
+   "families_gated": 26,
+   "accepted": 8,
+   "acceptance": 0.3077,
+   "test_families_gated": 26,
+   "test_accepted": 8,
+   "rejected_counts": {
+    "base:S1_balanced_does_not_win": 16,
+    "base:cover_recall_only_does_not_win": 16,
+    "base:derisk_floor_does_not_win": 13,
+    "rally:S1_balanced_does_not_win": 16,
+    "rally:cover_recall_only_does_not_win": 16,
+    "rally:derisk_floor_does_not_win": 13
+   },
+   "rejected_seeds": {
+    "base:S1_balanced_does_not_win": [
+     "ppo-12",
+     "ppo-65",
+     "ppo-96",
+     "ppo-101",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ],
+    "base:cover_recall_only_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-142",
+     "ppo-145",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-235",
+     "ppo-256"
+    ],
+    "base:derisk_floor_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ],
+    "rally:S1_balanced_does_not_win": [
+     "ppo-12",
+     "ppo-65",
+     "ppo-96",
+     "ppo-101",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ],
+    "rally:cover_recall_only_does_not_win": [
+     "ppo-12",
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-142",
+     "ppo-145",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ],
+    "rally:derisk_floor_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ]
+   },
+   "accepted_test_seeds": [
+    "ppo-22",
+    "ppo-53",
+    "ppo-149",
+    "ppo-220",
+    "ppo-242",
+    "ppo-253",
+    "ppo-277",
+    "ppo-298"
+   ]
+  },
+  "harsh": {
+   "families_gated": 26,
+   "accepted": 8,
+   "acceptance": 0.3077,
+   "test_families_gated": 26,
+   "test_accepted": 8,
+   "rejected_counts": {
+    "base:S1_balanced_does_not_win": 17,
+    "base:cover_recall_only_does_not_win": 17,
+    "base:derisk_floor_does_not_win": 13,
+    "rally:S1_balanced_does_not_win": 17,
+    "rally:cover_recall_only_does_not_win": 18,
+    "rally:derisk_floor_does_not_win": 13
+   },
+   "rejected_seeds": {
+    "base:S1_balanced_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-149",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-242",
+     "ppo-256",
+     "ppo-298"
+    ],
+    "base:cover_recall_only_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-149",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-242",
+     "ppo-256",
+     "ppo-298"
+    ],
+    "base:derisk_floor_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ],
+    "rally:S1_balanced_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-149",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-242",
+     "ppo-256",
+     "ppo-298"
+    ],
+    "rally:cover_recall_only_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-145",
+     "ppo-146",
+     "ppo-149",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-235",
+     "ppo-242",
+     "ppo-256",
+     "ppo-298"
+    ],
+    "rally:derisk_floor_does_not_win": [
+     "ppo-65",
+     "ppo-96",
+     "ppo-116",
+     "ppo-121",
+     "ppo-140",
+     "ppo-146",
+     "ppo-174",
+     "ppo-176",
+     "ppo-180",
+     "ppo-200",
+     "ppo-202",
+     "ppo-215",
+     "ppo-256"
+    ]
+   },
+   "accepted_test_seeds": [
+    "ppo-12",
+    "ppo-22",
+    "ppo-53",
+    "ppo-101",
+    "ppo-142",
+    "ppo-220",
+    "ppo-253",
+    "ppo-277"
+   ]
+  }
+ },
+ "test_world_order": [
+  "ppo-22/base",
+  "ppo-22/rally",
+  "ppo-96/base",
+  "ppo-96/rally",
+  "ppo-116/base",
+  "ppo-116/rally",
+  "ppo-140/base",
+  "ppo-140/rally",
+  "ppo-142/base",
+  "ppo-142/rally",
+  "ppo-146/base",
+  "ppo-146/rally",
+  "ppo-180/base",
+  "ppo-180/rally",
+  "ppo-235/base",
+  "ppo-235/rally",
+  "ppo-242/base",
+  "ppo-242/rally",
+  "ppo-298/base",
+  "ppo-298/rally"
+ ],
+ "wall_seconds": {
+  "gate": 60.7,
+  "train": 43.9,
+  "val": 6.3,
+  "test": 3.3,
+  "difficulty": 6.0,
+  "total": 123.2
+ }
 }
