@@ -1307,3 +1307,21 @@ Audited `main` (`45c0e7e`) against ML_PLAN's lane schedule and appended a revisi
 
 **One next task:** owner decision on the recommended platform cuts; then step 1 (undo log snapshot and vectorized environments).
 
+
+## ML evaluation statistics, 27 October 2026
+
+Started ML_PLAN revision step 2 (PPO evaluation hardening) with the statistics it needs. `ml/src/fundforge_ml/evals.py` adds IQM, a bootstrap interval that resamples runs and worlds, a world-paired comparison, and P(X > Y) after Agarwal et al. 2021. Tests are in `ml/tests/test_evals.py`.
+
+**Checks:** ruff clean; mypy strict clean (10 files); `test_evals.py` 6 passed (`prob_improvement` was filled in so parallel agents are not blocked; the owner may rewrite it as an exercise).
+
+**Not done:** `scripts/train_ppo.py` does not use `evals` yet. The PPO result is still 1 seed on 14 test worlds, and random play still wins every world.
+
+**One next task:** switch `train_ppo.py` to `evals.summary` and `evals.compare` with `--seeds 5`, selecting on the validation split.
+
+## ML showcase research, 27 October 2026
+
+Researched what to add to make `ml/` a flagship portfolio project; wrote [ML_SHOWCASE](ML_SHOWCASE.md) (proposal only). It has three tiers: (1) fix the PPO headline with multi-seed evaluation, a difficulty sweep, ablations and the generalisation gap; (2) differentiators: value of information (an exact versus a learned belief fed to the policy), a local LLM agent in the disclosed seat, anomaly detection on the B5 corpus, an exploit hunter, VIPER distillation; (3) stretch items. It also proposes ML benchmarks M1–M6. No code or results changed by this entry.
+
+**One next task:** owner writes `evals.prob_improvement`, then Tier 1 item 1 (PPO evaluation hardening).
+
+**Revision, same day:** at the owner's request, ML_SHOWCASE was rewritten for a junior developer who must build and defend the work. It now has an ownership audit (what to lead with, learn or drop) and four stages, each splitting what the owner hand-writes from where Claude assists: honest multi-seed evaluation; PPO from scratch compared against SB3; value of information; and a showcase with an AI-use statement. It ends with an interview drill. Platform and multi-agent items are moved out of scope.
