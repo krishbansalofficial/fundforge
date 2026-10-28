@@ -123,7 +123,7 @@ def play(world: worlds.World, policy: str, role: str = "pm", policy_seed: int = 
         {
             "episode_id": episode_id,
             "seed_family": fam,
-            "split": split_of(fam),
+            "split": split_of(family),  # the same split training uses; only the hash reaches the file
             "gen_version": GEN_VERSION,
             "seed_commitment": commitment(world.gen_seed or "authored"),
             "scenario_id": world.tape.raw["scenario_id"],

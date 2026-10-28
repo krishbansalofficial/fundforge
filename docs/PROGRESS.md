@@ -1467,3 +1467,17 @@ Merged `98d521a`. With the agent in the mp seat, `FundForgeEnv.step` raised "tim
 **Checks:** ml 76 passed; backend 638 passed, 4 skipped with Postgres.
 
 **Note:** the training queue running now imports `bot.py` from the working tree, so jobs started after this merge use the fixed bot. That changes results only in worlds where a bot ticket is rejected (harsh level).
+
+## Model and data cards; dataset split fix, 28 October 2026
+
+Merged `ba15868`: `ml/MODEL_CARDS.md` (PPO, forecasters, anomaly detectors, VIPER, belief wrapper) and `ml/DATA_CARD.md`. Every evaluation number links to a result JSON. `ml/tests/test_cards.py` checks that each number appears in its linked JSON; it was verified to fail on a planted 6.20 → 6.21 change. Missing evidence is stated as "not yet measured" (value of information, offline dataset size). PPO and VIPER are marked smoke-scale.
+
+**Split leakage bug, found by the cards lane and fixed:** `dataset.py` split on `split_of(sha256(family))`, while training and forecasting split on `split_of(family)`, so a family could be train in one and test in the other. It now uses `split_of(family)` (the file still carries only the hash), and the test now checks against `split_of(World.seed_family)`.
+
+**Still open from the cards review:**
+- `labels.known_at_day` is always null, and the `factor_day_<n>` labels are never written.
+- Several result files lack a commit or rules-version field.
+
+**Checks:** ml 123 passed (train, forecast and anomaly groups); ruff and mypy clean.
+
+**Training queue:** stopped by Claude Code on low memory during the PPO grid (about 60 processes plus two agents' scans); no result written. Restart with `--procs 8` after the difficulty gate lands.

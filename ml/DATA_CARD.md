@@ -56,7 +56,7 @@ The forecast data is **not** gated (`forecast.json` says so), because the Bayes 
 
 Measured family counts per split are in the result files: [forecast.json](results/forecast.json) (train 15950, val 1968, test 2082) and the PPO table above.
 
-**Known inconsistency.** `dataset.py` calls `split_of` on the SHA-256 hash of the family string (`split_of(family_hash(family))`), while `forecast.py` and the training scripts call it on the family string itself. Both are family-level and deterministic, but one family can land in different splits in the offline dataset and in training. Not yet fixed.
+**Fixed 28 October 2026.** `dataset.py` used to split on the SHA-256 hash of the family, while the training scripts split on the family string, so one family could land in different splits. It now calls `split_of(family)` like the training scripts and writes only the hash to the file. `test_split_is_the_family_split_and_is_partitioned` checks this against `split_of(World.seed_family)`.
 
 ## The offline dataset (`src/fundforge_ml/dataset.py`)
 
