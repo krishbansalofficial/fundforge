@@ -36,7 +36,7 @@ import sb3_contrib
 import stable_baselines3
 import torch
 from fundforge.balance import accept
-from fundforge.generator import GEN_VERSION, SCENARIO_VERSION, Spec, generate
+from fundforge.generator import GEN_VERSION, HARD_VERSION, SCENARIO_VERSION, Spec, generate
 from fundforge.tape import compile_tape
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.vec_env import DummyVecEnv
@@ -51,6 +51,7 @@ ML = Path(__file__).parents[1]
 LEVELS: dict[str, tuple[str, Spec]] = {
     "base": (GEN_VERSION, Spec()),  # exactly what worlds.world builds: the training distribution
     "scenario": (SCENARIO_VERSION, Spec()),  # randomised crisis day/severity, stressed margin, LP, rivals, book
+    "hard": (HARD_VERSION, Spec()),  # +20pt stressed margin; the gate also rejects worlds naive play wins
     "harsh": (
         SCENARIO_VERSION,
         Spec(crisis_points=10, margin_points=25, factor_bp=400, idio_bp=250, stress_multiplier=5),

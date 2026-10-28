@@ -1481,3 +1481,26 @@ Merged `ba15868`: `ml/MODEL_CARDS.md` (PPO, forecasters, anomaly detectors, VIPE
 **Checks:** ml 123 passed (train, forecast and anomaly groups); ruff and mypy clean.
 
 **Training queue:** stopped by Claude Code on low memory during the PPO grid (about 60 processes plus two agents' scans); no result written. Restart with `--procs 8` after the difficulty gate lands.
+
+## 2026-10-28: difficulty gate (HARD_VERSION) merged
+
+- **What changed**:
+  - `generator.HARD_VERSION = "gen-2026.10.3"`: the scenario randomiser, with stressed margin coefficients raised by 20 points (`MARGIN_BUFFER`, `Spec.margin_buffer_points`).
+  - `balance.accept` on HARD_VERSION tapes requires `derisk_floor` to WIN. It then rejects the world with `naive_play_wins` when seeded naive play (`balance.play_naive`, stream `naive-v1`) wins a majority of 5 runs.
+  - GEN_VERSION, SCENARIO_VERSION, authored goldens and `GATE_RULE` are unchanged.
+- **ML**: `ml/scripts/eval_ppo.py` gains a `hard` level.
+- **Measured on ppo-0..299** (scratchpad scripts, not committed):
+
+  | Level | Accepted | Random episodes not WIN |
+  |---|---|---|
+  | hard | 81/300 | 46.5% |
+  | base | 137/300 | 0% |
+
+  Random play fails at least once in 100% of accepted hard worlds.
+- **Checks**: backend 644 passed, 4 skipped (with Postgres); `ml` 69 passed, 5 skipped; ruff and mypy clean.
+- **Limitations**:
+  - Rooms still build GEN_VERSION. Switching them would need about 22 generation attempts and a finance review of initial margin above 100%.
+  - About 45% of scenario worlds are DISTRESS for every policy, which is an existing randomiser issue.
+  - bot:v1 in the pm seat never wins on hard.
+  - `docs/RANDOMISER.md` and `docs/BENCHMARKS.md` don't yet describe HARD_VERSION.
+- **Next**: when the training queue ends, run `eval_ppo.py --levels hard` (same seeds and steps) and compare it with the base result.
