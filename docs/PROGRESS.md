@@ -1453,3 +1453,17 @@ Merged `1c73e8c`, the finance review's follow-up to the redemption fix. `series.
 **Sibling scan after the fix:** 0 `InvariantError`s in either seat or in the gate over 400 worlds. The mp-seat "time did not advance" `RuntimeError` (40 episodes in 20 worlds) is unchanged and lives in the ml env and bot pair; it is not yet diagnosed.
 
 **One next task:** rerun `eval_ppo.py` at full scale on `.10.29`. The queue running now started on `.10.15`.
+
+## Bot retry fix: mp-seat clock stall, 28 October 2026
+
+Merged `98d521a`. With the agent in the mp seat, `FundForgeEnv.step` raised "time did not advance after both seats were ready" (40 episodes in 20 harsh-level worlds).
+
+**Cause:** bot:v1 (pm) retried an engine-rejected margin-cure ticket on every pass; the rejection was the turnover limit. Each rejection posted a note, and any non-ready command clears readiness, so both seats were never ready at once. A human partner playing with the bot would hit the same stall.
+
+**Fix** (`backend/src/fundforge/bot.py`, 5 lines): the cure and cover tickets are tried at most once per existing ref (`cure:{day}:{phase}`, `cover:{day}`). No `RULES_VERSION`, `ACTION_VERSION` or `ENCODER_VERSION` change; goldens unchanged. `BOT_VERSION` stays "bot:v1" because `store.py` uses it as the partner user id; the bot's behaviour changes only after a rejected ticket.
+
+**Regression test:** `ml/tests/test_env_bot_retry.py` (ppo-5 harsh/base). **Scan** (mp seat, 4,000 episodes): 40 → 0 exceptions.
+
+**Checks:** ml 76 passed; backend 638 passed, 4 skipped with Postgres.
+
+**Note:** the training queue running now imports `bot.py` from the working tree, so jobs started after this merge use the fixed bot. That changes results only in worlds where a bot ticket is rejected (harsh level).
