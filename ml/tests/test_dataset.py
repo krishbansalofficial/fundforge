@@ -32,8 +32,11 @@ def test_split_is_the_family_split_and_is_partitioned(built):
     tables, out, _ = built
     eps = dataset.read(out, "episodes")
     assert eps.height == len(tables.episodes) > 0
+    # the split must equal the one training scripts use, split_of(World.seed_family), not a split of its hash
+    fams = [worlds.world(s, v, gate=False).seed_family for s in [None, *SEEDS] for v in worlds.variant_names()]
+    expected = {dataset.family_hash(f): split_of(f) for f in fams}
     for row in eps.iter_rows(named=True):
-        assert row["split"] == split_of(row["seed_family"])
+        assert row["split"] == expected[row["seed_family"]]
     assert {p.name for p in (out / "episodes").iterdir() if p.is_dir()} <= {"split=train", "split=val", "split=test"}
 
 
