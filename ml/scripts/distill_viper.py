@@ -15,6 +15,7 @@ import argparse
 import hashlib
 import json
 import platform
+import shlex
 import subprocess
 import sys
 import time
@@ -149,7 +150,7 @@ def main() -> None:
     result = {
         "commit": git("rev-parse", "HEAD"), "worktree_dirty": bool(git("status", "--porcelain")),
         "reproduce": "cd ml && uv run --group train --with scikit-learn python scripts/distill_viper.py "
-                     + " ".join(sys.argv[1:]),
+                     + " ".join(shlex.quote(a) for a in sys.argv[1:]),
         "versions": {"python": platform.python_version(), "numpy": np.__version__, "torch": torch.__version__,
                      "sklearn": sklearn.__version__, "sb3_contrib": __import__("sb3_contrib").__version__,
                      "contract": CONTRACT_VERSION, "encoder": ENCODER_VERSION, "actions": ACTION_VERSION,
