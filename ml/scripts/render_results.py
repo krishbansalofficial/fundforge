@@ -137,7 +137,11 @@ def row(path: Path) -> str:
         exp, head, scale, cmd = RENDERERS[path.name](json.loads(path.read_text(encoding="utf-8")))
     except (KeyError, TypeError, ValueError, IndexError):  # no renderer, bad JSON, or a changed schema
         return f"| not rendered: {path.name} | | | {link} | |"
-    return f"| {exp} | {head} | {scale} | {link} | `{cmd}` |"
+
+    def cell(x: str) -> str:  # result JSON is data: keep it inside its table cell
+        return " ".join(x.replace("|", r"\|").replace("`", "'").split())
+
+    return f"| {cell(exp)} | {cell(head)} | {cell(scale)} | {link} | `{cell(cmd)}` |"
 
 
 def render(results: Path) -> str:
