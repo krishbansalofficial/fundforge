@@ -60,8 +60,7 @@ def redeem(s: Series, units: Decimal) -> tuple[Series, Decimal, Decimal]:
     """
     if not 0 < units <= s.units:
         raise ValueError(f"{s.series_id}: invalid redemption of {units} units")
-    with localcontext(CTX):
-        frac = units / s.units
-        fee = cents(s.provision * frac)
-        payable = cents(s.net * frac)
+    with localcontext(CTX):  # multiply before dividing: one rounding, so an exact half-cent stays a tie
+        fee = cents(s.provision * units / s.units)
+        payable = cents(s.net * units / s.units)
     return replace(s, units=s.units - units, net=s.net - payable, provision=s.provision - fee), payable, fee
