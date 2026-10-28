@@ -104,8 +104,9 @@ class Administrator:
             if not ZERO < units <= s.units:
                 raise ValueError("invalid administrator redemption units")
             price = s.net / s.units
-            payable = (price * units).quantize(CENT)
-            fee = (s.provision / s.units * units).quantize(CENT)
+            # exact pro-rata (FUND_ACCOUNTING): multiply first, so only the cent quantize rounds a half-cent tie
+            payable = (s.net * units / s.units).quantize(CENT)
+            fee = (s.provision * units / s.units).quantize(CENT)
             return Claim(d, key, units, price, payable, fee,
                          replace(s, units=s.units - units, net=s.net - payable, provision=s.provision - fee))
 

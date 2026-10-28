@@ -1,5 +1,5 @@
 {
-  "rules_version": "case1-rules-2026.10.15",
+  "rules_version": "case1-rules-2026.10.28",
   "tape_digest": "f5ab5e68764e92d3fa7113e58ef7c26c93409756d13728a821c4ce47c5e9ca78",
   "paths": {
     "S1_early_reduction": {
