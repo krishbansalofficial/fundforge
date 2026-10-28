@@ -70,12 +70,15 @@ def plan(s: Session, role: str) -> list[dict[str, Any]]:
         # 3. portfolio manager: never let the recall reach a forced buy-in
         brin_short = -e.pos.get("BRIN", 0)
         need = min(e.recall_open, brin_short) - _open_orders(s, "BRIN", "COVER")
-        if need > 0 and not e.replacement_accepted:
+        # each ticket is tried once per ref: a rejected retry would only repeat the excuse, and every
+        # say clears the partner's readiness, so the clock could never advance (ml env, harsh worlds)
+        if need > 0 and not e.replacement_accepted and not _said(s, f"cover:{e.ev.day}"):
             out.append({"type": "ticket", "order_id": f"bot-cover-{e.ev.day}", "sym": "BRIN", "side": "COVER",
                         "qty": need, "_ref": f"cover:{e.ev.day}",
                         "_say": f"Covering {need:,} recalled BRIN now so the broker never buys us in."})
         # 4. cure a margin call with the most liquid single-name long, within my ticket limit
-        if e.margin_call and not any(o.side == "SELL" and o.status == "QUEUED" and not o.forced for o in e.orders):
+        if (e.margin_call and not _said(s, f"cure:{e.ev.day}:{e.ev.phase}")
+                and not any(o.side == "SELL" and o.status == "QUEUED" and not o.forced for o in e.orders)):
             longs = sorted((sym for sym, q in e.pos.items() if q > 0 and sym not in e.mandate.issuer_exempt),
                            key=lambda sym: (-e.pos[sym], sym))
             if longs:
