@@ -63,7 +63,25 @@ def kafka(d: dict[str, Any]) -> Row:
     )
 
 
+def anomaly(d: dict[str, Any]) -> Row:
+    def caught(m: dict[str, Any]) -> str:
+        pc = m["per_class"]
+        return f"{sum(c['detected'] for c in pc.values())}/{sum(c['n'] for c in pc.values())}"
+
+    models, s = d["models"], d["sizes"]
+    lw = models["ledoit_wolf_mahalanobis"]
+    return (
+        "Books anomaly detection vs rule-based controls (B5 faults)",
+        f"faults caught at {lw['held_out_clean']['fpr']:.2%} held-out FPR: Ledoit-Wolf {caught(lw)}, "
+        f"IsolationForest {caught(models['isolation_forest'])}; controls catch every fault (see JSON per class)",
+        f"1 model seed; {s['faults']} faults ({s['faults_per_class']} per class), "
+        f"{lw['held_out_clean']['n']} held-out clean checkpoints",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
+    "anomaly.json": anomaly,
     "forecast.json": forecast,
     "ppo_pm.json": ppo,
     "kafka_e2e.json": kafka,
