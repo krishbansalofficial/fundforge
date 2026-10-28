@@ -1441,3 +1441,15 @@ Started the compose `db` service (Postgres 17, `fundforge-db-1`, port 5432) and 
 `cd backend && DATABASE_URL=postgresql://fundforge:fundforge@localhost:5432/fundforge_test uv run pytest -q` gives **635 passed, 4 skipped** on main at `9b03695` (7 min 9 s). Without the database it is 595 passed, 44 skipped. The 4 remaining skips need the `pg_dump` client.
 
 Docker Desktop must be running; `docker compose up -d --wait db` starts the database.
+
+## Engine: reprovision half-cent rounding, `case1-rules-2026.10.29`, 28 October 2026
+
+Merged `1c73e8c`, the finance review's follow-up to the redemption fix. `series.reprovision` computed (gross/units − HWM) × units and could cross a half-cent tie. It disagreed with `Administrator.close`, for example 9,102.35 against 9,102.36. It now computes `cents(PERF_RATE × max(0, gross − HWM × units))` with one HALF_EVEN rounding; the administrator is unchanged. `RULES_VERSION` moves from `.10.28` to `.10.29`. Only the `rules_version` field of `golden.json` changed; every journal digest, NAV and label is unchanged.
+
+**Tests** (`test_redemption_half_cent.py`, 5): two reprovision tie cases checked against the administrator; a redemption tie with a non-zero provision (fee 6,900.805 rounds to .80); and the ppo-43 harsh end-to-end run, which now asserts no administrator or `lp_*` breaks at every step and no `dealing_blocked`.
+
+**Checks:** backend 638 passed, 4 skipped with Postgres; 598 passed, 44 skipped without. ruff and mypy clean.
+
+**Sibling scan after the fix:** 0 `InvariantError`s in either seat or in the gate over 400 worlds. The mp-seat "time did not advance" `RuntimeError` (40 episodes in 20 worlds) is unchanged and lives in the ml env and bot pair; it is not yet diagnosed.
+
+**One next task:** rerun `eval_ppo.py` at full scale on `.10.29`. The queue running now started on `.10.15`.
