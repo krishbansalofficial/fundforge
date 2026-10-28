@@ -1379,3 +1379,19 @@ Logistic regression is used for `learned`, not LightGBM, so that `learned` sits 
 **Checks:** ruff clean; mypy clean (12 files); 72 passed with the train and forecast groups.
 
 **Run later** (after the generated-world `InvariantError` fix lands, since the worlds may change): `cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --workers 9`.
+
+## ML benchmark M1, env throughput, 27 October 2026
+
+Merged PR #9 (`ml/scripts/bench_env.py`, `ml/results/bench_env.json`, smoke test). The run was reduced for the laptop shutdown: 4 seeds, 6 worlds, 5 reps. Machine: i9-14900HX (32 logical CPUs), Windows 11, commit `44356e5`.
+
+| Setup | steps/s (median) |
+|---|---|
+| Single process, pm seat | 62.9 |
+| Single process, mp seat | 59.6 |
+| SubprocVecEnv, 1 / 2 / 4 / 32 workers | 50 / 82 / 96 / 369 |
+
+Replay is deterministic for both seats. cProfile confirms the ML_PLAN claim: the rollback snapshot (pickling) takes 65% of profiled time, against 75% measured earlier on a different workload. The vectorised numbers may include contention from processes left over from the stopped run.
+
+The README renders this row. **Checks:** 73 passed with the train, forecast and anomaly groups.
+
+**Rerun** on an idle machine at default sizes: `cd ml && uv run --group train python scripts/bench_env.py`.

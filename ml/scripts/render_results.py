@@ -92,8 +92,24 @@ def anomaly(d: dict[str, Any]) -> Row:
     )
 
 
+def bench_env(d: dict[str, Any]) -> Row:
+    sp = {r["role"]: r["steps_per_s"] for r in d["single_process"]}
+    vec = max(d["vectorised"], key=lambda r: r["workers"])
+    prof, m = d["profile"], d["machine"]
+    return (
+        "M1 env throughput (this machine only)",
+        f"single process pm {_g(sp['pm']['median'])} steps/s [{_g(sp['pm']['min'])}-{_g(sp['pm']['max'])}]; "
+        f"{vec['workers']} workers {_g(vec['steps_per_s']['median'])} steps/s "
+        f"[{_g(vec['steps_per_s']['min'])}-{_g(vec['steps_per_s']['max'])}]; "
+        f"rollback snapshot {prof['share_snapshot']:.0%} of profiled time",
+        f"median of {d['method']['reps']} reps, {len(d['worlds']['accepted'])} worlds; {m['cpu']}",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "anomaly.json": anomaly,
+    "bench_env.json": bench_env,
     "forecast.json": forecast,
     "ppo_pm.json": ppo,
     "kafka_e2e.json": kafka,
