@@ -1,0 +1,325 @@
+{
+  "benchmark": "M1 env throughput",
+  "scope": "Numbers are for this machine, these seeds and this commit only; not portable to other hardware.",
+  "reproduce": "cd ml && uv run --group train python scripts/bench_env.py --seeds 4 --reps 5 --episodes 5 --vec-steps 40",
+  "date": "2026-10-28T03:39:52+00:00",
+  "machine": {
+    "cpu": "Intel(R) Core(TM) i9-14900HX",
+    "logical_cores": 32,
+    "physical_cores": 24,
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.13.12",
+    "packages": {
+      "fundforge": "0.1.0",
+      "fundforge-ml": "0.1.0",
+      "numpy": "2.5.4",
+      "gymnasium": "1.4.0",
+      "stable-baselines3": "2.9.0",
+      "torch": "2.14.1"
+    },
+    "commit": "44356e5acf07db7df3c0500ea07470c810a4e322",
+    "dirty": false,
+    "rules_version": "case1-rules-2026.10.15"
+  },
+  "worlds": {
+    "accepted": [
+      "base-0/base",
+      "base-0/rally",
+      "base-1/base",
+      "base-1/rally",
+      "base-3/base",
+      "base-3/rally"
+    ],
+    "rejected": {
+      "base-2": [
+        "cover_recall_only_does_not_win"
+      ]
+    }
+  },
+  "policy": "uniform random over masked-valid actions (seeded); bot:v1 plays the other seat",
+  "method": {
+    "reps": 5,
+    "warmup": "one untimed repetition (single) / 20 vector steps (vectorised)",
+    "statistic": "median with min and max over repetitions",
+    "vectorised_seat": "pm",
+    "vectorised_episodes": "completed episodes only"
+  },
+  "single_process": [
+    {
+      "role": "pm",
+      "episodes_per_rep": 5,
+      "deterministic": true,
+      "steps_per_s": {
+        "median": 62.91,
+        "min": 61.38,
+        "max": 66.12,
+        "samples": [
+          63.67,
+          61.38,
+          66.12,
+          62.91,
+          62.14
+        ]
+      },
+      "episodes_per_s": {
+        "median": 9.53,
+        "min": 8.08,
+        "max": 10.36,
+        "samples": [
+          8.6,
+          8.08,
+          10.02,
+          9.53,
+          10.36
+        ]
+      },
+      "steps_per_episode": {
+        "median": 6.6,
+        "min": 6.0,
+        "max": 7.6,
+        "samples": [
+          7.4,
+          7.6,
+          6.6,
+          6.6,
+          6.0
+        ]
+      }
+    },
+    {
+      "role": "mp",
+      "episodes_per_rep": 5,
+      "deterministic": true,
+      "steps_per_s": {
+        "median": 59.55,
+        "min": 58.24,
+        "max": 62.98,
+        "samples": [
+          62.98,
+          58.24,
+          59.02,
+          59.55,
+          61.92
+        ]
+      },
+      "episodes_per_s": {
+        "median": 11.35,
+        "min": 8.56,
+        "max": 11.91,
+        "samples": [
+          11.25,
+          8.56,
+          11.35,
+          11.45,
+          11.91
+        ]
+      },
+      "steps_per_episode": {
+        "median": 5.2,
+        "min": 5.2,
+        "max": 6.8,
+        "samples": [
+          5.6,
+          6.8,
+          5.2,
+          5.2,
+          5.2
+        ]
+      }
+    }
+  ],
+  "vectorised": [
+    {
+      "workers": 1,
+      "vec_steps_per_rep": 40,
+      "steps_per_s": {
+        "median": 50.11,
+        "min": 44.52,
+        "max": 68.23,
+        "samples": [
+          68.23,
+          51.16,
+          44.52,
+          46.08,
+          50.11
+        ]
+      },
+      "episodes_per_s": {
+        "median": 6.68,
+        "min": 5.76,
+        "max": 10.23,
+        "samples": [
+          10.23,
+          8.95,
+          6.68,
+          5.76,
+          6.26
+        ]
+      }
+    },
+    {
+      "workers": 2,
+      "vec_steps_per_rep": 40,
+      "steps_per_s": {
+        "median": 82.46,
+        "min": 70.58,
+        "max": 104.64,
+        "samples": [
+          70.58,
+          78.56,
+          95.76,
+          104.64,
+          82.46
+        ]
+      },
+      "episodes_per_s": {
+        "median": 11.97,
+        "min": 10.59,
+        "max": 14.39,
+        "samples": [
+          10.59,
+          10.8,
+          11.97,
+          14.39,
+          12.37
+        ]
+      }
+    },
+    {
+      "workers": 4,
+      "vec_steps_per_rep": 40,
+      "steps_per_s": {
+        "median": 95.78,
+        "min": 92.35,
+        "max": 122.92,
+        "samples": [
+          122.92,
+          93.21,
+          92.35,
+          95.78,
+          102.45
+        ]
+      },
+      "episodes_per_s": {
+        "median": 13.77,
+        "min": 13.27,
+        "max": 16.13,
+        "samples": [
+          16.13,
+          13.4,
+          13.27,
+          13.77,
+          14.73
+        ]
+      }
+    },
+    {
+      "workers": 32,
+      "vec_steps_per_rep": 40,
+      "steps_per_s": {
+        "median": 368.85,
+        "min": 259.52,
+        "max": 421.76,
+        "samples": [
+          259.52,
+          350.26,
+          421.76,
+          368.85,
+          392.28
+        ]
+      },
+      "episodes_per_s": {
+        "median": 54.17,
+        "min": 38.93,
+        "max": 63.26,
+        "samples": [
+          38.93,
+          49.8,
+          63.26,
+          54.17,
+          58.84
+        ]
+      }
+    }
+  ],
+  "profile": {
+    "role": "pm",
+    "episodes": 10,
+    "total_s": 2.748,
+    "top10_cumulative": [
+      {
+        "function": "bench_env.py:78(play)",
+        "ncalls": 1,
+        "tottime_s": 0.003,
+        "cumtime_s": 2.748,
+        "cum_share": 1.0
+      },
+      {
+        "function": "env.py:95(step)",
+        "ncalls": 65,
+        "tottime_s": 0.002,
+        "cumtime_s": 2.685,
+        "cum_share": 0.977
+      },
+      {
+        "function": "governance.py:122(handle)",
+        "ncalls": 368,
+        "tottime_s": 0.005,
+        "cumtime_s": 2.38,
+        "cum_share": 0.866
+      },
+      {
+        "function": "env.py:198(_bot)",
+        "ncalls": 140,
+        "tottime_s": 0.001,
+        "cumtime_s": 1.82,
+        "cum_share": 0.662
+      },
+      {
+        "function": "bot.py:94(act)",
+        "ncalls": 140,
+        "tottime_s": 0.002,
+        "cumtime_s": 1.819,
+        "cum_share": 0.662
+      },
+      {
+        "function": "bot.py:99(run)",
+        "ncalls": 239,
+        "tottime_s": 0.001,
+        "cumtime_s": 1.809,
+        "cum_share": 0.658
+      },
+      {
+        "function": "governance.py:84(snapshot)",
+        "ncalls": 368,
+        "tottime_s": 0.032,
+        "cumtime_s": 1.783,
+        "cum_share": 0.649
+      },
+      {
+        "function": "~:0(<method 'dump' of '_pickle.Pickler' objects>)",
+        "ncalls": 368,
+        "tottime_s": 1.283,
+        "cumtime_s": 1.748,
+        "cum_share": 0.636
+      },
+      {
+        "function": "env.py:192(_send)",
+        "ncalls": 129,
+        "tottime_s": 0.0,
+        "cumtime_s": 0.69,
+        "cum_share": 0.251
+      },
+      {
+        "function": "engine.py:414(advance)",
+        "ncalls": 190,
+        "tottime_s": 0.008,
+        "cumtime_s": 0.568,
+        "cum_share": 0.207
+      }
+    ],
+    "share_snapshot": 0.649,
+    "share_restore": 0.001,
+    "share_session_handle": 0.866
+  }
+}
