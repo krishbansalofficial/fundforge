@@ -20,6 +20,10 @@ day, crisis severity, stressed margin terms, the scheduled LP redemption, rival 
 opening book. ``GEN_VERSION`` is unchanged and still reproduces its old tapes byte for byte.
 See docs/RANDOMISER.md.
 
+``HARD_VERSION`` is the randomiser with every stressed coefficient raised by ``MARGIN_BUFFER`` points
+(``Spec.margin_buffer_points`` overrides it), so a token reduce no longer clears the stressed margin
+call; ``balance.accept`` adds its naive-play check for this version.
+
 Pure domain: no I/O. Acceptance through the balance runner is a separate step.
 """
 
@@ -34,7 +38,11 @@ from .money import CTX
 
 GEN_VERSION = "gen-2026.10.1"
 SCENARIO_VERSION = "gen-2026.10.2"  # the scenario randomiser plus the marks generator
-RANDOMISED = frozenset({SCENARIO_VERSION})
+HARD_VERSION = "gen-2026.10.3"  # SCENARIO_VERSION plus a stressed-margin buffer; balance.accept also runs naive play
+RANDOMISED = frozenset({SCENARIO_VERSION, HARD_VERSION})
+# Stressed-margin buffer points when Spec.margin_buffer_points is None. 20 points takes the authored
+# 80/100% initial, 70/90% maintenance to 100/120%, 90/110% (then +/- margin_points): a cure must be sized.
+MARGIN_BUFFER = {HARD_VERSION: 20}
 MACRO_VERSION = "macro-2026.10.2"
 MACRO_SERIES = "STREET_ACTIVITY"
 TENTH = Decimal("0.1")
@@ -87,6 +95,9 @@ class Spec:
     crisis_days: int = 1  # crisis day moves by up to this many days (marks, volumes, stressed margin)
     crisis_points: int = 2  # each crisis mark (long and short) moves by up to this many points
     margin_points: int = 5  # both stressed coefficient pairs move by up to this many points
+    # then both pairs rise by this many points, so the margin call bites unless the cure is sized;
+    # None means the version's default (MARGIN_BUFFER, else 0)
+    margin_buffer_points: int | None = None
     rival_pct: int = 20  # each rival parameter is scaled by 100 +/- this percent
     redemption_pct: int = 20  # the scheduled redemption is scaled by 100 +/- this percent, in 500-unit steps
     book_pct: int = 5  # each opening position is scaled by 100 +/- this percent, in 100-share steps
@@ -102,6 +113,7 @@ class Spec:
                 self.crisis_days,
                 self.crisis_points,
                 self.margin_points,
+                self.margin_buffer_points or 0,
                 self.rival_pct,
                 self.redemption_pct,
                 self.book_pct,
@@ -229,7 +241,8 @@ def randomise(
     # stressed margin: both pairs move together, and the public notice is rewritten to match
     stressed = next(m for m in raw["margin_schedule"] if m["from_day"] == d0)
     old_terms = _terms(stressed)
-    shift = Decimal(rng.integer(-spec.margin_points, spec.margin_points)) / 100
+    buffer = MARGIN_BUFFER.get(gen_version, 0) if spec.margin_buffer_points is None else spec.margin_buffer_points
+    shift = Decimal(rng.integer(-spec.margin_points, spec.margin_points) + buffer) / 100
     for k in ("initial", "maintenance"):
         stressed[k] = {side: str(Decimal(v) + shift) for side, v in stressed[k].items()}
     stressed["from_day"] = d
