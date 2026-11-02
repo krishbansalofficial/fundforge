@@ -1514,3 +1514,18 @@ Merged `ba15868`: `ml/MODEL_CARDS.md` (PPO, forecasters, anomaly detectors, VIPE
   - On base worlds random play still WINs every episode, so the PPO gap is reward size, not tier.
   - VIPER, bench_env and the hard-level eval did not run: Claude Code stopped the queue on low memory.
 - **Next**: run `eval_ppo.py --levels base,hard` alone with `--procs 8`.
+
+## 2026-11-01: repo cleanup, web campaign and ending card, campaign prospect LP
+
+- **Cleanup**: `.gitignore` covers agent worktrees, Hypothesis and import-linter caches, and `coucou/`. Removed 25 clean, merged worktrees and their local branches. Kept worktrees with locks, uncommitted files or unmerged commits.
+- **CI**: every remote job since at least 12 Oct 2026 was not started, with the annotation that account payments failed or the spending limit needs raising. No remote CI evidence exists for that period; all checks below are local. Owner action.
+- **ML cards**: `MODEL_CARDS.md` and `DATA_CARD.md` quoted smoke-run numbers after the full run, so `test_cards.py` failed 10 tests on main. They now quote `ppo_pm.json` and `voi_pm.json`.
+- **Web desk** (`frontend/`): start any of the five scenarios including `campaign-v1`, ending card from `view.outcome` with PNG and clipboard, broker statement queue in Terminal RISK. Seed fix for two e2e specs applied from `origin/fix/e2e-gated-seeds`. Playwright before merge: 36 passed, 2 failed, both on the seeds since replaced; those two specs were not re-run. It used Postgres 16.2; CI uses 17.
+- **Prospect LP** (`campaign-v1.2.0`, `case1-rules-2026.11.1`): prospect, qualified, diligence, committed, eligible, admitted; forfeited or declined. Condition day 15, escrow day 19, dealing day 20. A commitment and escrow never reach a journal, NAV, cash or collateral. Admission is a joint `admission` package; the bot refuses it. The series enters at 100, HWM 100, after redemptions at the dealing close. These days, the $5m size and Anchor's campaign lock-up are design choices, not rules text.
+- **Finance review before merge** confirmed five defects, all fixed with tests that failed first: a founders-only index reported +11.0 bps where the §6 chain gives -12.5 bps at $5m; an early winddown reported -100%; the controls did not independently check admission; one partner could void joint consent; error text leaked the private pipeline stage.
+- **Known deviation from FUND_ACCOUNTING §6**: only rooms with a prospect report the §6 chain. Case1 and generated rooms keep the plain unit-value index, because their balance gate and ML results are measured on it. The size of any gap on those rooms has not been measured. Old rooms are refused under the new rules version; Case1 path digests and `tape_digest` are unchanged.
+- **Certificates**: a consented admission now requires a dealing certificate even with no redemption due. This extends the §5a wording, which says certificates issue on closes with redemptions due.
+- **Latent, not fixed**: `Broker.observe` snapshots before admission cash, so an authored statement dated the dealing close would open a false break. `campaign-v1` has no authored statements.
+- **Checks on merged main `ca48d8c`**: backend 677 passed, 4 skipped with Postgres, ruff clean; `ml` 124 passed, import contract kept; frontend `npm test` 14 passed, `tsc` clean. Godot checks were not run.
+- **Limitations**: neither client has a winddown control or prospect screen, so WINDDOWN is reachable only through the API. In progress on 1 Nov: the hard-level PPO eval and full VIPER, run from `b693c16`.
+- **Next**: client screens for winddown and the prospect.
