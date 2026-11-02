@@ -10,6 +10,7 @@ from typing import Any
 
 CTX = Context(prec=40, rounding=ROUND_HALF_EVEN)
 ZERO, CENT = Decimal(0), Decimal("0.01")
+SUBSCRIPTION_PRICE = Decimal(100)  # FUND_ACCOUNTING §5: each subscription is a new series at 100, HWM 100
 
 
 def split(amount: Decimal, weights: dict[str, Decimal]) -> dict[str, Decimal]:
@@ -56,7 +57,7 @@ class Claim:
 
 
 class Administrator:
-    def __init__(self, rows: list[dict[str, Any]], opening_nav: Decimal) -> None:
+    def __init__(self, rows: list[dict[str, Any]], opening_nav: Decimal, offer: dict[str, Any] | None = None) -> None:
         with localcontext(CTX):
             caps = split(opening_nav, {r["id"]: Decimal(r["units"]) for r in rows})
         self.series = {r["id"]: Capital(r["id"], Decimal(r["units"]), Decimal(r["hwm"]), caps[r["id"]]) for r in rows}
@@ -66,6 +67,9 @@ class Administrator:
         self.revenue = ZERO
         self.closes: tuple[Close, ...] = ()
         self.claims: tuple[Claim, ...] = ()
+        self.offer = None if offer is None else (offer["series_id"], Decimal(offer["max_amount"]),
+                                                 Decimal(offer["cap_step"]), offer["dealing_day"])
+        self.consented: Decimal | None = None
 
     def close(self, d: str, wealth_before_admin_claims: Decimal) -> None:
         with localcontext(CTX):
@@ -109,6 +113,25 @@ class Administrator:
             fee = (s.provision * units / s.units).quantize(CENT)
             return Claim(d, key, units, price, payable, fee,
                          replace(s, units=s.units - units, net=s.net - payable, provision=s.provision - fee))
+
+    def consent(self, key: str, amount: Decimal) -> None:
+        """Record the amount both partners signed, against this administrator's own copy of the tape's offer."""
+        with localcontext(CTX):
+            if (self.offer is None or key != self.offer[0] or not ZERO < amount <= self.offer[1]
+                    or amount % self.offer[2] != 0):
+                raise ValueError("consent does not match the authored subscription offer")
+        self.consented = amount
+
+    def preview_subscription(self, day: int, phase: str) -> Capital | None:
+        """The one series a consented subscription may create: at the dealing close, 100 per unit, HWM 100."""
+        if self.offer is None or self.consented is None or (day, phase) != (self.offer[3], "CLOSE"):
+            return None
+        with localcontext(CTX):
+            return Capital(self.offer[0], self.consented / SUBSCRIPTION_PRICE, SUBSCRIPTION_PRICE, self.consented)
+
+    def subscribe(self, capital: Capital) -> None:
+        self.series[capital.series_id] = capital
+        self.consented = None
 
     def deal(self, claim: Claim) -> None:
         if claim != self.preview(claim.date, claim.series_id, claim.units):

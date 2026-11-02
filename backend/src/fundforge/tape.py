@@ -126,6 +126,16 @@ def compile_tape(raw: dict[str, Any], variant: str | None = None) -> Tape:
                 raise TapeError(f"campaign.{field} requires sorted unique business days")
         if any(d + 5 > 30 for d in campaign["notice_cutoffs"]):
             raise TapeError("campaign notice cutoffs must deal before the terminal administration")
+    prospect = raw.get("prospect")
+    if prospect is not None:
+        amount = _money(prospect["max_amount"], "prospect.max_amount")
+        step = _money(prospect["cap_step"], "prospect.cap_step")
+        if (not 0 < prospect["condition_day"] < prospect["funding_day"] < prospect["dealing_day"]
+                or prospect["dealing_day"] not in {r["deal_day"] for r in raw["redemptions"]}
+                or step <= 0 or amount <= 0 or amount % step != 0
+                or not {prospect["qualification_topic"], prospect["diligence_topic"]} <= set(raw["research"]["topics"])
+                or prospect["series_id"] in {x["id"] for x in raw["opening"]["fund"]["series"]}):
+            raise TapeError("prospect needs ordered days, a dealing close, whole cap steps, known topics, a new series")
     try:
         validate_statements(raw.get("broker_statements", []), cal["start_day"], cal["end_day"])
     except ValueError as exc:

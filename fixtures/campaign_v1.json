@@ -1,7 +1,7 @@
 {
   "scenario_id": "campaign-v1",
   "title": "The first mandate: three chapters",
-  "version": "campaign-v1.1.0",
+  "version": "campaign-v1.2.0",
   "broker_statements": [],
   "source": "docs/ROADMAP.md#p4-v1-complete-game",
   "calendar": {
@@ -209,16 +209,42 @@
       "crowding": {
         "role": "pm",
         "location": "risk"
+      },
+      "prospect_qualification": {
+        "role": "mp",
+        "location": "lp"
+      },
+      "prospect_diligence": {
+        "role": "mp",
+        "location": "lp"
       }
     },
     "topics": {
       "borrow": "Desk check on FF-BRIN lending: one agent can transfer up to 1,250 shares at 40% annual, no upfront fee. Accept before day 14 EXEC_B; transfer day 15 opening.",
       "debt_schedule": "FF-BRIN's term debt matures within the next quarter and refinancing is unresolved.",
       "demand_survey": "Channel survey: recent FF-BRIN demand stable, but coverage spans only the last month.",
-      "crowding": "Crowding report (computed from the street's live positions when revealed)."
+      "crowding": "Crowding report (computed from the street's live positions when revealed).",
+      "prospect_qualification": "Prospect qualified: Anchor can subscribe up to $5,000,000 on standard fees (1.5% management, 20% performance over a 100 high-water mark), earliest dealing close day 20, no side letter. Diligence must complete and the day 15 report must be certified, or the offer lapses.",
+      "prospect_diligence": "Anchor diligence complete: the mandate fits. If the day 15 report is certified it signs a conditional commitment and funds escrow at day 19 administration. Neither is fund cash, NAV or margin collateral until admission at the day 20 dealing close; both partners must consent to the amount, in $1,000,000 steps."
     }
   },
+  "prospect": {
+    "series_id": "Anchor",
+    "max_amount": "5000000",
+    "cap_step": "1000000",
+    "qualification_topic": "prospect_qualification",
+    "diligence_topic": "prospect_diligence",
+    "condition_day": 15,
+    "funding_day": 19,
+    "dealing_day": 20
+  },
   "public_notices": [
+    {
+      "day": 1,
+      "event": "PUBLIC_MARK",
+      "text": "A prospective LP has asked for an introduction. Qualifying it takes the managing partner's attention at the LP desk.",
+      "code": "prospect_open"
+    },
     {
       "day": 12,
       "event": "OPEN_ADMIN",
@@ -433,7 +459,7 @@
   },
   "lp_agents": "lp-confidence-2026.10.2",
   "campaign": {
-    "version": "campaign-v1.1.0",
+    "version": "campaign-v1.2.0",
     "chapters": [
       {
         "id": 1,

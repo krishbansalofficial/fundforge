@@ -10,6 +10,8 @@
 * Generated rooms: LP contact belongs to the managing partner. A redemption gate is a package of
   kind ``gate`` whose digest binds the dealing day and the exact pending requests; it is elected only
   when the *other* partner signs, and the requests are revalidated at signing.
+* Campaign: admitting the prospect's subscription is a package of kind ``admission``; its digest binds the amount and
+  dealing day, the other partner's signature consents, and terms and capacity are revalidated at signing and dealing.
 * Time advances only when both partners are ready; any state change clears readiness.
   If both vote ``skip``, time keeps advancing through quiet windows until a notice,
   incident, open order or the end (refused while a package awaits a signature).
@@ -204,6 +206,13 @@ class Session:
             p.status = "ELECTED"
             self.e.start_winddown()
             return {"package_id": p.package_id, "status": p.status}
+        if p.kind == "admission":
+            if self._lp(investors.admission_terms, p.terms["amount"]) != p.terms:
+                raise CommandRejected("admission terms changed since they were proposed")
+            p.signatures.add(role)
+            p.status = "ELECTED"
+            investors.authorize_admission(self.e, p.terms)
+            return {"package_id": p.package_id, "status": p.status}
         if p.kind == "gate":
             if self._lp(investors.gate_terms) != p.terms:
                 raise CommandRejected("redemption requests changed since the gate was proposed")
@@ -243,6 +252,24 @@ class Session:
         self.packages[c["package_id"]] = Package(c["package_id"], role, (), expires, digest, {role}, kind="winddown",
                                                  terms={"day": self.e.ev.day})
         return {"package_id": c["package_id"], "digest": digest}
+
+    def _cmd_propose_admission(self, role: str, c: Cmd) -> Cmd:
+        """Campaign: propose admitting the funded prospect at ``amount``; the other partner's signature consents."""
+        terms = self._lp(investors.admission_terms, c.get("amount"))
+        if c["package_id"] in self.packages:
+            raise CommandRejected("package id already used; edits must be proposed as a new package")
+        expires = self.e.cursor + 1
+        identity = [POLICY_VERSION, "admission", self.e.mandate.digest, c["package_id"], terms, expires]
+        digest = hashlib.sha256(canonical(identity).encode()).hexdigest()
+        self.packages[c["package_id"]] = Package(c["package_id"], role, (), expires, digest, {role}, kind="admission",
+                                                 terms=terms)
+        return {"package_id": c["package_id"], "digest": digest}
+
+    def _cmd_decline_prospect(self, role: str, c: Cmd) -> Cmd:
+        if role != "mp":
+            raise CommandRejected("LP relationships belong to the managing partner")
+        self._lp(investors.decline_prospect)
+        return {"declined": True}
 
     def _cmd_contact_lp(self, role: str, c: Cmd) -> Cmd:
         if role != "mp":
@@ -475,6 +502,7 @@ class Session:
             "outcome": e.outcome() if e.finished() else None,
             "investors": investors.view(e, role),
             "certification": e.certification()["status"],
+            **({"prospect": investors.prospect_view(e, role)} if e.prospect is not None else {}),
         }
 
     def ledger(self, entity: str = "fund", limit: int = 200) -> list[dict]:

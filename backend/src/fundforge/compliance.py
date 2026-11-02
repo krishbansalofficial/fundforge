@@ -78,3 +78,13 @@ def evaluate(pos: dict[str, int], marks: dict[str, Decimal], nav: Decimal,
             cap = rs.issuer_max
             breaches.append(Breach("issuer_max", f"{key[7:]} would be {val:.1%} of NAV, above the {cap:.0%} cap"))
     return breaches
+
+
+def subscription_breaches(pos: dict[str, int], marks: dict[str, Decimal], nav: Decimal, added: Decimal,
+                          rs: Ruleset) -> list[Breach]:
+    """Capacity: new capital shrinks exposure ratios on the same book, so it can only worsen the mandate floors."""
+    if nav <= 0:
+        return [Breach("nav_nonpositive", "NAV is not positive")]
+    pre, post = _measures(pos, marks, nav, rs), _measures(pos, marks, nav + added, rs)
+    return [Breach(f"{key}_min", f"{key} exposure {post[key]:.1%} would fall below the {lo:.0%} mandate floor")
+            for key, lo in (("gross", rs.gross_min), ("net", rs.net_min)) if post[key] < lo and post[key] < pre[key]]
