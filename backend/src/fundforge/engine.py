@@ -135,16 +135,19 @@ class Engine:
         self.paid: dict[str, Decimal] = {}
         self.winddown: int | None = None  # campaign: day a joint winddown was declared
         self.prospect = investors.Prospect() if r.get("prospect") else None  # campaign fundraising pipeline
-        self._founding = {x["id"] for x in r["opening"]["fund"]["series"]}
         self.mandate = Ruleset.from_raw(tape.raw["mandate"])
         self._opening_marks = dict(self.marks)
         self.market = Market(tape.raw.get("market"), tape.instruments)
         self.market.init_navs(self.marks)
         self._prev_exec_marks = dict(self.marks)
         self._open()
-        self.administrator = Administrator(r["opening"]["fund"]["series"], self._administrator_wealth())
+        self.administrator = Administrator(r["opening"]["fund"]["series"], self._administrator_wealth(),
+                                           r.get("prospect"))
         # Fund NAV per unit at the warm start, then after every business close; derived, never posted.
         self.close_values: list[Decimal] = [self.unit_nav()]
+        # Rooms with a prospect report the §6 chain: its value and net NAV at the last flow (no NAV left: None).
+        self._chain_value: Decimal = self.close_values[0]
+        self._chain_base: Decimal | None = self.nav()
         # LP agents run only when the tape asks for them (generated rooms); authored scenarios keep their contracts.
         self.lp: Book | None = investors.open_book(self) if r.get("lp_agents") else None
 
@@ -310,15 +313,17 @@ class Engine:
             raise CommandRejected("research is assigned at a decision barrier")
         chapter_start = ((self.ev.day - 1) // 10) * 10 + 1 if self.tape.raw.get("campaign") else self.start
         current_research = [r for r in self.research_used if r["assigned_day"] >= chapter_start]
-        if topic not in rs["topics"] or any(r["topic"] == topic for r in current_research):
+        if topic not in rs["topics"]:
+            raise CommandRejected(f"unknown or repeated research topic {topic!r}")
+        if role is not None and rs["assignments"][topic]["role"] != role:
+            raise CommandRejected("assignment belongs to the other partner's role")
+        if any(r["topic"] == topic for r in current_research):
             raise CommandRejected(f"unknown or repeated research topic {topic!r}")
         refusal = investors.prospect_assignment_refusal(self, topic)
         if refusal:
             raise CommandRejected(refusal)
         if role is not None:
             assignment = rs["assignments"][topic]
-            if assignment["role"] != role:
-                raise CommandRejected("assignment belongs to the other partner's role")
             if location is not None and assignment["location"] != location:
                 raise CommandRejected("assignment is not available at this location")
             if self.attention.get(role, {}).get("window") == self.cursor:
@@ -531,8 +536,10 @@ class Engine:
         self._accrue_date(self.ev.date)
         if self.ev.day % 20 == 0:
             self._invoice()
-        pre_deal_nav = self.unit_nav()
+        pre_deal_nav, live_before = self.unit_nav(), any(s.units > 0 for s in self.series)
+        pre_flow = self.nav()
         self._deal()
+        self._chain_flow(pre_flow)
         investors.on_close(self)
         investors.prospect_conditions(self)
         nxt = self.next_event_after_close()
@@ -540,12 +547,34 @@ class Engine:
         while nxt and d < nxt:
             self._accrue_date(d)
             d += timedelta(days=1)
-        # A close that redeems the last unit reports its pre-flow price: the realized liquidation value, not zero.
-        self.close_values.append(self.unit_nav() if any(s.units > 0 for s in self._founders()) else pre_deal_nav)
+        if self.prospect is not None:
+            value = self.reported_unit_nav()
+        elif any(s.units > 0 for s in self.series):
+            value = self.unit_nav()
+        else:  # the close that redeems the last unit reports its pre-flow price: realized value, not zero
+            value = pre_deal_nav if live_before else self.close_values[-1]
+        self.close_values.append(value)
+
+    def _chain_flow(self, pre_flow: Decimal) -> None:
+        """Link one period at a dealing close: pre-flow net NAV / prior close post-flow net NAV (FUND_ACCOUNTING §6).
+
+        Case1 and generated rooms keep the plain unit value: their balance gate and ML results are measured on it."""
+        if self.prospect is None or self._chain_base is None:
+            return
+        with localcontext(CTX):
+            self._chain_value = self._chain_value * pre_flow / self._chain_base
+        post = self.nav()
+        self._chain_base = post if post > 0 else None
 
     def reported_unit_nav(self) -> Decimal:
-        """Unit value for returns: the live value, or after a full winddown the last realized dealing price."""
-        return self.unit_nav() if any(s.units > 0 for s in self._founders()) else self.close_values[-1]
+        """Index for returns. A prospect room: the §6 chain, held once no NAV remains. Otherwise the live unit value,
+        or after a full winddown the last realized dealing price."""
+        if self.prospect is not None:
+            if self._chain_base is None:
+                return self._chain_value
+            with localcontext(CTX):
+                return self._chain_value * self.nav() / self._chain_base
+        return self.unit_nav() if any(s.units > 0 for s in self.series) else self.close_values[-1]
 
     def next_event_after_close(self) -> date | None:
         i = self.cursor + 1
@@ -896,8 +925,12 @@ class Engine:
     def admit_series(self, series_id: str, amount: Decimal, units: Decimal, hwm: Decimal) -> None:
         """Receive subscription cash and issue a new series: capital, not revenue. It participates from the next
         calendar period because today's common P&L is already allocated."""
+        claim = self.administrator.preview_subscription(self.ev.day, self.ev.phase)
+        self._require(claim == Capital(series_id, units, hwm, amount), "administrator_subscription",
+                      "independent subscription calculation differs; no units or cash changed")
+        assert claim is not None  # _require above
         self.broker.record(self.ev.date, "subscription", amount=amount)
-        self.administrator.subscribe(series_id, units, hwm, amount)
+        self.administrator.subscribe(claim)
         self.series.append(Series(series_id, units, hwm, amount))
         self._post(f"Admit subscription {series_id}: {units} units", ("cash", amount),
                    (f"capital:{series_id}", -amount))
@@ -1063,16 +1096,11 @@ class Engine:
                 self._require(self.borrowed(sym) + pending_short - pending_cover == max(0, -qty),
                               "borrow_position", f"{sym} loans do not reconcile to economic short")
 
-    def _founders(self) -> list[Series]:
-        return [x for x in self.series if x.series_id in self._founding]
-
     def unit_nav(self) -> Decimal:
-        """NAV per unit across the founding series (net of provisions); flows leave it unchanged. A series admitted
-        at 100 is excluded: blending its entry price would count a subscription as investment return."""
+        """Fund NAV per unit across every series (net of provisions); flows leave it unchanged."""
         with localcontext(CTX):
-            founders = self._founders()
-            units = sum((x.units for x in founders), Decimal(0))
-            return sum((x.net for x in founders), Decimal(0)) / units if units else Decimal(0)
+            units = sum((x.units for x in self.series), Decimal(0))
+            return sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
 
     def max_drawdown(self) -> str:
         """Largest peak-to-trough fall of fund NAV per unit over the warm start and each business close, as a

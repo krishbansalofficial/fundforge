@@ -360,6 +360,7 @@ def admission_terms(e: Engine, amount: Any) -> dict[str, Any]:
 def authorize_admission(e: Engine, terms: dict[str, Any]) -> None:
     assert e.prospect is not None
     e.prospect.authorized = D(terms["amount"])
+    e.administrator.consent(terms["series"], e.prospect.authorized)
     e._notice(f"Both partners consented to admit ${e.prospect.authorized:,.0f} at the day {terms['deal_day']} dealing "
               "close, subject to certification and post-flow checks.", code="prospect_consent",
               series=terms["series"], amount=terms["amount"])
@@ -373,6 +374,8 @@ def decline_prospect(e: Engine) -> None:
         raise Refused("a prospect is declined at a decision barrier")
     if p.stage in CLOSED:
         raise Refused("the prospect's pipeline is already closed")
+    if p.authorized is not None:
+        raise Refused("both partners consented to this admission; it can no longer be declined")
     p.stage, p.escrow, p.authorized = "declined", Decimal(0), None
     e._notice("The fund declined the prospective LP; any escrow returns to it and the fund is unchanged.",
               code="prospect_declined")
@@ -394,6 +397,7 @@ def deal_subscription(e: Engine, *, certified: bool) -> None:
     if not certified:
         return forfeit_prospect(e, "dealing_blocked")
     amount = p.authorized
+    e._require(amount <= p.escrow, "subscription_escrow", "admission exceeds the funded escrow")
     if subscription_breaches(e.pos, e.marks, e.nav(), amount, e._mandate_rules()):
         return forfeit_prospect(e, "capacity")
     sid = _terms(e)["series_id"]

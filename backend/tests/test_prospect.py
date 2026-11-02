@@ -2,12 +2,14 @@
 
 import copy
 import json
-from decimal import Decimal
+from dataclasses import replace
+from decimal import Context, Decimal, localcontext
 
 import pytest
 
 from fundforge import bot, investors, store
-from fundforge.engine import CommandRejected, Engine
+from fundforge.administrator import Administrator
+from fundforge.engine import CommandRejected, Engine, InvariantError
 from fundforge.governance import Session
 from fundforge.schemas import SessionView
 from fundforge.tape import TapeError, compile_tape
@@ -113,7 +115,6 @@ def test_full_path_admits_a_new_series_at_100_with_cash_only_at_the_dealing_clos
     assert s.e.close_values[:20] == closes[:20]
     assert abs(s.e.close_values[20] - closes[20]) < Decimal("0.01")
     assert s.e.nav() > Decimal(rows[s.e.cursor]["fund"]["nav"]) + Decimal(4900000)
-    assert abs(s.e.unit_nav() - closes[20]) < Decimal("0.1")
 
 
 def test_series_participates_from_next_period_and_controls_and_certificates_pass():
@@ -367,4 +368,205 @@ def test_winddown_after_admission_redeems_the_admitted_series_too():
         winddown(s, p)
         step(s)
     assert all(x.units == 0 for x in s.e.series), [(x.series_id, x.units) for x in s.e.series]
-    assert s.e.outcome()["label"] == "WINDDOWN"
+    o = s.e.outcome()
+    assert o["label"] == "WINDDOWN"
+    assert_winddown_return_is_realized(s, o)
+
+
+# ---------- fund return: the FUND_ACCOUNTING §6 chain, computed here independently of the engine's index ----------
+class Flows:
+    """Net NAV immediately around every dealing close, read through the public ``nav``."""
+
+    def __init__(self, monkeypatch):
+        self.rows = []
+        real = Engine._deal
+
+        def deal(engine):
+            pre = engine.nav()
+            real(engine)
+            self.rows.append((pre, engine.nav()))
+
+        monkeypatch.setattr(Engine, "_deal", deal)
+
+    def chained_value(self, opening, end):
+        """100 x the product of pre-flow / prior post-flow NAV; a period with no capital left earns nothing."""
+        with localcontext(Context(prec=40)):
+            value, prior = Decimal(100), opening
+            for pre, post in self.rows:
+                if prior > 0:
+                    value *= pre / prior
+                prior = post
+            return value * end / prior if prior > 0 else value
+
+
+def bps(value):
+    with localcontext(Context(prec=40)):
+        return str(((value / 100 - 1) * 10000).quantize(Decimal("0.1")))
+
+
+@pytest.mark.parametrize(("amount", "expected_bps"), [(None, "108.3"), ("1000000", "80.2"), ("5000000", "-12.5")])
+def test_reported_return_is_the_section_6_chain_over_all_series(monkeypatch, amount, expected_bps):
+    flows = Flows(monkeypatch)
+    s = session()
+    opening = s.e.nav()
+    if amount:
+        diligence_done(s)
+        to_day(s, 19)
+        admit(s, amount)
+    to_day(s, 99)
+    e = s.e
+    chained = flows.chained_value(opening, e.nav())
+    assert abs(e.reported_unit_nav() - chained) < Decimal("1e-25")
+    o = e.outcome()
+    assert o["fund_return_bps"] == bps(chained) == expected_bps
+    assert next(r for r in e.league() if r["id"] == "you")["return_bps"] == expected_bps
+    assert abs(e._ending_facts().fund_return * 10000 - (chained / 100 - 1) * 10000) < Decimal("1e-20")
+    # Drawdown reads the same index.
+    peak, worst = Decimal(0), Decimal(0)
+    with localcontext(Context(prec=40)):
+        for v in e.close_values:
+            peak = max(peak, v)
+            worst = max(worst, 1 - v / peak)
+    assert Decimal(o["max_drawdown"]) == worst.quantize(Decimal("0.000001"))
+
+
+def test_rooms_without_a_prospect_keep_the_plain_unit_value_index():
+    e = Engine(store._tape("case1"))
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": "ben"})
+    to_day(s, 99)
+    assert s.e.prospect is None
+    assert s.e.reported_unit_nav() == s.e.unit_nav()
+    assert s.e.close_values[-1] != 0
+
+
+def assert_winddown_return_is_realized(s, o):
+    """The last redemption realizes the fund's value: not -100%, and the later closes carry it forward."""
+    e = s.e
+    assert Decimal(o["fund_return_bps"]) > Decimal(-1000)
+    assert Decimal(o["max_drawdown"]) < Decimal("0.2")
+    assert e.close_values[-1] > 0 and all(v > 0 for v in e.close_values)
+    assert e.reported_unit_nav() == e.close_values[-1]
+
+
+def test_winddown_return_equals_the_chain_without_admission(monkeypatch):
+    from test_campaign_endings import Plan, winddown
+
+    flows = Flows(monkeypatch)
+    s = session()
+    opening = s.e.nav()
+    p = Plan()
+    while not s.e.finished():
+        winddown(s, p)
+        step(s)
+    o = s.e.outcome()
+    assert o["label"] == "WINDDOWN" and all(x.units == 0 for x in s.e.series)
+    assert_winddown_return_is_realized(s, o)
+    assert abs(s.e.reported_unit_nav() - flows.chained_value(opening, s.e.nav())) < Decimal("1e-25")
+
+
+def test_return_continues_when_every_founder_redeems_and_the_admitted_series_remains(monkeypatch):
+    raw = copy.deepcopy(store._tape("campaign-v1").raw)
+    raw["redemptions"] = [{"series": "Patient", "units": "80000", "deal_day": 30},
+                          {"series": "Seed", "units": "100000", "deal_day": 30},
+                          {"series": "Tactical", "units": "10000", "deal_day": 20},
+                          {"series": "Tactical", "units": "60000", "deal_day": 30}]
+    flows = Flows(monkeypatch)
+    s = session(compile_tape(raw))
+    opening = s.e.nav()
+    for sid in ("Patient", "Seed", "Tactical"):
+        s.e.lp.profiles[sid] = replace(s.e.lp.profiles[sid], first_eligible_cutoff=15)  # authored lock-ups lifted
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    to_day(s, 99)
+    e = s.e
+    assert [x.series_id for x in e.series if x.units > 0] == ["Anchor"]
+    assert Decimal(e.nav()) > 0 and e.reported_unit_nav() > Decimal(50)
+    assert abs(e.reported_unit_nav() - flows.chained_value(opening, e.nav())) < Decimal("1e-25")
+
+
+# ---------- reconciliation refuses a wrong admission independently ----------
+def test_issue_price_other_than_100_is_refused(monkeypatch):
+    s = session()
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    monkeypatch.setattr(investors, "ISSUE_PRICE", Decimal(50))
+    with pytest.raises(InvariantError) as ex:
+        to_day(s, 21)
+    assert ex.value.code == "administrator_subscription"
+    assert "Anchor" not in {x.series_id for x in s.e.series}
+
+
+@pytest.mark.parametrize(("authorized", "code"), [("9000000", "subscription_escrow"),
+                                                  ("3000000", "administrator_subscription")])
+def test_admitting_other_than_the_consented_amount_is_refused(authorized, code):
+    s = session()
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "1000000")
+    s.e.prospect.authorized = Decimal(authorized)  # mutant: the engine's record drifts from what the partners signed
+    with pytest.raises(InvariantError) as ex:
+        to_day(s, 21)
+    assert ex.value.code == code
+    assert not any("Admit subscription" in x.memo for x in s.e.j.entries)
+
+
+def test_admission_before_the_dealing_close_is_refused():
+    s = session()
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    digest = s.e.j.digest()
+    assert (s.e.ev.day, s.e.ev.phase) == (19, "PUBLIC_MARK")
+    with pytest.raises(InvariantError) as ex:
+        s.e.admit_series("Anchor", Decimal(5000000), Decimal(50000), Decimal(100))
+    assert ex.value.code == "administrator_subscription"
+    assert s.e.j.digest() == digest and "Anchor" not in s.e.administrator.series
+
+
+def test_administrator_derives_the_series_from_its_own_record_of_the_terms():
+    offer = {"series_id": "N", "max_amount": "5000000", "cap_step": "1000000", "dealing_day": 20}
+    a = Administrator([{"id": "A", "units": "1000", "hwm": "100"}], Decimal(100000), offer)
+    assert a.preview_subscription(20, "CLOSE") is None  # nothing consented
+    for key, amount in (("N", Decimal(6000000)), ("N", Decimal(1500000)), ("N", Decimal(0)), ("X", Decimal(1000000))):
+        with pytest.raises(ValueError):
+            a.consent(key, amount)
+    a.consent("N", Decimal(2000000))
+    assert a.preview_subscription(19, "CLOSE") is None and a.preview_subscription(20, "PUBLIC_MARK") is None
+    claim = a.preview_subscription(20, "CLOSE")
+    assert (claim.series_id, claim.units, claim.hwm, claim.net) == ("N", Decimal(20000), Decimal(100), Decimal(2000000))
+    a.subscribe(claim)
+    assert a.series["N"] == claim and a.preview_subscription(20, "CLOSE") is None  # one admission per consent
+
+
+# ---------- authority and information ----------
+def test_decline_is_refused_once_both_partners_consented():
+    s = session()
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    with pytest.raises(CommandRejected, match="consented"):
+        s.handle("ben", "void", {"type": "decline_prospect"})
+    assert s.e.prospect.authorized == Decimal(5000000) and s.packages["adm5000000"].status == "ELECTED"
+    to_day(s, 21)
+    assert stage(s) == "admitted"
+
+
+def test_pm_refusal_text_does_not_reveal_the_managing_partners_private_stage():
+    s = session()
+
+    def refusal(command):
+        with pytest.raises(CommandRejected) as ex:
+            s.handle("ana", f"pm-try-{s.version}-{command['assignment']}", command)
+        return str(ex.value)
+
+    fresh = refusal(QUAL), refusal(DILIGENCE)
+    s.handle("ben", "qual", QUAL)
+    assert (refusal(QUAL), refusal(DILIGENCE)) == fresh  # assigned
+    to_day(s, 2)
+    assert (refusal(QUAL), refusal(DILIGENCE)) == fresh  # privately revealed
+    s.handle("ben", "dil", DILIGENCE)
+    to_day(s, 3)
+    assert (refusal(QUAL), refusal(DILIGENCE)) == fresh
