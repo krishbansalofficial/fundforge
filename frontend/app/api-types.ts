@@ -527,7 +527,7 @@ export interface components {
          * CommandBody
          * @description The request body. A root model keeps the ``type`` discriminator, which FastAPI's ``Body()`` would drop.
          */
-        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"] | components["schemas"]["Thesis"] | components["schemas"]["ContactLp"] | components["schemas"]["ProposeGate"] | components["schemas"]["ProposeWinddown"];
+        CommandBody: components["schemas"]["Ticket"] | components["schemas"]["Propose"] | components["schemas"]["Sign"] | components["schemas"]["Cancel"] | components["schemas"]["ResearchCommand"] | components["schemas"]["Visit"] | components["schemas"]["ShareResearch"] | components["schemas"]["AcceptReplacement"] | components["schemas"]["SetReserve"] | components["schemas"]["ResolveStatement"] | components["schemas"]["Ready"] | components["schemas"]["SetSpeed"] | components["schemas"]["Say"] | components["schemas"]["Pause"] | components["schemas"]["Thesis"] | components["schemas"]["ContactLp"] | components["schemas"]["ProposeGate"] | components["schemas"]["ProposeWinddown"] | components["schemas"]["ProposeAdmission"] | components["schemas"]["DeclineProspect"];
         /**
          * ContactLp
          * @description Managing partner: spend this window's attention on one LP before its next review (generated rooms).
@@ -640,6 +640,17 @@ export interface components {
             role: string;
             /** Type */
             type: string;
+        };
+        /**
+         * DeclineProspect
+         * @description Campaign, managing partner: reject the prospective LP; any escrow returns to it.
+         */
+        DeclineProspect: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "decline_prospect";
         };
         /** Fill */
         Fill: {
@@ -1084,7 +1095,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "orders" | "gate";
+            kind: "orders" | "gate" | "winddown" | "admission";
             /** Orders */
             orders: components["schemas"]["PackageOrder"][];
             /** Package Id */
@@ -1149,6 +1160,22 @@ export interface components {
             type: "propose";
         };
         /**
+         * ProposeAdmission
+         * @description Campaign: propose admitting the funded prospect at ``amount`` (full or capped); the other partner's ``sign``
+         *     consents.
+         */
+        ProposeAdmission: {
+            /** Amount */
+            amount: string;
+            /** Package Id */
+            package_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "propose_admission";
+        };
+        /**
          * ProposeGate
          * @description Propose a redemption gate for the next dealing close; the other partner elects it with ``sign``.
          */
@@ -1173,6 +1200,28 @@ export interface components {
              * @enum {string}
              */
             type: "propose_winddown";
+        };
+        /**
+         * ProspectView
+         * @description Campaign fundraising pipeline as this seat may know it. Escrow is outside the fund: not NAV or collateral.
+         */
+        ProspectView: {
+            /** Authorized */
+            authorized: string | null;
+            /** Cap Step */
+            cap_step: string | null;
+            /** Dealing Day */
+            dealing_day: number | null;
+            /** Escrow */
+            escrow: string;
+            /** Max Amount */
+            max_amount: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Series Id */
+            series_id: string | null;
+            /** Stage */
+            stage: string;
         };
         /** Quote */
         Quote: {
@@ -1438,6 +1487,7 @@ export interface components {
             };
             /** Positions */
             positions: components["schemas"]["Position"][];
+            prospect?: components["schemas"]["ProspectView"] | null;
             /** Ready */
             ready: string[];
             realtime: components["schemas"]["Realtime"];

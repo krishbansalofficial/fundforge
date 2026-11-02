@@ -16,6 +16,7 @@ BOT_VERSION = "bot:v1"
 REFUSED = {  # package kinds the bot will not countersign, with the reason it says instead
     "gate": "I won't elect a redemption gate: that needs a human partner's consent.",
     "winddown": "I won't declare a winddown: ending the fund needs a human partner's consent.",
+    "admission": "I won't admit a new LP: taking outside capital needs a human partner's consent.",
 }
 
 

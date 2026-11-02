@@ -970,8 +970,10 @@
             "accept_replacement": "#/components/schemas/AcceptReplacement",
             "cancel": "#/components/schemas/Cancel",
             "contact_lp": "#/components/schemas/ContactLp",
+            "decline_prospect": "#/components/schemas/DeclineProspect",
             "pause": "#/components/schemas/Pause",
             "propose": "#/components/schemas/Propose",
+            "propose_admission": "#/components/schemas/ProposeAdmission",
             "propose_gate": "#/components/schemas/ProposeGate",
             "propose_winddown": "#/components/schemas/ProposeWinddown",
             "ready": "#/components/schemas/Ready",
@@ -1042,6 +1044,12 @@
           },
           {
             "$ref": "#/components/schemas/ProposeWinddown"
+          },
+          {
+            "$ref": "#/components/schemas/ProposeAdmission"
+          },
+          {
+            "$ref": "#/components/schemas/DeclineProspect"
           }
         ],
         "title": "CommandBody"
@@ -1359,6 +1367,22 @@
           "detail"
         ],
         "title": "Decision",
+        "type": "object"
+      },
+      "DeclineProspect": {
+        "additionalProperties": false,
+        "description": "Campaign, managing partner: reject the prospective LP; any escrow returns to it.",
+        "properties": {
+          "type": {
+            "const": "decline_prospect",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "DeclineProspect",
         "type": "object"
       },
       "Fill": {
@@ -2609,7 +2633,9 @@
           "kind": {
             "enum": [
               "orders",
-              "gate"
+              "gate",
+              "winddown",
+              "admission"
             ],
             "title": "Kind",
             "type": "string"
@@ -2791,6 +2817,35 @@
         "title": "Propose",
         "type": "object"
       },
+      "ProposeAdmission": {
+        "additionalProperties": false,
+        "description": "Campaign: propose admitting the funded prospect at ``amount`` (full or capped); the other partner's ``sign``\nconsents.",
+        "properties": {
+          "amount": {
+            "pattern": "^-?\\d{1,15}(\\.\\d{1,6})?$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Package Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "propose_admission",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "package_id",
+          "amount"
+        ],
+        "title": "ProposeAdmission",
+        "type": "object"
+      },
       "ProposeGate": {
         "additionalProperties": false,
         "description": "Propose a redemption gate for the next dealing close; the other partner elects it with ``sign``.",
@@ -2835,6 +2890,98 @@
           "package_id"
         ],
         "title": "ProposeWinddown",
+        "type": "object"
+      },
+      "ProspectView": {
+        "additionalProperties": false,
+        "description": "Campaign fundraising pipeline as this seat may know it. Escrow is outside the fund: not NAV or collateral.",
+        "properties": {
+          "authorized": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorized"
+          },
+          "cap_step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap Step"
+          },
+          "dealing_day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dealing Day"
+          },
+          "escrow": {
+            "title": "Escrow",
+            "type": "string"
+          },
+          "max_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Amount"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "series_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Series Id"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "reason",
+          "escrow",
+          "authorized",
+          "series_id",
+          "max_amount",
+          "cap_step",
+          "dealing_day"
+        ],
+        "title": "ProspectView",
         "type": "object"
       },
       "Quote": {
@@ -3606,6 +3753,16 @@
             },
             "title": "Positions",
             "type": "array"
+          },
+          "prospect": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProspectView"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "ready": {
             "items": {
