@@ -38,37 +38,37 @@ Written 28 October 2026 against `main` at `3c1a5ce`. The data the models train o
 
 **Reward** (`reward-v1`). Zero until the run ends, then the engine's own score in percent plus a tier bonus. The model does not compute the score; it reads the engine's `outcome()`.
 
-**Evaluation.** Smoke-scale run: 3 seeds × 2,048 steps each, far below the planned full run. Treat it as a pipeline check, not a headline.
+**Evaluation.** Full run: 5 training seeds × 200,000 steps each, on 274 held-out test worlds.
 
 | Quantity | Value | Source |
 |---|---|---|
-| Training seeds and steps | seeds 0, 1, 2; 2048 steps each | [ppo_pm.json](results/ppo_pm.json) |
-| Split (families) | train 115, val 12, test 10 | [ppo_pm.json](results/ppo_pm.json) |
-| Split (worlds = family × variant) | train 230, val 24, test 20 | [ppo_pm.json](results/ppo_pm.json) |
-| Chosen config on val | learning rate 0.0003, entropy coefficient 0.01, val IQM 6.410 | [ppo_pm.json](results/ppo_pm.json) |
-| PPO test reward, IQM [95% bootstrap CI] | 6.20 [5.85, 6.77] | [ppo_pm.json](results/ppo_pm.json) |
-| Random valid play, IQM | 5.92 [5.37, 6.38] | [ppo_pm.json](results/ppo_pm.json) |
-| PPO − random, paired by world | 0.603 [0.259, 1.004]; PPO ahead on 15 of 20 worlds | [ppo_pm.json](results/ppo_pm.json) |
-| P(PPO > random) | 0.667 | [ppo_pm.json](results/ppo_pm.json) |
-| PPO − `bot:v1` rules in the PM seat | 8.71 [8.53, 8.88]; PPO ahead on 20 of 20 worlds | [ppo_pm.json](results/ppo_pm.json) |
-| Mean engine score | PPO 124.8 bps; random 64.4 bps; rules -246.0 bps; wait -251.0 bps | [ppo_pm.json](results/ppo_pm.json) |
-| Outcomes | PPO WIN 60 of 60 episodes; random WIN 100 of 100 | [ppo_pm.json](results/ppo_pm.json) |
-| Harder level "scenario": PPO − random | -0.533 [-0.945, -0.097] on 16 worlds | [ppo_pm.json](results/ppo_pm.json) |
-| Harder level "harsh": PPO − random | -0.613 [-2.429, 1.023] on 16 worlds | [ppo_pm.json](results/ppo_pm.json) |
+| Training seeds and steps | seeds 0, 1, 2, 3, 4; 200000 steps each | [ppo_pm.json](results/ppo_pm.json) |
+| Split (families) | train 1046, val 136, test 137 | [ppo_pm.json](results/ppo_pm.json) |
+| Split (worlds = family × variant) | train 2092, val 272, test 274 | [ppo_pm.json](results/ppo_pm.json) |
+| Chosen config on val | learning rate 0.0001, entropy coefficient 0.01, val IQM 8.150 | [ppo_pm.json](results/ppo_pm.json) |
+| PPO test reward, IQM [95% bootstrap CI] | 8.12 [7.74, 8.48] | [ppo_pm.json](results/ppo_pm.json) |
+| Random valid play, IQM | 6.10 [5.87, 6.45] | [ppo_pm.json](results/ppo_pm.json) |
+| PPO − random, paired by world | 1.960 [1.725, 2.198]; PPO ahead on 224 of 274 worlds | [ppo_pm.json](results/ppo_pm.json) |
+| P(PPO > random) | 0.819 | [ppo_pm.json](results/ppo_pm.json) |
+| PPO − `bot:v1` rules in the PM seat | 10.57 [10.45, 10.69]; PPO ahead on 274 of 274 worlds | [ppo_pm.json](results/ppo_pm.json) |
+| Mean engine score | PPO 316.6 bps; random 120.6 bps; rules -240.8 bps; wait -245.4 bps | [ppo_pm.json](results/ppo_pm.json) |
+| Outcomes | PPO WIN 1370 of 1370 episodes; random WIN 1370 of 1370 | [ppo_pm.json](results/ppo_pm.json) |
+| Harder level "scenario": PPO − random | 0.897 [0.645, 1.138] on 214 worlds | [ppo_pm.json](results/ppo_pm.json) |
+| Harder level "harsh": PPO − random | 0.496 [-0.233, 1.187] on 146 worlds | [ppo_pm.json](results/ppo_pm.json) |
 
 Statistics come from `src/fundforge_ml/evals.py`: IQM, a percentile bootstrap that resamples runs and worlds, a world-paired difference, and P(X > Y) after Agarwal et al. 2021.
 
 **Known failure modes and limitations.**
 - Random valid play wins every test world at every level tried. So PPO's gain is in score, not in tier. The likely reasons (`docs/PROGRESS.md`, 27 October): the bot partner handles the recall, almost any single reduce action avoids the day-16 margin call, and the gate keeps only worlds where minimal recall lines win.
-- On the two harder levels, PPO trained on base worlds does worse than random. The scenario-level interval excludes zero.
-- 3 seeds and 10 test families is a small sample. The planned full run (`--seeds 5 --steps 200000`) has not been done.
-- The run was made on commit `77445f6`, before the rules changes of 28 October (`case1-rules-2026.10.28`, `case1-rules-2026.10.29`) and the `bot:v1` retry fix. The JSON does not record its rules version.
+- PPO was trained on base worlds. Its lead shrinks on the two harder levels: the scenario-level interval excludes zero, the harsh-level interval does not.
+- These levels exclude `hard` (`HARD_VERSION`), the only level where random play loses. It has not been evaluated yet.
+- The run was made on commit `9049303` from a clean tree, after the rules changes of 28 October (`case1-rules-2026.10.28`, `case1-rules-2026.10.29`) and the `bot:v1` retry fix. The JSON does not record its rules version.
 - Only the PM seat has been trained.
 - An earlier 1-seed, 200k-step result is in git history (commit `f1d5b26`). It is superseded and not quoted here.
 
-**Reproduce.** `cd ml && uv run --group train python scripts/eval_ppo.py --seeds 3 --steps 2048 --families 300 --grid lr3e-4_ent0.01,lr1e-4_ent0.01,lr3e-4_ent0 --random-runs 5 --procs 24`
+**Reproduce.** `cd ml && uv run --group train python scripts/eval_ppo.py --seeds 5 --steps 200000 --families 3000 --procs 8`
 
-**Versions.** Contract `ml-contracts-2026.10.1`; encoder `obs-v1`; actions `actions-v1`; reward `reward-v1`; generator `gen-2026.10.1` (base) and `gen-2026.10.2` (harder levels); sb3 and sb3-contrib `2.9.0`; torch `2.14.1+cpu`; commit `77445f6`. Each trained model's SHA-256 is in the JSON; the model files are not committed.
+**Versions.** Contract `ml-contracts-2026.10.1`; encoder `obs-v1`; actions `actions-v1`; reward `reward-v1`; generator `gen-2026.10.1` (base) and `gen-2026.10.2` (harder levels); sb3 and sb3-contrib `2.9.0`; torch `2.14.1+cpu`; commit `9049303`. Each trained model's SHA-256 is in the JSON; the model files are not committed.
 
 ---
 
@@ -223,14 +223,14 @@ Statistics come from `src/fundforge_ml/evals.py`: IQM, a percentile bootstrap th
 
 **Training data and split.** Gated `ppo-<n>` families split with `split_of`, as in card 1. The learned forecaster uses only train families of the `forecast-<i>` worlds.
 
-**Evaluation.** Not yet measured. There is no `results/voi_pm.json`. A 2,048-step smoke run tied all modes and was not committed (`docs/PROGRESS.md`, 27 October).
+**Evaluation.** 3 seeds per mode × 100000 steps on 96 test worlds. Paired reward against `none`: exact Bayes -0.008 [-0.077, 0.061]; learned forecaster -0.089 [-0.164, -0.007] ([voi_pm.json](results/voi_pm.json)).
 
 The one related measured number: on the forecast test set, the logistic model's Brier gap to the exact filter is 0.0178 ([forecast.json](results/forecast.json)).
 
 Logistic regression was chosen over LightGBM so that `learned` sits clearly between `none` and `exact`.
 
-**Known failure modes and limitations.** No result yet. Any future result inherits card 1's problem: if random play already wins every world, a better belief can only change score, not tier.
+**Known failure modes and limitations.** A better belief bought no measured return: the exact-belief interval includes zero and the learned belief is slightly worse. Random play wins every one of these worlds, so a belief can change score but not tier, and this says nothing about worlds where play can lose. Only 3 seeds per mode.
 
-**Reproduce (planned).** `cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --workers 9`
+**Reproduce.** `cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --forecast-worlds 20000 --n-envs 4 --workers 4`
 
 **Versions.** Belief `belief-v1`; forecast features `forecast-features-2026.10.1`; plus card 1's versions. The script writes them all into the result JSON.

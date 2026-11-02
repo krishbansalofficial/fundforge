@@ -36,15 +36,15 @@ The generator also returns a seed commitment (`generator.commitment`), a SHA-256
 
 `worlds.world(...)` raises `WorldRejected` with these codes. Callers record rejections; they never drop them silently (`docs/ML_CONTRACTS.md` section 4). The dataset writes them to `rejections.parquet`; the training scripts write counts into their result JSON.
 
-**Measured acceptance** (from the PPO run's gate, families `ppo-0` to `ppo-299`):
+**Measured acceptance** (from the PPO run's gate, families `ppo-0` to `ppo-2999`):
 
 | Quantity | Value | Source |
 |---|---|---|
-| Base level: families gated; accepted | 300; 137 | [ppo_pm.json](results/ppo_pm.json) |
-| Base level rejections: `base` variant; `rally` variant (all `cover_recall_only_does_not_win`) | 157; 16 | [ppo_pm.json](results/ppo_pm.json) |
-| Accepted by split: train / val / test | 115 / 12 / 10 | [ppo_pm.json](results/ppo_pm.json) |
-| Scenario level (test families only): gated; accepted | 26; 8 | [ppo_pm.json](results/ppo_pm.json) |
-| Harsh level (test families only): gated; accepted | 26; 8 | [ppo_pm.json](results/ppo_pm.json) |
+| Base level: families gated; accepted | 3000; 1319 | [ppo_pm.json](results/ppo_pm.json) |
+| Base level rejections: `base` variant; `rally` variant (all `cover_recall_only_does_not_win`) | 1637; 108 | [ppo_pm.json](results/ppo_pm.json) |
+| Accepted by split: train / val / test | 1046 / 136 / 137 | [ppo_pm.json](results/ppo_pm.json) |
+| Scenario level (test families only): gated; accepted | 320; 107 | [ppo_pm.json](results/ppo_pm.json) |
+| Harsh level (test families only): gated; accepted | 320; 73 | [ppo_pm.json](results/ppo_pm.json) |
 
 On the scenario and harsh levels, rejections also include `S1_balanced_does_not_win` and `derisk_floor_does_not_win` (counts per code are in the JSON). The M1 benchmark rejected 1 of 4 families it tried (`base-2`, `cover_recall_only_does_not_win`; [bench_env.json](results/bench_env.json)).
 
