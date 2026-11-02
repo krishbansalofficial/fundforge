@@ -158,9 +158,12 @@ tr.entry-start td { border-top: 1px solid var(--ink-soft); }
 .decisions { margin: 0; padding: 0; list-style: none; display: grid; }
 .decisions li { display: grid; grid-template-columns: 3.6rem 1fr; gap: 0.5rem; padding: 0.3rem 0; border-bottom: 1px solid var(--rule); }
 .verdict { font-size: 2.6rem; line-height: 1; font-weight: 700; }
-.verdict.win { color: var(--gain); }
-.verdict.survival { color: var(--amber-text); }
-.verdict.distress { color: var(--breach); }
+.verdict.win, .verdict.renewal { color: var(--gain); }
+.verdict.survival, .verdict.winddown { color: var(--amber-text); }
+.verdict.distress, .verdict.default, .verdict.company_failure { color: var(--breach); }
+.ending-card { margin: 1rem 0; padding: 1rem; border: 1px solid var(--rule); }
+.ending-card th { font-weight: 400; color: var(--ink-soft); text-align: left; white-space: nowrap; }
+.ending-card td { overflow-wrap: anywhere; }
 
 @media (max-width: 52rem) {
   .grid { grid-template-columns: 1fr; }

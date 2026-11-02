@@ -68,7 +68,8 @@ export function Terminal({ roomId, token, version, theses, send, busy }: {
       </nav>
       {page === "ORDERS" && <Blotter orders={t.orders} />}
       {page === "STREET" && <Street league={t.league} />}
-      {page === "RISK" && <Certification report={r.certification} />}
+      {page === "RISK" && <><Certification report={r.certification} />
+        <Breaks controls={r.controls} mp={t.role === "mp"} version={t.version} send={send} busy={busy} /></>}
       {page === "MON" && <>
       <div className="grid">
         <div>
@@ -132,6 +133,47 @@ export function Terminal({ roomId, token, version, theses, send, busy }: {
       </>}
     </section>
   );
+}
+
+/** Control breaks and the broker statement queue, as Godot RISK shows them. The MP accepts a matching
+ *  correction with `resolve_statement`, bound to this snapshot's room version and the row's revision;
+ *  both originals stay in the history. */
+function Breaks({ controls, mp, version, send, busy }: {
+  controls: Snapshot["risk"]["controls"]; mp: boolean; version: number; send: Send; busy: boolean;
+}) {
+  const [refused, setRefused] = useState("");
+  const queue = controls.statement_queue;
+  return <section aria-labelledby="breaks-h">
+    <h3 id="breaks-h">Control breaks and broker statements</h3>
+    <p className="muted">{controls.scope}</p>
+    <p role="status">Controls: {controls.status}. {controls.breaks.length === 0 ? "No open book discrepancies." : `${controls.breaks.length} open book ${controls.breaks.length === 1 ? "discrepancy" : "discrepancies"}.`}</p>
+    {controls.breaks.length > 0 && <table aria-label="Open control breaks">
+      <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Expected</th><th scope="col">Recorded</th></tr></thead>
+      <tbody>{controls.breaks.map((b, i) => <tr key={`${b.code}:${b.subject}:${i}`}><th scope="row">{b.code}</th><td>{b.subject}</td>
+        <td>{b.expected ?? "—"}</td><td>{b.actual ?? "—"}</td></tr>)}</tbody>
+    </table>}
+    <p className="muted">Broker activity: {num(controls.broker.activity_count)} movements, {num(controls.broker.fee_line_count)} dated fee lines, {num(controls.broker.statement_count)} statement revisions.</p>
+    {queue.length === 0 ? <p className="muted">No broker statement breaks in the review queue.</p> : queue.map((s) => <article key={s.id}>
+      <h4>{s.id}: {s.status === "open" ? "Open" : "Resolved"}, {s.account}</h4>
+      <p>Statement {money(s.actual, 2)} against expected {money(s.expected, 2)}. MP review; age {num(s.age_calendar_days)} calendar days; revision {s.revision}.</p>
+      <table aria-label={`${s.id} statement revisions`}>
+        <thead><tr><th scope="col">Revision</th><th scope="col">Source</th><th scope="col" className="n">Reported</th><th scope="col" className="n">Expected</th>
+          <th scope="col">Reason</th><th scope="col">As of</th><th scope="col">Published</th></tr></thead>
+        <tbody>{s.history.map((h) => <tr key={h.revision}><th scope="row">r{h.revision}{h.supersedes != null ? ` (supersedes r${h.supersedes})` : ""}</th>
+          <td>{h.source}</td><td className="n">{money(h.balance, 2)}</td><td className="n">{money(h.expected, 2)}</td><td>{h.reason}</td>
+          <td>Day {h.as_of.day} {h.as_of.phase}</td><td>Day {h.available_at.day} {h.available_at.phase}</td></tr>)}</tbody>
+      </table>
+      {s.resolution_history.length > 0 && <ul aria-label={`${s.id} resolution history`}>
+        {s.resolution_history.map((x, i) => <li key={i}>{x.date}: {x.actor.toUpperCase()} accepted revision {x.revision}</li>)}
+      </ul>}
+      {mp && s.can_resolve && <button type="button" disabled={busy} onClick={() => {
+        setRefused("");
+        send({ type: "resolve_statement", statement_id: s.id, revision: s.revision, version },
+          "Correction reviewed. Original evidence remains in the break history.").then((no) => { if (no) setRefused(no); });
+      }}>Accept matching correction: {s.id}</button>}
+    </article>)}
+    {refused && <p role="alert">Statement not resolved: {refused}</p>}
+  </section>;
 }
 
 /** Observed marks, one point per processed event (evenly spaced); no candles or invented intraday path. */

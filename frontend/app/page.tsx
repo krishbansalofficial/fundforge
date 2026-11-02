@@ -1,28 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { api } from "./lib";
+import { useRef, useState } from "react";
+import { exclusive } from "./exclusive";
+import { api, SCENARIOS } from "./lib";
 
 type Room = { room_id: string; tokens: { pm: string; mp: string }; names: { pm: string; mp: string } };
 
 export default function Home() {
   const [pm, setPm] = useState("");
   const [mp, setMp] = useState("");
+  const [scenario, setScenario] = useState<string>("case1");
   const [room, setRoom] = useState<Room | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function create(e: React.FormEvent) {
+  const inFlight = useRef(false); // a double-click must not open two rooms
+  function create(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      setRoom(await api("/api/rooms", undefined, { scenario: "case1", pm_name: pm || "Ana", mp_name: mp || "Ben" }));
-    } catch (err) {
-      setError(`Couldn't open the fund: ${(err as Error).message}. Check that the API is running.`);
-    } finally {
-      setBusy(false);
-    }
+    void exclusive(inFlight, async () => {
+      setBusy(true);
+      setError("");
+      try {
+        setRoom(await api("/api/rooms", undefined, { scenario, pm_name: pm || "Ana", mp_name: mp || "Ben" }));
+      } catch (err) {
+        setError(`Couldn't open the fund: ${(err as Error).message}. Check that the API is running.`);
+      } finally {
+        setBusy(false);
+      }
+    });
   }
 
   const link = (role: "pm" | "mp") =>
@@ -60,6 +65,12 @@ export default function Home() {
           <label>
             Managing partner&rsquo;s name
             <input value={mp} onChange={(e) => setMp(e.target.value)} maxLength={40} placeholder="Ben" />
+          </label>
+          <label>
+            Scenario
+            <select value={scenario} onChange={(e) => setScenario(e.target.value)}>
+              {SCENARIOS.map(([key, text]) => <option key={key} value={key}>{text}</option>)}
+            </select>
           </label>
           <button type="submit" disabled={busy}>{busy ? "Opening…" : "Open the fund"}</button>
           {error && <p className="error" role="alert">{error}</p>}

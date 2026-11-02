@@ -18,6 +18,15 @@ export type Forecast = Schemas["Forecast"];
 export type Command = NonNullable<paths["/api/rooms/{room_id}/commands"]["post"]["requestBody"]>["content"]["application/json"];
 export type Side = Schemas["OrderSpec"]["side"];
 
+/** Scenario menu: [Store scenario key, label]. Must match Godot's WorldRules.SCENARIOS (card.test.ts checks it). */
+export const SCENARIOS = [
+  ["case1", "Case 1: standard crisis"],
+  ["case1-controls", "Broker review challenge: investigate a cash statement error in Terminal RISK"],
+  ["case1-settlement", "Settlement failure: a tight credit line fails a BUY settlement; follow the retry in RISK"],
+  ["case1-generated", "Generated market: Case 1's crisis on a fresh seeded price path (seed revealed at the end)"],
+  ["campaign-v1", "Campaign: the first mandate, 30 days in three chapters with six instruments"],
+] as const;
+
 export const money = (s: string | null | undefined, dp = 0) =>
   s == null ? "—" : Number(s).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: dp, maximumFractionDigits: dp });
 

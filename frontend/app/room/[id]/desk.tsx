@@ -5,9 +5,15 @@ import { exclusive } from "../../exclusive";
 import { seatTokenFromUrl } from "../../seat";
 import { api, exactPct, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
 import { LEDGER_PAGE, mergePage, olderCursor, type Journal } from "../../journal";
+import { LABELS } from "../../card";
+import { EndingCard } from "./ending-card";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
-const DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+// Ten days at a time, anchored so Case 1 always shows 12-21; the campaign pages through 1-10, 2-11, 12-21, 22-31.
+const daysAround = (day: number) => {
+  const first = Math.max(1, 12 + 10 * Math.floor((day - 12) / 10));
+  return Array.from({ length: 10 }, (_, i) => first + i);
+};
 const PHASES = ["OPEN_ADMIN", "PUBLIC_MARK", "EXEC_A", "EXEC_B", "CLOSE"];
 const PHASE_LABEL: Record<string, string> = {
   OPEN_ADMIN: "Opening admin", PUBLIC_MARK: "Market open", EXEC_A: "10:00 execution", EXEC_B: "15:00 execution", CLOSE: "Close",
@@ -215,11 +221,12 @@ function Ribbon({ v }: { v: View }) {
         </span>
       </div>
       <ol className="days" tabIndex={0} aria-label="Season calendar">
-        {DAYS.map((d) => (
+        {daysAround(nxt?.day ?? cur.day).map((d) => (
           <li key={d} className={nxt && d === nxt.day ? "today" : ""}>
             <span className="day-n">Day {d}</span>
             <span className="ticks" aria-hidden>
-              {(d === 21 ? PHASES.slice(0, 1) : PHASES).map((p) => (
+              {/* ponytail: the view has no last-day field, so campaign day 21 also draws one tick (aria-hidden) */}
+              {(d === 21 || d === 31 ? PHASES.slice(0, 1) : PHASES).map((p) => (
                 <i key={p} className={pos(d, p) < here ? "done" : pos(d, p) === here ? "now" : ""} />
               ))}
             </span>
@@ -279,7 +286,9 @@ function Feed({ v }: { v: View }) {
 
 
 function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
-  const [sym, setSym] = useState("BEAM");
+  const [picked, setPicked] = useState("BEAM");
+  const names = Object.keys(v.marks);
+  const sym = names.includes(picked) ? picked : names[0]; // the campaign's tickers differ from Case 1's
   const [side, setSide] = useState<Side>("SELL");
   const [qty, setQty] = useState("");
   const [limit, setLimit] = useState("");
@@ -296,7 +305,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
       {!atBarrier && <p className="muted">Orders open at the next decision point.</p>}
       <form className="ticket" onSubmit={(e) => { e.preventDefault(); }}>
         <label>Side<select value={side} onChange={(e) => setSide(e.target.value as Side)}>{SIDES.map((s) => <option key={s}>{s}</option>)}</select></label>
-        <label>Name<select value={sym} onChange={(e) => setSym(e.target.value)}>{Object.keys(v.marks).map((s) => <option key={s}>{s}</option>)}</select></label>
+        <label>Name<select value={sym} onChange={(e) => setPicked(e.target.value)}>{names.map((s) => <option key={s}>{s}</option>)}</select></label>
         <label>Shares<input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} placeholder="0" /></label>
         <label>Limit (optional)<input inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value.replace(/[^\d.]/g, ""))} placeholder="Market" /></label>
         <p className="hint">≈ {money(String(notional))} at the current mark. Fills at the next execution, with impact.</p>
@@ -449,7 +458,7 @@ function Investors({ v, send }: { v: View; send: Send }) {
       {inbox ? <>
         <p>{inbox.policy}</p>
         {inbox.lps.map((lp) => {
-          const reason = v.clock.finished ? "The run has ended." : v.attention?.committed ? "Attention already committed for this window." : v.clock.day > 15 ? "No LP review remains in this window." : lp.contacted ? "Already contacted before the next review." : "";
+          const reason = v.clock.finished ? "The run has ended." : v.attention?.committed ? "Attention already committed for this window." : lp.contacted ? "Already contacted before the next review." : "";
           return <article key={lp.id}>
             <h3>{lp.id}: {lp.band.replaceAll("_", " ")}</h3>
             {lp.requested_units != null && <p>Redemption request {lp.requested_units} units, dealt at the day {inbox.deal_day} close, payable day {Number(inbox.deal_day) + 1}.</p>}
@@ -598,7 +607,7 @@ function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; ro
   if (!o) {
     return (
       <section className="panel wide">
-        <p className="muted">The debrief opens after the day 21 payment. So far: {v.incidents.length ? v.incidents.join("; ") : "no forced actions or unpaid claims"}. Maintenance headroom is {money(String(headroom))}.</p>
+        <p className="muted">The debrief opens after the final payment. So far: {v.incidents.length ? v.incidents.join("; ") : "no forced actions or unpaid claims"}. Maintenance headroom is {money(String(headroom))}.</p>
       </section>
     );
   }
@@ -606,11 +615,16 @@ function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; ro
     WIN: "You kept control. The recall was resolved without a forced buy-in, nothing was liquidated, and Tactical was paid on time.",
     SURVIVAL: "The fund survived and paid its investors, but the broker acted for you. The forced trades are listed below.",
     DISTRESS: "Claims went unpaid or NAV failed. Each shortfall is listed below and stays on the books.",
+    RENEWAL: "Every published renewal term was met, so the mandate renews.",
+    WINDDOWN: "The partners completed a controlled winddown and returned the capital.",
+    DEFAULT: "The fund defaulted: the broker defaulted it, claims went overdue, or NAV failed.",
+    COMPANY_FAILURE: "The management company failed: payroll went unpaid or firm cash went negative.",
   };
+  const renewal = o.renewal_failures; // null outside the campaign
   return (
     <section className="panel wide debrief">
-      <h2 className={`verdict ${o.label.toLowerCase()}`}>{o.label === "WIN" ? "Win" : o.label === "SURVIVAL" ? "Survival" : "Distress"}</h2>
-      <p>{verdict[o.label]}</p>
+      <h2 className={`verdict ${o.label.toLowerCase()}`}>{LABELS[o.label] ?? o.label}</h2>
+      <p>{renewal && o.label === "SURVIVAL" ? "The fund reached the end, but the mandate did not renew." : verdict[o.label]}</p>
       <dl>
         <dt>Ending NAV</dt><dd>{money(o.nav, 2)}</dd>
         <dt>Scenario</dt><dd>{o.scenario}</dd>
@@ -625,6 +639,9 @@ function Debrief({ v, headroom, roomId, token }: { v: View; headroom: number; ro
         <dt>Recall resolved by</dt><dd>{o.recall_resolved_by ?? "unresolved"}</dd>
         <dt>Forced actions</dt><dd>{o.forced.length ? o.forced.join("; ") : "none"}</dd>
         <dt>Unpaid or failed</dt><dd>{o.unpaid.length ? o.unpaid.join("; ") : "none"}</dd>
+        {renewal && renewal.length > 0 && <>
+          <dt>Renewal terms not met</dt><dd>{renewal.join("; ").replaceAll("_", " ")}</dd>
+        </>}
         <dt>Replay proof</dt><dd className="digest">tape {o.tape_digest.slice(0, 12)}, journal {o.journal_digest.slice(0, 12)}</dd>
       </dl>
       {token && <RunRecord v={v} roomId={roomId} token={token} />}
@@ -690,11 +707,14 @@ function RunRecord({ v, roomId, token }: { v: View; roomId: string; token: strin
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [roomId, token, v.version, attempt]);
-  if (loading) return <p role="status">Loading run record…</p>;
-  if (error) return <div><p role="alert">Run record unavailable: {error}</p>
-    <button type="button" onClick={() => { setLoading(true); setAttempt(a => a + 1); }}>Retry run record</button></div>;
-  if (!d) return null;
-  return <><ResearchScores v={v} r={d.research} /><InvestorRecord investors={d.investors} /><Replay v={v} roomId={roomId} token={token} baseline={d} /></>;
+  // The card needs only the outcome; research rows join it when the run record arrives and drop if it fails.
+  return <>
+    {v.outcome && <EndingCard o={v.outcome} names={v.names} research={d?.research} roomId={roomId} token={token} version={v.version} />}
+    {loading ? <p role="status">Loading run record…</p>
+      : error ? <div><p role="alert">Run record unavailable: {error}</p>
+        <button type="button" onClick={() => { setLoading(true); setAttempt(a => a + 1); }}>Retry run record</button></div>
+      : d && <><ResearchScores v={v} r={d.research} /><InvestorRecord investors={d.investors} /><Replay v={v} roomId={roomId} token={token} baseline={d} /></>}
+  </>;
 }
 
 function InvestorRecord({ investors }: { investors: DebriefResponse["investors"] }) {
