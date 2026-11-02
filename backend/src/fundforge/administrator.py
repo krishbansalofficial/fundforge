@@ -110,6 +110,11 @@ class Administrator:
             return Claim(d, key, units, price, payable, fee,
                          replace(s, units=s.units - units, net=s.net - payable, provision=s.provision - fee))
 
+    def subscribe(self, key: str, units: Decimal, hwm: Decimal, amount: Decimal) -> None:
+        if key in self.series:
+            raise ValueError("a subscription creates a new series")
+        self.series[key] = Capital(key, units, hwm, amount)
+
     def deal(self, claim: Claim) -> None:
         if claim != self.preview(claim.date, claim.series_id, claim.units):
             raise ValueError("stale administrator claim")

@@ -35,7 +35,7 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.10.29"  # .29: reprovision rounds capital above HWM once (exact ties)
+RULES_VERSION = "case1-rules-2026.11.1"  # .11.1: a campaign prospect subscription issues a new series at dealing
 TENTH = Decimal("0.1")  # basis-point display step
 
 
@@ -134,6 +134,8 @@ class Engine:
         self.incident_events: list[dict[str, Any]] = []
         self.paid: dict[str, Decimal] = {}
         self.winddown: int | None = None  # campaign: day a joint winddown was declared
+        self.prospect = investors.Prospect() if r.get("prospect") else None  # campaign fundraising pipeline
+        self._founding = {x["id"] for x in r["opening"]["fund"]["series"]}
         self.mandate = Ruleset.from_raw(tape.raw["mandate"])
         self._opening_marks = dict(self.marks)
         self.market = Market(tape.raw.get("market"), tape.instruments)
@@ -310,6 +312,9 @@ class Engine:
         current_research = [r for r in self.research_used if r["assigned_day"] >= chapter_start]
         if topic not in rs["topics"] or any(r["topic"] == topic for r in current_research):
             raise CommandRejected(f"unknown or repeated research topic {topic!r}")
+        refusal = investors.prospect_assignment_refusal(self, topic)
+        if refusal:
+            raise CommandRejected(refusal)
         if role is not None:
             assignment = rs["assignments"][topic]
             if assignment["role"] != role:
@@ -382,6 +387,7 @@ class Engine:
         if self.lp is not None:
             self.lp.requests = {}
             self.lp.deal_day = None
+        investors.forfeit_prospect(self, "winddown")
         self._notice("Both partners declared a controlled winddown: no new buying or shorting; liquidate the book "
                      "so every unit can be redeemed.", code="winddown_declared")
 
@@ -467,6 +473,7 @@ class Engine:
         self._true_up_collateral()
         self._pay_due()
         self._repay_debt()
+        investors.prospect_funding(self)
 
     def _public_mark(self) -> None:
         self._publish_notices()
@@ -491,6 +498,7 @@ class Engine:
                 self._notice(text, "research", code="research_reveal", topic=r["topic"], owner=r.get("owner"))
                 if r["topic"] == "borrow":
                     self.offer_visible = True
+                investors.prospect_reveal(self, r["topic"])
         self._true_up_collateral()
         d = self.deficit()
         self.margin_call = d if d > 0 else None
@@ -526,17 +534,18 @@ class Engine:
         pre_deal_nav = self.unit_nav()
         self._deal()
         investors.on_close(self)
+        investors.prospect_conditions(self)
         nxt = self.next_event_after_close()
         d = self.ev.date + timedelta(days=1)
         while nxt and d < nxt:
             self._accrue_date(d)
             d += timedelta(days=1)
         # A close that redeems the last unit reports its pre-flow price: the realized liquidation value, not zero.
-        self.close_values.append(self.unit_nav() if any(s.units > 0 for s in self.series) else pre_deal_nav)
+        self.close_values.append(self.unit_nav() if any(s.units > 0 for s in self._founders()) else pre_deal_nav)
 
     def reported_unit_nav(self) -> Decimal:
         """Unit value for returns: the live value, or after a full winddown the last realized dealing price."""
-        return self.unit_nav() if any(s.units > 0 for s in self.series) else self.close_values[-1]
+        return self.unit_nav() if any(s.units > 0 for s in self._founders()) else self.close_values[-1]
 
     def next_event_after_close(self) -> date | None:
         i = self.cursor + 1
@@ -840,7 +849,7 @@ class Engine:
         else:
             due = [(r["series"], D(r["units"]), r["units"]) for r in self.tape.raw["redemptions"]
                    if r["deal_day"] == self.ev.day]
-        if due:
+        if due or investors.admission_due(self):
             report = self.control_report()
             self._require(report["execution_status"] == "checked", "administrator_controls",
                           "independent execution/valuation break blocks dealing")
@@ -860,6 +869,7 @@ class Engine:
                                amounts={"nav_difference": str(cert.difference)}, reasons=",".join(cert.reasons))
                 self._notice("Dealing withheld: NAV certification failed; resolve the listed controls.", "alert",
                              code="dealing_blocked", reasons=",".join(cert.reasons))
+                investors.deal_subscription(self, certified=False)
                 return
         for sid, units, label in due:
             idx = next(i for i, s in enumerate(self.series) if s.series_id == sid)
@@ -881,6 +891,16 @@ class Engine:
                          "business day.", code="redemption_dealt", series=sid, payable=str(payable))
         if self.lp is not None and self.lp.deal_day == self.ev.day and self.lp.requests:
             investors.dealt(self, carried)
+        investors.deal_subscription(self, certified=True)  # after redemptions (FUND_ACCOUNTING §7 step 6)
+
+    def admit_series(self, series_id: str, amount: Decimal, units: Decimal, hwm: Decimal) -> None:
+        """Receive subscription cash and issue a new series: capital, not revenue. It participates from the next
+        calendar period because today's common P&L is already allocated."""
+        self.broker.record(self.ev.date, "subscription", amount=amount)
+        self.administrator.subscribe(series_id, units, hwm, amount)
+        self.series.append(Series(series_id, units, hwm, amount))
+        self._post(f"Admit subscription {series_id}: {units} units", ("cash", amount),
+                   (f"capital:{series_id}", -amount))
 
     def _pay_due(self) -> None:
         """Treasury sweep priority: redemptions, then fixed fees, then interest (collateral already trued up)."""
@@ -1043,11 +1063,16 @@ class Engine:
                 self._require(self.borrowed(sym) + pending_short - pending_cover == max(0, -qty),
                               "borrow_position", f"{sym} loans do not reconcile to economic short")
 
+    def _founders(self) -> list[Series]:
+        return [x for x in self.series if x.series_id in self._founding]
+
     def unit_nav(self) -> Decimal:
-        """Fund NAV per unit across every series (net of provisions); flows leave it unchanged."""
+        """NAV per unit across the founding series (net of provisions); flows leave it unchanged. A series admitted
+        at 100 is excluded: blending its entry price would count a subscription as investment return."""
         with localcontext(CTX):
-            units = sum((x.units for x in self.series), Decimal(0))
-            return sum((x.net for x in self.series), Decimal(0)) / units if units else Decimal(0)
+            founders = self._founders()
+            units = sum((x.units for x in founders), Decimal(0))
+            return sum((x.net for x in founders), Decimal(0)) / units if units else Decimal(0)
 
     def max_drawdown(self) -> str:
         """Largest peak-to-trough fall of fund NAV per unit over the warm start and each business close, as a

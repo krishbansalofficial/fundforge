@@ -182,7 +182,7 @@ class Package(Strict):
     status: str
     signatures: list[str]
     orders: list[PackageOrder]
-    kind: Literal["orders", "gate"]
+    kind: Literal["orders", "gate", "winddown", "admission"]
     terms: dict[str, Any]  # a gate binds {"deal_day", "requests": {series: units}}; empty for orders
 
 
@@ -201,6 +201,18 @@ class Investors(Strict):
     deal_day: int | None
     gate_elected: bool
     lps: list[LpRow]
+
+
+class ProspectView(Strict):
+    """Campaign fundraising pipeline as this seat may know it. Escrow is outside the fund: not NAV or collateral."""
+    stage: str
+    reason: str | None
+    escrow: Dec
+    authorized: Dec | None
+    series_id: str | None
+    max_amount: Dec | None
+    cap_step: Dec | None
+    dealing_day: int | None
 
 
 class LeagueRow(Strict):
@@ -298,6 +310,7 @@ class SessionView(Strict):
     outcome: Outcome | None
     investors: Investors | None  # managing partner only, generated rooms only
     certification: CertificationStatus | None = None  # latest dealing-close NAV certificate; pending before one
+    prospect: ProspectView | None = None  # campaign only
 
 
 class RoomView(SessionView):
@@ -849,10 +862,24 @@ class ProposeWinddown(Strict):
     package_id: Id
 
 
+class ProposeAdmission(Strict):
+    """Campaign: propose admitting the funded prospect at ``amount`` (full or capped); the other partner's ``sign``
+    consents."""
+    type: Literal["propose_admission"]
+    package_id: Id
+    amount: DecIn
+
+
+class DeclineProspect(Strict):
+    """Campaign, managing partner: reject the prospective LP; any escrow returns to it."""
+    type: Literal["decline_prospect"]
+
+
 # ``tick`` is not here: only the server's clock issues it, never an HTTP client.
 Command = Annotated[
     Ticket | Propose | Sign | Cancel | ResearchCommand | Visit | ShareResearch | AcceptReplacement | SetReserve
-    | ResolveStatement | Ready | SetSpeed | Say | Pause | Thesis | ContactLp | ProposeGate | ProposeWinddown,
+    | ResolveStatement | Ready | SetSpeed | Say | Pause | Thesis | ContactLp | ProposeGate | ProposeWinddown
+    | ProposeAdmission | DeclineProspect,
     Field(discriminator="type"),
 ]
 

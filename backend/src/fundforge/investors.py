@@ -19,13 +19,19 @@ In generated-market rooms (tape ``lp_agents`` = ``lp.POLICY_VERSION``) the engin
 
 Confidence values never leave the server during play: the managing partner sees bands
 (``view``); exact components are in the finished run's debrief.
+
+Campaign prospect (GAME_SYSTEMS fundraising pipeline, FUND_ACCOUNTING §5): stage only, no money, until
+``deal_subscription`` calls ``Engine.admit_series`` at the dealing close. An admitted series is locked through the
+campaign and is not one of the three LP agents: it has no confidence state and makes no redemption request.
 """
 
 from __future__ import annotations
 
-from decimal import Decimal, localcontext
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation, localcontext
 from typing import TYPE_CHECKING, Any
 
+from .compliance import subscription_breaches
 from .lp import (
     DEALING_LAG,
     LAUNCH,
@@ -74,8 +80,8 @@ def chapter_facts(e: Engine, start_nav_per_unit: dict[str, Decimal], start_day: 
     out: dict[str, ChapterFacts] = {}
     with localcontext(CTX):
         for s in e.series:
-            if s.units <= 0:
-                continue  # a fully redeemed LP is no longer in the fund
+            if s.units <= 0 or s.series_id not in start_nav_per_unit:
+                continue  # a fully redeemed LP is no longer in the fund; an admitted series is not an LP agent
             ret = (s.net / s.units / start_nav_per_unit[s.series_id] - 1) * 100
             out[s.series_id] = ChapterFacts(
                 net_return_pp=ret, report_certified=certified,
@@ -106,7 +112,7 @@ def on_close(e: Engine) -> None:
     if b is None:
         return
     day = e.ev.day
-    live = [s for s in e.series if s.units > 0]
+    live = [s for s in e.series if s.units > 0 and s.series_id in b.states]
     with localcontext(CTX):
         for s in live:
             b.peaks[s.series_id] = max(b.peaks[s.series_id], s.net / s.units)
@@ -146,7 +152,7 @@ def on_close(e: Engine) -> None:
             # Returns and drawdown belong to this chapter, not the cumulative campaign.
             # Start the next window after this close; carried units remain invested.
             with localcontext(CTX):
-                b.start_value = {s.series_id: s.net / s.units for s in e.series if s.units > 0}
+                b.start_value = {s.series_id: s.net / s.units for s in live if s.units > 0}
             b.peaks = dict(b.start_value)
             b.start_day = day + 1
 
@@ -238,3 +244,176 @@ def debrief(e: Engine) -> dict[str, Any] | None:
                       for sid, st in sorted(b.states.items())},
             "carried_units": {k: str(v) for k, v in sorted(b.carried.items())}}
 
+
+
+# ---------- campaign prospect: prospect -> qualified -> diligence -> committed -> eligible -> admitted ----------
+ISSUE_PRICE = Decimal(100)  # FUND_ACCOUNTING §5: every subscription is a new series at 100, HWM 100
+CLOSED = ("admitted", "forfeited", "declined")
+
+
+@dataclass
+class Prospect:
+    stage: str = "prospect"
+    reason: str | None = None  # why it forfeited
+    signed: bool = False  # the LP signed a conditional commitment: not NAV, cash or margin collateral
+    escrow: Decimal = Decimal(0)  # simulated escrow, outside the fund; never posted to any journal
+    authorized: Decimal | None = None  # amount both partners consented to admit
+
+
+def _terms(e: Engine) -> dict[str, Any]:
+    terms: dict[str, Any] = e.tape.raw["prospect"]
+    return terms
+
+
+def forfeit_prospect(e: Engine, reason: str) -> None:
+    p = e.prospect
+    if p is None or p.stage in CLOSED:
+        return
+    p.stage, p.reason, p.escrow, p.authorized = "forfeited", reason, Decimal(0), None
+    e._notice("The prospective LP's offer has lapsed; any escrow returns to it and the fund is unchanged.",
+              code="prospect_forfeited", reason=reason)
+
+
+def prospect_assignment_refusal(e: Engine, topic: str) -> str | None:
+    """Why this pipeline assignment cannot be made now; None for an allowed or unrelated topic."""
+    p = e.prospect
+    if p is None:
+        return None
+    t = _terms(e)
+    if topic not in (t["qualification_topic"], t["diligence_topic"]):
+        return None
+    if p.stage in CLOSED or e.ev.day >= t["condition_day"]:
+        return "the prospect's diligence window has closed"
+    if any(r["topic"] == topic for r in e.research_used):
+        return "this prospect assignment is already done"
+    if topic == t["diligence_topic"] and p.stage != "qualified":
+        return "the prospect must be qualified before diligence"
+    return None
+
+
+def prospect_reveal(e: Engine, topic: str) -> None:
+    p = e.prospect
+    if p is None:
+        return
+    t = _terms(e)
+    if topic == t["qualification_topic"] and p.stage == "prospect":
+        p.stage = "qualified"
+    elif topic == t["diligence_topic"] and p.stage == "qualified":
+        p.stage = "diligence"
+
+
+def prospect_conditions(e: Engine) -> None:
+    """Condition-day close: diligence and a certified report earn a signed commitment; anything else forfeits."""
+    p = e.prospect
+    if p is None or p.stage in CLOSED or e.ev.day != _terms(e)["condition_day"]:
+        return
+    if p.stage != "diligence":
+        forfeit_prospect(e, "diligence_incomplete")
+    elif e.control_report()["status"] != "checked":
+        forfeit_prospect(e, "report_not_certified")
+    else:
+        p.stage, p.signed = "committed", True
+        t = _terms(e)
+        e._notice(f"{t['series_id']} signed a conditional commitment of up to ${D(t['max_amount']):,.0f} for the day "
+                  f"{t['dealing_day']} dealing close. It is not NAV, cash or margin collateral.",
+                  code="prospect_committed", series=t["series_id"])
+
+
+def prospect_funding(e: Engine) -> None:
+    p = e.prospect
+    if p is None or p.stage != "committed" or e.ev.day != _terms(e)["funding_day"]:
+        return
+    t = _terms(e)
+    p.stage, p.escrow = "eligible", D(t["max_amount"])
+    e._notice(f"{t['series_id']} funded ${p.escrow:,.0f} into escrow outside the fund. Both partners must consent "
+              f"to an amount before the day {t['dealing_day']} dealing close, or decline.",
+              code="prospect_escrow", series=t["series_id"], escrow=str(p.escrow))
+
+
+def admission_terms(e: Engine, amount: Any) -> dict[str, Any]:
+    """What a joint admission consent binds to; recomputed at signing, so a changed fact invalidates it."""
+    p = e.prospect
+    if p is None:
+        raise Refused("no prospective LP in this scenario")
+    if not e.at_barrier() or e.finished():
+        raise Refused("admission is proposed at a decision barrier")
+    if p.stage != "eligible":
+        raise Refused("no funded, eligible subscription awaits admission")
+    if p.authorized is not None:
+        raise Refused("both partners already consented to this admission")
+    try:
+        value = D(amount)
+    except (TypeError, ValueError, InvalidOperation) as ex:
+        raise Refused("subscription amount must be a decimal string") from ex
+    t = _terms(e)
+    with localcontext(CTX):
+        if not 0 < value <= p.escrow or value % D(t["cap_step"]) != 0:
+            raise Refused(f"amount must be a positive multiple of ${D(t['cap_step']):,.0f}, at most the "
+                          f"${p.escrow:,.0f} in escrow")
+        breaches = subscription_breaches(e.pos, e.marks, e.nav(), value, e._mandate_rules())
+    if breaches:
+        raise Refused("capacity: " + "; ".join(b.detail for b in breaches))
+    return {"series": t["series_id"], "amount": f"{value:f}", "deal_day": t["dealing_day"],
+            "issue_price": str(ISSUE_PRICE), "hwm": str(ISSUE_PRICE)}
+
+
+def authorize_admission(e: Engine, terms: dict[str, Any]) -> None:
+    assert e.prospect is not None
+    e.prospect.authorized = D(terms["amount"])
+    e._notice(f"Both partners consented to admit ${e.prospect.authorized:,.0f} at the day {terms['deal_day']} dealing "
+              "close, subject to certification and post-flow checks.", code="prospect_consent",
+              series=terms["series"], amount=terms["amount"])
+
+
+def decline_prospect(e: Engine) -> None:
+    p = e.prospect
+    if p is None:
+        raise Refused("no prospective LP in this scenario")
+    if not e.at_barrier() or e.finished():
+        raise Refused("a prospect is declined at a decision barrier")
+    if p.stage in CLOSED:
+        raise Refused("the prospect's pipeline is already closed")
+    p.stage, p.escrow, p.authorized = "declined", Decimal(0), None
+    e._notice("The fund declined the prospective LP; any escrow returns to it and the fund is unchanged.",
+              code="prospect_declined")
+
+
+def admission_due(e: Engine) -> bool:
+    """A consented admission tonight needs a certificate even when no redemption is due."""
+    p = e.prospect
+    return p is not None and p.authorized is not None and e.ev.day == _terms(e)["dealing_day"]
+
+
+def deal_subscription(e: Engine, *, certified: bool) -> None:
+    """Dealing close: admit a funded, consented subscription after redemptions, or lapse it. Unused escrow returns."""
+    p = e.prospect
+    if p is None or p.stage in CLOSED or e.ev.day != _terms(e)["dealing_day"]:
+        return
+    if p.authorized is None:
+        return forfeit_prospect(e, "no_consent")
+    if not certified:
+        return forfeit_prospect(e, "dealing_blocked")
+    amount = p.authorized
+    if subscription_breaches(e.pos, e.marks, e.nav(), amount, e._mandate_rules()):
+        return forfeit_prospect(e, "capacity")
+    sid = _terms(e)["series_id"]
+    with localcontext(CTX):
+        units = amount / ISSUE_PRICE
+    e.admit_series(sid, amount, units, ISSUE_PRICE)
+    p.stage, p.escrow = "admitted", Decimal(0)
+    e._notice(f"Admitted {sid}: ${amount:,.0f} received, {units:,} units issued at 100 with a high-water mark of 100.",
+              code="prospect_admitted", series=sid, amount=str(amount), units=str(units))
+
+
+def prospect_view(e: Engine, role: str) -> dict[str, Any]:
+    """Terms reach a seat only once it holds the revealed evidence or the LP has signed; escrow is outside the fund."""
+    p = e.prospect
+    assert p is not None
+    t = _terms(e)
+    known = p.signed or any(n["code"] == "research_reveal" and n["refs"].get("topic") == t["qualification_topic"]
+                            for n in e.visible_notices(role))
+    stage = p.stage if known or p.stage in ("forfeited", "declined") else "prospect"
+    return {"stage": stage, "reason": p.reason, "escrow": str(p.escrow),
+            "authorized": None if p.authorized is None else str(p.authorized),
+            "series_id": t["series_id"] if known else None, "max_amount": t["max_amount"] if known else None,
+            "cap_step": t["cap_step"] if known else None, "dealing_day": t["dealing_day"] if known else None}

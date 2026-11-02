@@ -137,7 +137,7 @@ class Broker:
             elif kind == "collateral":
                 b["cash"] -= a.amount
                 b["collateral"] += a.amount
-            elif kind == "SELL":
+            elif kind in ("SELL", "subscription"):
                 b["cash"] += a.amount
             elif kind == "SHORT":
                 b["collateral"] += a.amount
