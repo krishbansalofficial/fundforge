@@ -351,3 +351,20 @@ def test_tape_rejects_a_malformed_prospect():
     raw["prospect"]["dealing_day"] = 21
     with pytest.raises(TapeError, match="prospect"):
         compile_tape(raw)
+
+
+def test_winddown_after_admission_redeems_the_admitted_series_too():
+    from test_campaign_endings import Plan, winddown  # the repo's own route to the WINDDOWN award
+
+    s = session()
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    to_day(s, 21)
+    assert stage(s) == "admitted" and s.e.series[-1].series_id == "Anchor"
+    p = Plan()
+    while not s.e.finished():
+        winddown(s, p)
+        step(s)
+    assert all(x.units == 0 for x in s.e.series), [(x.series_id, x.units) for x in s.e.series]
+    assert s.e.outcome()["label"] == "WINDDOWN"
