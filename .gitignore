@@ -36,3 +36,8 @@ mlflow.db
 ml/results/*.zip
 deploy/kafka/plugins/
 ml/.venv-train/
+# Agent worktrees and local tool caches
+.claude/worktrees/
+.hypothesis/
+.import_linter_cache/
+coucou/
