@@ -4,7 +4,6 @@
 !.env.example
 *.pem
 *.key
-.claude/settings.local.json
 .venv/
 __pycache__/
 .pytest_cache/
@@ -36,8 +35,12 @@ mlflow.db
 ml/results/*.zip
 deploy/kafka/plugins/
 ml/.venv-train/
-# Agent worktrees and local tool caches
-.claude/worktrees/
+# Local tool caches
 .hypothesis/
 .import_linter_cache/
 coucou/
+# Documentation stays local; only these READMEs are published
+*.md
+!/README.md
+!/ml/README.md
+.claude/
