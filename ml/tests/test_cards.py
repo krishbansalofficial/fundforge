@@ -14,6 +14,8 @@ import pytest
 
 ML = Path(__file__).resolve().parents[1]
 CARDS = (ML / "MODEL_CARDS.md", ML / "DATA_CARD.md")
+if not all(card.exists() for card in CARDS):  # the cards are local-only; a clean checkout has none
+    pytest.skip("model and data cards are not in this checkout", allow_module_level=True)
 LINK = re.compile(r"\[[^\]]*\]\((results/[^)\s]+\.json)\)")
 CODE = re.compile(r"`[^`]*`")
 # A number not glued to a word, a version string (2026.10.1) or a percent sign.

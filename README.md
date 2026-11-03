@@ -6,16 +6,16 @@ You can play solo with a deterministic **bot partner**, or with a friend as two 
 
 ![Two browser windows side by side, Ana the portfolio manager and Ben the managing partner, playing the same fictional fund on the web desk: a margin call appears, Ana proposes an ALTO sale, Ben co-signs, the order fills, and both debriefs end with Win.](docs/images/s2-two-partners.gif)
 
-*Fictional market. Two browser partners on the web desk, recorded from the automated Playwright S2 test run (`frontend/e2e/s2.spec.ts`, base market) on 12 October 2026 and sped up 4x; rebuild with [`scripts/make_demo_gif.py`](scripts/make_demo_gif.py). Godot terminal captures are in [Forge Terminal](docs/TERMINAL.md).*
+*Fictional market. Two browser partners on the web desk, recorded from the automated Playwright S2 test run (`frontend/e2e/s2.spec.ts`, base market) on 12 October 2026 and sped up 4x; rebuild with [`scripts/make_demo_gif.py`](scripts/make_demo_gif.py).*
 
 **No AI wrapper.** The game has no LLM in it. The bot partner (`bot:v1`) is a short rules policy in [`backend/src/fundforge/bot.py`](backend/src/fundforge/bot.py). It uses the same commands, role limits, digest signatures and mandate checks as a human, and every action it takes is logged and replayed like any other command.
 
 ## Features
 
 - **Forge Terminal.** Press **T** for a keyboard-driven workstation: market monitor, observed price charts, signed portfolio exposure, hypothetical stress tests, published news, order blotter and rival rankings. Enter `BRIN GP` or switch functions with F1-F9. It reads the simulation's current/past data; trades still use the fund's approval rules.
-- **Broker review challenge.** Select it in the Godot menu to investigate an incorrect cash statement. RISK shows dated evidence, linked corrections and an aged break queue. Unresolved discrepancies block new risk and redemption dealing; MP review preserves the original evidence. Independent broker cash and loan-fee calculations check the journal. [Scope and controls](docs/BROKER_CONTROLS.md).
-- **Independent LP and fee checks.** RISK reconstructs series capital, daily management fees and performance provisions. Redemption payable, crystallized fee and surviving HWM are checked before units change. [Calculation boundary](docs/ADMINISTRATOR_CONTROLS.md).
-- **Co-op evidence and analysis.** Role-specific private research with explicit sharing, attention-limited assignments, hypothetical liquidity/cure comparisons, completed-run causal replay, and independent execution/valuation checks. See [current implementation](docs/PROGRESS.md) for scope and remaining work.
+- **Broker review challenge.** Select it in the Godot menu to investigate an incorrect cash statement. RISK shows dated evidence, linked corrections and an aged break queue. Unresolved discrepancies block new risk and redemption dealing; MP review preserves the original evidence. Independent broker cash and loan-fee calculations check the journal.
+- **Independent LP and fee checks.** RISK reconstructs series capital, daily management fees and performance provisions. Redemption payable, crystallized fee and surviving HWM are checked before units change.
+- **Co-op evidence and analysis.** Role-specific private research with explicit sharing, attention-limited assignments, hypothetical liquidity/cure comparisons, completed-run causal replay, and independent execution/valuation checks.
 - **A living fund office in 3D.** The office has a trading floor, committee room, risk and treasury, research library, management company and investor lounge, with the prime broker across the street and rival fund towers on the skyline. Each place is a terminal for that part of the job.
 - **Real time with pause.** You can play at 1x, 2x or 4x, or pause. The clock pauses itself on every new notice, alert, research finding or unsigned package. Time moves only through logged clock ticks, so wall time never touches the economics.
 - **Solo or duo.** Solo, you take one seat (portfolio manager or managing partner) and the bot takes the other. Duo, you share an invite code (`room:token`) with a second player.
@@ -55,7 +55,7 @@ flowchart LR
   ST --> PG[(PostgreSQL<br/>append-only commands<br/>journal_entries + journal_lines<br/>deferred balance trigger)]
 ```
 
-Postgres stores the accepted commands and the journal they produced, never mutable game state. State is rebuilt by replaying the command log against the room's pinned tape, rules version and variant. The same inputs always give the same journal digest. Details are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Postgres stores the accepted commands and the journal they produced, never mutable game state. State is rebuilt by replaying the command log against the room's pinned tape, rules version and variant. The same inputs always give the same journal digest.
 
 ## Quickstart
 
@@ -97,7 +97,6 @@ The older two-seat web desk still works: `docker compose up --build` also starts
 | HUD buttons | Pause, 1x, 2x, 4x |
 | `L` | Toggle the Street league table |
 
-How to play, including the crisis timeline and scoring, is in [docs/GAME_GUIDE.md](docs/GAME_GUIDE.md).
 
 ## Evidence
 
@@ -123,11 +122,10 @@ What the tests cover:
 - real-Postgres race tests (concurrent signatures, retries, ready and clock ticks);
 - tamper detection by `verify`.
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test. CI runs on GitHub. On 13 October 2026 the latest `main` run had failing `export` and `e2e` jobs; the fix (`ci: run background servers from the venv`) passed on branch `claude/handoff-phases-mms73g` and is not yet merged.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test. CI runs on GitHub. On 2 November 2026 the `e2e` job on `main` had one failing test (`frontend/e2e/ending-card.spec.ts`).
 
-Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 18 ms (fastest of 50 samples) on a 2 CPU cloud machine, and the independent control report in about 0.5 ms. Method, machine and the other planned benchmarks (Postgres latency, API load, frame time, fault detection, balance) are in [BENCHMARKS](docs/BENCHMARKS.md); raw results are in `bench/results/`.
+Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 18 ms (fastest of 50 samples) on a 2 CPU cloud machine, and the independent control report in about 0.5 ms. Raw results are in `bench/results/`.
 
-Engineering write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
 ## Repository map
 
@@ -135,18 +133,18 @@ Engineering write-ups: [docs/ENGINEERING.md](docs/ENGINEERING.md).
 |---|---|
 | `backend/src/fundforge/` | Engine, journal, series, execution, compliance, market, governance, bot, store, API, SQL migrations |
 | `backend/tests/` | pytest and Hypothesis suites, `golden.json` and the balance `policy_grid.py` |
-| `game/` | Godot 4 client: `scripts/` (Api autoload, WorldRules, Office3D, Actor3D, Hud, main), `tests/`, CC0 `assets/` with [CREDITS](game/CREDITS.md) |
+| `game/` | Godot 4 client: `scripts/` (Api autoload, WorldRules, Office3D, Actor3D, Hud, main), `tests/`, CC0 `assets/` with each pack's licence file |
 | `frontend/` | Next.js landing page and the earlier two-seat web desk |
 | `fixtures/case1.json` | The Case1 scenario tape: calendar, book, LPs, recall, research, notices, mandate, variants and rival funds |
-| `docs/` | Guides, architecture, engineering, decisions, progress, the [roadmap](docs/ROADMAP.md) and the domain contracts. Superseded plans are in [`docs/archive/`](docs/archive/README.md) |
+| `docs/images/` | Demo captures |
 | `compose.yaml` | `db`, `api` and `web` services for local development |
 | `deploy/` | Production stack (`compose.prod.yaml`: Caddy TLS, unpublished Postgres, non-root app containers, nightly verified backups) and `smoke.sh`, which CI runs |
 
 ## Status and limitations
 
-FundForge is a playable vertical slice, not a finished game. See [PROGRESS](docs/PROGRESS.md) for the live state and [ROADMAP](docs/ROADMAP.md) for the plan.
+FundForge is a playable vertical slice, not a finished game.
 
-- Only one scenario exists: Case1, days 12–21. The 30-day v1 campaign, research cards, LP agents and five endings are planned (ROADMAP P4).
+- Only one scenario exists: Case1, days 12–21. The 30-day v1 campaign, research cards, LP agents and five endings are planned.
 - The other partner's avatar moves live over an authenticated WebSocket (cosmetic only; it never touches the books). Without the socket it falls back to walking to the place of their last decision.
 - Research assignments now enforce role, location, per-role budgets and one assignment per decision window. Physical proximity is not required; signatures and mandatory remedies remain reachable.
 - In progress: an independent shadow NAV, plus ruff and mypy tooling; exported builds; and a recorded trailer run.

@@ -1,8 +1,7 @@
-# Single-VM production stack (ROADMAP P2): Caddy TLS in front, Postgres never published, non-root app
+# Single-VM production stack: Caddy TLS in front, Postgres never published, non-root app
 # containers, secrets from deploy/.env, nightly verified backups.
 #   cp deploy/.env.example deploy/.env   # then set real values; never commit .env
 #   docker compose -f deploy/compose.prod.yaml --env-file deploy/.env up -d --build
-# Deploying this publicly needs the owner's explicit authorization (CLAUDE.md).
 name: fundforge
 
 x-db-url: &db-url postgresql://fundforge:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}@db:5432/fundforge
