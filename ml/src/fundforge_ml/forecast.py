@@ -1,4 +1,4 @@
-"""Regime forecasting scored against known ground truth (docs/ML_FORECAST.md).
+"""Regime forecasting scored against known ground truth.
 
 Question (the terminal's live research question): was the hidden regime stressed on the latest
 period whose Street activity print is published? A model sees only the published prints, in the

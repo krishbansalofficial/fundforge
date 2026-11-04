@@ -1,4 +1,4 @@
-"""Belief observation wrapper for the value-of-information experiment (docs/ML_SHOWCASE.md, Stage 3).
+"""Belief observation wrapper for the value-of-information experiment.
 
 ``BeliefWrapper`` appends one feature to ``FundForgeEnv``'s observation: P(stressed) for the latest
 published Street activity period. Three modes share one observation shape:

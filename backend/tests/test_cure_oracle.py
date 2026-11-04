@@ -1,4 +1,4 @@
-"""Oracle tests for the minimum-impact cure solver (docs/CURE_SOLVER.md).
+"""Oracle tests for the minimum-impact cure solver.
 
 CVXPY is a dev-only oracle: runtime code under src/ never imports it.
 Three oracles: (1) CVXPY continuous optimum as a lower bound, (2) exhaustive
@@ -142,7 +142,7 @@ def test_solver_matches_exhaustive_integer_oracle_on_tiny_books(seed):
     plan = solve(legs, target)
     assert feasible(legs, plan, target)
     # Stated tolerance: $0.15 absolute. Measured over 300 tiny books: worst gap $0.13;
-    # the local search cannot always reach a three-leg integer mix (docs/CURE_SOLVER.md).
+    # the local search cannot always reach a three-leg integer mix.
     assert plan_cost(legs, plan) <= best + D("0.15"), (plan, best)
 
 

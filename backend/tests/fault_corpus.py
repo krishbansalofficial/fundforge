@@ -1,6 +1,6 @@
 """B5 fault-injection corpus: seeded, deterministic faults applied to a valid Case1 engine mid-season.
 
-One generator per fault class in docs/BENCHMARKS.md B5. Each fault starts from a golden path (test_golden.PATHS),
+One generator per fault class in benchmark B5. Each fault starts from a golden path (test_golden.PATHS),
 is applied at a decision barrier, and is then scored against four layers:
 
 - reconcile: ``Engine.reconcile`` at the injection point, or an ``InvariantError`` with a reconcile code while the

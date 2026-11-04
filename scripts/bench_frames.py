@@ -1,4 +1,4 @@
-"""B4: Godot client frame time on one chosen GPU (docs/BENCHMARKS.md "B4").
+"""B4: Godot client frame time on one chosen GPU.
 
 Wraps scripts/measure_frames.py: 1280x720, V-Sync off, uncapped, a 10 s settle reported separately ("settle")
 and 60 s recorded while the player walks the office-and-street route twice. Forces the adapter with Godot's

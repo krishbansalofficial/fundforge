@@ -101,7 +101,7 @@ test("a campaign started from the landing page is playable and ends in the card"
   await finish(request, room, tokens);
   const { outcome, copied } = await checkCard(page, request, room, tokens, info.outputPath("campaign.png"));
   expect(outcome.scenario).toBe("campaign-v1");
-  expect(copied).toContain('The campaign-v1 run\'s hidden variant was "base".');
+  expect(copied).toContain(`The campaign-v1 run's hidden variant was "${outcome.variant}".`); // rooms draw their variant at random
   await expect(page.locator(".verdict")).not.toHaveText(/^Distress$/);
   await expect(page.locator("section.ending-card")).not.toContainText("day 16");
   await expect(page.locator(".days li.today")).toHaveCount(0);

@@ -18,7 +18,6 @@ a separate ``MACRO_VERSION`` stream, so adding it never changes the generated ma
 ``SCENARIO_VERSION`` adds a scenario randomiser (``randomise``) that runs before the marks: crisis
 day, crisis severity, stressed margin terms, the scheduled LP redemption, rival parameters and the
 opening book. ``GEN_VERSION`` is unchanged and still reproduces its old tapes byte for byte.
-See docs/RANDOMISER.md.
 
 ``HARD_VERSION`` is the randomiser with every stressed coefficient raised by ``MARGIN_BUFFER`` points
 (``Spec.margin_buffer_points`` overrides it), so a token reduce no longer clears the stressed margin

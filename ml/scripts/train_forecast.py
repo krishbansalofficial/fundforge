@@ -1,4 +1,4 @@
-"""Train and score regime forecasters against the exact Bayes posterior (docs/ML_FORECAST.md).
+"""Train and score regime forecasters against the exact Bayes posterior.
 
     cd ml && uv run --group forecast python scripts/train_forecast.py --worlds 20000
 
