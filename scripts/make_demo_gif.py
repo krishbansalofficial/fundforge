@@ -1,6 +1,6 @@
 """Build the README demo GIF from the two partner videos recorded by the S2 browser test.
 
-Reproduce (API on :8031 with FUNDFORGE_TEST_VARIANTS=1, `next start` on :3031, as in docs/PROGRESS.md):
+Reproduce (API on :8031 with FUNDFORGE_TEST_VARIANTS=1, `next start` on :3031):
 
     cd frontend
     FUNDFORGE_RECORD=$PWD/test-results/demo-rec E2E_BASE_URL=http://127.0.0.1:3031 npx playwright test e2e/s2.spec.ts

@@ -1,4 +1,4 @@
-"""Minimum-impact margin cure for one execution event (docs/CURE_SOLVER.md).
+"""Minimum-impact margin cure for one execution event.
 
 Each leg reduces one position. With cumulative event cost C(q) = a*q + b*q**3
 (half-spread plus cubic impact, FUND_ACCOUNTING §8) and maintenance relief

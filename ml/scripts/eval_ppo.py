@@ -1,4 +1,4 @@
-"""Stage 1 honest evaluation of MaskablePPO (docs/ML_SHOWCASE.md): many seeds, many worlds, val selection.
+"""Stage 1 honest evaluation of MaskablePPO: many seeds, many worlds, val selection.
 
 Run from ml/ (full scale):
   uv run --group train python scripts/eval_ppo.py --seeds 5 --steps 200000 --families 2800

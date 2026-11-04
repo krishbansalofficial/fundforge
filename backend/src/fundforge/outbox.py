@@ -1,4 +1,4 @@
-"""Transactional outbox rows (docs/ML_CONTRACTS.md section 3).
+"""Transactional outbox rows.
 
 Pure: builds the events one accepted command produced, from the session after it ran. Store
 writes them in the same PostgreSQL transaction as the command and journal rows, so an event

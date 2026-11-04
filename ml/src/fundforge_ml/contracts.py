@@ -1,4 +1,4 @@
-"""Frozen cross-lane contracts (docs/ML_CONTRACTS.md).
+"""Frozen cross-lane contracts.
 
 Every lane (game, ML, platform, data) builds against these names. Change them only with a
 ``CONTRACT_VERSION`` bump and the affected lanes updated in the same change.

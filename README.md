@@ -1,6 +1,8 @@
 # FundForge
 
-FundForge is a desktop hedge-fund simulation built in **Godot 4**. You run a fictional $25m long/short fund through ten days of crisis. The prime broker recalls a borrowed short, margin terms tighten before a market shock, investors redeem, and the separate management company still has to make payroll. Five rival funds trade in the same market, and their forced selling moves your prices.
+[![ci](https://github.com/krishbansalofficial/fundforge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/krishbansalofficial/fundforge/actions/workflows/ci.yml)
+
+FundForge is a desktop hedge-fund simulation built in **Godot 4**. You run a fictional $25m long/short fund through a ten-day crisis or a 30-day campaign. The prime broker recalls a borrowed short, margin terms tighten before a market shock, investors redeem, and the separate management company still has to make payroll. Five rival funds trade in the same market, and their forced selling moves your prices.
 
 You can play solo with a deterministic **bot partner**, or with a friend as two partners. Either way, every number comes from a deterministic Python engine with PostgreSQL as the authority. Every dollar moves through an immutable, balanced journal, and every decision is a hash-chained command, so any finished game can be replayed and verified to the cent.
 
@@ -74,7 +76,7 @@ godot --path game
 
 On Windows, `powershell -File scripts/run_game.ps1` imports the project, checks the local API and launches the game. Pass `-Server http://127.0.0.1:8011` to use a different local API.
 
-There are no exported builds yet. Export presets are in progress.
+There are no published builds yet. To build your own, see the desktop builds note under Evidence.
 
 On the menu (the server defaults to `http://127.0.0.1:8000`):
 
@@ -100,13 +102,12 @@ The older two-seat web desk still works: `docker compose up --build` also starts
 
 ## Evidence
 
-All numbers below were observed at commit `7b066f2` on 8 October 2026.
+Results from the CI run on commit `818fabb` (3 November 2026):
 
 | Suite | Command | Result |
 |---|---|---|
-| Backend, no database | `cd backend && uv run pytest -q` | 66 passed, 15 skipped (Postgres tests) |
-| Backend, with Postgres | `DATABASE_URL=postgresql://fundforge:fundforge@localhost:5432/fundforge uv run pytest -q` | 81 passed |
-| Game client, headless | `godot --headless --path game --script res://tests/run_tests.gd` | 35 checks ok, 0 failed |
+| Backend, with Postgres | `DATABASE_URL=postgresql://fundforge:fundforge@localhost:5432/fundforge uv run pytest -q` | 681 passed |
+| ML | `cd ml && uv run pytest -q` | 69 passed, 6 skipped |
 
 Desktop builds (12 October 2026): `scripts/export_game.sh GODOT_BINARY Godot_v4.7.2-stable_export_templates.tpz [OUT_DIR]` verifies the official templates' SHA-512, exports self-contained Linux and Windows executables, and boots the Linux build headless. CI runs it on every push; running the workflow by hand also uploads both builds as artifacts for 3 days. Run a build against a server with `FundForge.x86_64 --server=https://your-host`. These are unsigned test builds: macOS needs signing and notarization, and a web build needs the Compatibility renderer, so neither exists yet.
 
@@ -122,7 +123,7 @@ What the tests cover:
 - real-Postgres race tests (concurrent signatures, retries, ready and clock ticks);
 - tamper detection by `verify`.
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test. CI runs on GitHub. On 2 November 2026 the `e2e` job on `main` had one failing test (`frontend/e2e/ending-card.spec.ts`).
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the backend against a Postgres service, the frontend audit, typecheck and build, and the Godot headless tests plus a boot smoke test.
 
 Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 18 ms (fastest of 50 samples) on a 2 CPU cloud machine, and the independent control report in about 0.5 ms. Raw results are in `bench/results/`.
 
@@ -135,7 +136,9 @@ Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 1
 | `backend/tests/` | pytest and Hypothesis suites, `golden.json` and the balance `policy_grid.py` |
 | `game/` | Godot 4 client: `scripts/` (Api autoload, WorldRules, Office3D, Actor3D, Hud, main), `tests/`, CC0 `assets/` with each pack's licence file |
 | `frontend/` | Next.js landing page and the earlier two-seat web desk |
+| `ml/` | Models that play a disclosed bot seat or advise, with results in [`ml/README.md`](ml/README.md). The engine never imports this package, and models never own fills, balances, NAV, fees, risk, approvals or scores |
 | `fixtures/case1.json` | The Case1 scenario tape: calendar, book, LPs, recall, research, notices, mandate, variants and rival funds |
+| `bench/results/`, `scripts/` | Raw benchmark results; benchmark, acceptance and smoke scripts |
 | `docs/images/` | Demo captures |
 | `compose.yaml` | `db`, `api` and `web` services for local development |
 | `deploy/` | Production stack (`compose.prod.yaml`: Caddy TLS, unpublished Postgres, non-root app containers, nightly verified backups) and `smoke.sh`, which CI runs |
@@ -144,9 +147,9 @@ Performance: the engine benchmark (B1) runs a full Case1 season in about 17 to 1
 
 FundForge is a playable vertical slice, not a finished game.
 
-- Only one scenario exists: Case1, days 12–21. The 30-day v1 campaign, research cards, LP agents and five endings are planned.
+- The scenarios are Case1 (days 12–21) with controls, settlement and generated-market versions, plus the three-chapter `campaign-v1`. The full 60-day, six-chapter campaign is not built.
+- Neither client has a winddown control or a prospect-LP screen yet, so those campaign paths are reachable only through the API.
 - The other partner's avatar moves live over an authenticated WebSocket (cosmetic only; it never touches the books). Without the socket it falls back to walking to the place of their last decision.
 - Research assignments now enforce role, location, per-role budgets and one assignment per decision window. Physical proximity is not required; signatures and mandatory remedies remain reachable.
-- In progress: an independent shadow NAV, plus ruff and mypy tooling; exported builds; and a recorded trailer run.
 - Not done: a public deployment (the production stack is written and smoke-tested locally and in CI, but nothing is hosted), music (sound effects exist and can be muted with M), recorded playtests.
 - Everything is fictional. The tickers are invented (some collide with real symbols; renaming them is on the roadmap). There is no brokerage connection, no real money and no investment advice.

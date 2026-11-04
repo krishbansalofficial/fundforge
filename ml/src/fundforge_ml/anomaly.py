@@ -1,4 +1,4 @@
-"""Unsupervised anomaly features for the fund's books at a decision barrier (docs/ML_SHOWCASE.md, Later 1).
+"""Unsupervised anomaly features for the fund's books at a decision barrier.
 
 Two steps, kept apart so the hidden-truth boundary is checkable:
 

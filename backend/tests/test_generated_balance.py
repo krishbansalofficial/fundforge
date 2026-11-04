@@ -81,7 +81,7 @@ def test_acceptance_rate_is_pinned_over_a_fixed_seed_set():
     """Pins the measured default-spec acceptance (scripts/generator_acceptance.py, N=10, bench-0..9).
 
     If a generator or balance change moves these counts, re-measure with the script, update the pin
-    and record the numbers in docs/PROGRESS.md. Do not change the pin to make a regression pass.
+    and record the numbers. Do not change the pin to make a regression pass.
     """
     from collections import Counter
 

@@ -1,7 +1,7 @@
 """Detached liquidation scenarios using public, frozen assumptions, never future tape.
 
 "cost" and "longs_first" are bounded greedy comparisons. "min_impact" solves each
-event's cheapest cure with cure.solve (docs/CURE_SOLVER.md): optimal per event
+event's cheapest cure with cure.solve: optimal per event
 under frozen assumptions, not a multi-event or forecast optimum.
 Only the first event's legs form a draft; normal live governance must approve it.
 """
