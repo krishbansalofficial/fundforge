@@ -14,7 +14,10 @@ Run from ml/ (full scale):
    ``fundforge_ml.evals`` (summary per policy, compare ppo vs each baseline).
 5. Difficulty: chosen ppo and random on each harder level's accepted test worlds.
 
-Writes results/ppo_<role>.json. Models go to results/*.zip (git-ignored).
+``--train-level hard`` runs steps 1-4 on that level instead of base (the sweep then covers the others).
+
+Writes results/ppo_<role>.json (ppo_<role>_<level>.json for a non-base train level).
+Models go to results/*.zip (git-ignored).
 """
 
 import argparse
@@ -45,7 +48,7 @@ from train_ppo import make_env, play
 from fundforge_ml import evals, worlds
 from fundforge_ml.contracts import CONTRACT_VERSION, split_of
 from fundforge_ml.encoding import ENCODER_VERSION
-from fundforge_ml.env import ACTION_VERSION, REWARD_VERSION
+from fundforge_ml.env import ACTION_VERSION, REWARD_VERSION, FundForgeEnv
 
 ML = Path(__file__).parents[1]
 LEVELS: dict[str, tuple[str, Spec]] = {
@@ -85,10 +88,34 @@ def gate(job: tuple[str, str]) -> tuple[str, str, str, list[str]]:
     return level, seed, split, failures
 
 
-def train(job: tuple[str, int, str, list[str], int, int, str]) -> dict[str, Any]:
-    cfg, seed, role, train_seeds, steps, n_envs, out = job
+class LevelWorlds:
+    """Picklable train sampler for a non-base level: gated train families, random variant."""
+
+    def __init__(self, seeds: list[str], level: str) -> None:
+        self.seeds, self.level = seeds, level
+
+    def __call__(self, options: dict[str, Any], rng: np.random.Generator) -> worlds.World:
+        names = worlds.variant_names()
+        seed = self.seeds[int(rng.integers(len(self.seeds)))]
+        return build(seed, self.level, names[int(rng.integers(len(names)))])
+
+
+def _level_env(role: str, seeds: list[str], level: str, rank: int):  # type: ignore[no-untyped-def]
+    if level == "base":  # keep the published base result byte-reproducible
+        return make_env(role, seeds, rank)
+
+    def _init() -> FundForgeEnv:
+        env = FundForgeEnv(role, policy_id="ppo-train", world_fn=LevelWorlds(seeds, level))
+        env.reset(seed=10_000 + rank)
+        return env
+
+    return _init
+
+
+def train(job: tuple[str, int, str, list[str], int, int, str, str]) -> dict[str, Any]:
+    cfg, seed, role, train_seeds, steps, n_envs, out, level = job
     torch.set_num_threads(1)
-    venv = DummyVecEnv([make_env(role, train_seeds, 1000 * seed + i) for i in range(n_envs)])
+    venv = DummyVecEnv([_level_env(role, train_seeds, level, 1000 * seed + i) for i in range(n_envs)])
     model = MaskablePPO(
         "MlpPolicy",
         venv,
@@ -103,7 +130,7 @@ def train(job: tuple[str, int, str, list[str], int, int, str]) -> dict[str, Any]
     )
     t = time.perf_counter()
     model.learn(total_timesteps=steps)
-    path = Path(out) / f"ppo_{role}_{cfg}_s{seed}.zip"
+    path = Path(out) / f"ppo_{role}{_suffix(level)}_{cfg}_s{seed}.zip"
     model.save(path)
     return {
         "config": cfg,
@@ -192,9 +219,12 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     ap.add_argument("--procs", type=int, default=30)
     ap.add_argument("--grid", default=",".join(GRID))
     ap.add_argument("--levels", default=",".join(LEVELS))
+    ap.add_argument("--train-level", default="base", choices=list(LEVELS),
+                    help="level that gates, trains, selects and tests; other --levels are the difficulty sweep")
     ap.add_argument("--out", default=str(ML / "results"))
     args = ap.parse_args(argv)
-    grid, levels = args.grid.split(","), [lv for lv in args.levels.split(",") if lv != "base"]
+    tl = args.train_level
+    grid, levels = args.grid.split(","), [lv for lv in args.levels.split(",") if lv != tl]
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     wall: dict[str, float] = {}
@@ -203,7 +233,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     gates: dict[str, Any] = {}
     with ProcessPoolExecutor(args.procs) as pool:
         # 1. gate
-        base = list(pool.map(gate, [("base", s) for s in seeds], chunksize=8))
+        base = list(pool.map(gate, [(tl, s) for s in seeds], chunksize=8))
         splits: dict[str, list[str]] = {"train": [], "val": [], "test": []}
         candidates = Counter(sp for _, _, sp, _ in base)
         for _, s, sp, f in base:
@@ -211,7 +241,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
                 splits[sp].append(s)
         test_candidates = [s for _, s, sp, _ in base if sp == "test"]
         gated = {
-            "base": base,
+            tl: base,
             **{lv: list(pool.map(gate, [(lv, s) for s in test_candidates], chunksize=8)) for lv in levels},
         }
         for lv, rows in gated.items():
@@ -230,8 +260,8 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
                 "rejected_seeds": dict(sorted(rejected.items())),
                 "accepted_test_seeds": [s for _, s, sp, f in rows if sp == "test" and not f],
             }
-        gates["base"]["candidates_by_split"] = dict(candidates)
-        gates["base"]["accepted_by_split"] = {k: len(v) for k, v in splits.items()}
+        gates[tl]["candidates_by_split"] = dict(candidates)
+        gates[tl]["accepted_by_split"] = {k: len(v) for k, v in splits.items()}
         wall["gate"] = round(time.perf_counter() - t0, 1)
         print(
             f"gate {wall['gate']}s: "
@@ -245,7 +275,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
             pool.map(
                 train,
                 [
-                    (c, k, args.role, splits["train"], args.steps, args.envs, str(out))
+                    (c, k, args.role, splits["train"], args.steps, args.envs, str(out), tl)
                     for c in grid
                     for k in range(args.seeds)
                 ],
@@ -259,7 +289,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         t = time.perf_counter()
         names = worlds.variant_names()
         val_ws = [(s, v) for s in splits["val"] for v in names]
-        val = play_block(pool, args.role, "base", val_ws, {c: ("ppo", paths[c]) for c in grid})
+        val = play_block(pool, args.role, tl, val_ws, {c: ("ppo", paths[c]) for c in grid})
         val_iqm = {c: evals.iqm(val[c]["reward"]) for c in grid}
         chosen = max(grid, key=lambda c: val_iqm[c])
         wall["val"] = round(time.perf_counter() - t, 1)
@@ -272,7 +302,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         test = play_block(
             pool,
             args.role,
-            "base",
+            tl,
             test_ws,
             {
                 "ppo": ("ppo", paths[chosen]),
@@ -286,8 +316,8 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         # 5. difficulty sweep: same chosen models, harder test worlds
         t = time.perf_counter()
         difficulty: dict[str, Any] = {
-            "base": {
-                "gate_acceptance_test": _ratio(gates["base"]),
+            tl: {
+                "gate_acceptance_test": _ratio(gates[tl]),
                 **_light(report({k: test[k] for k in ("ppo", "random")})),
             }
         }
@@ -304,6 +334,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
 
     result = {
         "stage": "ML_SHOWCASE stage 1: multi-seed, val-selected, evals-reported",
+        "train_level": tl,
         "commit": _git("rev-parse", "HEAD"),
         "dirty": bool(_git("status", "--porcelain", "--", ".")),
         "reproduce": "cd ml && uv run --group train python scripts/eval_ppo.py "
@@ -353,10 +384,14 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         "test_world_order": [f"{s}/{v}" for s, v in test_ws],
         "wall_seconds": wall,
     }
-    path = out / f"ppo_{args.role}.json"
+    path = out / f"ppo_{args.role}{_suffix(tl)}.json"
     path.write_text(json.dumps(result, indent=1, default=str) + "\n", encoding="utf-8")
     print(json.dumps({"test": result["test"]["compare"], "difficulty": difficulty}, indent=1, default=str))
     return result
+
+
+def _suffix(level: str) -> str:
+    return "" if level == "base" else f"_{level}"
 
 
 def _ratio(g: dict[str, Any]) -> float | None:

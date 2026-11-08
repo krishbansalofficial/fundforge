@@ -38,15 +38,22 @@ def forecast(d: dict[str, Any]) -> Row:
     )
 
 
+def _win_share(labels: dict[str, int]) -> float:
+    return labels.get("WIN", 0) / sum(labels.values())
+
+
 def ppo(d: dict[str, Any]) -> Row:
     if "scale" in d:  # eval_ppo.py (Stage 1) format
         s, t = d["scale"], d["test"]
         c, iq = t["compare"]["ppo_vs_random"], t["policies"]["ppo"]["iqm"]
+        lv = d.get("train_level", "base")
+        win = {k: _win_share(t["policies"][k]["labels"]) for k in ("ppo", "random")}
         return (
-            f"MaskablePPO ({s['role']} seat) vs random, selected on val",
+            f"MaskablePPO ({s['role']} seat) vs random, {lv} worlds, "
+            + ("selected on val" if len(d["grid"]) > 1 else f"config fixed to {next(iter(d['grid']))}"),
             f"paired reward PPO - random {_g(c['diff']['point'])} [{_g(c['diff']['lo'])}, {_g(c['diff']['hi'])}]; "
             f"P(PPO > random) {_g(c['prob_improvement'])}; PPO IQM {_g(iq['point'])} "
-            f"[{_g(iq['lo'])}, {_g(iq['hi'])}]; random never loses tier ({t['random_not_win']['share_episodes']:.0%})",
+            f"[{_g(iq['lo'])}, {_g(iq['hi'])}]; WIN rate PPO {win['ppo']:.0%}, random {win['random']:.0%}",
             f"{len(s['training_seeds'])} training seeds x {s['steps_per_run']} steps; "
             f"{s['test_worlds']} test worlds ({s['test_families']} families)",
             d["reproduce"],
@@ -144,6 +151,7 @@ RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "bench_env.json": bench_env,
     "forecast.json": forecast,
     "ppo_pm.json": ppo,
+    "ppo_pm_hard.json": ppo,
     "kafka_e2e.json": kafka,
 }
 
