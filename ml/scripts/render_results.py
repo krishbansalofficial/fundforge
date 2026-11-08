@@ -49,7 +49,8 @@ def ppo(d: dict[str, Any]) -> Row:
         lv = d.get("train_level", "base")
         win = {k: _win_share(t["policies"][k]["labels"]) for k in ("ppo", "random")}
         return (
-            f"MaskablePPO ({s['role']} seat) vs random, {lv} worlds, selected on val",
+            f"MaskablePPO ({s['role']} seat) vs random, {lv} worlds, "
+            + ("selected on val" if len(d["grid"]) > 1 else f"config fixed to {next(iter(d['grid']))}"),
             f"paired reward PPO - random {_g(c['diff']['point'])} [{_g(c['diff']['lo'])}, {_g(c['diff']['hi'])}]; "
             f"P(PPO > random) {_g(c['prob_improvement'])}; PPO IQM {_g(iq['point'])} "
             f"[{_g(iq['lo'])}, {_g(iq['hi'])}]; WIN rate PPO {win['ppo']:.0%}, random {win['random']:.0%}",
