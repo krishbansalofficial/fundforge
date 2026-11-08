@@ -46,3 +46,11 @@ def test_gate_and_play_block_on_one_world():
             pool, "pm", "base", ws, {"random": ("random", [(None, 0), (None, 1)]), "wait": ("wait", [(None, 0)])}
         )
     assert out["random"]["reward"].shape == (2, 1) and out["wait"]["label"][0, 0] in ("WIN", "SURVIVAL", "DISTRESS")
+
+
+def test_level_worlds_builds_the_requested_level():
+    w = eval_ppo.LevelWorlds(["ppo-0"], "hard")({}, np.random.default_rng(0))
+    assert w.seed_family is not None and w.variant in eval_ppo.worlds.variant_names()
+    assert w.tape == eval_ppo.build("ppo-0", "hard", w.variant).tape
+    assert w.tape != eval_ppo.build("ppo-0", "base", w.variant).tape  # not silently the base distribution
+    assert eval_ppo._suffix("base") == "" and eval_ppo._suffix("hard") == "_hard"
