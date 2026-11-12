@@ -91,7 +91,9 @@ class CurveToMlflow(BaseCallback):
             mlflow.log_metric("train_episode_reward", statistics.fmean(self.rewards[-200:]), step=self.num_timesteps)
 
 
-def play(role: str, w: worlds.World, policy: str, model: MaskablePPO | None, rng_seed: int) -> dict[str, Any]:
+def play(role: str, w: worlds.World, policy: str, model: MaskablePPO | None, rng_seed: int,
+         trace: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """One episode; ``trace`` gets per step: window acted for, action, reject, day, gross after, order fills."""
     env = FundForgeEnv(role, policy_id=policy, world_fn=lambda o, r: w)
     obs, info = env.reset(seed=rng_seed, options={"episode_tag": f"{policy}-{rng_seed}"})
     rng = np.random.default_rng(rng_seed)
@@ -111,9 +113,18 @@ def play(role: str, w: worlds.World, policy: str, model: MaskablePPO | None, rng
             a = 0
         else:
             a = 0
+        nxt, cmd = env.view["clock"]["next"], env.command_for(a)
         obs, r, term, trunc, info = env.step(a)
+        if trace is not None:
+            trace.append({"window": nxt and (nxt["day"], nxt["phase"]), "action": env.actions[a],
+                          "reject": info["reject"], "day": info["day"], "gross": env.view["fund"]["gross"],
+                          "order_ids": [x["order_id"] for x in (cmd or {}).get("orders", [])]})
         total += r
         done = term or trunc
+    if trace is not None:  # fills as of the end, so an order that fills after its window still counts
+        fills = {x["order_id"]: x["filled"] for x in env.view["orders"]}
+        for t in trace:
+            t["filled"] = sum(fills.get(i, 0) for i in t["order_ids"])
     out = info["outcome"]
     return {"reward": total, "score": float(out["score"]), "label": out["label"]}
 
