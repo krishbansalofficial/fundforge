@@ -348,6 +348,10 @@
               "WIN",
               "SURVIVAL",
               "DISTRESS",
+              "RENEWAL",
+              "WINDDOWN",
+              "DEFAULT",
+              "COMPANY_FAILURE",
               "IN_PROGRESS"
             ],
             "title": "Label",

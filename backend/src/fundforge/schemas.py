@@ -715,7 +715,8 @@ class LpDebrief(Strict):
 
 class BranchOutcome(Outcome):
     """A counterfactual branch may stop before the end; it is then not a comparable ending score."""
-    label: Literal["WIN", "SURVIVAL", "DISTRESS", "IN_PROGRESS"]  # type: ignore[assignment]
+    label: Literal["WIN", "SURVIVAL", "DISTRESS", "RENEWAL", "WINDDOWN", "DEFAULT", "COMPANY_FAILURE",  # type: ignore[assignment]
+                   "IN_PROGRESS"]
 
 
 class Debrief(Strict):

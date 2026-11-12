@@ -151,7 +151,7 @@ jobs:
       - name: co-op acceptance with two exported clients (split across two crises, meet, sign a package)
         run: |  # venv binaries, not `uv run`: see the e2e job (a lingering uv process fails setup-uv's cache prune)
           cd backend
-          FUNDFORGE_CLOCK=0 FUNDFORGE_TEST_VARIANTS=1 .venv/bin/uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1 &
+          FUNDFORGE_CLOCK=0 FUNDFORGE_TEST_VARIANTS=1 FUNDFORGE_ROOMS_PER_IP=200 .venv/bin/uvicorn fundforge.api:app --host 127.0.0.1 --port 8011 > ../api.log 2>&1 &
           api=$!
           trap 'kill $api 2>/dev/null || true' EXIT
           for i in $(seq 30); do curl -sf http://127.0.0.1:8011/api/ready && break; sleep 1; done
@@ -159,6 +159,8 @@ jobs:
             --godot "$GITHUB_WORKSPACE/export/linux/FundForge.x86_64" --exported --output ../coop-acceptance.json
           .venv/bin/python ../scripts/certification_acceptance.py --server http://127.0.0.1:8011 \
             --godot "$GITHUB_WORKSPACE/export/linux/FundForge.x86_64" --exported --output ../certification-acceptance
+          .venv/bin/python ../scripts/campaign_acceptance.py --server http://127.0.0.1:8011 \
+            --godot "$GITHUB_WORKSPACE/export/linux/FundForge.x86_64" --exported --output ../campaign-acceptance.json
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2; small: the evidence log, no seat tokens
         with: { name: coop-acceptance, path: coop-acceptance.json, retention-days: 7, if-no-files-found: ignore }

@@ -225,3 +225,18 @@ def test_view_states_campaign_and_winddown_identically_for_both_seats():
     s.handle("ben", "p2", {"type": "sign", "package_id": "w1", "digest": d["digest"]})
     views = [SessionView.model_validate(s.view(u)) for u in ("ana", "ben")]
     assert [(v.campaign, v.winddown) for v in views] == [(True, 1)] * 2 and s.e.winddown == 1
+
+
+@pytest.mark.parametrize(("variant", "policy", "award"), [
+    ("base", cover_and_cure, "RENEWAL"),
+    ("base", winddown, "WINDDOWN"),
+    ("tight-credit", passive, "DEFAULT"),
+    ("lean-company", passive, "COMPANY_FAILURE"),
+])
+def test_debrief_of_every_campaign_ending_fits_the_api_contract(variant, policy, award):
+    """The debrief endpoint's response model must accept campaign labels (it returned 500 on WINDDOWN)."""
+    from fundforge.debrief import replay
+    from fundforge.schemas import Debrief
+    s, _ = play(variant, policy)
+    d = Debrief.model_validate(replay(s))
+    assert d.outcome.label == d.source_outcome.label == award
