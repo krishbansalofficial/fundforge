@@ -6,6 +6,7 @@ import { seatTokenFromUrl } from "../../seat";
 import { api, exactPct, fetchView, money, num, pct, type Command, type Debrief as DebriefResponse, type Decision, type LedgerPage, type Side, type View } from "../../lib";
 import { LEDGER_PAGE, mergePage, olderCursor, type Journal } from "../../journal";
 import { LABELS } from "../../card";
+import { admissionAmounts, packageTerms } from "../../prospect";
 import { EndingCard } from "./ending-card";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
@@ -372,6 +373,8 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
 function Partners({ v, me, partner, send, flash }: { v: View; me: string; partner: string; send: Send; flash: string }) {
   const ready = v.ready.includes(me);
   const waiting = v.packages.filter((p) => p.status === "PENDING_APPROVAL" && p.proposer === partner);
+  const winddown = v.packages.some((p) => p.kind === "winddown" && p.status === "ELECTED");
+  const atBarrier = v.clock.next?.phase.startsWith("EXEC");
   return (
     <section className="panel partners" aria-labelledby="ptn-h">
       <h2 id="ptn-h">Committee</h2>
@@ -383,11 +386,22 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
         <div key={p.package_id} className="to-sign">
           <p>{v.names[partner]} asks you to approve:</p>
           <ul>{p.orders.map((o) => <li key={o.order_id}>{o.side} {num(o.qty)} {o.sym}{o.limit ? ` limit ${o.limit}` : ""}</li>)}</ul>
-          {p.kind === "gate" && <p>{gateText(p.terms)}</p>}
+          {p.kind === "gate" ? <p>{gateText(p.terms)}</p> : packageTerms(p.kind, p.terms) && <p>{packageTerms(p.kind, p.terms)}</p>}
           <p className="digest" title="Your signature binds to this exact content hash">Contents hash {p.digest.slice(0, 12)}</p>
-          <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, p.kind === "gate" ? "Signed. Both partners elected the redemption gate." : "Signed. The package executes at the next execution.")}>Sign package</button>
+          <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, SIGNED[p.kind] ?? SIGNED.orders)}>Sign package</button>
         </div>
       ))}
+      {/* ponytail: the view has no campaign flag; only campaign rooms carry a prospect */}
+      {v.prospect && !v.clock.finished && !winddown && (
+        <div className="row">
+          <button type="button" className="secondary" disabled={!atBarrier}
+            title={atBarrier ? "" : "A winddown is declared at an execution barrier"}
+            onClick={() => send({ type: "propose_winddown", package_id: `wd-${crypto.randomUUID().slice(0, 8)}` }, "Winddown proposed for your partner's signature.")}>
+            Propose controlled winddown
+          </button>
+        </div>
+      )}
+      {winddown && !v.clock.finished && <p>Winddown declared: sell longs and cover shorts so every unit can be redeemed.</p>}
       {!v.clock.finished && (
         <button type="button" className="ready" disabled={ready} onClick={() => send({ type: "ready", version: v.version }, "")}>
           {ready ? `Waiting for ${v.names[partner]}` : `Ready: advance to ${v.clock.next ? PHASE_LABEL[v.clock.next.phase].toLowerCase() : "the end"}`}
@@ -397,6 +411,13 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
     </section>
   );
 }
+
+const SIGNED: Record<string, string> = {
+  orders: "Signed. The package executes at the next execution.",
+  gate: "Signed. Both partners elected the redemption gate.",
+  winddown: "Signed. Both partners declared a controlled winddown.",
+  admission: "Signed. Both partners consented to the admission.",
+};
 
 function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
   return (
@@ -425,7 +446,7 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
               <tr key={p.package_id}>
                 <td>{p.digest.slice(0, 10)}</td>
                 <td>{v.names[p.proposer]}{p.proposer === me ? " (you)" : ""}</td>
-                <td>{p.kind === "gate" ? gateText(p.terms) : p.orders.map((o) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
+                <td>{p.kind === "gate" ? gateText(p.terms) : packageTerms(p.kind, p.terms) ?? p.orders.map((o) => `${o.side} ${o.qty} ${o.sym}`).join(", ")}</td>
                 <td>{p.signatures.map((s: string) => v.names[s]).join(" and ")}</td>
                 <td>{p.status.replaceAll("_", " ").toLowerCase()}</td>
               </tr>
@@ -473,6 +494,7 @@ function Investors({ v, send }: { v: View; send: Send }) {
         {openGate && <p>A gate proposal awaits your partner's signature.</p>}
         {canGate && !openGate && pendingGates.length > 0 && <p role="status">The pending gate binds earlier requests. Propose a fresh gate for the current requests; the previous package stays in the record.</p>}
       </> : <p className="muted">The private investor inbox belongs to the managing partner in generated-market rooms. Published redemption notices and gate packages are shared.</p>}
+      {v.prospect && <Prospect v={v} p={v.prospect} send={send} />}
       <table>
         <thead><tr><th>Series</th><th className="n">Units</th><th className="n">Net capital</th><th className="n">NAV per unit</th><th className="n">High-water mark</th><th className="n">Performance provision</th></tr></thead>
         <tbody>
@@ -483,6 +505,47 @@ function Investors({ v, send }: { v: View; send: Send }) {
         </tbody>
       </table>
       <p className="muted">The management company is a separate entity: {money(v.firm.cash)} cash, {money(v.firm.fee_receivable, 2)} fees receivable, {money(v.firm.payroll_payable)} payroll owed. Fees receivable are not spendable until the fund pays them.</p>
+    </section>
+  );
+}
+
+const STAGE: Record<string, string> = {
+  prospect: "Introduction requested. Qualifying it takes the managing partner's attention at the LP desk.",
+  qualified: "Qualified. Diligence must complete before the condition day.",
+  diligence: "Diligence complete. A certified condition-day report earns a conditional commitment.",
+  committed: "Conditional commitment signed. It is not NAV, cash or margin collateral.",
+  eligible: "Funded into escrow outside the fund. Both partners must consent to an amount before the dealing close, or decline.",
+  admitted: "Admitted as a new series.",
+  forfeited: "The offer lapsed; any escrow returned to the LP and the fund is unchanged.",
+  declined: "The fund declined; any escrow returned to the LP and the fund is unchanged.",
+};
+
+/** The campaign prospect exactly as the server lets this seat see it; stage and terms are role-filtered there. */
+function Prospect({ v, p, send }: { v: View; p: NonNullable<View["prospect"]>; send: Send }) {
+  const amounts = admissionAmounts(p.escrow, p.cap_step);
+  const [picked, setPicked] = useState("");
+  const amount = amounts.includes(picked) ? picked : amounts[0];
+  const atBarrier = v.clock.next?.phase.startsWith("EXEC");
+  const open = !v.clock.finished && !["admitted", "forfeited", "declined"].includes(p.stage) && p.authorized == null;
+  return (
+    <section aria-labelledby="prospect-h">
+      <h3 id="prospect-h">Prospective LP{p.series_id ? `: ${p.series_id}` : ""}</h3>
+      <p>{STAGE[p.stage] ?? p.stage}{p.reason ? ` Reason: ${p.reason.replaceAll("_", " ")}.` : ""}</p>
+      {p.max_amount && <p>Up to {money(p.max_amount)} in {money(p.cap_step)} steps, dealt at the day {p.dealing_day} close.</p>}
+      {Number(p.escrow) > 0 && <p>{money(p.escrow)} in escrow outside the fund: not NAV, cash or collateral.</p>}
+      {p.authorized != null && <p>Both partners consented to admit {money(p.authorized)} at the dealing close.</p>}
+      {open && p.stage === "eligible" && amounts.length > 0 && <div className="row">
+        <select aria-label="Admission amount" value={amount} onChange={(e) => setPicked(e.target.value)}>
+          {amounts.map((a) => <option key={a} value={a}>{money(a)}</option>)}
+        </select>
+        <button type="button" disabled={!atBarrier}
+          onClick={() => send({ type: "propose_admission", package_id: `adm-${crypto.randomUUID().slice(0, 8)}`, amount }, "Admission proposed for your partner's signature.")}>
+          Propose admission
+        </button>
+      </div>}
+      {open && v.role === "mp" && <button type="button" className="secondary" disabled={!atBarrier}
+        onClick={() => send({ type: "decline_prospect" }, "Prospect declined; any escrow returns to it.")}>Decline prospect</button>}
+      {open && !atBarrier && <p className="muted">Admission and decline are decided at the next execution barrier.</p>}
     </section>
   );
 }
