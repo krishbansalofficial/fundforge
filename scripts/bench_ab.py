@@ -26,17 +26,21 @@ import sys
 from pathlib import Path
 
 THRESHOLD = 1.25
+RUN_TIMEOUT_S = 600
 
 
 def run_once(tree: Path, python: str, repeat: int) -> dict[str, float]:
     out = subprocess.run([python, str(tree / "scripts" / "bench_engine.py"), "--repeat", str(repeat)],
-                         cwd=tree / "backend", stdout=subprocess.PIPE, text=True, check=True).stdout
+                         cwd=tree / "backend", stdout=subprocess.PIPE, text=True, check=True,
+                         timeout=RUN_TIMEOUT_S).stdout  # a hang raises TimeoutExpired: the gate fails closed
     doc = json.loads(out)
     return {name: row["season_ms"]["min"] for name, row in doc["paths"].items()}
 
 
 def verdict(base: dict[str, list[float]], head: dict[str, list[float]], threshold: float) -> tuple[bool, list[str]]:
-    failed, lines = False, []
+    missing = sorted(set(base) - set(head))
+    failed = not head or bool(missing)  # fail closed: a removed or renamed path is a reviewed change, not a pass
+    lines = [f"{name}: in base, missing from head" for name in missing] or ([] if head else ["head reported no paths"])
     for name in head:
         if name not in base:
             lines.append(f"{name}: new path, no base")
@@ -78,4 +82,7 @@ def main() -> int:
 if __name__ == "__main__":
     assert verdict({"p": [10, 10, 99]}, {"p": [12, 12, 1]}, 1.25)[0] is False
     assert verdict({"p": [10, 10, 10]}, {"p": [13, 13, 13]}, 1.25)[0] is True
+    assert verdict({"p": [10], "q": [10]}, {"p": [10]}, 1.25)[0] is True
+    assert verdict({"p": [10]}, {}, 1.25)[0] is True
+    assert verdict({"p": [10]}, {"p": [10], "new": [5]}, 1.25)[0] is False
     sys.exit(main())

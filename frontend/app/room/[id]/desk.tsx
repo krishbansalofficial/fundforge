@@ -373,7 +373,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
 function Partners({ v, me, partner, send, flash }: { v: View; me: string; partner: string; send: Send; flash: string }) {
   const ready = v.ready.includes(me);
   const waiting = v.packages.filter((p) => p.status === "PENDING_APPROVAL" && p.proposer === partner);
-  const winddown = v.packages.some((p) => p.kind === "winddown" && p.status === "ELECTED");
+  const winddown = v.winddown != null;
   const atBarrier = v.clock.next?.phase.startsWith("EXEC");
   return (
     <section className="panel partners" aria-labelledby="ptn-h">
@@ -391,8 +391,7 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
           <button type="button" onClick={() => send({ type: "sign", package_id: p.package_id, digest: p.digest }, SIGNED[p.kind] ?? SIGNED.orders)}>Sign package</button>
         </div>
       ))}
-      {/* ponytail: the view has no campaign flag; only campaign rooms carry a prospect */}
-      {v.prospect && !v.clock.finished && !winddown && (
+      {v.campaign && !v.clock.finished && !winddown && (
         <div className="row">
           <button type="button" className="secondary" disabled={!atBarrier}
             title={atBarrier ? "" : "A winddown is declared at an execution barrier"}
