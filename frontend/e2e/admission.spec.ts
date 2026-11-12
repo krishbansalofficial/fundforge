@@ -1,65 +1,15 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { eligibleRoom, investorPages, until, view } from "./prospect";
 
-// The campaign prospect is admitted through the web desk: the managing partner proposes the admission and the
-// portfolio manager countersigns, each in their own browser context. The API only plays the setup that
-// backend/tests/test_prospect.py uses (two managing-partner prospect assignments before the day 15 condition
-// close, then ready through day 19 for the day 20 dealing close). The variant is pinned (FUNDFORGE_TEST_VARIANTS=1).
+// The campaign prospect is decided through the web desk, each partner in their own browser context: the managing
+// partner proposes an admission amount and the portfolio manager countersigns, or the managing partner declines.
+// Expected behaviour follows backend/src/fundforge/investors.py. The variant is pinned (FUNDFORGE_TEST_VARIANTS=1).
 
-type View = { version: number; ready: string[]; clock: { day: number; finished: boolean; next: { phase: string } | null };
-  prospect: { stage: string } | null; series: { id: string }[] };
-
-const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
-const view = async (request: APIRequestContext, room: string, token: string): Promise<View> =>
-  (await request.get(`/api/rooms/${room}/view`, { headers: auth(token) })).json();
-const command = async (request: APIRequestContext, room: string, token: string, data: object) =>
-  request.post(`/api/rooms/${room}/commands`, { headers: { ...auth(token), "Idempotency-Key": crypto.randomUUID() }, data });
-const atExec = (v: View) => Boolean(v.clock.next?.phase.startsWith("EXEC"));
-
-async function readyBoth(request: APIRequestContext, room: string, tokens: Record<string, string>) {
-  const v = await view(request, room, tokens.pm);
-  for (const role of ["pm", "mp"]) if (!v.ready.includes(role)) await command(request, room, tokens[role], { type: "ready", version: v.version });
-}
-
-/** Ready both seats until `done` holds for the managing partner's view (a refused stale ready is simply retried). */
-async function until(request: APIRequestContext, room: string, tokens: Record<string, string>, done: (v: View) => boolean) {
-  for (let step = 0; ; step++) {
-    const v = await view(request, room, tokens.mp);
-    if (done(v)) return v;
-    expect(v.clock.finished).toBe(false);
-    expect(step).toBeLessThan(400);
-    await readyBoth(request, room, tokens);
-  }
-}
-
-async function assign(request: APIRequestContext, room: string, token: string, assignment: string) {
-  const res = await command(request, room, token, { type: "visit", location: "lp", assignment });
-  expect(res.ok(), await res.text()).toBe(true);
-}
+const PAIR = { pm_name: "Adm PM", mp_name: "Adm MP" };
 
 test("partners admit the campaign prospect as a new series through the desk", async ({ browser, request }) => {
-  const created = await request.post("/api/rooms", { data: { scenario: "campaign-v1", pm_name: "Adm PM", mp_name: "Adm MP", variant: "base" } });
-  expect(created.status(), await created.text()).toBe(201);
-  const { room_id: room, tokens } = await created.json();
-
-  // Qualification, then diligence: each is revealed at the next day's mark, both before the day 15 condition close.
-  await assign(request, room, tokens.mp, "prospect_qualification");
-  await until(request, room, tokens, (v) => v.clock.day >= 2);
-  await assign(request, room, tokens.mp, "prospect_diligence");
-  await until(request, room, tokens, (v) => v.clock.day >= 3);
-  expect((await view(request, room, tokens.mp)).prospect?.stage).toBe("diligence");
-
-  // Certified day 15 report -> commitment; day 19 escrow -> eligible. Stop at an execution barrier to consent.
-  const eligible = await until(request, room, tokens, (v) => v.clock.day >= 19 && atExec(v));
-  expect(eligible.prospect?.stage).toBe("eligible");
-
-  const pages = Object.fromEntries(await Promise.all((["pm", "mp"] as const).map(async (role) => {
-    const page = await (await browser.newContext()).newPage();
-    await page.goto(`/room/${room}#t=${tokens[role]}`);
-    await expect(page.getByRole("heading", { name: "Committee" })).toBeVisible();
-    await page.getByRole("button", { name: "Investors", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Prospective LP: Anchor" })).toBeVisible();
-    return [role, page] as const;
-  })));
+  const { room, tokens } = await eligibleRoom(request, PAIR);
+  const pages = await investorPages(browser, room, tokens);
 
   await expect(pages.mp.getByText(/^Funded into escrow outside the fund/)).toBeVisible();
   await pages.mp.getByRole("button", { name: "Propose admission" }).click();
@@ -79,4 +29,90 @@ test("partners admit the campaign prospect as a new series through the desk", as
     await expect(page.getByText("Admitted as a new series.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("cell", { name: "Anchor", exact: true })).toBeVisible();
   }
+});
+
+test("a smaller amount chosen in the selector is what the partner signs and what is admitted", async ({ browser, request }) => {
+  const { room, tokens } = await eligibleRoom(request, PAIR);
+  const pages = await investorPages(browser, room, tokens);
+
+  // Every cap_step multiple up to the escrow, largest first; the default is the full escrow.
+  const amount = pages.mp.getByRole("combobox", { name: "Admission amount" });
+  await expect(amount.locator("option")).toHaveText(["$5,000,000", "$4,000,000", "$3,000,000", "$2,000,000", "$1,000,000"]);
+  await expect(amount).toHaveValue("5000000");
+  await amount.selectOption("2000000");
+  await pages.mp.getByRole("button", { name: "Propose admission" }).click();
+  await expect(pages.mp.getByText("Admission proposed for your partner's signature.")).toBeVisible();
+
+  const ask = pages.pm.locator(".to-sign").filter({ hasText: "Admit Anchor for $2,000,000 at the day 20 dealing close" });
+  await expect(ask).toBeVisible({ timeout: 10_000 });
+  await ask.getByRole("button", { name: "Sign package" }).click();
+  for (const page of Object.values(pages)) {
+    await expect(page.getByText("Both partners consented to admit $2,000,000 at the dealing close.")).toBeVisible({ timeout: 10_000 });
+    // Consent binds an amount; the whole $5,000,000 stays in escrow until the dealing close.
+    await expect(page.getByText("$5,000,000 in escrow outside the fund: not NAV, cash or collateral.")).toBeVisible();
+  }
+
+  // $2,000,000 at the issue price of 100 is 20,000 units; the unused escrow returns to the LP.
+  const after = await until(request, room, tokens, (v) => v.clock.day >= 21);
+  expect(after.prospect).toMatchObject({ stage: "admitted", escrow: "0" });
+  expect(Number(after.series.find((s) => s.id === "Anchor")?.units)).toBe(20000);
+  for (const page of Object.values(pages)) {
+    await expect(page.getByText("Admitted as a new series.")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("row").filter({ has: page.getByRole("cell", { name: "Anchor", exact: true }) })
+      .getByRole("cell", { name: "20,000", exact: true })).toBeVisible();
+    await expect(page.getByText(/in escrow outside the fund/)).toHaveCount(0);
+  }
+});
+
+test("only the managing partner can decline the prospect, and no series is admitted", async ({ browser, request }) => {
+  const { room, tokens } = await eligibleRoom(request, PAIR);
+  const pages = await investorPages(browser, room, tokens);
+
+  // The portfolio manager may propose an amount but is offered no decline.
+  await expect(pages.pm.getByRole("button", { name: "Propose admission" })).toBeEnabled();
+  await expect(pages.pm.getByRole("button", { name: "Decline prospect" })).toHaveCount(0);
+
+  await pages.mp.getByRole("button", { name: "Decline prospect" }).click();
+  await expect(pages.mp.getByText("Prospect declined; any escrow returns to it.")).toBeVisible();
+  for (const [role, page] of Object.entries(pages)) {
+    await expect(page.getByText("The fund declined; any escrow returned to the LP and the fund is unchanged.")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("button", { name: /Propose admission|Decline prospect/ })).toHaveCount(0);
+    expect((await view(request, room, tokens[role])).prospect).toMatchObject({ stage: "declined", escrow: "0", authorized: null });
+  }
+
+  // Past the day 20 dealing close nothing was admitted and the decline stands.
+  const after = await until(request, room, tokens, (v) => v.clock.day >= 21);
+  expect(after.prospect?.stage).toBe("declined");
+  expect(after.series.map((s) => s.id)).not.toContain("Anchor");
+  for (const page of Object.values(pages)) await expect(page.getByRole("cell", { name: "Anchor", exact: true })).toHaveCount(0);
+});
+
+test("solo room: the bot partner does not countersign an admission, and the offer lapses", async ({ browser, request }) => {
+  const { room, tokens } = await eligibleRoom(request, { mp_name: "Solo MP", solo_role: "mp" });
+  const { mp } = await investorPages(browser, room, tokens);
+
+  await mp.getByRole("button", { name: "Propose admission" }).click();
+  await expect(mp.getByText("Admission proposed for your partner's signature.")).toBeVisible();
+
+  // The bot answers in the same transaction: it states its refusal in the room chat and leaves the package unsigned.
+  const proposed = await view(request, room, tokens.mp);
+  expect(proposed.prospect).toMatchObject({ stage: "eligible", authorized: null });
+  expect(proposed.packages.filter((p) => p.kind === "admission").map((p) => p.status)).toEqual(["PENDING_APPROVAL"]);
+  expect(proposed.chat.some((m) => m.role === "pm" && m.text.includes("human partner"))).toBe(true);
+  // What the desk shows of that (the desk renders no chat, so not the bot's reason): the package stays pending
+  // approval, no consent is recorded and the proposal stays open.
+  await mp.getByRole("button", { name: "Orders and packages", exact: true }).click();
+  const pkg = mp.getByRole("row").filter({ hasText: "Admit Anchor for $5,000,000" });
+  await expect(pkg.getByRole("cell", { name: "pending approval", exact: true })).toBeVisible();
+  await expect(pkg.getByRole("cell", { name: "Solo MP", exact: true })).toBeVisible(); // signatures: only the proposer
+  await mp.getByRole("button", { name: "Investors", exact: true }).click();
+  await expect(mp.getByText(/^Funded into escrow outside the fund/)).toBeVisible();
+  await expect(mp.getByText(/Both partners consented/)).toHaveCount(0);
+  await expect(mp.getByRole("button", { name: "Propose admission" })).toBeEnabled();
+
+  // Without consent the offer lapses at the day 20 dealing close.
+  const after = await until(request, room, tokens, (v) => v.clock.day >= 21);
+  expect(after.prospect).toMatchObject({ stage: "forfeited", reason: "no_consent", escrow: "0" });
+  expect(after.series.map((s) => s.id)).not.toContain("Anchor");
+  await expect(mp.getByText("The offer lapsed; any escrow returned to the LP and the fund is unchanged. Reason: no consent.")).toBeVisible({ timeout: 15_000 });
 });
