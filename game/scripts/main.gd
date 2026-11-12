@@ -25,7 +25,7 @@ func _ready() -> void:
 	_dev_flags()
 
 
-## Dev/CI flags: --perf=out.json --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --thesis=0.4 --shot=path.png --shot-after=SECONDS --save-card=path.png --certification-evidence=path.json --demo
+## Dev/CI flags: --perf=out.json --server=URL --join=room:token --goto=location[@s][,location@s...] --terminal=MON --thesis=0.4 --shot=path.png --shot-after=SECONDS --save-card=path.png --certification-evidence=path.json --press=location:button-text --demo
 ## (env FUNDFORGE_SERVER also sets the default server)
 func _dev_flags() -> void:
 	var args := _args
@@ -54,6 +54,21 @@ func _dev_flags() -> void:
 	if args.has("open") and hud:  # --goto=lp --open=lp: screenshot option, opens that location's panel
 		await get_tree().create_timer(2.0).timeout
 		hud.open_panel(str(args["open"]))
+	if args.has("press"):  # --press=committee:Countersign: open that panel, press its first enabled button containing the text
+		var press := str(args["press"]).split(":", true, 1)
+		var pressed := false
+		for _attempt in range(900):  # 90 s: the button may only appear after the partner acts
+			if hud and not pressed:
+				if hud._open_location != press[0]:
+					hud.open_panel(press[0])
+				for b in hud._panel_body.find_children("*", "Button", true, false):
+					if not pressed and not b.disabled and not b.is_queued_for_deletion() and press[1] in b.text:
+						pressed = true
+						print("pressed: ", b.text)
+						b.pressed.emit()
+			if pressed:
+				break
+			await get_tree().create_timer(0.1).timeout
 	if args.has("terminal"):
 		# Screenshot/smoke option: waits for a real room view before opening the terminal.
 		for _attempt in range(100):
