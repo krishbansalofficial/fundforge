@@ -210,13 +210,17 @@ class Broker:
                 check("financing_date", d, posted_fees.get(d, ZERO), daily.get(d, ZERO))
         return issues
 
-    def observe(self, day: int, phase: str, d: date, authored: list[dict[str, Any]]) -> list[str]:
+    def observe(self, day: int, phase: str, d: date, authored: list[dict[str, Any]],
+                *, provisional: bool = False) -> list[str]:
+        """``provisional``: the event can still move balances (admission cash at a dealing close), so statements
+        dated this event wait for its final observation; earlier-dated ones are checked now."""
         now = day, PHASES.index(phase)
         self.snapshots[now] = dict(self.balances)
         received = {(s.id, s.revision) for s in self.statements}
         arrivals = []
         for r in authored:
-            if coordinate(r["available_at"]) != now or (r["id"], r["revision"]) in received:
+            if (coordinate(r["available_at"]) != now or (r["id"], r["revision"]) in received
+                    or (provisional and coordinate(r["as_of"]) == now)):
                 continue
             expected = self.snapshots[coordinate(r["as_of"])][r["account"]]
             s = Statement(r["id"], r["revision"], r["source"], r["account"], coordinate(r["as_of"]), now,
