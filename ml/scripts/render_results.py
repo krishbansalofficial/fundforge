@@ -144,6 +144,22 @@ def voi(d: dict[str, Any]) -> Row:
     )
 
 
+def trace_floor(d: dict[str, Any]) -> Row:
+    a, s = d["overall"], d["scale"]
+    return (
+        "Hard PPO vs scripted derisk_floor: action traces",
+        f"first de-risk within +/-1 window of derisk_floor {a['share_timing_match_pm1']:.0%} "
+        f"(PPO at the first window {a['share_ppo_first_derisk_at_window0']:.0%}); "
+        f"Jaccard (day, reduce:SYM) mean {_g(a['jaccard_day_type']['mean'])} "
+        f"[IQR {_g(a['jaccard_day_type']['q1'])}-{_g(a['jaccard_day_type']['q3'])}]; "
+        f"PPO reduces every derisk_floor name {a['share_ppo_reduces_all_floor_symbols']:.0%}; "
+        f"score PPO {_g(a['mean_score_bps']['ppo'])} vs floor {_g(a['mean_score_bps']['floor'])} bps, "
+        f"PPO higher {a['share_ppo_score_above_floor']:.0%}",
+        f"{s['models']}; {s['episodes']} episodes on {s['test_worlds']} test worlds",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "voi_pm.json": voi,
     "anomaly.json": anomaly,
@@ -153,6 +169,7 @@ RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "ppo_pm.json": ppo,
     "ppo_pm_hard.json": ppo,
     "kafka_e2e.json": kafka,
+    "trace_ppo_vs_floor.json": trace_floor,
 }
 
 
