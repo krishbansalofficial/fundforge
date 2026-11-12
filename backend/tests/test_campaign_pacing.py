@@ -53,7 +53,8 @@ def gate_accepted_seeds(count: int) -> list[str]:
 def test_skip_ready_matches_stepping_on_generated_seeds(seed):
     """Generated markets: the first 12 gate-accepted seeds; skip takes 5-8 rounds against 18 stepped (bound 10).
 
-    Every seed measured ends in SURVIVAL, so this covers the digest equivalence, not outcome variety.
+    Every seed measured ends in SURVIVAL, so this covers the digest equivalence; outcome variety is
+    pinned in test_generated_endings.py.
     Gate-rejected seeds are excluded: a room never runs on one (store._room_variant).
     """
     stepped_digest, stepped_rounds, _ = run_generated(seed, skip=False)
