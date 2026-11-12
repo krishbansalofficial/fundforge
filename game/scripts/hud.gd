@@ -253,6 +253,7 @@ func set_near(location: String) -> void:
 func apply_view(v: Dictionary) -> void:
 	view = v
 	role = v.get("role", role)
+	music.set_mood(Music.mood_for(v))
 	terminal.set_view(v)
 	var cs: Dictionary = v.get("clock_state", {})
 	var speed := 0 if cs.get("paused", true) else int(cs.get("speed", 0))
