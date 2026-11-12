@@ -111,7 +111,9 @@ static func has_open(view: Dictionary, kind: String) -> bool:
 
 ## Campaign rooms carry `prospect`; the view has no other campaign flag, so this is the client's only signal.
 static func is_campaign(view: Dictionary) -> bool:
-	return view.get("prospect") is Dictionary
+	if view.has("campaign"):
+		return bool(view["campaign"])
+	return view.get("prospect") is Dictionary  # fallback for a server without SessionView.campaign
 
 
 ## Pipeline text from the seat-filtered prospect view; terms the seat has not learned stay hidden.
@@ -189,7 +191,9 @@ static func decline_reason(view: Dictionary, role: String) -> String:
 
 
 static func winddown_declared(view: Dictionary) -> bool:
-	for p in view.get("packages", []):
+	if view.has("winddown"):
+		return view["winddown"] != null  # the declaration day, or null while undeclared
+	for p in view.get("packages", []):  # fallback for a server without SessionView.winddown
 		if p.get("kind") == "winddown" and p.get("status") == "ELECTED":
 			return true
 	return view.get("notices", []).any(func(n): return n.get("code") == "winddown_declared")

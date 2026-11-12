@@ -503,6 +503,8 @@ class Session:
             "investors": investors.view(e, role),
             "certification": e.certification()["status"],
             **({"prospect": investors.prospect_view(e, role)} if e.prospect is not None else {}),
+            "campaign": bool(e.tape.raw.get("campaign")),
+            "winddown": e.winddown,
         }
 
     def ledger(self, entity: str = "fund", limit: int = 200) -> list[dict]:

@@ -347,7 +347,9 @@ func _campaign_checks() -> void:
 	var mp := {"role": "mp", "clock": {"day": 19, "finished": false}, "bots": [], "packages": [], "notices": [], "prospect": funded}
 	var pm := mp.merged({"role": "pm"}, true)
 	check(not LpRules.is_campaign({"prospect": null}) and not LpRules.is_campaign({}) and LpRules.is_campaign(mp),
-			"campaign detected only from a prospect view")
+			"campaign inferred from a prospect view when the field is absent")
+	check(LpRules.is_campaign({"campaign": true}) and not LpRules.is_campaign(mp.merged({"campaign": false}, true)),
+			"explicit campaign field wins over inference")
 	var unknown := LpRules.prospect_lines(pm.merged({"prospect": hidden}, true))
 	check(unknown.size() == 2 and "Terms unknown" in unknown[1] and not "Anchor" in " ".join(unknown),
 			"unqualified prospect hides terms the seat has not learned")
@@ -379,6 +381,10 @@ func _campaign_checks() -> void:
 	check("already declared" in LpRules.winddown_reason(mp.merged({"notices": [{"code": "winddown_declared"}]}, true))
 			and "already declared" in LpRules.winddown_reason(mp.merged({"packages": [{"kind": "winddown", "status": "ELECTED"}]}, true)),
 			"winddown declared once")
+	check("already declared" in LpRules.winddown_reason(mp.merged({"campaign": true, "winddown": 21}, true))
+			and LpRules.winddown_reason(mp.merged({"campaign": true, "winddown": null,
+				"notices": [{"code": "winddown_declared"}]}, true)) == "",
+			"explicit winddown field wins over inference")
 	check("partner bot will not countersign a winddown" in LpRules.winddown_reason(mp.merged({"bots": ["pm"]}, true)),
 			"solo winddown explains the bot refusal")
 	check("before the end" in LpRules.winddown_reason(mp.merged({"clock": {"finished": true}}, true)), "no winddown after the end")

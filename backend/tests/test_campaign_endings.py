@@ -14,6 +14,7 @@ import pytest
 from fundforge import bot, store
 from fundforge.engine import CommandRejected, Engine
 from fundforge.governance import Session
+from fundforge.schemas import SessionView
 
 Policy = Callable[[Session, list[str]], None]
 
@@ -207,3 +208,20 @@ def test_winddown_is_refused_outside_campaign_rooms():
     s = Session(e, {"pm": "ana", "mp": "ben"})
     with pytest.raises(CommandRejected, match="campaign"):
         s.handle("ana", "p1", {"type": "propose_winddown", "package_id": "w1"})
+
+
+def test_view_states_campaign_and_winddown_identically_for_both_seats():
+    e = Engine(store._tape("case1", "base"))
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": "ben"})
+    assert [(v["campaign"], v["winddown"]) for v in (s.view("ana"), s.view("ben"))] == [(False, None)] * 2
+
+    e = Engine(store._tape("campaign-v1", "base"))
+    e.advance()
+    s = Session(e, {"pm": "ana", "mp": "ben"})
+    assert [(v["campaign"], v["winddown"]) for v in (s.view("ana"), s.view("ben"))] == [(True, None)] * 2
+    d = s.handle("ana", "p1", {"type": "propose_winddown", "package_id": "w1"})
+    assert s.view("ben")["winddown"] is None  # a proposal alone declares nothing
+    s.handle("ben", "p2", {"type": "sign", "package_id": "w1", "digest": d["digest"]})
+    views = [SessionView.model_validate(s.view(u)) for u in ("ana", "ben")]
+    assert [(v.campaign, v.winddown) for v in views] == [(True, 1)] * 2 and s.e.winddown == 1
