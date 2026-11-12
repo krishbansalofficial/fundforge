@@ -192,17 +192,73 @@ func _initialize() -> void:
 	var fv := {"orders": [{"fills": [{"qty": 5}, {"rejected": "no borrow"}]}, {"fills": [{"qty": 2}]}]}
 	check(Sfx.fill_count(fv) == 2 and Sfx.fill_count({}) == 0, "fill count ignores rejected fills")
 
-	# music: one synthesized deterministic loop, global mute wins, separate level toggle
-	var t_music := Time.get_ticks_msec()
-	var song := Music.synth()
-	print("  music synth took %d ms" % (Time.get_ticks_msec() - t_music))
-	var song_peak := 0
-	for i in range(0, song.size(), 2):
-		song_peak = maxi(song_peak, absi(song.decode_s16(i)))
-	check(song.size() == int(round(Music.loop_seconds() * Music.RATE)) * 2, "music loop is whole chords at its tempo")
-	check(song_peak > 3000 and song_peak < 32767, "music is audible and never clips")
-	check(absi(song.decode_s16(0)) < 200 and absi(song.decode_s16(song.size() - 2)) < 200, "music loop seam starts and ends silent")
-	check(song == Music.synth(), "music synthesis is deterministic")
+	# music: three synthesized deterministic loops chosen by public state, rendered in bounded slices
+	for m in Music.MOODS:
+		var t_music := Time.get_ticks_msec()
+		var song := Music.synth(m)
+		print("  music %s one-shot synth took %d ms" % [m, Time.get_ticks_msec() - t_music])
+		var song_peak := 0.0
+		for x in song:
+			song_peak = maxf(song_peak, absf(x))
+		check(song.size() == int(round(Music.loop_seconds(m) * Music.RATE)), "%s loop is whole chords at its tempo" % m)
+		check(song_peak > 0.1 and song_peak < 1.0, "%s music is audible and never clips" % m)
+		check(absf(song[0]) < 0.006 and absf(song[-1]) < 0.006, "%s loop seam starts and ends silent" % m)
+		check(song == Music.synth(m), "%s synthesis is deterministic" % m)
+	check(Music.synth("calm") != Music.synth("tense") and Music.synth("calm").slice(0, 2000) != Music.synth("resolved").slice(0, 2000),
+			"each mood sounds different")
+	var fixed := Music.synth("calm")
+	check(absf(fixed[1000] - -0.0693810) < 1e-5 and absf(fixed[50000] - 0.0565287) < 1e-5
+			and absf(Music.synth("tense")[30000] - -0.0676366) < 1e-5, "fixed seeds give pinned golden samples")
+	var job := Music.new_job("tense")
+	var steps := 0
+	var worst_us := 0
+	var bounded := true
+	while not Music.done(job):
+		var t_step := Time.get_ticks_usec()
+		var used := Music.render_step(job, Music.RENDER_BUDGET)
+		worst_us = maxi(worst_us, Time.get_ticks_usec() - t_step)
+		bounded = bounded and used <= Music.RENDER_BUDGET and used > 0
+		steps += 1
+	check(bounded and steps > 100, "render work is bounded per frame")
+	print("  music tense: %d slices, worst slice %d us" % [steps, worst_us])
+	check(job["mix"] == Music.synth("tense"), "sliced render is bit-identical to one-shot")
+	var calm_view := {"clock": {"day": 3}, "fund": {"nav": "100", "maintenance_req": "50", "margin_call": null},
+			"firm": {"cash": "300000", "payroll_payable": "0"}, "notices": [{"day": 2, "kind": "alert"}, {"day": 3, "kind": "market"}]}
+	check(Music.mood_for(calm_view) == "calm" and Music.mood_for({}) == "calm", "ordinary state is calm")
+	var mv := calm_view.duplicate(true)
+	mv["fund"]["margin_call"] = "1000"
+	check(Music.mood_for(mv) == "tense", "margin call is tense")
+	mv = calm_view.duplicate(true)
+	mv["fund"]["maintenance_req"] = "99"
+	check(Music.mood_for(mv) == "tense", "thin headroom is tense")
+	mv = calm_view.duplicate(true)
+	mv["firm"]["payroll_payable"] = "400000"
+	check(Music.mood_for(mv) == "tense", "firm that cannot cover payroll is tense")
+	mv = calm_view.duplicate(true)
+	mv["notices"].append({"day": 3, "kind": "alert"})
+	check(Music.mood_for(mv) == "tense", "today's alert notice is tense")
+	mv["clock"]["finished"] = true
+	check(Music.mood_for(mv) == "resolved", "finished season resolves")
+	var mu: Music = Music.new()  # not in the tree: tick() is pure state, no playback
+	mu.set_mood("calm")
+	var pushed := PackedVector2Array()
+	var ticks := 0
+	while pushed.is_empty() and ticks < 1000:
+		pushed = mu.tick(100000)
+		ticks += 1
+	check(pushed.size() == Music.PUSH_MAX and mu._cur == "calm", "calm loop renders over frames, then pushes at most PUSH_MAX")
+	mu.set_mood("tense")
+	check(mu.tick(256).size() == 256 and mu._cur == "calm", "old mood keeps playing while the new one renders")
+	ticks = 0
+	while mu._cur != "tense" and ticks < 1000:
+		mu.tick(256)
+		ticks += 1
+	check(mu._cur == "tense" and mu._fade < 1.0, "mood change crossfades")
+	var faded := mu.tick(100000)
+	check(faded.size() == Music.PUSH_MAX and mu._fade > 0.0 and mu._fade < 1.0, "crossfade progresses within a bounded push")
+	mu.set_mood("nope")
+	check(mu.mood == "tense", "unknown mood ignored")
+	mu.free()
 	check([0, 1, 2].map(func(l): return Music.next_level(l)) == [1, 2, 0], "music toggle cycles off, low, on")
 	check(Music.audible(false, 2) and Music.audible(false, 1) and not Music.audible(false, 0), "music level controls playback")
 	check(not Music.audible(true, 2), "global mute silences music")
@@ -711,7 +767,9 @@ func _ui_checks() -> void:
 	hud.music.level = 2
 	hud.sfx.muted = false
 	hud.music.refresh(false)
-	check(hud.music._player.playing and hud.music._player.stream.loop_mode == AudioStreamWAV.LOOP_FORWARD, "HUD music loops when audible")
+	check(hud.music._player.playing and hud.music._player.stream is AudioStreamGenerator, "HUD music streams when audible")
+	hud.apply_view({"clock": {"finished": true}})
+	check(hud.music.mood == "resolved", "HUD view drives the music mood")
 	hud.music.refresh(true)
 	check(not hud.music._player.playing, "HUD music stops under the global mute")
 	hud._show_mute()
