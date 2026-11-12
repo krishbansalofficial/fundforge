@@ -335,6 +335,58 @@ func _lp_checks() -> void:
 	check(LpRules.notices(mp).size() == 1 and LpRules.notices(mp)[0]["code"] == "lp_band", "LP notices filtered by code")
 	var pm := {"role": "pm", "clock": {"day": 15}, "investors": null, "packages": [], "notices": []}
 	check(LpRules.rows(pm).is_empty() and LpRules.pending_gate_terms(pm).is_empty(), "PM seat sees no LP inbox")
+	_campaign_checks()
+
+
+## Campaign prospect admission and winddown: view-only text, gating and role filtering.
+func _campaign_checks() -> void:
+	var hidden := {"stage": "prospect", "reason": null, "escrow": "0", "authorized": null, "series_id": null,
+			"max_amount": null, "cap_step": null, "dealing_day": null}
+	var funded := {"stage": "eligible", "reason": null, "escrow": "5000000", "authorized": null, "series_id": "Anchor",
+			"max_amount": "5000000", "cap_step": "1000000", "dealing_day": 20}
+	var mp := {"role": "mp", "clock": {"day": 19, "finished": false}, "bots": [], "packages": [], "notices": [], "prospect": funded}
+	var pm := mp.merged({"role": "pm"}, true)
+	check(not LpRules.is_campaign({"prospect": null}) and not LpRules.is_campaign({}) and LpRules.is_campaign(mp),
+			"campaign detected only from a prospect view")
+	var unknown := LpRules.prospect_lines(pm.merged({"prospect": hidden}, true))
+	check(unknown.size() == 2 and "Terms unknown" in unknown[1] and not "Anchor" in " ".join(unknown),
+			"unqualified prospect hides terms the seat has not learned")
+	var lines := " ".join(LpRules.prospect_lines(mp))
+	check("Anchor: up to $5,000,000 in $1,000,000 steps, dealing close day 20" in lines and "Escrow $5,000,000" in lines,
+			"eligible prospect shows exact terms and escrow outside the fund")
+	check(LpRules.admission_amounts(mp) == ["5000000", "4000000", "3000000", "2000000", "1000000"],
+			"admission amounts are cap-step multiples up to escrow")
+	check(LpRules.admission_amounts(pm.merged({"prospect": hidden}, true)).is_empty()
+			and LpRules.admission_amounts(mp.merged({"prospect": funded.merged({"escrow": "5000000.5"}, true)}, true)).is_empty(),
+			"no amounts without known or whole-dollar terms")
+	check(LpRules.admission_reason(mp) == "" and LpRules.admission_reason(pm) == "", "either human partner may propose admission")
+	check("eligible" in LpRules.admission_reason(mp.merged({"prospect": funded.merged({"stage": "committed"}, true)}, true)),
+			"admission waits for escrow")
+	check("already consented" in LpRules.admission_reason(mp.merged({"prospect": funded.merged({"authorized": "3000000"}, true)}, true)),
+			"admission cannot be proposed twice after consent")
+	check("awaits countersignature" in LpRules.admission_reason(mp.merged(
+			{"packages": [{"kind": "admission", "status": "PENDING_APPROVAL"}]}, true)), "one open admission package at a time")
+	check("partner bot will not countersign" in LpRules.admission_reason(mp.merged({"bots": ["pm"]}, true)),
+			"solo admission explains the bot refusal")
+	check(LpRules.decline_reason(mp, "mp") == "" and "managing partner" in LpRules.decline_reason(pm, "pm"),
+			"only the managing partner declines the prospect")
+	check(LpRules.decline_reason(mp.merged({"bots": ["pm"]}, true), "mp") == "", "solo MP can still decline alone")
+	check("already closed" in LpRules.decline_reason(mp.merged({"prospect": funded.merged({"stage": "forfeited"}, true)}, true), "mp")
+			and "no longer be declined" in LpRules.decline_reason(mp.merged({"prospect": funded.merged({"authorized": "1000000"}, true)}, true), "mp"),
+			"decline refused once closed or consented")
+	check(LpRules.winddown_reason(mp) == "" and LpRules.winddown_reason(pm) == "", "either partner may propose a winddown")
+	check("campaign mechanic" in LpRules.winddown_reason({"clock": {}}), "no winddown outside the campaign")
+	check("already declared" in LpRules.winddown_reason(mp.merged({"notices": [{"code": "winddown_declared"}]}, true))
+			and "already declared" in LpRules.winddown_reason(mp.merged({"packages": [{"kind": "winddown", "status": "ELECTED"}]}, true)),
+			"winddown declared once")
+	check("partner bot will not countersign a winddown" in LpRules.winddown_reason(mp.merged({"bots": ["pm"]}, true)),
+			"solo winddown explains the bot refusal")
+	check("before the end" in LpRules.winddown_reason(mp.merged({"clock": {"finished": true}}, true)), "no winddown after the end")
+	check(LpRules.package_text({"kind": "admission", "terms": {"series": "Anchor", "amount": "3000000", "deal_day": 20,
+			"issue_price": "100", "hwm": "100"}}) == "ADMIT Anchor: $3,000,000 at the day 20 dealing close, new series at 100, high-water mark 100."
+			and LpRules.package_text({"kind": "winddown", "terms": {"day": 12}}).begins_with("WINDDOWN declared day 12")
+			and LpRules.package_text({"kind": "orders", "orders": [{"side": "SELL", "qty": 100, "sym": "BRIN"}]}) == "SELL 100 BRIN",
+			"committee text for admission, winddown and order packages")
 
 
 func _ui_checks() -> void:
@@ -680,8 +732,63 @@ func _ui_checks() -> void:
 	for child in hud._panel_body.get_children():
 		if child is Button and child.text.begins_with("Share this evidence"): share_buttons += 1
 	check(share_buttons == 0, "shared evidence has no duplicate share action")
+	# Campaign panels: real controls in the investor lounge and committee room
+	var funded := {"stage": "eligible", "reason": null, "escrow": "5000000", "authorized": null, "series_id": "Anchor",
+			"max_amount": "5000000", "cap_step": "1000000", "dealing_day": 20}
+	hud.role = "mp"
+	hud.view = {"clock": {"day": 19, "finished": false}, "bots": [], "packages": [], "notices": [], "series": [],
+			"investors": null, "prospect": funded, "ready": []}
+	hud.open_panel("lp")
+	var pick: OptionButton = hud._panel_body.find_child("AdmissionAmount", true, false)
+	check(pick != null and pick.item_count == 5 and pick.get_item_text(0) == "$5,000,000", "lounge offers admission amounts")
+	check(_button_text(hud, "Decline the prospective LP") != null, "MP lounge offers decline")
+	hud.role = "pm"
+	hud.open_panel("lp")
+	await process_frame
+	check(hud._panel_body.find_child("AdmissionAmount", true, false) != null and _button_text(hud, "Decline the prospective LP") == null,
+			"PM may propose admission but not decline")
+	hud.view["bots"] = ["mp"]
+	hud.open_panel("lp")
+	await process_frame
+	check(hud._panel_body.find_child("AdmissionAmount", true, false) == null and _label_text(hud, "partner bot will not countersign") != null,
+			"solo lounge explains why admission cannot complete")
+	hud.open_panel("committee")
+	await process_frame
+	var wd: Button = _button_text(hud, "Winddown")
+	check(wd != null and wd.disabled and "partner bot" in wd.text, "solo committee disables winddown with the reason")
+	hud.view["bots"] = []
+	hud.view["packages"] = [{"package_id": "w1", "proposer": "mp", "digest": "abcdef0123456", "status": "PENDING_APPROVAL",
+			"signatures": ["mp"], "kind": "winddown", "terms": {"day": 19}, "orders": []}]
+	hud.open_panel("committee")
+	await process_frame
+	check(_label_text(hud, "WINDDOWN declared day 19") != null and _button_text(hud, "Countersign this exact package") != null
+			and _button_text(hud, "Winddown").disabled, "partner countersigns a pending winddown; no second proposal")
+	hud.view["packages"] = []
+	hud.open_panel("committee")
+	await process_frame
+	var propose_wd: Button = _button_text(hud, "Propose a controlled winddown")
+	check(propose_wd != null and not propose_wd.disabled, "two-human committee can propose a winddown")
+	hud.view.erase("prospect")
+	hud.open_panel("committee")
+	await process_frame
+	check(_button_text(hud, "Winddown") == null and _button_text(hud, "Propose a controlled winddown") == null,
+			"no winddown control outside the campaign")
 	hud.queue_free()
 	await process_frame
 
 	print("%d failure(s)" % failures)
 	quit(1 if failures else 0)
+
+
+func _button_text(hud: Variant, prefix: String) -> Button:
+	for child in hud._panel_body.get_children():
+		if child is Button and not child.is_queued_for_deletion() and child.text.begins_with(prefix):
+			return child
+	return null
+
+
+func _label_text(hud: Variant, part: String) -> Label:
+	for child in hud._panel_body.get_children():
+		if child is Label and not child.is_queued_for_deletion() and part in child.text:
+			return child
+	return null
