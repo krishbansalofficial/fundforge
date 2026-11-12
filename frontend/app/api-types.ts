@@ -1449,6 +1449,8 @@ export interface components {
             attention: components["schemas"]["Attention"];
             /** Bots */
             bots: string[];
+            /** Campaign */
+            campaign: boolean;
             /** Certification */
             certification?: ("pending" | "certified" | "broken") | null;
             /** Chat */
@@ -1499,6 +1501,8 @@ export interface components {
             series: components["schemas"]["Series"][];
             /** Version */
             version: number;
+            /** Winddown */
+            winddown: number | null;
         };
         /** Say */
         Say: {
