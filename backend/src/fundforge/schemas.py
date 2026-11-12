@@ -311,6 +311,8 @@ class SessionView(Strict):
     investors: Investors | None  # managing partner only, generated rooms only
     certification: CertificationStatus | None = None  # latest dealing-close NAV certificate; pending before one
     prospect: ProspectView | None = None  # campaign only
+    campaign: bool  # the room runs campaign rules (joint winddown, renewal, ten-day chapters)
+    winddown: int | None  # campaign: day both partners declared a controlled winddown; None while undeclared
 
 
 class RoomView(SessionView):

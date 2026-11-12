@@ -3622,6 +3622,10 @@
             "title": "Bots",
             "type": "array"
           },
+          "campaign": {
+            "title": "Campaign",
+            "type": "boolean"
+          },
           "certification": {
             "anyOf": [
               {
@@ -3794,6 +3798,17 @@
           "version": {
             "title": "Version",
             "type": "integer"
+          },
+          "winddown": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Winddown"
           }
         },
         "required": [
@@ -3822,6 +3837,8 @@
           "decisions",
           "outcome",
           "investors",
+          "campaign",
+          "winddown",
           "names",
           "realtime"
         ],
