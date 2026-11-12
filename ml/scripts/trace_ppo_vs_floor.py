@@ -230,7 +230,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         "episodes": [{**r, "ppo": {k: v for k, v in r["ppo"].items() if k != "daily_gross"},
                       "floor": {k: v for k, v in r["floor"].items() if k != "daily_gross"}} for r in rows],
     }
-    Path(args.out).write_text(json.dumps(result, indent=1, default=str) + "\n", encoding="utf-8")
+    head = json.dumps({k: v for k, v in result.items() if k != "episodes"}, indent=1, default=str)
+    eps = ",\n".join(json.dumps(e, separators=(",", ":"), default=str) for e in result["episodes"])
+    Path(args.out).write_text(f'{head[:-2]},\n "episodes": [\n{eps}\n ]\n}}\n', encoding="utf-8")  # one line each
     print(json.dumps(result["overall"], indent=1, default=str))
     return result
 
