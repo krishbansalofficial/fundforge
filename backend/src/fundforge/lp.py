@@ -85,6 +85,11 @@ class ReviewFacts:
     contacted: bool = False  # a partner contacted this LP since the previous review
 
 
+
+def _f(d: Decimal) -> str:
+    """Fixed-point text: ``str`` gives ``0E-10`` for an exact zero difference, which the API contract rejects."""
+    return format(d, "f")
+
 def band(c: Decimal) -> str:
     """Half-open public bands; fractional values fall in exactly one."""
     if not ZERO <= c <= HUNDRED:
@@ -127,9 +132,9 @@ def chapter_close(p: Profile, s: State, f: ChapterFacts) -> tuple[State, dict[st
                 used = used | {f.meeting_evidence}
         unclamped = before_meeting + meeting
         new = max(ZERO, min(HUNDRED, unclamped))
-    components = {"policy_version": POLICY_VERSION, "start": str(s.confidence), "performance": str(perf),
-                  "breaches": str(breach), "report": str(report), "meeting": str(meeting), "gate": str(gate),
-                  "herding": str(herding), "overdue": str(overdue), "clamp": str(new - unclamped), "end": str(new),
+    components = {"policy_version": POLICY_VERSION, "start": _f(s.confidence), "performance": _f(perf),
+                  "breaches": _f(breach), "report": _f(report), "meeting": _f(meeting), "gate": _f(gate),
+                  "herding": _f(herding), "overdue": _f(overdue), "clamp": _f(new - unclamped), "end": _f(new),
                   "band": band(new)}
     return _moved(s, new, used), components
 
@@ -156,9 +161,9 @@ def review(p: Profile, s: State, f: ReviewFacts) -> tuple[State, dict[str, str]]
         contact = min(p.contact_bonus, -(dd + lag)) if f.contacted else ZERO
         unclamped = s.confidence + dd + lag + contact
         new = max(ZERO, min(HUNDRED, unclamped))
-    components = {"policy_version": POLICY_VERSION, "start": str(s.confidence), "drawdown": str(dd),
-                  "response_lag": str(lag), "contact": str(contact), "clamp": str(new - unclamped),
-                  "end": str(new), "band": band(new)}
+    components = {"policy_version": POLICY_VERSION, "start": _f(s.confidence), "drawdown": _f(dd),
+                  "response_lag": _f(lag), "contact": _f(contact), "clamp": _f(new - unclamped),
+                  "end": _f(new), "band": band(new)}
     return _moved(s, new, s.used_evidence), components
 
 

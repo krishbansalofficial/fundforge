@@ -317,7 +317,7 @@ export interface components {
              * Label
              * @enum {string}
              */
-            label: "WIN" | "SURVIVAL" | "DISTRESS" | "IN_PROGRESS";
+            label: "WIN" | "SURVIVAL" | "DISTRESS" | "RENEWAL" | "WINDDOWN" | "DEFAULT" | "COMPANY_FAILURE" | "IN_PROGRESS";
             /** Lp Deferred */
             lp_deferred?: {
                 [key: string]: string;
