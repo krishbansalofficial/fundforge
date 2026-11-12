@@ -232,6 +232,46 @@ def test_broken_certificate_blocks_admission_and_keeps_the_cash_out():
     assert any(i["code"] == "dealing_blocked" for i in s.e.incident_events)
 
 
+def admitted_through_day_20(tape=None):
+    s = session(tape)
+    diligence_done(s)
+    to_day(s, 19)
+    admit(s, "5000000")
+    to_day(s, 21)
+    return s
+
+
+def close_statement_tape(balance):
+    """A cash statement dated and published at the dealing close, the coordinate the admission cash arrives."""
+    raw = copy.deepcopy(store._tape("campaign-v1").raw)
+    at = {"day": 20, "phase": "CLOSE"}
+    raw["broker_statements"] = [{"id": "close", "revision": 1, "source": "Synthetic prime broker",
+                                 "account": "cash", "as_of": at, "available_at": at, "balance": str(balance)}]
+    return compile_tape(raw)
+
+
+@pytest.fixture(scope="module")
+def close_cash():
+    s = admitted_through_day_20()
+    assert stage(s) == "admitted"
+    return s.e.broker.snapshots[(20, 4)]["cash"]  # end-of-close balances, after admission
+
+
+def test_correct_statement_at_the_dealing_close_includes_admission_cash_and_opens_no_break(close_cash):
+    s = admitted_through_day_20(close_statement_tape(close_cash))
+    assert stage(s) == "admitted"
+    assert [x.expected for x in s.e.broker.statements] == [close_cash]
+    assert s.e.broker.queue(s.e.ev.date, s.e.ev.day) == []
+    assert not any(n["code"] == "broker_statement" for n in s.e.notices)
+
+
+def test_wrong_statement_at_the_dealing_close_still_opens_a_break(close_cash):
+    s = admitted_through_day_20(close_statement_tape(close_cash + Decimal("0.01")))
+    rows = s.e.broker.queue(s.e.ev.date, s.e.ev.day)
+    assert [(r["id"], r["status"], r["amount"], r["opened_day"]) for r in rows] == [("close", "open", "0.01", 20)]
+    assert any(n["code"] == "broker_statement" for n in s.e.notices)
+
+
 def test_capacity_refuses_an_amount_that_breaks_the_mandate_floor_but_allows_a_cap():
     probe = session()
     to_day(probe, 19)

@@ -869,7 +869,8 @@ class Engine:
                    ("accrued_interest", -interest), ("interest_payable", interest))
 
     def _deal(self) -> None:
-        self._observe_broker()  # close statements are available before the dealing gate
+        # Close statements are available before the dealing gate; one dated this close waits for admission cash.
+        self._observe_broker(provisional=investors.admission_due(self))
         if self.winddown is not None and self._winddown_flat() and any(s.units > 0 for s in self.series):
             due = [(s.series_id, s.units, str(s.units)) for s in self.series if s.units > 0]
         elif self.lp is not None:
@@ -969,9 +970,9 @@ class Engine:
             return (securities + b["cash"] + b["collateral"] - b["debt"] + unsettled
                     - self.broker.accrued - self.broker.invoiced)
 
-    def _observe_broker(self) -> None:
+    def _observe_broker(self, provisional: bool = False) -> None:
         for statement_id in self.broker.observe(self.ev.day, self.ev.phase, self.ev.date,
-                                                self.tape.raw.get("broker_statements", [])):
+                                                self.tape.raw.get("broker_statements", []), provisional=provisional):
             self._notice("Broker statement requires review in Terminal RISK.", "alert",
                          code="broker_statement", statement_id=statement_id)
 
