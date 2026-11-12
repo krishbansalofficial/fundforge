@@ -152,6 +152,9 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "episodes": n,
         "ppo_labels": dict(Counter(r["ppo"]["label"] for r in rows)),
         "floor_labels": dict(Counter(r["floor"]["label"] for r in rows)),
+        "mean_score_bps": {"ppo": round(statistics.fmean(r["ppo"]["score"] for r in rows), 1),
+                           "floor": round(statistics.fmean(r["floor"]["score"] for r in rows), 1)},
+        "share_ppo_score_above_floor": round(sum(r["ppo"]["score"] > r["floor"]["score"] for r in rows) / n, 4),
         "ppo_no_derisk": sum(r["ppo"]["first_derisk"] is None for r in rows),
         "share_timing_match_pm1": round(sum(r["cmp"]["timing_match_pm1"] for r in rows) / n, 4),
         "share_ppo_first_derisk_at_window0": round(sum(
