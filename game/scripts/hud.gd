@@ -427,8 +427,7 @@ func _committee() -> void:
 	var any := false
 	for p in view.get("packages", []):
 		any = true
-		var desc := LpRules.gate_terms_text(p.get("terms", {})) if p.get("kind") == "gate" else \
-				", ".join(p["orders"].map(func(o): return "%s %s %s" % [o["side"], o["qty"], o["sym"]]))
+		var desc := LpRules.package_text(p)
 		_text("%s  proposed by %s  [%s]  hash %s" % [desc, view.get("names", {}).get(p["proposer"], p["proposer"]),
 				str(p["status"]).to_lower().replace("_", " "), str(p["digest"]).substr(0, 10)], 14)
 		if p["status"] == "PENDING_APPROVAL" and p["proposer"] == other:
@@ -437,6 +436,12 @@ func _committee() -> void:
 			_button("Countersign this exact package", func(): Api.command({"type": "sign", "package_id": pid, "digest": digest}))
 	if not any:
 		_text("No packages on the table. Propose one from the trading floor.", 14, Color("#4d5e72"))
+	if LpRules.is_campaign(view):
+		var reason := LpRules.winddown_reason(view)
+		_button("Propose a controlled winddown (partner must countersign; redeems every unit)" if reason == ""
+				else "Winddown  (%s)" % reason,
+				func(): Api.command({"type": "propose_winddown", "package_id": "winddown-" + Api.new_key().substr(0, 8)}),
+				reason == "")
 	_text("Skip ahead together: when both partners are ready, time jumps to the next window.", 12, Color("#4d5e72"))
 	var ready: Array = view.get("ready", [])
 	_button("Waiting for partner" if role in ready else "I'm ready to move on",
@@ -475,7 +480,8 @@ func _research() -> void:
 	if attention.get("committed", false):
 		_text("Your attention is committed for this window. Orders, signatures and mandatory notices remain available.", 12)
 	var names := {"borrow": "BRIN borrow availability", "debt_schedule": "BRIN debt schedule", "demand_survey": "BRIN demand survey",
-			"crowding": "Prime broker crowding report"}
+			"crowding": "Prime broker crowding report", "prospect_qualification": "Qualify the prospective LP",
+			"prospect_diligence": "Prospective LP diligence"}
 	for t in r.get("topics", []):
 		var topic: String = t
 		var location: String = r.get("assignments", {}).get(topic, {}).get("location", "research")
@@ -575,12 +581,45 @@ func _lp() -> void:
 	var lp_notices := LpRules.notices(view)
 	if view.get("investors") == null and lp_notices.is_empty():
 		_text("Tactical has noticed a 10,000-unit redemption, dealt at the day 20 close and paid day 21.", 13, Color("#4d5e72"))
+	if LpRules.is_campaign(view):
+		_prospect()
 	if view.get("investors") is Dictionary:
 		_lp_inbox()
 	elif role == "pm":
 		_text("LP relationships belong to the managing partner. Formal notices and gate elections are shared.", 12, Color("#4d5e72"))
 	for n in lp_notices:
 		_text("Day %d  %s" % [int(n.get("day", 0)), n.get("text", "")], 12)
+
+
+## Campaign prospect: pipeline stage, joint admission proposal and the MP's decline. Reads only this view.
+func _prospect() -> void:
+	for line in LpRules.prospect_lines(view):
+		_text(line, 14)
+	var stage: String = str(view["prospect"].get("stage"))
+	var reason := LpRules.admission_reason(view)
+	var amounts := LpRules.admission_amounts(view)
+	if reason == "" and not amounts.is_empty():
+		var row := HBoxContainer.new()
+		row.name = "AdmissionRow"
+		_panel_body.add_child(row)
+		var pick := OptionButton.new()
+		pick.name = "AdmissionAmount"
+		for a in amounts:
+			pick.add_item("$" + LpRules.units(a))
+		row.add_child(pick)
+		var b := Button.new()
+		b.name = "ProposeAdmission"
+		b.text = "Propose admission (partner must countersign in the committee room)"
+		b.pressed.connect(func(): Api.command({"type": "propose_admission",
+				"package_id": "admit-" + Api.new_key().substr(0, 8), "amount": amounts[pick.selected]}))
+		row.add_child(b)
+	elif stage == "eligible":
+		_text("Admission unavailable: " + reason, 12, Color("#7a4a12"))
+	var decline := LpRules.decline_reason(view, role)
+	if decline == "":
+		_button("Decline the prospective LP (escrow returns to it)", func(): Api.command({"type": "decline_prospect"}))
+	elif not stage in LpRules.PROSPECT_CLOSED:
+		_text("Decline: " + decline, 12, Color("#4d5e72"))
 
 
 ## The MP's LP inbox (generated rooms): bands, requests, contact and gate proposal. Reads only this view.
