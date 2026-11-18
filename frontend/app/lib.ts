@@ -25,6 +25,7 @@ export const SCENARIOS = [
   ["case1-settlement", "Settlement failure: a tight credit line fails a BUY settlement; follow the retry in RISK"],
   ["case1-generated", "Generated market: Case 1's crisis on a fresh seeded price path (seed revealed at the end)"],
   ["campaign-v1", "Campaign: the first mandate, 30 days in three chapters with six instruments"],
+  ["case2", "Case 2: profitable but illiquid; two $3m redemptions, a thin BEAM window and an optional gate (days 39-61)"],
 ] as const;
 
 export const money = (s: string | null | undefined, dp = 0) =>

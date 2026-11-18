@@ -39,7 +39,7 @@ log = logging.getLogger("fundforge.commands")
 
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json",
-             "case1-generated": "case1.json", "campaign-v1": "campaign_v1.json"}
+             "case1-generated": "case1.json", "campaign-v1": "campaign_v1.json", "case2": "case2.json"}
 GENERATED = "case1-generated"
 # Default Spec: 84 of 199 seeds accepted (seed:{i}-0, 15 Oct 2026), so 12 attempts fail about 0.14% of
 # room creations; a 3-of-10 sample would put it near 1.4%. A room needs one accepted tape.
@@ -80,7 +80,7 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
         if "credit_limit" in selected:  # authored facility size: a smaller line makes the same crisis a default
             raw["defaults"]["credit_limit"] = selected["credit_limit"]
         return compile_tape(raw, variant)
-    if scenario != "case1":
+    if scenario not in ("case1", "case2"):
         raw = json.loads((FIXTURES / SCENARIOS[scenario]).read_text(encoding="utf-8"))
         raw["scenario_id"] = scenario
         if scenario == GENERATED:  # the hidden variant column holds the seed; the outcome reveals it at the end
