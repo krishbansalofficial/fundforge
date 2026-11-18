@@ -28,6 +28,7 @@ services:
       FORWARDED_ALLOW_IPS: ${EDGE_PROXY_IP:-172.30.0.2}
       FUNDFORGE_CLOCK: ${FUNDFORGE_CLOCK:-1}
       FUNDFORGE_ROOMS_PER_IP: ${FUNDFORGE_ROOMS_PER_IP:-20}  # per hour; raised only for the B3 load test
+      FUNDFORGE_WORKERS: ${FUNDFORGE_WORKERS:-1}  # API processes; >1 relays presence via Postgres NOTIFY
     # Host-local only, for the host's Prometheus scrape of /metrics; Caddy hides /metrics publicly.
     ports: ["127.0.0.1:${METRICS_PORT:-9464}:8000"]
     networks: [edge, data]

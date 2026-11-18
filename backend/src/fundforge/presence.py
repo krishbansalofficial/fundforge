@@ -14,8 +14,9 @@ Protocol (JSON text frames):
   server -> {"type": "version", "version": N}                   after a command or clock tick changed the room
   server -> {"type": "error", "message": TEXT}                  a malformed frame; the socket stays open
 
-The hub is per process. One API process is the deployment target; several would need a shared broker
-(for example Redis pub/sub), which is not built until a deployment needs it.
+The hub is per process. With several API worker processes, ``presence_bridge`` relays each local move, leave
+and nudge through Postgres LISTEN/NOTIFY to the other workers' hubs (``publish`` / ``apply_remote``); with one
+process ``publish`` stays None and nothing leaves the process.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ import asyncio
 import json
 import math
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -106,6 +108,7 @@ class Hub:
         self.rooms: dict[str, set[Conn]] = {}
         self.positions: dict[str, dict[str, dict[str, Any]]] = {}
         self.loop: asyncio.AbstractEventLoop | None = None
+        self.publish: Callable[[dict[str, Any]], None] | None = None  # set by presence_bridge with workers > 1
 
     def join(self, room: str, role: str) -> Conn:
         conns = self.rooms.setdefault(room, set())
@@ -119,29 +122,57 @@ class Hub:
         return {r: p for r, p in self.positions.get(conn.room, {}).items() if r != conn.role}
 
     def move(self, conn: Conn, pos: dict[str, Any]) -> None:
-        self.positions.setdefault(conn.room, {})[conn.role] = pos
-        for other in self.rooms.get(conn.room, ()):
-            if other.role != conn.role:
-                other.send({"type": "presence", "role": conn.role, **pos})
+        self._moved(conn.room, conn.role, pos)
+        if self.publish:
+            self.publish({"type": "presence", "room": conn.room, "role": conn.role, "pos": pos})
+
+    def _moved(self, room: str, role: str, pos: dict[str, Any]) -> None:
+        self.positions.setdefault(room, {})[role] = pos
+        for other in self.rooms.get(room, ()):
+            if other.role != role:
+                other.send({"type": "presence", "role": role, **pos})
 
     def leave(self, conn: Conn) -> None:
         conns = self.rooms.get(conn.room, set())
         conns.discard(conn)
         if not any(c.role == conn.role for c in conns):
-            self.positions.get(conn.room, {}).pop(conn.role, None)
-            for other in conns:
-                other.send({"type": "left", "role": conn.role})
+            self._left(conn.room, conn.role)
+            if self.publish:
+                self.publish({"type": "left", "room": conn.room, "role": conn.role})
         if not conns:  # nothing kept for rooms nobody is watching
             self.rooms.pop(conn.room, None)
             self.positions.pop(conn.room, None)
 
+    def _left(self, room: str, role: str) -> None:
+        self.positions.get(room, {}).pop(role, None)
+        for other in self.rooms.get(room, ()):
+            if other.role != role:
+                other.send({"type": "left", "role": role})
+
     def nudge(self, room: str, version: int) -> None:
+        self._nudged(room, version)
+        if self.publish:
+            self.publish({"type": "version", "room": room, "version": version})
+
+    def _nudged(self, room: str, version: int) -> None:
         for conn in self.rooms.get(room, ()):
             conn.send({"type": "version", "version": version})
 
+    def apply_remote(self, event: dict[str, Any]) -> None:
+        """Another worker's move, leave or nudge: deliver to this process's connections, never republish."""
+        room = event["room"]
+        if room not in self.rooms:  # nobody here watches it; keep no state for it
+            return
+        if event["type"] == "presence":
+            self._moved(room, event["role"], event["pos"])
+        elif event["type"] == "left":
+            self._left(room, event["role"])
+        elif event["type"] == "version":
+            self._nudged(room, int(event["version"]))
+
     def nudge_threadsafe(self, room: str, version: int) -> None:
         """From a worker thread (sync endpoints run in a threadpool): schedule the nudge on the hub's loop."""
-        if self.loop is not None and room in self.rooms:
+        if self.loop is not None and (room in self.rooms or self.publish):
             self.loop.call_soon_threadsafe(self.nudge, room, version)
 
 

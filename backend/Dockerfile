@@ -9,7 +9,8 @@ RUN uv sync --frozen --no-dev && useradd --system --uid 10001 --no-create-home f
 ENV FUNDFORGE_FIXTURES=/app/fixtures PORT=8000 PATH=/app/backend/.venv/bin:$PATH
 USER 10001
 # uvicorn trusts X-Forwarded-For only from FORWARDED_ALLOW_IPS (default 127.0.0.1); the prod compose sets the proxy's address.
-CMD ["sh", "-c", "exec uvicorn fundforge.api:app --host 0.0.0.0 --port ${PORT}"]
+# FUNDFORGE_WORKERS > 1 runs that many processes and relays presence between them through Postgres (B3).
+CMD ["sh", "-c", "exec uvicorn fundforge.api:app --host 0.0.0.0 --port ${PORT} --workers ${FUNDFORGE_WORKERS:-1}"]
 
 # Nightly dump plus restore-and-verify (deploy/compose.prod.yaml). Built on the server's own image so pg_dump
 # always matches the postgres:17 server; the API stage's Python runtime (same Debian trixie base) and venv are copied in.
