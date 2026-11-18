@@ -147,6 +147,9 @@ def test_http_terminal_cannot_spoof_role_or_read_private_partner_evidence(monkey
         def clock_info(self, _room):
             return {"running": False, "version": 0}
 
+        def seat_clock(self, room, token):
+            return self.auth(room, token), self.clock_info(room)
+
     monkeypatch.setattr(api, "store", lambda: Store())
     c = TestClient(api.app)
     for suffix in ("terminal?role=mp", "view?role=mp"):

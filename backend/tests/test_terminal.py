@@ -133,6 +133,9 @@ def test_terminal_http_auth_and_consistent_version_without_database():
         def clock_info(self, room):
             return {"running": False, "version": 7}
 
+        def seat_clock(self, room, token):
+            return self.auth(room, token), self.clock_info(room)
+
     # Routes use store() directly; replace its module binding, not dependency overrides.
     import fundforge.api as api
 

@@ -343,10 +343,13 @@ def _etag(version: int, running: bool) -> str:
 
 @app.get("/api/rooms/{room_id}/view", response_model=None,
          responses={200: {"model": RoomView}, 304: {"description": "Unchanged since If-None-Match"}})
-def view(room_id: str, user: str = Depends(seat),
+def view(room_id: str, authorization: str = Header(""),
          if_none_match: str | None = Header(None)) -> dict[str, Any] | Response:
     headers = {"Cache-Control": "private, no-cache"}
-    info = store().clock_info(room_id)
+    try:  # seat check and clock in one query: most polls end at the 304 below
+        user, info = store().seat_clock(room_id, authorization.removeprefix("Bearer ").strip())
+    except PermissionError as e:
+        raise HTTPException(401, str(e)) from e
     if if_none_match is not None and if_none_match == _etag(info["version"], info["running"]):
         return Response(status_code=304, headers={**headers, "ETag": if_none_match})
     version, s, names = store().session(room_id)
