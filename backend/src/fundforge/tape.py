@@ -148,15 +148,38 @@ def compile_tape(raw: dict[str, Any], variant: str | None = None) -> Tape:
                    ("research", "risk", "broker", "backoffice", "lp") for a in assignments.values())
             or type(research.get("budget_per_role")) is not int or research["budget_per_role"] < 1):
         raise TapeError("research requires role/location assignments and a positive per-role budget")
-    rc, off = raw["borrow"]["recall"], raw["borrow"]["replacement_offer"]
     opening_loans = {f"L-open-{s}": s for s, q in raw["opening"]["fund"]["positions"].items() if q < 0}
-    if rc.get("loan_id") not in opening_loans or opening_loans[rc["loan_id"]] != rc["sym"]:
-        raise TapeError("recall must name an opening loan for its instrument")
-    if (off.get("old_loan_id") != rc["loan_id"] or off["sym"] != rc["sym"]
-            or not isinstance(off.get("new_loan_id"), str) or not off["new_loan_id"]
-            or off["new_loan_id"] in opening_loans):
-        raise TapeError("replacement must name the recalled loan and a unique new loan")
-    known_loans = {*opening_loans, off["new_loan_id"]}
+    known_loans = set(opening_loans)
+    rc, off = raw["borrow"].get("recall"), raw["borrow"].get("replacement_offer")
+    if (rc is None) != (off is None):
+        raise TapeError("a recall and its replacement offer are authored together")
+    if rc is not None and off is not None:  # Case1's borrow episode; other scenarios author no recall
+        if rc.get("loan_id") not in opening_loans or opening_loans[rc["loan_id"]] != rc["sym"]:
+            raise TapeError("recall must name an opening loan for its instrument")
+        if (off.get("old_loan_id") != rc["loan_id"] or off["sym"] != rc["sym"]
+                or not isinstance(off.get("new_loan_id"), str) or not off["new_loan_id"]
+                or off["new_loan_id"] in opening_loans):
+            raise TapeError("replacement must name the recalled loan and a unique new loan")
+        known_loans.add(off["new_loan_id"])
+    fund = raw["opening"]["fund"]
+    payables = fund.get("payables", {})
+    if not set(payables) <= {"mgmt_fee_payable", "interest_payable"}:
+        raise TapeError("opening payables may only be an invoiced management fee or financing invoice")
+    for k, v in payables.items():
+        _money(v, f"opening.fund.payables.{k}")
+    _money(raw["opening"]["firm"].get("fee_receivable", "0"), "opening.firm.fee_receivable")
+    if payables and type(fund.get("payables_due_day")) is not int:
+        raise TapeError("opening payables need an integer due day")
+    authored = raw.get("authored_redemptions")
+    if authored is not None:
+        series_ids = {x["id"] for x in fund["series"]}
+        deal_days = {r["deal_day"] for r in raw["redemptions"]}
+        if (not raw.get("lp_agents") or len(deal_days) != 1
+                or any(r["series"] not in series_ids or "units" in r or _money(r["amount"], "redemptions.amount") <= 0
+                       or not cal["start_day"] <= r["deal_day"] < authored["deferred_deal_day"] < cal["end_day"]
+                       for r in raw["redemptions"])):
+            raise TapeError("authored redemptions are positive dollar targets for one dealing close before "
+                            "the deferred dealing day, with LP agents")
     rate_keys = set()
     for change in raw["borrow"].get("rate_changes", []):
         key = (change["day"], change["loan_id"])

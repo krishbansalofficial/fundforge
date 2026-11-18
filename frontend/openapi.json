@@ -1987,6 +1987,17 @@
             "title": "Id",
             "type": "string"
           },
+          "requested_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Amount"
+          },
           "requested_units": {
             "anyOf": [
               {

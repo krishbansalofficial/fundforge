@@ -220,4 +220,6 @@ class Book:
     deal_day: int | None = None
     carried: dict[str, Decimal] = field(default_factory=dict)  # gated units rolled past their dealing window
     gate_day: int | None = None  # dealing day both partners elected a gate for
+    # Case2 authored dollar targets for ``deal_day``: converted to units only at that close's struck value
+    amounts: dict[str, Decimal] = field(default_factory=dict)
     log: list[dict[str, str]] = field(default_factory=list)  # every checkpoint's components, for the debrief

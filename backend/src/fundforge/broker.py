@@ -119,7 +119,7 @@ class Broker:
         self.fees: tuple[Fee, ...] = ()
         self.residuals: dict[str, Decimal] = {}
         self.accrued = ZERO
-        self.invoiced = ZERO
+        self.invoiced = Decimal(opening.get("payables", {}).get("interest_payable", "0"))  # warm-start invoice
         self.snapshots: dict[tuple[int, int], dict[str, Decimal]] = {}
         self.statements: tuple[Statement, ...] = ()
         self.resolutions: tuple[Resolution, ...] = ()
