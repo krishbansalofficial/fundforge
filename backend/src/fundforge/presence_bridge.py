@@ -57,8 +57,11 @@ async def _pump(dsn: str, hub: Hub, out: asyncio.Queue[dict[str, Any]], worker: 
         sender = asyncio.create_task(send())
         try:
             async for note in listen.notifies():
-                msg = json.loads(note.payload)
-                if msg.pop("w", None) != worker:
-                    hub.apply_remote(msg)
+                try:  # one bad payload must not stop the bridge; apply_remote re-validates the event itself
+                    msg = json.loads(note.payload)
+                    if isinstance(msg, dict) and msg.pop("w", None) != worker:
+                        hub.apply_remote(msg)
+                except (ValueError, TypeError):
+                    log.warning("presence bridge ignored a malformed notification")
         finally:
             sender.cancel()

@@ -103,6 +103,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 MAX_BODY_BYTES = int(os.environ.get("FUNDFORGE_MAX_BODY_BYTES", str(64 * 1024)))
 ROOMS_PER_IP = int(os.environ.get("FUNDFORGE_ROOMS_PER_IP", "20"))
 WORKERS = int(os.environ.get("FUNDFORGE_WORKERS", "1"))  # uvicorn --workers; >1 starts the presence bridge
+if not 1 <= WORKERS <= ROOMS_PER_IP:  # each worker gets ROOMS_PER_IP // WORKERS; more workers would loosen the cap
+    raise RuntimeError(f"FUNDFORGE_WORKERS must be between 1 and FUNDFORGE_ROOMS_PER_IP ({ROOMS_PER_IP})")
 DSN = os.environ.get("DATABASE_URL", "postgresql://fundforge:fundforge@localhost:5432/fundforge")
 ROOM_WINDOW_SECONDS = 3600.0
 # Test-only: lets end-to-end runs choose the hidden market variant. Never set in production: a player who
