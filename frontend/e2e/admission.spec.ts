@@ -99,8 +99,13 @@ test("solo room: the bot partner does not countersign an admission, and the offe
   expect(proposed.prospect).toMatchObject({ stage: "eligible", authorized: null });
   expect(proposed.packages.filter((p) => p.kind === "admission").map((p) => p.status)).toEqual(["PENDING_APPROVAL"]);
   expect(proposed.chat.some((m) => m.role === "pm" && m.text.includes("human partner"))).toBe(true);
-  // What the desk shows of that (the desk renders no chat, so not the bot's reason): the package stays pending
-  // approval, no consent is recorded and the proposal stays open.
+  // The desk's chat shows the bot's reason, attributed to the bot seat.
+  const chat = mp.getByRole("region", { name: "Partner chat" });
+  const refusal = chat.getByRole("listitem").filter({ hasText: "I won't admit a new LP: taking outside capital needs a human partner's consent." });
+  await expect(refusal).toBeVisible({ timeout: 10_000 });
+  await expect(refusal).toContainText("(bot):");  // attributed to the bot seat, marked once
+  await expect(refusal).not.toContainText("(bot) (bot)");
+  // The package stays pending approval, no consent is recorded and the proposal stays open.
   await mp.getByRole("button", { name: "Orders and packages", exact: true }).click();
   const pkg = mp.getByRole("row").filter({ hasText: "Admit Anchor for $5,000,000" });
   await expect(pkg.getByRole("cell", { name: "pending approval", exact: true })).toBeVisible();
@@ -115,4 +120,30 @@ test("solo room: the bot partner does not countersign an admission, and the offe
   expect(after.prospect).toMatchObject({ stage: "forfeited", reason: "no_consent", escrow: "0" });
   expect(after.series.map((s) => s.id)).not.toContain("Anchor");
   await expect(mp.getByText("The offer lapsed; any escrow returned to the LP and the fund is unchanged. Reason: no consent.")).toBeVisible({ timeout: 15_000 });
+});
+
+test("partners see each other's chat messages on the desk", async ({ browser, request }) => {
+  const created = await request.post("/api/rooms", { data: { scenario: "campaign-v1", variant: "base", ...PAIR } });
+  expect(created.status(), await created.text()).toBe(201);
+  const { room_id: room, tokens } = await created.json();
+  const open = async (token: string) => {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto(`/room/${room}#t=${token}`);
+    return page.getByRole("region", { name: "Partner chat" });
+  };
+  const [pm, mp] = [await open(tokens.pm), await open(tokens.mp)];
+
+  // Markup in a message is shown as text, never parsed.
+  await pm.getByRole("textbox", { name: "Message" }).fill("<b>Hold</b> the BRIN short");
+  await pm.getByRole("button", { name: "Send" }).click();
+  await expect(pm.getByRole("textbox", { name: "Message" })).toHaveValue("");
+  await expect(mp.getByText("<b>Hold</b> the BRIN short")).toBeVisible({ timeout: 10_000 });
+  await expect(mp.getByText("Adm PM:")).toBeVisible();
+  await expect(mp.locator("b")).toHaveCount(0);
+
+  await mp.getByRole("textbox", { name: "Message" }).fill("Agreed.");
+  await mp.getByRole("button", { name: "Send" }).click();
+  await expect(pm.getByText("Agreed.")).toBeVisible({ timeout: 10_000 });
+  await expect(pm.getByText("Adm MP:")).toBeVisible();
+  await expect(mp.getByText("Adm MP (you):")).toBeVisible();
 });
