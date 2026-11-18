@@ -117,13 +117,13 @@ def bench_env(d: dict[str, Any]) -> Row:
 def viper(d: dict[str, Any]) -> Row:
     k = str(d["exported_depth"])
     t, s = d["depths"][k], d["scale"]
-    smoke = "SMOKE ONLY; " if d["status"].startswith("SMOKE") else ""
+    smoke = "SMOKE ONLY; " if d.get("status", "").startswith("SMOKE") else ""
     return (
         "VIPER: PPO distilled into a decision tree",
         f"{smoke}depth {k} ({t['tree']['leaves']} leaves): fidelity {_g(t['fidelity_on_student_states'])}, "
         f"tree - teacher {_g(t['vs_teacher']['diff']['point'])} "
         f"[{_g(t['vs_teacher']['diff']['lo'])}, {_g(t['vs_teacher']['diff']['hi'])}]",
-        f"teacher {s['teacher_steps']} steps, 1 seed; {s['worlds']['test']} test worlds",
+        f"teacher {s['teacher_steps']} (sha256 {d['teacher_sha256'][:12]}), 1 seed; {s['worlds']['test']} test worlds",
         d["reproduce"],
     )
 
