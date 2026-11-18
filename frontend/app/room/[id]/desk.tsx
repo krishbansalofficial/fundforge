@@ -160,6 +160,7 @@ export default function Desk({ roomId }: { roomId: string }) {
         <fieldset className="contents" disabled={busy} aria-busy={busy}>
           <Actions v={v} me={me} send={send} />
           <Partners v={v} me={me} partner={partner} send={send} flash={flash} />
+          <Chat v={v} send={send} />
         </fieldset>
       </div>
 
@@ -407,6 +408,42 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
         </button>
       )}
       {flash && <p className="flash" role="status">{flash}</p>}
+    </section>
+  );
+}
+
+/** Room chat, oldest first. The partner bot explains its refusals here. Text renders as plain React text. */
+function Chat({ v, send }: { v: View; send: Send }) {
+  const [text, setText] = useState("");
+  const list = useRef<HTMLOListElement>(null);
+  useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight }); }, [v.chat.length]);
+  const who = (role: string) => {
+    const name = v.names[role] ?? role;
+    // The server already names bot seats "… (bot)"; mark them only when it doesn't.
+    if (v.bots.includes(role)) return /\(bot\)/i.test(name) ? name : `${name} (bot)`;
+    return role === v.role ? `${name} (you)` : name;
+  };
+  return (
+    <section className="panel feed chat" aria-labelledby="chat-h">
+      <h2 id="chat-h">Partner chat</h2>
+      {v.chat.length === 0 ? <p className="muted">No messages yet.</p> : (
+        <ol ref={list} tabIndex={0} aria-label="Chat messages, newest last" aria-live="polite">
+          {v.chat.map((m, i) => (
+            <li key={i}>
+              <span className="when">Day {m.day}</span>
+              <span><strong>{who(m.role)}:</strong> {m.text}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      <form className="row" onSubmit={(e) => {
+        e.preventDefault();
+        const t = text.trim();
+        if (t) void send({ type: "say", text: t }, "").then((no) => { if (!no) setText(""); });
+      }}>
+        <label>Message<input value={text} maxLength={240} onChange={(e) => setText(e.target.value)} /></label>
+        <button type="submit" disabled={!text.trim()}>Send</button>
+      </form>
     </section>
   );
 }
