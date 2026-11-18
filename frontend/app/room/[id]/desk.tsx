@@ -496,19 +496,27 @@ function Orders({ v, me, send }: { v: View; me: string; send: Send }) {
 
 function gateText(terms: Record<string, unknown>): string {
   const requests = (terms.requests ?? {}) as Record<string, string>;
-  return `Gate for the day ${terms.deal_day} dealing close, binding requests: ${Object.entries(requests).sort(([a], [b]) => a.localeCompare(b)).map(([id, units]) => `${id} ${units} units`).join(", ")}. At most 20% of pre-flow NAV is dealt, pro rata; undealt units stay invested and carry forward.`;
+  const amounts = (terms.amounts ?? {}) as Record<string, string>;  // Case2 dollar targets, units fixed at dealing
+  const bound = [
+    ...Object.entries(requests).map(([id, units]) => [id, `${id} ${units} units`]),
+    ...Object.entries(amounts).map(([id, usd]) => [id, `${id} $${num(usd)} target`]),
+  ].sort(([a], [b]) => a.localeCompare(b)).map(([, t]) => t);
+  return `Gate for the day ${terms.deal_day} dealing close, binding requests: ${bound.join(", ")}. At most 20% of pre-flow NAV is dealt, pro rata; undealt units stay invested and carry forward.`;
 }
+
+const sameMap = (a: Record<string, string>, b: Record<string, string | null | undefined>) =>
+  Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([id, x]) => b[id] === x);
 
 function Investors({ v, send }: { v: View; send: Send }) {
   const inbox = v.role === "mp" ? v.investors : null;
   const requests = Object.fromEntries((inbox?.lps ?? []).filter((lp) => lp.requested_units != null).map((lp) => [lp.id, lp.requested_units]));
+  const amounts = Object.fromEntries((inbox?.lps ?? []).filter((lp) => lp.requested_amount != null).map((lp) => [lp.id, lp.requested_amount]));
   const pendingGates = v.packages.filter((p) => p.kind === "gate" && p.status === "PENDING_APPROVAL");
-  const openGate = pendingGates.some((p) => {
-    const bound = (p.terms.requests ?? {}) as Record<string, string>;
-    return p.terms.deal_day === inbox?.deal_day && Object.keys(bound).length === Object.keys(requests).length &&
-      Object.entries(bound).every(([id, units]) => requests[id] === units);
-  });
-  const canGate = inbox && !v.clock.finished && !inbox.gate_elected && inbox.deal_day != null && v.clock.day <= inbox.deal_day && Object.keys(requests).length > 0;
+  const openGate = pendingGates.some((p) => p.terms.deal_day === inbox?.deal_day &&
+    sameMap((p.terms.requests ?? {}) as Record<string, string>, requests) &&
+    sameMap((p.terms.amounts ?? {}) as Record<string, string>, amounts));
+  const canGate = inbox && !v.clock.finished && !inbox.gate_elected && inbox.deal_day != null && v.clock.day <= inbox.deal_day &&
+    Object.keys(requests).length + Object.keys(amounts).length > 0;
   return (
     <section className="panel wide">
       <h2>Investor relationships</h2>
@@ -519,12 +527,13 @@ function Investors({ v, send }: { v: View; send: Send }) {
           return <article key={lp.id}>
             <h3>{lp.id}: {lp.band.replaceAll("_", " ")}</h3>
             {lp.requested_units != null && <p>Redemption request {lp.requested_units} units, dealt at the day {inbox.deal_day} close, payable day {Number(inbox.deal_day) + 1}.</p>}
+            {lp.requested_amount != null && <p>Redemption request ${num(lp.requested_amount)} (dollar target; units are fixed at the day {inbox.deal_day} close), payable day {Number(inbox.deal_day) + 1}.</p>}
             {lp.carried_units != null && <p>Carried by a gate: {lp.carried_units} units, still invested.</p>}
             <button type="button" disabled={Boolean(reason)} onClick={() => send({ type: "contact_lp", lp: lp.id }, `Contacted ${lp.id}; attention committed for this window.`)}>Contact {lp.id}</button>
             {reason && <p className="muted">{reason}</p>}
           </article>;
         })}
-        {canGate && <p>{gateText({ deal_day: inbox.deal_day, requests })}</p>}
+        {canGate && <p>{gateText({ deal_day: inbox.deal_day, requests, ...(Object.keys(amounts).length ? { amounts } : {}) })}</p>}
         <button type="button" disabled={!canGate || openGate} onClick={() => send({ type: "propose_gate", package_id: crypto.randomUUID() }, "Gate proposed for your partner's signature.")}>Propose gate</button>
         {inbox.gate_elected && <p>Both partners elected the gate for day {inbox.deal_day}.</p>}
         {openGate && <p>A gate proposal awaits your partner's signature.</p>}

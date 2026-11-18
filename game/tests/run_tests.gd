@@ -396,6 +396,14 @@ func _lp_checks() -> void:
 	check(LpRules.gate_terms_text(terms).begins_with("GATE for the day 20 dealing close, binding requests: Tactical 17,500.000001 units."),
 			"gate terms text")
 	check(LpRules.pending_gate_terms(mp.merged({"clock": {"day": 21}}, true)).is_empty(), "no gate after the dealing close")
+	var dollars: Dictionary = mp.duplicate(true)
+	dollars["investors"]["lps"] = [{"id": "Seed", "band": "stable", "requested_amount": "3000000.00"},
+			{"id": "Tactical", "band": "stable", "requested_amount": "3000000.00"}]
+	var dt := LpRules.pending_gate_terms(dollars)
+	check(dt == {"deal_day": 20, "requests": {}, "amounts": {"Seed": "3000000.00", "Tactical": "3000000.00"}},
+			"Case2 gate terms bind dollar targets as the server does")
+	check("Seed $3,000,000 target, Tactical $3,000,000 target." in LpRules.gate_terms_text(dt), "dollar gate text")
+	check("Redemption request $3,000,000 (dollar target" in LpRules.rows(dollars)[0], "dollar request row")
 	check(LpRules.has_open_gate({"packages": [{"kind": "gate", "status": "PENDING_APPROVAL"}]})
 			and not LpRules.has_open_gate({"packages": [{"kind": "orders", "status": "PENDING_APPROVAL"}]}), "open gate package detection")
 	check(LpRules.notices(mp).size() == 1 and LpRules.notices(mp)[0]["code"] == "lp_band", "LP notices filtered by code")

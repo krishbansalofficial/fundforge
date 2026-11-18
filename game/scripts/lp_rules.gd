@@ -43,6 +43,10 @@ static func rows(view: Dictionary) -> Array:
 		var line := "%s   %s" % [lp["id"], band_text(lp["band"])]
 		if lp.get("requested_units") != null:
 			line += "\n   " + request_text(lp["requested_units"], inv.get("deal_day"))
+		if lp.get("requested_amount") != null:  # Case2 dollar target: units are fixed only at the dealing close
+			var d := int(inv.get("deal_day"))
+			line += "\n   Redemption request %s (dollar target; units fixed at the day %d close), payable day %d" % [
+					WorldRules.money(lp["requested_amount"]), d, d + 1]
 		if lp.get("carried_units") != null:
 			line += "\n   Carried by a gate: %s units, still invested" % units(lp["carried_units"])
 		if lp.get("contacted", false):
@@ -79,19 +83,35 @@ static func pending_gate_terms(view: Dictionary) -> Dictionary:
 	if int(view.get("clock", {}).get("day", 0)) > int(inv["deal_day"]):
 		return {}
 	var req := {}
+	var amounts := {}
 	for lp in inv.get("lps", []):
 		if lp.get("requested_units") != null:
 			req[lp["id"]] = str(lp["requested_units"])
-	return {} if req.is_empty() else {"deal_day": int(inv["deal_day"]), "requests": req}
+		if lp.get("requested_amount") != null:
+			amounts[lp["id"]] = str(lp["requested_amount"])
+	if req.is_empty() and amounts.is_empty():
+		return {}
+	var terms := {"deal_day": int(inv["deal_day"]), "requests": req}
+	if not amounts.is_empty():  # the server binds dollar targets as dollars (investors.gate_terms)
+		terms["amounts"] = amounts
+	return terms
 
 
 ## Shared text for a gate package's `terms` (both seats see packages).
 static func gate_terms_text(terms: Dictionary) -> String:
-	var ids: Array = terms.get("requests", {}).keys()
+	var requests: Dictionary = terms.get("requests", {})
+	var amounts: Dictionary = terms.get("amounts", {})  # Case2 dollar targets
+	var ids: Array = requests.keys()
+	for id in amounts:
+		if not id in ids:
+			ids.append(id)
 	ids.sort()
 	var parts := PackedStringArray()
 	for id in ids:
-		parts.append("%s %s units" % [id, units(terms["requests"][id])])
+		if requests.has(id):
+			parts.append("%s %s units" % [id, units(requests[id])])
+		if amounts.has(id):
+			parts.append("%s %s target" % [id, WorldRules.money(amounts[id])])
 	return "GATE for the day %d dealing close, binding requests: %s. At most 20%% of pre-flow NAV is dealt, pro rata; undealt units stay invested and carry forward." % [
 			int(terms.get("deal_day", 0)), ", ".join(parts)]
 
