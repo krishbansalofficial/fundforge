@@ -34,7 +34,8 @@ MAX_FRAME = 1024  # bytes; a move is about 60
 MOVES_PER_SECOND = 10.0
 BURST = 20
 QUEUE = 64  # outbound frames per connection; a slow reader loses presence frames, never the session
-MAX_CONNECTIONS_PER_SEAT = 4  # a few tabs or clients, bounded
+MAX_CONNECTIONS_PER_SEAT = 4  # a few tabs or clients, bounded; per worker process, so at most 4 x FUNDFORGE_WORKERS
+ROLES = ("pm", "mp")
 WORLD = (0.0, 24.0, 0.0, 23.0)  # x min/max, z min/max, matching game/scripts/world_rules.gd WORLD
 LOCATIONS = frozenset({"", "trading", "committee", "risk", "research", "backoffice", "lp", "broker", "street"})
 UNAUTHORIZED = 4401  # WebSocket close codes in the private 4000-4999 range
@@ -43,6 +44,25 @@ TOO_MANY = 4429
 
 class PresenceError(ValueError):
     pass
+
+
+def parse_remote(event: Any) -> dict[str, Any] | None:
+    """A relayed worker event re-validated like a client frame, or None if it is malformed."""
+    if not isinstance(event, dict) or not isinstance(event.get("room"), str) or not 0 < len(event["room"]) <= 64:
+        return None
+    kind = event.get("type")
+    try:
+        if kind == "presence" and event.get("role") in ROLES and isinstance(event.get("pos"), dict):
+            return {"type": kind, "room": event["room"], "role": event["role"],
+                    "pos": parse_move(json.dumps({**event["pos"], "type": "move"}))}
+        if kind == "left" and event.get("role") in ROLES:
+            return {"type": kind, "room": event["room"], "role": event["role"]}
+        version = event.get("version")
+        if kind == "version" and isinstance(version, int) and not isinstance(version, bool) and version >= 0:
+            return {"type": kind, "room": event["room"], "version": version}
+    except PresenceError:
+        return None
+    return None
 
 
 def parse_move(text: str) -> dict[str, Any]:
@@ -130,7 +150,7 @@ class Hub:
         self.positions.setdefault(room, {})[role] = pos
         for other in self.rooms.get(room, ()):
             if other.role != role:
-                other.send({"type": "presence", "role": role, **pos})
+                other.send({**pos, "type": "presence", "role": role})  # protocol keys last: never overridden
 
     def leave(self, conn: Conn) -> None:
         conns = self.rooms.get(conn.room, set())
@@ -158,17 +178,23 @@ class Hub:
         for conn in self.rooms.get(room, ()):
             conn.send({"type": "version", "version": version})
 
-    def apply_remote(self, event: dict[str, Any]) -> None:
-        """Another worker's move, leave or nudge: deliver to this process's connections, never republish."""
-        room = event["room"]
-        if room not in self.rooms:  # nobody here watches it; keep no state for it
+    def apply_remote(self, event: Any) -> None:
+        """Another worker's move, leave or nudge: deliver to this process's connections, never republish.
+
+        Remote events are re-validated like client frames; anything malformed is ignored. A remote "left" is
+        advisory: a seat that still has a connection on this worker keeps its position here.
+        """
+        ev = parse_remote(event)
+        if ev is None or ev["room"] not in self.rooms:  # invalid, or nobody here watches it: keep no state
             return
-        if event["type"] == "presence":
-            self._moved(room, event["role"], event["pos"])
-        elif event["type"] == "left":
-            self._left(room, event["role"])
-        elif event["type"] == "version":
-            self._nudged(room, int(event["version"]))
+        room = ev["room"]
+        if ev["type"] == "presence":
+            self._moved(room, ev["role"], ev["pos"])
+        elif ev["type"] == "left":
+            if not any(c.role == ev["role"] for c in self.rooms[room]):
+                self._left(room, ev["role"])
+        else:
+            self._nudged(room, ev["version"])
 
     def nudge_threadsafe(self, room: str, version: int) -> None:
         """From a worker thread (sync endpoints run in a threadpool): schedule the nudge on the hub's loop."""

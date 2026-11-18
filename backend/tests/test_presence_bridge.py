@@ -9,7 +9,7 @@ import pytest
 from fundforge import presence_bridge
 from fundforge.presence import Hub
 
-POS = {"x": 1.0, "z": 2.0, "location": "lounge"}
+POS = {"x": 1.0, "z": 2.0, "location": "lp"}
 
 
 def drain(conn) -> list[dict]:  # type: ignore[no-untyped-def]
@@ -68,3 +68,29 @@ def test_bridge_relays_through_postgres_notify() -> None:
         asyncio.run(scenario(), loop_factory=asyncio.SelectorEventLoop)
     else:
         asyncio.run(scenario())
+
+
+def test_remote_events_are_validated_like_client_frames() -> None:
+    b = Hub()
+    mp = b.join("r", "mp")
+    far = {"x": 1e9, "z": 0, "location": "lp"}
+    for bad in (None, [], {"type": "presence", "room": "r", "role": "pm", "pos": far},
+                {"type": "presence", "room": "r", "role": "admin", "pos": POS},
+                {"type": "version", "room": "r", "version": "7"}, {"type": "version", "room": "r", "version": True},
+                {"type": "drop_table", "room": "r"}, {"type": "left", "room": "x" * 65, "role": "pm"}):
+        b.apply_remote(bad)
+    assert drain(mp) == []
+    # keys injected into pos are stripped by parse_move: only x, z and location are forwarded
+    b.apply_remote({"type": "presence", "room": "r", "role": "pm", "pos": {**POS, "type": "version", "version": 99}})
+    assert drain(mp) == [{"type": "presence", "role": "pm", **POS}]
+    b.apply_remote({"type": "presence", "room": "r", "role": "pm", "pos": POS})
+    assert drain(mp) == [{"type": "presence", "role": "pm", **POS}]
+
+
+def test_remote_left_does_not_drop_a_seat_still_connected_here() -> None:
+    b = Hub()
+    pm_here, mp = b.join("r", "pm"), b.join("r", "mp")
+    b.move(pm_here, POS)
+    drain(mp)
+    b.apply_remote({"type": "left", "room": "r", "role": "pm"})  # pm closed a tab on another worker
+    assert b.positions["r"]["pm"] == POS and drain(mp) == []
