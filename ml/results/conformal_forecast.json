@@ -1,0 +1,355 @@
+{
+ "stage": "5.3 conformal regime forecast",
+ "commit": "5f7a4e0df58d03c56f99c8d47dc8a77500aca378",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group forecast python scripts/conformal_forecast.py --worlds 20000",
+ "method": "split conformal, score 1 - p(true class), qhat = k-th smallest calibration score with k = ceil((n+1)(1-alpha)); Mondrian = per-class calibration; Angelopoulos and Bates, arXiv 2107.07511",
+ "data": {
+  "worlds": 20000,
+  "calibration_rows": 9234,
+  "scored_rows": 9504,
+  "calibration_families": 1026,
+  "scored_families": 1056,
+  "split": "test families halved by sha256('conformal-v1:' + family); val kept for early stopping",
+  "lightgbm_best_iteration": 150
+ },
+ "caveat": "rows of one world are dependent; the guarantee is over exchangeable families, so read the family-bootstrap interval, not a row-count binomial",
+ "results": {
+  "lightgbm": {
+   "alpha_0.05_marginal": {
+    "target": 0.95,
+    "qhat": 0.7509465401022051,
+    "coverage": 0.9512,
+    "mean_size": 1.0791,
+    "share_empty": 0.0,
+    "share_singleton": 0.9209,
+    "share_both": 0.0791,
+    "coverage_calm": 0.9793,
+    "coverage_stressed": 0.9011,
+    "coverage_ci95_by_family": [
+     0.9464,
+     0.9559
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.9631,
+     "15": 0.9564,
+     "16": 0.946,
+     "17": 0.9347,
+     "18": 0.9564,
+     "19": 0.9583,
+     "20": 0.9451,
+     "21": 0.9527
+    }
+   },
+   "alpha_0.05_mondrian": {
+    "target": 0.95,
+    "qhat": [
+     0.3046816616571405,
+     0.8450679099222554
+    ],
+    "coverage": 0.9528,
+    "mean_size": 1.1412,
+    "share_empty": 0.0,
+    "share_singleton": 0.8588,
+    "share_both": 0.1412,
+    "coverage_calm": 0.9542,
+    "coverage_stressed": 0.9503,
+    "coverage_ci95_by_family": [
+     0.9478,
+     0.9576
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9962,
+     "14": 0.9678,
+     "15": 0.9479,
+     "16": 0.9441,
+     "17": 0.9403,
+     "18": 0.9583,
+     "19": 0.9508,
+     "20": 0.9347,
+     "21": 0.9347
+    }
+   },
+   "alpha_0.1_marginal": {
+    "target": 0.9,
+    "qhat": 0.2761523661752384,
+    "coverage": 0.8972,
+    "mean_size": 0.956,
+    "share_empty": 0.044,
+    "share_singleton": 0.956,
+    "share_both": 0.0,
+    "coverage_calm": 0.9454,
+    "coverage_stressed": 0.8113,
+    "coverage_ci95_by_family": [
+     0.8887,
+     0.905
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.9252,
+     "15": 0.8987,
+     "16": 0.8826,
+     "17": 0.8911,
+     "18": 0.9091,
+     "19": 0.8712,
+     "20": 0.8712,
+     "21": 0.8778
+    }
+   },
+   "alpha_0.1_mondrian": {
+    "target": 0.9,
+    "qhat": [
+     0.24873043044312698,
+     0.7453186282235256
+    ],
+    "coverage": 0.9035,
+    "mean_size": 0.9921,
+    "share_empty": 0.0079,
+    "share_singleton": 0.9921,
+    "share_both": 0.0,
+    "coverage_calm": 0.9086,
+    "coverage_stressed": 0.8944,
+    "coverage_ci95_by_family": [
+     0.8965,
+     0.9107
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.8722,
+     "15": 0.8864,
+     "16": 0.8996,
+     "17": 0.9044,
+     "18": 0.9233,
+     "19": 0.9072,
+     "20": 0.893,
+     "21": 0.8977
+    }
+   },
+   "alpha_0.2_marginal": {
+    "target": 0.8,
+    "qhat": 0.16584687668672868,
+    "coverage": 0.8065,
+    "mean_size": 0.8389,
+    "share_empty": 0.1611,
+    "share_singleton": 0.8389,
+    "share_both": 0.0,
+    "coverage_calm": 0.8526,
+    "coverage_stressed": 0.7244,
+    "coverage_ci95_by_family": [
+     0.7966,
+     0.8159
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.804,
+     "15": 0.8002,
+     "16": 0.7926,
+     "17": 0.8049,
+     "18": 0.8182,
+     "19": 0.7614,
+     "20": 0.7633,
+     "21": 0.7661
+    }
+   },
+   "alpha_0.2_mondrian": {
+    "target": 0.8,
+    "qhat": [
+     0.15493209007774458,
+     0.201683565297181
+    ],
+    "coverage": 0.8126,
+    "mean_size": 0.8467,
+    "share_empty": 0.1533,
+    "share_singleton": 0.8467,
+    "share_both": 0.0,
+    "coverage_calm": 0.8286,
+    "coverage_stressed": 0.7841,
+    "coverage_ci95_by_family": [
+     0.8032,
+     0.822
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9157,
+     "14": 0.8134,
+     "15": 0.8248,
+     "16": 0.804,
+     "17": 0.8191,
+     "18": 0.822,
+     "19": 0.7708,
+     "20": 0.7689,
+     "21": 0.7746
+    }
+   }
+  },
+  "bayes_exact_filter": {
+   "alpha_0.05_marginal": {
+    "target": 0.95,
+    "qhat": 0.745,
+    "coverage": 0.9606,
+    "mean_size": 1.1152,
+    "share_empty": 0.0,
+    "share_singleton": 0.8848,
+    "share_both": 0.1152,
+    "coverage_calm": 0.9827,
+    "coverage_stressed": 0.9213,
+    "coverage_ci95_by_family": [
+     0.9566,
+     0.965
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.9659,
+     "15": 0.9735,
+     "16": 0.9631,
+     "17": 0.947,
+     "18": 0.9631,
+     "19": 0.9669,
+     "20": 0.9564,
+     "21": 0.9621
+    }
+   },
+   "alpha_0.05_mondrian": {
+    "target": 0.95,
+    "qhat": [
+     0.3285,
+     0.85
+    ],
+    "coverage": 0.9799,
+    "mean_size": 1.2735,
+    "share_empty": 0.0,
+    "share_singleton": 0.7265,
+    "share_both": 0.2735,
+    "coverage_calm": 0.9686,
+    "coverage_stressed": 1.0,
+    "coverage_ci95_by_family": [
+     0.9765,
+     0.9834
+    ],
+    "coverage_by_as_of_day": {
+     "13": 1.0,
+     "14": 0.9953,
+     "15": 0.9896,
+     "16": 0.9763,
+     "17": 0.9735,
+     "18": 0.9848,
+     "19": 0.9763,
+     "20": 0.9593,
+     "21": 0.964
+    }
+   },
+   "alpha_0.1_marginal": {
+    "target": 0.9,
+    "qhat": 0.255,
+    "coverage": 0.9119,
+    "mean_size": 0.9762,
+    "share_empty": 0.0238,
+    "share_singleton": 0.9762,
+    "share_both": 0.0,
+    "coverage_calm": 0.954,
+    "coverage_stressed": 0.837,
+    "coverage_ci95_by_family": [
+     0.9044,
+     0.9189
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.9261,
+     "15": 0.9053,
+     "16": 0.8958,
+     "17": 0.9015,
+     "18": 0.9233,
+     "19": 0.9025,
+     "20": 0.8987,
+     "21": 0.9062
+    }
+   },
+   "alpha_0.1_mondrian": {
+    "target": 0.9,
+    "qhat": [
+     0.255,
+     0.745
+    ],
+    "coverage": 0.9422,
+    "mean_size": 1.0685,
+    "share_empty": 0.0,
+    "share_singleton": 0.9315,
+    "share_both": 0.0685,
+    "coverage_calm": 0.954,
+    "coverage_stressed": 0.9213,
+    "coverage_ci95_by_family": [
+     0.9367,
+     0.9476
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.9659,
+     "15": 0.9451,
+     "16": 0.9366,
+     "17": 0.929,
+     "18": 0.9489,
+     "19": 0.9441,
+     "20": 0.9299,
+     "21": 0.9328
+    }
+   },
+   "alpha_0.2_marginal": {
+    "target": 0.8,
+    "qhat": 0.15000000000000002,
+    "coverage": 0.8454,
+    "mean_size": 0.8848,
+    "share_empty": 0.1152,
+    "share_singleton": 0.8848,
+    "share_both": 0.0,
+    "coverage_calm": 0.8773,
+    "coverage_stressed": 0.7888,
+    "coverage_ci95_by_family": [
+     0.8356,
+     0.8544
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.8267,
+     "15": 0.8343,
+     "16": 0.8229,
+     "17": 0.8504,
+     "18": 0.8712,
+     "19": 0.8134,
+     "20": 0.8125,
+     "21": 0.8295
+    }
+   },
+   "alpha_0.2_mondrian": {
+    "target": 0.8,
+    "qhat": [
+     0.15,
+     0.15000000000000002
+    ],
+    "coverage": 0.8454,
+    "mean_size": 0.8848,
+    "share_empty": 0.1152,
+    "share_singleton": 0.8848,
+    "share_both": 0.0,
+    "coverage_calm": 0.8773,
+    "coverage_stressed": 0.7888,
+    "coverage_ci95_by_family": [
+     0.8357,
+     0.8539
+    ],
+    "coverage_by_as_of_day": {
+     "13": 0.9479,
+     "14": 0.8267,
+     "15": 0.8343,
+     "16": 0.8229,
+     "17": 0.8504,
+     "18": 0.8712,
+     "19": 0.8134,
+     "20": 0.8125,
+     "21": 0.8295
+    }
+   }
+  }
+ },
+ "python": "3.13.12",
+ "seconds": 25.5
+}

@@ -1,0 +1,285 @@
+{
+ "stage": "5.1 generalisation matrix",
+ "question": "does MaskablePPO (pm seat) trained on base or hard worlds transfer to the other level's test split?",
+ "commit": "5f7a4e0df58d03c56f99c8d47dc8a77500aca378",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train python scripts/transfer_matrix.py --procs 4",
+ "scale": {
+  "config": "lr1e-4_ent0.01",
+  "checkpoints_per_train_level": 5,
+  "random_runs": 5,
+  "sources": {
+   "base": {
+    "file": "ppo_pm.json",
+    "commit": "90493035e6d2bdfcadcca794a5289d4c7eeb9c91"
+   },
+   "hard": {
+    "file": "ppo_pm_hard.json",
+    "commit": "805d55ac26f55242ebcee3aa3dc041be8b2e377f"
+   }
+  },
+  "note": "same published checkpoints and test splits as the source results; no training here"
+ },
+ "cells": {
+  "train_base/test_base": {
+   "test_worlds": 274,
+   "ppo": {
+    "runs": 5,
+    "worlds": 274,
+    "mean": {
+     "point": 8.166069343065693,
+     "lo": 7.955252153284671,
+     "hi": 8.37124715328467
+    },
+    "iqm": {
+     "point": 8.11531195335277,
+     "lo": 7.740059766763848,
+     "hi": 8.476556632653061
+    },
+    "per_run_mean_reward": [
+     8.1614,
+     8.1631,
+     8.1603,
+     8.1762,
+     8.1693
+    ],
+    "mean_score_bps": 316.6,
+    "labels": {
+     "WIN": 1370
+    }
+   },
+   "random": {
+    "runs": 5,
+    "worlds": 274,
+    "mean": {
+     "point": 6.206077372262774,
+     "lo": 5.932806952554745,
+     "hi": 6.502742810218979
+    },
+    "iqm": {
+     "point": 6.099068513119533,
+     "lo": 5.8660150874635555,
+     "hi": 6.448703826530612
+    },
+    "per_run_mean_reward": [
+     6.4475,
+     5.7954,
+     6.2181,
+     5.9735,
+     6.5959
+    ],
+    "mean_score_bps": 120.6,
+    "labels": {
+     "WIN": 1370
+    }
+   },
+   "ppo_vs_random": {
+    "n_worlds": 274,
+    "diff": {
+     "point": 1.9599919708029194,
+     "lo": 1.7245273357664233,
+     "hi": 2.198205748175182
+    },
+    "x_better_worlds": 224,
+    "ties": 0,
+    "prob_improvement": 0.8188321167883211
+   }
+  },
+  "train_hard/test_base": {
+   "test_worlds": 274,
+   "ppo": {
+    "runs": 5,
+    "worlds": 274,
+    "mean": {
+     "point": 7.300542335766423,
+     "lo": 7.183370565693431,
+     "hi": 7.411864562043796
+    },
+    "iqm": {
+     "point": 7.3309110787172,
+     "lo": 7.210489504373177,
+     "hi": 7.444687536443149
+    },
+    "per_run_mean_reward": [
+     7.3135,
+     7.3483,
+     7.2672,
+     7.2646,
+     7.3091
+    ],
+    "mean_score_bps": 230.1,
+    "labels": {
+     "WIN": 1370
+    }
+   },
+   "random": {
+    "runs": 5,
+    "worlds": 274,
+    "mean": {
+     "point": 6.206077372262774,
+     "lo": 5.932806952554745,
+     "hi": 6.502742810218979
+    },
+    "iqm": {
+     "point": 6.099068513119533,
+     "lo": 5.8660150874635555,
+     "hi": 6.448703826530612
+    },
+    "per_run_mean_reward": [
+     6.4475,
+     5.7954,
+     6.2181,
+     5.9735,
+     6.5959
+    ],
+    "mean_score_bps": 120.6,
+    "labels": {
+     "WIN": 1370
+    }
+   },
+   "ppo_vs_random": {
+    "n_worlds": 274,
+    "diff": {
+     "point": 1.0944649635036499,
+     "lo": 1.0097428649635036,
+     "hi": 1.1803614416058394
+    },
+    "x_better_worlds": 253,
+    "ties": 0,
+    "prob_improvement": 0.8766423357664234
+   }
+  },
+  "train_base/test_hard": {
+   "test_worlds": 218,
+   "ppo": {
+    "runs": 5,
+    "worlds": 218,
+    "mean": {
+     "point": -0.15957155963302755,
+     "lo": -0.8097285550458715,
+     "hi": 0.4557787385321099
+    },
+    "iqm": {
+     "point": -0.6408901098901099,
+     "lo": -1.240832097069597,
+     "hi": 0.11963786630036614
+    },
+    "per_run_mean_reward": [
+     -0.4781,
+     -1.2057,
+     -0.0804,
+     0.4394,
+     0.5269
+    ],
+    "mean_score_bps": -60.0,
+    "labels": {
+     "SURVIVAL": 994,
+     "WIN": 96
+    }
+   },
+   "random": {
+    "runs": 5,
+    "worlds": 218,
+    "mean": {
+     "point": 2.5504339449541282,
+     "lo": -0.9341905733944954,
+     "hi": 5.957351169724769
+    },
+    "iqm": {
+     "point": 2.7005000000000003,
+     "lo": -2.165026648351648,
+     "hi": 6.69185586080586
+    },
+    "per_run_mean_reward": [
+     6.1748,
+     -2.7835,
+     3.7787,
+     -1.2241,
+     6.8063
+    ],
+    "mean_score_bps": -9.2,
+    "labels": {
+     "WIN": 576,
+     "SURVIVAL": 514
+    }
+   },
+   "ppo_vs_random": {
+    "n_worlds": 218,
+    "diff": {
+     "point": -2.710005504587156,
+     "lo": -3.009877706422018,
+     "hi": -2.3958377064220184
+    },
+    "x_better_worlds": 24,
+    "ties": 0,
+    "prob_improvement": 0.3697247706422018
+   }
+  },
+  "train_hard/test_hard": {
+   "test_worlds": 218,
+   "ppo": {
+    "runs": 5,
+    "worlds": 218,
+    "mean": {
+     "point": 7.512485321100917,
+     "lo": 7.262721674311926,
+     "hi": 7.759604587155964
+    },
+    "iqm": {
+     "point": 7.5252948717948716,
+     "lo": 7.254614926739927,
+     "hi": 7.813199221611723
+    },
+    "per_run_mean_reward": [
+     7.2577,
+     7.7091,
+     7.64,
+     7.2348,
+     7.7209
+    ],
+    "mean_score_bps": 251.2,
+    "labels": {
+     "WIN": 1090
+    }
+   },
+   "random": {
+    "runs": 5,
+    "worlds": 218,
+    "mean": {
+     "point": 2.5504339449541282,
+     "lo": -0.9341905733944954,
+     "hi": 5.957351169724769
+    },
+    "iqm": {
+     "point": 2.7005000000000003,
+     "lo": -2.165026648351648,
+     "hi": 6.69185586080586
+    },
+    "per_run_mean_reward": [
+     6.1748,
+     -2.7835,
+     3.7787,
+     -1.2241,
+     6.8063
+    ],
+    "mean_score_bps": -9.2,
+    "labels": {
+     "WIN": 576,
+     "SURVIVAL": 514
+    }
+   },
+   "ppo_vs_random": {
+    "n_worlds": 218,
+    "diff": {
+     "point": 4.962051376146788,
+     "lo": 4.770310435779816,
+     "hi": 5.175659105504587
+    },
+    "x_better_worlds": 218,
+    "ties": 0,
+    "prob_improvement": 0.8573394495412844
+   }
+  }
+ },
+ "wall_seconds": 205.1
+}

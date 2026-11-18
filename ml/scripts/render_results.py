@@ -180,7 +180,39 @@ def attribution(d: dict[str, Any]) -> Row:
     )
 
 
+def transfer(d: dict[str, Any]) -> Row:
+    def cell(k: str) -> str:
+        c = d["cells"][k]
+        win = c["ppo"]["labels"].get("WIN", 0)
+        n = sum(c["ppo"]["labels"].values())
+        x = c["ppo_vs_random"]["diff"]
+        name = k.replace("train_", "").replace("/test_", "->")
+        return f"{name}: WIN {win}/{n}, vs random {_g(x['point'])} [{_g(x['lo'])}, {_g(x['hi'])}]"
+
+    return (
+        "Generalisation matrix: PPO trained on base or hard worlds, tested on both",
+        "; ".join(cell(k) for k in d["cells"]),
+        f"5 published checkpoints per train level, {d['scale']['random_runs']} random runs, published test splits",
+        d["reproduce"],
+    )
+
+
+def conformal(d: dict[str, Any]) -> Row:
+    r = d["results"]["lightgbm"]
+    parts = [f"{round(v['target'] * 100)}%: cov {_g(v['coverage'])} {v['coverage_ci95_by_family']}, "
+             f"both {_g(v['share_both'])}, empty {_g(v['share_empty'])}"
+             for k, v in r.items() if k.endswith("marginal")]
+    return (
+        "Split conformal sets for the LightGBM regime forecast",
+        "; ".join(parts),
+        f"{d['data']['scored_families']} scored / {d['data']['calibration_families']} calibration test families",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
+    "transfer_matrix.json": transfer,
+    "conformal_forecast.json": conformal,
     "attribution.json": attribution,
     "voi_pm.json": voi,
     "anomaly.json": anomaly,
