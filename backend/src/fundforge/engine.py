@@ -17,7 +17,7 @@ from typing import Any, Literal, get_args
 from . import investors
 from .administrator import Administrator, Capital
 from .broker import Borrow, Broker
-from .compliance import Breach, Ruleset, evaluate
+from .compliance import Breach, Ruleset, book_breaches, evaluate
 from .ending import EndingFacts, classify
 from .execution import BUY_SIDES, capacity, fill_price, limit_quantity
 from .journal import Journal, entry
@@ -35,7 +35,10 @@ SIDES: tuple[Side, ...] = get_args(Side)
 OPEN: tuple[Status, ...] = ("QUEUED", "PARTIALLY_FILLED")
 Leg = tuple[str, Decimal]
 # Bump on ANY change to economic rules; rooms created under another version are refused, never re-derived.
-RULES_VERSION = "case1-rules-2026.11.1"  # .11.1: a campaign prospect subscription issues a new series at dealing
+# .11.2: warm-start invoiced payables with a due day, Case2 dollar-target redemptions converted at the struck value,
+# deferred gate units dealt at a later authored close, noticed claims reserved before a debt sweep.
+# Existing scenario journals are unchanged (golden digests).
+RULES_VERSION = "case1-rules-2026.11.2"
 TENTH = Decimal("0.1")  # basis-point display step
 
 
@@ -141,8 +144,10 @@ class Engine:
         self.market.init_navs(self.marks)
         self._prev_exec_marks = dict(self.marks)
         self._open()
+        admin_payables = {k: D(v) for k, v in r["opening"]["fund"].get("payables", {}).items()
+                          if k == "mgmt_fee_payable"}  # the financing invoice is the broker's claim
         self.administrator = Administrator(r["opening"]["fund"]["series"], self._administrator_wealth(),
-                                           r.get("prospect"))
+                                           r.get("prospect"), admin_payables)
         # Fund NAV per unit at the warm start, then after every business close; derived, never posted.
         self.close_values: list[Decimal] = [self.unit_nav()]
         # Rooms with a prospect report the §6 chain: its value and net NAV at the last flow (no NAV left: None).
@@ -183,7 +188,9 @@ class Engine:
                 self.loans.append(Loan(f"L-open-{s}", s, -q, D(self.cfg["borrow_rate"])))
         long_mv, short_mv = self.long_mv(), self.short_mv()
         cash, coll, debt = D(f["cash"]), D(f["collateral"]), D(f["debt"])
-        nav = long_mv + coll + cash - short_mv - debt
+        # Invoiced, already-expensed claims inherited by a warm start (Case2's $100,000 due day 41)
+        payables = {k: D(v) for k, v in f.get("payables", {}).items()}
+        nav = long_mv + coll + cash - short_mv - debt - sum(payables.values(), Decimal(0))
         total_units = sum(D(x["units"]) for x in f["series"])
         self._require(total_units > 0, "opening_units", "opening series must have positive total units")
         caps = allocate(nav, {x["id"]: D(x["units"]) for x in f["series"]})
@@ -191,13 +198,13 @@ class Engine:
         self._post(
             "Warm-start opening book (inherited positions at reference marks)",
             ("long_securities", long_mv), ("collateral", coll), ("cash", cash),
-            ("short_liability", -short_mv), ("debt", -debt),
+            ("short_liability", -short_mv), ("debt", -debt), *[(k, -v) for k, v in sorted(payables.items())],
             *[(f"capital:{s.series_id}", -s.net) for s in self.series],
         )
         fo = o["firm"]
-        fc, pp = D(fo["cash"]), D(fo["payroll_payable"])
-        self._post("Management company opening book", ("cash", fc), ("payroll_payable", -pp),
-                   ("owner_capital", -(fc - pp)), entity="firm")
+        fc, pp, fr = D(fo["cash"]), D(fo["payroll_payable"]), D(fo.get("fee_receivable", "0"))
+        self._post("Management company opening book", ("cash", fc), ("fee_receivable", fr),
+                   ("payroll_payable", -pp), ("owner_capital", -(fc + fr - pp)), entity="firm")
 
     # ---------- derived values ----------
     def long_mv(self) -> Decimal:
@@ -240,6 +247,7 @@ class Engine:
     def _repay_debt(self) -> None:
         known = -sum((self.bal(a) for a in ("redemption_payable", "mgmt_fee_payable", "perf_fee_payable",
                                             "interest_payable", "trade_payable")), Decimal(0))
+        known += investors.noticed_claims(self)  # FUND_ACCOUNTING treasury sweep step 5 (Case2 only)
         spare = self.bal("cash") - self.buffer() - known
         repay = min(spare, -self.bal("debt"))
         if repay > 0:
@@ -353,9 +361,9 @@ class Engine:
                      code="research_shared", topic=topic)
 
     def accept_replacement(self) -> None:
-        off = self.tape.raw["borrow"]["replacement_offer"]
+        off = self.tape.raw["borrow"].get("replacement_offer")
         nxt = self.next_event()
-        if not self.offer_visible:
+        if not self.offer_visible or off is None:
             raise CommandRejected("no replacement offer is known")
         if self.replacement_accepted:
             raise CommandRejected("replacement already accepted")
@@ -472,8 +480,8 @@ class Engine:
         for p in [p for p in self.pending if p.settle_day <= day]:
             if self._settle(p):
                 self.pending.remove(p)
-        off = self.tape.raw["borrow"]["replacement_offer"]
-        if self.replacement_accepted and day == off["transfer_day"]:
+        off = self.tape.raw["borrow"].get("replacement_offer")
+        if off and self.replacement_accepted and day == off["transfer_day"]:
             self._transfer_replacement(off)
         self._true_up_collateral()
         self._pay_due()
@@ -483,8 +491,8 @@ class Engine:
     def _public_mark(self) -> None:
         self._publish_notices()
         self._remark()
-        rc = self.tape.raw["borrow"]["recall"]
-        if self.ev.day == rc["announce_day"]:
+        rc = self.tape.raw["borrow"].get("recall")
+        if rc and self.ev.day == rc["announce_day"]:
             self.recall_open = min(rc["qty"], self._loan_available(rc["loan_id"]))
             if not self.recall_open:
                 self.recall_resolved_by = "prior cover"
@@ -540,6 +548,11 @@ class Engine:
         pre_flow = self.nav()
         self._deal()
         self._chain_flow(pre_flow)
+        # FUND_ACCOUNTING dealing step: recheck post-flow risk (Case2 records the passive breach)
+        if self.tape.raw.get("authored_redemptions") and self.nav() != pre_flow:
+            for b in book_breaches(self.pos, self.marks, self.nav(), self.mandate):
+                self._incident("mandate_breach", f"day {self.ev.day} post-flow: {b.detail}; remediate by reducing "
+                               "exposure", breach=b.code)
         investors.on_close(self)
         investors.prospect_conditions(self)
         nxt = self.next_event_after_close()
@@ -591,12 +604,12 @@ class Engine:
         self._remark()
         for n in news:
             self._notice(n["text"], "market", code=n["code"], rival=n["rival"])
-        rc = self.tape.raw["borrow"]["recall"]
-        deadline = (self.ev.day, self.ev.phase) >= (rc["deadline_day"], rc["deadline_event"])
+        rc = self.tape.raw["borrow"].get("recall")
+        deadline = rc is not None and (self.ev.day, self.ev.phase) >= (rc["deadline_day"], rc["deadline_event"])
         queued = [o for o in self.orders if o.status in OPEN]
         for o in queued:
             self._fill(o)
-        if deadline and self.recall_open > 0:
+        if rc is not None and deadline and self.recall_open > 0:
             self._forced("recall", rc["sym"], "COVER", min(self.recall_open, -self.pos[rc["sym"]]))
         if self.margin_call is not None and self.deficit() > 0:
             self._forced_margin()
@@ -693,8 +706,8 @@ class Engine:
         o.fills.append({"day": self.ev.day, "phase": self.ev.phase, "rejected": why})
 
     def _short_inventory(self, s: str) -> int:
-        nn = self.tape.raw["borrow"]["no_new_inventory"]
-        if s == nn["sym"] and self.ev.day >= nn["from_day"]:
+        nn = self.tape.raw["borrow"].get("no_new_inventory")
+        if nn and s == nn["sym"] and self.ev.day >= nn["from_day"]:
             return 0
         opening_short: int = max(0, -self.tape.raw["opening"]["fund"]["positions"].get(s, 0))
         extra: int = self.cfg["extra_borrow_inventory"]
@@ -780,7 +793,7 @@ class Engine:
         candidates = [ln for ln in self.loans if ln.sym == sym]
         candidates += [Loan(str(p.loan_id), sym, p.qty, D(self.cfg["borrow_rate"]))
                        for p in self.pending if p.kind == "SHORT" and p.sym == sym]
-        recalled = self.tape.raw["borrow"]["recall"]["loan_id"]
+        recalled = self.tape.raw["borrow"].get("recall", {}).get("loan_id")
         out = []
         recall_take = min(qty, self.recall_open, self._loan_available(recalled)) if any(
             ln.loan_id == recalled for ln in candidates) else 0
@@ -919,7 +932,7 @@ class Engine:
                                 [("fee_receivable", fee), ("fee_revenue", -fee)])
             self._notice(f"Dealt {sid} redemption of {label} units: ${payable:,.2f} payable next "
                          "business day.", code="redemption_dealt", series=sid, payable=str(payable))
-        if self.lp is not None and self.lp.deal_day == self.ev.day and self.lp.requests:
+        if self.lp is not None and self.lp.deal_day == self.ev.day and (self.lp.requests or self.lp.amounts):
             investors.dealt(self, carried)
         investors.deal_subscription(self, certified=True)  # after redemptions (FUND_ACCOUNTING §7 step 6)
 
@@ -938,10 +951,12 @@ class Engine:
 
     def _pay_due(self) -> None:
         """Treasury sweep priority: redemptions, then fixed fees, then interest (collateral already trued up)."""
+        # a warm start's inherited invoices fall due on their stated day, not at the first administration
+        held = self.ev.day < self.tape.raw["opening"]["fund"].get("payables_due_day", 0)
         for acct, label in (("redemption_payable", "redemption"), ("mgmt_fee_payable", "management fee"),
                             ("perf_fee_payable", "performance fee"), ("interest_payable", "interest invoice")):
             due = -self.bal(acct)
-            if due <= 0:
+            if due <= 0 or (held and acct != "redemption_payable"):
                 continue
             got = self._raise_cash(due, label)
             self.administrator.pay(acct, got)
@@ -1202,6 +1217,9 @@ class Engine:
         deferred = {k: str(v) for k, v in sorted(self.lp.carried.items())} if self.lp else {}
         if label == "WIN" and deferred:
             label = "SURVIVAL"  # a season cannot win by deferring LP obligations past the end (GAME_SYSTEMS §4)
+        if (label == "WIN" and self.tape.raw.get("authored_redemptions")
+                and book_breaches(self.pos, self.marks, nav, self.mandate)):
+            label = "SURVIVAL"  # Case2 success requires a mandate-compliant book at the end (SCENARIO_CONTRACTS)
         score = self.score(len(forced))
         league = self.league()
         score["rank"] = 1 + sorted((-Decimal(x["return_bps"]), x["id"]) for x in league).index(

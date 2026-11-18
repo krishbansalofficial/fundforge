@@ -88,3 +88,16 @@ def subscription_breaches(pos: dict[str, int], marks: dict[str, Decimal], nav: D
     pre, post = _measures(pos, marks, nav, rs), _measures(pos, marks, nav + added, rs)
     return [Breach(f"{key}_min", f"{key} exposure {post[key]:.1%} would fall below the {lo:.0%} mandate floor")
             for key, lo in (("gross", rs.gross_min), ("net", rs.net_min)) if post[key] < lo and post[key] < pre[key]]
+
+
+def book_breaches(pos: dict[str, int], marks: dict[str, Decimal], nav: Decimal, rs: Ruleset) -> list[Breach]:
+    """Limits the current book is outside, with no new order: a passive breach after a flow or price move."""
+    if nav <= 0:
+        return [Breach("nav_nonpositive", "NAV is not positive")]
+    m = _measures(pos, marks, nav, rs)
+    out = [Breach(f"{k}_max", f"{k} exposure {m[k]:.1%} is above the {hi:.0%} mandate cap")
+           for k, hi in (("gross", rs.gross_max), ("net", rs.net_max)) if m[k] > hi]
+    out += [Breach(f"{k}_min", f"{k} exposure {m[k]:.1%} is below the {lo:.0%} mandate floor")
+            for k, lo in (("gross", rs.gross_min), ("net", rs.net_min)) if m[k] < lo]
+    return out + [Breach("issuer_max", f"{k[7:]} is {v:.1%} of NAV, above the {rs.issuer_max:.0%} cap")
+                  for k, v in m.items() if k.startswith("issuer:") and v > rs.issuer_max]

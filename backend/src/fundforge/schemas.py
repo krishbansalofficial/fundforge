@@ -192,6 +192,7 @@ class LpRow(Strict):
     requested_units: Dec | None
     carried_units: Dec | None
     first_cutoff: int
+    requested_amount: Dec | None = None  # Case2 dollar target; its units are fixed only at the dealing close
     contacted: bool
 
 

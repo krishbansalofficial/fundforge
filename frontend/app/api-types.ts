@@ -879,6 +879,8 @@ export interface components {
             first_cutoff: number;
             /** Id */
             id: string;
+            /** Requested Amount */
+            requested_amount?: string | null;
             /** Requested Units */
             requested_units: string | null;
         };

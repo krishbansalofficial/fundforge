@@ -28,7 +28,7 @@ campaign and is not one of the three LP agents: it has no confidence state and m
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation, localcontext
+from decimal import ROUND_DOWN, ROUND_HALF_EVEN, Decimal, InvalidOperation, localcontext
 from typing import TYPE_CHECKING, Any
 
 from .compliance import subscription_breaches
@@ -38,6 +38,7 @@ from .lp import (
     NOTICE_CUTOFFS,
     POLICY_VERSION,
     REVIEW_DAYS,
+    UNITS,
     Book,
     ChapterFacts,
     ReviewFacts,
@@ -49,7 +50,7 @@ from .lp import (
     redemption_request,
     review,
 )
-from .money import CTX, D
+from .money import CTX, D, cents
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -76,7 +77,9 @@ def chapter_facts(e: Engine, start_nav_per_unit: dict[str, Decimal], start_day: 
     certificates = [c for c in e.certificates if start_day <= c["day"] <= e.ev.day]
     certified = (e.control_report()["status"] == "checked"
                  and all(c["status"] == "certified" for c in certificates))
-    deferred = {k for k, v in e.lp.carried.items() if v > 0} if e.lp else set()
+    # a gate costs once per dealing window: only the window whose gate deferred units (GAME_SYSTEMS §4)
+    deferred = ({k for k, v in e.lp.carried.items() if v > 0}
+                if e.lp and e.lp.gate_day == e.ev.day else set())
     out: dict[str, ChapterFacts] = {}
     with localcontext(CTX):
         for s in e.series:
@@ -95,9 +98,36 @@ def open_book(e: Engine) -> Book:
         raise ValueError(f"tape asks for LP policy {e.tape.raw['lp_agents']!r}; this server runs {POLICY_VERSION}")
     with localcontext(CTX):
         value = {s.series_id: s.net / s.units for s in e.series}
-    return Book(profiles={s.series_id: LAUNCH[s.series_id.lower()] for s in e.series},
-                states={s.series_id: State(LAUNCH[s.series_id.lower()].initial) for s in e.series},
-                peaks=dict(value), start_value=value, start_day=e.ev.day)
+    b = Book(profiles={s.series_id: LAUNCH[s.series_id.lower()] for s in e.series},
+             states={s.series_id: State(LAUNCH[s.series_id.lower()].initial) for s in e.series},
+             peaks=dict(value), start_value=value, start_day=e.ev.day)
+    if e.tape.raw.get("authored_redemptions"):  # Case2: noticed before the warm start; the tape validates one close
+        for r in e.tape.raw["redemptions"]:
+            b.amounts[r["series"]] = b.amounts.get(r["series"], Decimal(0)) + D(r["amount"])
+            b.deal_day = r["deal_day"]
+    return b
+
+
+STRUCK = Decimal("0.000001")  # FUND_ACCOUNTING: NAV per unit is struck at 6dp HALF_EVEN
+
+
+def target_units(net: Decimal, units: Decimal, amount: Decimal) -> Decimal:
+    """Units a dollar-target request redeems: amount / struck series value, 8dp rounded DOWN (never more than the
+    target), capped at the units held. House rule for Case2; FUND_ACCOUNTING leaves request rounding open."""
+    with localcontext(CTX):
+        struck = (net / units).quantize(STRUCK, rounding=ROUND_HALF_EVEN)
+        return min(units, (amount / struck).quantize(UNITS, rounding=ROUND_DOWN))
+
+
+def noticed_claims(e: Engine) -> Decimal:
+    """Authored rooms reserve noticed dollar targets and carried gate units at current value before a debt sweep."""
+    b = e.lp
+    if b is None or not e.tape.raw.get("authored_redemptions"):
+        return Decimal(0)
+    with localcontext(CTX):
+        value = {s.series_id: s.net / s.units for s in e.series if s.units > 0}
+        return sum(b.amounts.values(), Decimal(0)) + sum(
+            (cents(u * value[k]) for k, u in b.requests.items() if k in value), Decimal(0))
 
 
 def _record(e: Engine, b: Book, kind: str, sid: str, before: State, comp: dict[str, str]) -> None:
@@ -126,6 +156,8 @@ def on_close(e: Engine) -> None:
                                                       "open_alerts": str(alerts)})
             b.contacts.clear()
     cutoffs = tuple(e.tape.raw.get("campaign", {}).get("notice_cutoffs", NOTICE_CUTOFFS))
+    if e.tape.raw.get("authored_redemptions"):
+        cutoffs = ()  # Case2: no requests beyond the authored notices (SCENARIO_CONTRACTS shared contract)
     if day in cutoffs and e.winddown is None:  # a declared winddown redeems every unit: no new requests
         deal = day + DEALING_LAG
         external: dict[str, Decimal] = {}
@@ -160,25 +192,34 @@ def on_close(e: Engine) -> None:
 def dealing(e: Engine) -> tuple[dict[str, Decimal], dict[str, Decimal]]:
     """(dealt, carried) units for today's dealing close; pure, so a blocked dealing changes nothing."""
     b = e.lp
-    if b is None or b.deal_day != e.ev.day or not b.requests:
+    if b is None or b.deal_day != e.ev.day or not (b.requests or b.amounts):
         return {}, {}
+    requests = dict(b.requests)
+    for s in e.series:
+        if s.series_id in b.amounts and s.units > 0:
+            requests[s.series_id] = requests.get(s.series_id, Decimal(0)) + target_units(
+                s.net, s.units, b.amounts[s.series_id])
     with localcontext(CTX):
-        price = {s.series_id: s.net / s.units for s in e.series if s.series_id in b.requests}
-    return allocate_gate(e.nav(), dict(b.requests), price, gated=b.gate_day == e.ev.day)
+        price = {s.series_id: s.net / s.units for s in e.series if s.series_id in requests}
+    return allocate_gate(e.nav(), requests, price, gated=b.gate_day == e.ev.day)
 
 
 def dealt(e: Engine, carried: dict[str, Decimal]) -> None:
     """Close the window: undealt units stay invested and roll forward (GAME_SYSTEMS §4 gates)."""
     b = e.lp
     assert b is not None
-    b.requests = {}
-    if e.tape.raw.get("campaign"):
+    b.requests, b.amounts = {}, {}
+    authored = e.tape.raw.get("authored_redemptions")
+    if e.tape.raw.get("campaign") or authored:
         b.carried = {}  # this window re-presented prior carried units; replace with its residual
     for sid, units in carried.items():
         if units > 0:
             b.carried[sid] = b.carried.get(sid, Decimal(0)) + units
             e._notice(f"Gate: {units:,} {sid} units were not dealt; they stay invested and carry forward.",
                       "alert", code="redemption_gated", series=sid, units=str(units))
+    if authored and b.carried and e.ev.day < authored["deferred_deal_day"]:
+        # Case2: deferred units are automatically eligible at the next authored close, with no new notice
+        b.requests, b.deal_day = dict(b.carried), authored["deferred_deal_day"]
 
 
 def contact(e: Engine, role: str, sid: str) -> None:
@@ -206,11 +247,14 @@ def gate_terms(e: Engine) -> dict[str, Any]:
         raise Refused("gate elections exist only in generated-market rooms")
     if not e.at_barrier() or e.finished():
         raise Refused("a gate is elected at a decision barrier before the dealing close")
-    if b.deal_day is None or not b.requests or e.ev.day > b.deal_day:
+    if b.deal_day is None or not (b.requests or b.amounts) or e.ev.day > b.deal_day:
         raise Refused("no redemption requests await a dealing close")
     if b.gate_day == b.deal_day:
         raise Refused("a gate is already elected for this dealing close")
-    return {"deal_day": b.deal_day, "requests": {k: str(v) for k, v in sorted(b.requests.items())}}
+    terms: dict[str, Any] = {"deal_day": b.deal_day, "requests": {k: str(v) for k, v in sorted(b.requests.items())}}
+    if b.amounts:  # dollar targets bind as dollars: their units are fixed only at the dealing close
+        terms["amounts"] = {k: str(v) for k, v in sorted(b.amounts.items())}
+    return terms
 
 
 def elect_gate(e: Engine, terms: dict[str, Any]) -> None:
@@ -230,6 +274,8 @@ def view(e: Engine, role: str) -> dict[str, Any] | None:
             "lps": [{"id": sid, "band": band(b.states[sid].confidence),
                      "requested_units": str(b.requests[sid]) if sid in b.requests else None,
                      "carried_units": str(b.carried[sid]) if sid in b.carried else None,
+                     **({"requested_amount": str(b.amounts[sid]) if sid in b.amounts else None}
+                        if e.tape.raw.get("authored_redemptions") else {}),
                      "first_cutoff": b.profiles[sid].first_eligible_cutoff,
                      "contacted": sid in b.contacts}
                     for sid in sorted(b.states)]}

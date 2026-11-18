@@ -57,13 +57,20 @@ class Claim:
 
 
 class Administrator:
-    def __init__(self, rows: list[dict[str, Any]], opening_nav: Decimal, offer: dict[str, Any] | None = None) -> None:
-        with localcontext(CTX):
-            caps = split(opening_nav, {r["id"]: Decimal(r["units"]) for r in rows})
-        self.series = {r["id"]: Capital(r["id"], Decimal(r["units"]), Decimal(r["hwm"]), caps[r["id"]]) for r in rows}
-        self.residuals: dict[str, Decimal] = {}
+    def __init__(self, rows: list[dict[str, Any]], opening_nav: Decimal, offer: dict[str, Any] | None = None,
+                 payables: dict[str, Decimal] | None = None) -> None:
+        """``opening_nav`` is wealth before administrator claims; ``payables`` are claims a warm start inherits."""
         self.liabilities = {a: ZERO for a in ("mgmt_fee_accrued", "mgmt_fee_payable", "perf_fee_payable",
                                              "redemption_payable")}
+        for account, amount in (payables or {}).items():
+            if account not in self.liabilities:
+                raise ValueError(f"administrator does not hold {account}")
+            self.liabilities[account] = amount
+        with localcontext(CTX):
+            caps = split(opening_nav - sum(self.liabilities.values(), ZERO),
+                         {r["id"]: Decimal(r["units"]) for r in rows})
+        self.series = {r["id"]: Capital(r["id"], Decimal(r["units"]), Decimal(r["hwm"]), caps[r["id"]]) for r in rows}
+        self.residuals: dict[str, Decimal] = {}
         self.revenue = ZERO
         self.closes: tuple[Close, ...] = ()
         self.claims: tuple[Claim, ...] = ()
