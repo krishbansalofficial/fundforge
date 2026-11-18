@@ -210,8 +210,34 @@ def conformal(d: dict[str, Any]) -> Row:
     )
 
 
+def ope(d: dict[str, Any]) -> Row:
+    parts = []
+    for t, v in d["targets"].items():
+        parts.append(f"{t}: truth {_g(v['truth']['value'])}, PDIS {_g(v['pdis']['value'])}, "
+                     f"WPDIS {_g(v['wpdis']['value'])}, FQE {_g(v['fqe']['value'])}, ESS {_g(v['ess_full_episode'])}")
+    return (
+        "Off-policy evaluation from random-play logs vs simulator truth (hard test worlds)",
+        "; ".join(parts) + ". No estimator recovers PPO's value; see ope_noise_floor.json for the seed-set spread",
+        f"{d['scale']['worlds']} worlds x {d['scale']['log_runs_per_world']} logged episodes; "
+        f"truth {d['scale']['truth_runs_per_world']} runs/world",
+        d["reproduce"],
+    )
+
+
+def ope_noise(d: dict[str, Any]) -> Row:
+    sets = "; ".join(f"seeds {k}+: mean {_g(v['mean'])} (SE {_g(v['se_by_world'])})" for k, v in d["seed_sets"].items())
+    return (
+        "OPE noise floor: random play's mean return across independent seed sets",
+        f"{sets}; spread {_g(d['spread'])}",
+        f"{d['worlds']} worlds x 10 episodes per set",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "transfer_matrix.json": transfer,
+    "ope.json": ope,
+    "ope_noise_floor.json": ope_noise,
     "conformal_forecast.json": conformal,
     "attribution.json": attribution,
     "voi_pm.json": voi,

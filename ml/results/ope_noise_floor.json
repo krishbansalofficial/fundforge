@@ -1,0 +1,31 @@
+{
+ "stage": "5.4 OPE noise floor",
+ "commit": "525db622ac30043862bcf647c5e7886d4b2946bf",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train --group forecast python scripts/ope_noise_floor.py --procs 4",
+ "worlds": 218,
+ "seed_sets": {
+  "10000": {
+   "mean": -1.3549,
+   "se_by_world": 0.1532,
+   "episodes": 2180,
+   "max_return": 9.905,
+   "min_return": -8.808
+  },
+  "20000": {
+   "mean": -0.5584,
+   "se_by_world": 0.1535,
+   "episodes": 2180,
+   "max_return": 10.573,
+   "min_return": -8.926
+  },
+  "30000": {
+   "mean": -1.0632,
+   "se_by_world": 0.1149,
+   "episodes": 2180,
+   "max_return": 11.311,
+   "min_return": -8.745
+  }
+ },
+ "spread": 0.7965
+}
