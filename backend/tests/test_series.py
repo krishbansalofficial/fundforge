@@ -62,3 +62,24 @@ def test_allocation_conserves_cents(total_cents, weights):
     total = Decimal(total_cents) / 100
     out = allocate(total, {f"s{i:02}": Decimal(w) for i, w in enumerate(weights)})
     assert sum(out.values()) == total
+
+
+def test_redeem_rejects_zero_negative_and_excess_units_and_series_is_immutable():
+    """B5 mutation survivors: the redemption-size guard and frozen Series were never exercised."""
+    from dataclasses import FrozenInstanceError
+
+    import pytest
+    s = S("A", 1000, 100, 110000)
+    for bad in (D(0), D(-1), D("1000.00000001")):
+        with pytest.raises(ValueError, match="invalid redemption"):
+            redeem(s, bad)
+    assert redeem(s, D("0.5"))[0].units == D("999.5")  # units carry 8dp: a fraction of one unit is valid
+    survivor, payable, fee = redeem(s, D(1000))  # the whole series is a valid redemption
+    assert survivor.units == 0 and payable == D(108000) and fee == D(2000)
+    with pytest.raises(FrozenInstanceError):
+        s.units = D(1)  # type: ignore[misc]
+
+
+def test_annual_crystallization_resets_the_provision():
+    s, fixed = crystallize_annual(S("A", 1000, 100, 110000))
+    assert fixed == D(2000) and s.provision == 0

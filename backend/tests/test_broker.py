@@ -279,3 +279,31 @@ def test_statement_resolution_and_original_evidence_survive_postgres_reload():
         assert store.verify(rid)["version"] == restored.version
     finally:
         store.close()
+
+
+def test_broker_ledger_guards_reject_duplicate_loans_bad_returns_and_unknown_activity():
+    """B5 mutation survivors: these guards were never reached by a test."""
+    b = Broker({"cash": "0", "collateral": "0", "debt": "0", "positions": {}}, D("0.05"))
+    day = date(2026, 1, 20)
+    b.record(day, "loan", loan_id="L1", sym="BRIN", qty=100, rate=D("0.05"))
+    with pytest.raises(ValueError, match="duplicate broker loan"):
+        b.record(day, "loan", loan_id="L1", sym="BRIN", qty=100, rate=D("0.05"))
+    for bad in (0, -1, 101):
+        with pytest.raises(ValueError, match="invalid broker loan return"):
+            b.record(day, "return", loan_id="L1", qty=bad)
+    b.record(day, "return", loan_id="L1", qty=40)
+    assert b.loans["L1"].qty == 60
+    b.record(day, "return", loan_id="L1", qty=60)
+    assert "L1" not in b.loans
+    with pytest.raises(ValueError, match="unknown broker activity"):
+        b.record(day, "teleport")
+
+
+def test_an_original_statement_cannot_supersede_another_revision():
+    from fundforge.broker import validate_statements
+    r = {"id": "opening-cash", "revision": 1, "source": "Synthetic prime broker", "account": "cash",
+         "as_of": {"day": 12, "phase": "OPEN_ADMIN"}, "available_at": {"day": 12, "phase": "OPEN_ADMIN"},
+         "balance": "100.00"}
+    validate_statements([r], 12, 21)  # the template is valid
+    with pytest.raises(ValueError, match="cannot supersede"):
+        validate_statements([{**r, "supersedes": 0}], 12, 21)

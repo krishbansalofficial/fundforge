@@ -42,11 +42,6 @@ def mgmt_fee_exact(s: Series) -> Decimal:
         return s.participation * MGMT_RATE / 365
 
 
-def charge(s: Series, amount: Decimal) -> Series:
-    """Series-specific fixed charge (e.g. posted management fee) then re-provision."""
-    return reprovision(s, s.participation - amount)
-
-
 def crystallize_annual(s: Series) -> tuple[Series, Decimal]:
     with localcontext(CTX):
         new_hwm = max(s.hwm, s.net / s.units)

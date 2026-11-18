@@ -71,3 +71,22 @@ def test_accrual_residual_matches_fund_accounting_oracle_6():
         p, acc = acc.post(D("1000000") * D("0.02") / 360)
         total += p
     assert total == D("166.67")
+
+
+def test_entry_guards_reject_one_leg_non_decimal_and_non_finite_amounts():
+    """B5 mutation survivors: each guard in Entry.__post_init__ must be reachable on its own."""
+    from dataclasses import FrozenInstanceError
+
+    from fundforge.journal import Entry, Posting
+    with pytest.raises(JournalError, match="at least two postings"):
+        entry("x", "fund", "2026-01-20", "m", ("cash", D("1")))
+    with pytest.raises(JournalError, match="non-decimal"):
+        Entry("x", "fund", "2026-01-20", "m", (Posting("cash", 1), Posting("capital", D("-1"))))  # type: ignore[arg-type]
+    for bad in (Decimal("Infinity"), Decimal("NaN")):
+        with pytest.raises(JournalError, match="non-decimal"):
+            Entry("x", "fund", "2026-01-20", "m", (Posting("cash", bad), Posting("capital", D("-1"))))
+    e = entry("x", "fund", "2026-01-20", "m", ("cash", D("1")), ("capital", D("-1")))
+    with pytest.raises(FrozenInstanceError):
+        e.memo = "edited"  # type: ignore[misc]
+    with pytest.raises(FrozenInstanceError):
+        e.postings[0].amount = D("2")  # type: ignore[misc]
