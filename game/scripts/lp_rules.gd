@@ -223,6 +223,40 @@ static func package_text(p: Dictionary) -> String:
 	return ", ".join(p.get("orders", []).map(func(o): return "%s %s %s" % [o["side"], o["qty"], o["sym"]]))
 
 
+## The partner's chat replies about one package (the server keeps the bot's ref "pkg:<id>"), oldest first.
+## This is how a solo player learns why the partner bot refused to countersign.
+static func package_replies(view: Dictionary, package_id: String) -> Array:
+	var me: String = view.get("role", "")
+	return view.get("chat", []).filter(func(m): return m.get("role") != me and m.get("ref") == "pkg:" + package_id) \
+			.map(func(m): return str(m.get("text", "")))
+
+
+## Replies about every still-pending package of one kind (admission, gate, winddown).
+static func open_replies(view: Dictionary, kind: String) -> Array:
+	var out: Array = []
+	for p in view.get("packages", []):
+		if p.get("kind") == kind and p.get("status") == "PENDING_APPROVAL":
+			out.append_array(package_replies(view, str(p.get("package_id"))))
+	return out
+
+
+## Partner package replies not yet in `seen` (which this records). The first call primes `seen` and returns [].
+static func fresh_replies(seen: Dictionary, view: Dictionary) -> Array:
+	var me: String = view.get("role", "")
+	var primed := not seen.is_empty()
+	seen["_primed"] = true
+	var out: Array = []
+	for m in view.get("chat", []):
+		if m.get("role") == me or not str(m.get("ref", "")).begins_with("pkg:"):
+			continue
+		var k := "%s|%s|%s" % [m.get("role"), m.get("ref"), m.get("text")]
+		if not seen.has(k):
+			seen[k] = true
+			if primed:
+				out.append(str(m.get("text", "")))
+	return out
+
+
 ## The newest LP-related notices this seat may see (the server already filters private ones by owner).
 static func notices(view: Dictionary, limit := 5) -> Array:
 	var out: Array = view.get("notices", []).filter(func(n): return n.get("code") in LP_CODES)

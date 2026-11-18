@@ -289,6 +289,16 @@ func _initialize() -> void:
 	api.free()
 
 	# journal paging with the /ledger `after` cursor
+	var api_script: GDScript = load("res://scripts/api.gd")
+	var plain: Dictionary = api_script.parse_response(HTTPRequest.RESULT_SUCCESS, 500, PackedStringArray(),
+			"Internal Server Error".to_utf8_buffer())
+	check(not plain["ok"] and not plain["network_error"] and plain["data"] == {"detail": "server error (HTTP 500)"},
+			"non-JSON error body yields a clean server error (no engine JSON error)")
+	var good: Dictionary = api_script.parse_response(HTTPRequest.RESULT_SUCCESS, 200, PackedStringArray(), '{"version": 3}'.to_utf8_buffer())
+	check(good["ok"] and good["data"]["version"] == 3, "JSON body still parsed")
+	check(api_script.parse_response(HTTPRequest.RESULT_SUCCESS, 304, PackedStringArray(), PackedByteArray())["data"] == null,
+			"304 Not Modified keeps an empty body")
+	check(api_script.parse_json("<html>") == null and api_script.parse_json("") == null, "quiet JSON parse returns null")
 	check(WorldRules.ledger_path("r1", "fund", -1) == "/api/rooms/r1/ledger?entity=fund", "newest ledger page has no cursor")
 	check(WorldRules.ledger_path("r1", "firm", 7) == "/api/rooms/r1/ledger?entity=firm&after=7", "ledger cursor in query")
 	var e := func(n: int) -> Dictionary: return {"date": "d%d" % n, "memo": "m%d" % n, "postings": []}
@@ -837,6 +847,31 @@ func _ui_checks() -> void:
 	await process_frame
 	check(_button_text(hud, "Winddown") == null and _button_text(hud, "Propose a controlled winddown") == null,
 			"no winddown control outside the campaign")
+	# Solo: the partner bot's refusal (a chat line with ref pkg:<id>) shows beside the stuck package and toasts on arrival
+	var refusal := "I won't admit a new LP: taking outside capital needs a human partner's consent."
+	var solo := {"role": "mp", "clock": {"day": 19, "finished": false}, "bots": ["pm"], "notices": [], "series": [],
+			"investors": null, "prospect": funded, "ready": [], "chat": [],
+			"packages": [{"package_id": "admit-1", "proposer": "mp", "digest": "abcdef0123456", "status": "PENDING_APPROVAL",
+				"signatures": ["mp"], "kind": "admission", "terms": {"series": "Anchor", "amount": "5000000", "deal_day": 20}, "orders": []}]}
+	var seen := {}
+	check(LpRules.fresh_replies(seen, solo).is_empty(), "first view primes partner replies without a toast")
+	solo["chat"] = [{"day": 19, "role": "mp", "text": "proposing", "ref": "pkg:admit-1"},
+			{"day": 19, "role": "pm", "text": "hello", "ref": null},
+			{"day": 19, "role": "pm", "text": refusal, "ref": "pkg:admit-1"}]
+	check(LpRules.fresh_replies(seen, solo) == [refusal] and LpRules.fresh_replies(seen, solo).is_empty(),
+			"a new partner package reply surfaces once; own and unrelated chat ignored")
+	check(LpRules.package_replies(solo, "admit-1") == [refusal] and LpRules.open_replies(solo, "admission") == [refusal]
+			and LpRules.open_replies(solo, "gate").is_empty(), "refusal bound to its pending package")
+	hud.role = "mp"
+	hud.apply_view(solo.merged({"chat": []}, true))
+	hud.apply_view(solo)
+	check(hud._toast.text == "Partner: " + refusal, "bot refusal toasts when it arrives")
+	hud.open_panel("lp")
+	await process_frame
+	check(_label_text(hud, "Partner: I won't admit a new LP") != null, "lounge shows the bot refusal beside the stuck admission")
+	hud.open_panel("committee")
+	await process_frame
+	check(_label_text(hud, "Partner: I won't admit a new LP") != null, "committee shows the bot refusal under the package")
 	hud.queue_free()
 	await process_frame
 
