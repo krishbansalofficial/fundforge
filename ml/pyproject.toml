@@ -38,6 +38,10 @@ stream = [
 anomaly = [
     "scikit-learn>=1.5",
 ]
+# Debrief-time OLS attribution against the generator's true factors (scripts/attribution.py).
+attribution = [
+    "statsmodels>=0.14",
+]
 
 [tool.uv.sources]
 fundforge = { path = "../backend", editable = true }

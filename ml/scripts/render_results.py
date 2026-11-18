@@ -160,7 +160,28 @@ def trace_floor(d: dict[str, Any]) -> Row:
     )
 
 
+def attribution(d: dict[str, Any]) -> Row:
+    def b(c: dict[str, Any]) -> str:
+        return f"{_g(c['est'])} [{_g(c['lo'])}, {_g(c['hi'])}]"
+
+    pol = d["policies"]
+    parts = [
+        f"{k} beta pre {b(v['pooled_true']['pre_post']['coef']['beta_pre'])} -> post "
+        f"{b(v['pooled_true']['pre_post']['coef']['beta_post'])}"
+        for k, v in pol.items()
+    ]
+    eps = sum(v["episodes"] for v in pol.values())
+    return (
+        "Return attribution on the generator's true market factor (pooled OLS, cluster by world)",
+        "; ".join(parts) + f"; true vs public-proxy factor corr {_g(d['factor_vs_proxy']['corr'])}; "
+        "per-episode fits have 6-7 days (wide intervals)",
+        f"{d['scale']['test_worlds']} hard test worlds, {eps} episodes; PPO: {d['scale']['ppo']}",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
+    "attribution.json": attribution,
     "voi_pm.json": voi,
     "anomaly.json": anomaly,
     "viper_pm.json": viper,
