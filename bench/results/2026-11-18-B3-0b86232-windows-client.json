@@ -1,0 +1,253 @@
+{
+  "benchmark": "B3-api-load",
+  "commit": "0b86232",
+  "rules_version": "case1-rules-2026.11.1",
+  "measured_at": "2026-11-18T17:48:18+00:00",
+  "machine": "Windows AMD64, Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, 32 logical CPUs",
+  "python": "3.13.12",
+  "stack": "deploy/compose.prod.yaml on Docker Desktop (WSL2) on the same machine as the client, via Caddy TLS",
+  "method": {
+    "poll_s": 0.5,
+    "ready_every_s": 10,
+    "step_seconds": 60,
+    "warmup_s": 10,
+    "steps": [
+      10,
+      25,
+      50,
+      100,
+      200
+    ],
+    "client": "one Python process, httpx async, HTTP/1.1"
+  },
+  "target": "p95 GET /view < 100 ms and zero 5xx at 100 rooms",
+  "target_met": false,
+  "knee_rooms": 10,
+  "limits": [
+    "client and server share one machine, so they compete for CPU",
+    "not the intended production VM size; a laptop under Docker Desktop",
+    "a saturated client under-reports load; such steps are flagged and are not a server limit"
+  ],
+  "steps": [
+    {
+      "rooms": 10,
+      "seconds": 62.7,
+      "view_ms": {
+        "n": 2277,
+        "p50": 25.7,
+        "p95": 131.26,
+        "p99": 518.71
+      },
+      "command_ms": {
+        "n": 108,
+        "p50": 91.3,
+        "p95": 206.76,
+        "p99": 231.58
+      },
+      "status": {
+        "view": {
+          "304": 2125,
+          "200": 152
+        },
+        "command": {
+          "200": 78,
+          "422": 30
+        }
+      },
+      "ratio_304": 0.933,
+      "view_rps_target": 40.0,
+      "view_rps_achieved": 36.3,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 106,
+        "mean_ms": 13.75,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-caddy-1": "0.04% 27.72MiB / 15.48GiB",
+        "fundforge-backup-1": "0.00% 0B / 0B",
+        "fundforge-web-1": "0.02% 123.6MiB / 15.48GiB",
+        "fundforge-api-1": "0.18% 64.87MiB / 15.48GiB",
+        "fundforge-db-1": "1.10% 49.39MiB / 15.48GiB"
+      }
+    },
+    {
+      "rooms": 25,
+      "seconds": 62.7,
+      "view_ms": {
+        "n": 5699,
+        "p50": 34.08,
+        "p95": 461.89,
+        "p99": 1013.45
+      },
+      "command_ms": {
+        "n": 287,
+        "p50": 115.42,
+        "p95": 670.1,
+        "p99": 1284.8
+      },
+      "status": {
+        "view": {
+          "304": 5214,
+          "200": 485
+        },
+        "command": {
+          "200": 248,
+          "422": 39
+        }
+      },
+      "ratio_304": 0.915,
+      "view_rps_target": 100.0,
+      "view_rps_achieved": 90.9,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 285,
+        "mean_ms": 16.73,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-caddy-1": "0.00% 26.73MiB / 15.48GiB",
+        "fundforge-backup-1": "0.00% 0B / 0B",
+        "fundforge-web-1": "0.02% 107.3MiB / 15.48GiB",
+        "fundforge-api-1": "0.15% 72.3MiB / 15.48GiB",
+        "fundforge-db-1": "0.84% 59MiB / 15.48GiB"
+      }
+    },
+    {
+      "rooms": 50,
+      "seconds": 62.7,
+      "view_ms": {
+        "n": 4392,
+        "p50": 770.65,
+        "p95": 3561.19,
+        "p99": 5475.22
+      },
+      "command_ms": {
+        "n": 495,
+        "p50": 973.28,
+        "p95": 3762.16,
+        "p99": 5493.17
+      },
+      "status": {
+        "view": {
+          "304": 3556,
+          "200": 836
+        },
+        "command": {
+          "200": 432,
+          "422": 63
+        }
+      },
+      "ratio_304": 0.81,
+      "view_rps_target": 200.0,
+      "view_rps_achieved": 70.0,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 494,
+        "mean_ms": 19.22,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-caddy-1": "0.00% 35.87MiB / 15.48GiB",
+        "fundforge-backup-1": "0.00% 0B / 0B",
+        "fundforge-web-1": "0.00% 106.3MiB / 15.48GiB",
+        "fundforge-api-1": "0.17% 84.33MiB / 15.48GiB",
+        "fundforge-db-1": "0.04% 66.93MiB / 15.48GiB"
+      }
+    },
+    {
+      "rooms": 100,
+      "seconds": 62.6,
+      "view_ms": {
+        "n": 3476,
+        "p50": 1895.83,
+        "p95": 8834.77,
+        "p99": 13605.78
+      },
+      "command_ms": {
+        "n": 675,
+        "p50": 2388.51,
+        "p95": 9083.48,
+        "p99": 13129.17
+      },
+      "status": {
+        "view": {
+          "200": 1018,
+          "304": 2458
+        },
+        "command": {
+          "200": 540,
+          "422": 135
+        }
+      },
+      "ratio_304": 0.707,
+      "view_rps_target": 400.0,
+      "view_rps_achieved": 55.6,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 676,
+        "mean_ms": 20.86,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-caddy-1": "0.00% 38.67MiB / 15.48GiB",
+        "fundforge-backup-1": "0.00% 0B / 0B",
+        "fundforge-web-1": "0.00% 106.4MiB / 15.48GiB",
+        "fundforge-api-1": "0.20% 119.2MiB / 15.48GiB",
+        "fundforge-db-1": "0.15% 84.94MiB / 15.48GiB"
+      }
+    },
+    {
+      "rooms": 200,
+      "seconds": 62.5,
+      "view_ms": {
+        "n": 2920,
+        "p50": 4691.39,
+        "p95": 21316.13,
+        "p99": 33099.59
+      },
+      "command_ms": {
+        "n": 516,
+        "p50": 5848.5,
+        "p95": 22876.98,
+        "p99": 43471.26
+      },
+      "status": {
+        "view": {
+          "304": 2271,
+          "200": 649
+        },
+        "command": {
+          "200": 367,
+          "422": 149
+        }
+      },
+      "ratio_304": 0.778,
+      "view_rps_target": 800.0,
+      "view_rps_achieved": 46.7,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 513,
+        "mean_ms": 25.03,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-caddy-1": "0.00% 37.48MiB / 15.48GiB",
+        "fundforge-backup-1": "0.00% 0B / 0B",
+        "fundforge-web-1": "0.00% 108.2MiB / 15.48GiB",
+        "fundforge-api-1": "8.17% 215.7MiB / 15.48GiB",
+        "fundforge-db-1": "0.19% 123.3MiB / 15.48GiB"
+      }
+    }
+  ]
+}
