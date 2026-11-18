@@ -128,7 +128,7 @@ tr.short td:first-child::after { content: " short"; color: var(--ink-soft); font
 tr.forced td { color: var(--breach); }
 tr.entry-start td { border-top: 1px solid var(--ink-soft); }
 
-.feed ul { list-style: none; margin: 0; padding: 0; max-height: 19rem; overflow-y: auto; display: grid; }
+.feed ul, .chat ol { list-style: none; margin: 0; padding: 0; max-height: 19rem; overflow-y: auto; display: grid; }
 .feed li { display: grid; grid-template-columns: 3.6rem 1fr; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--rule); }
 .feed li.alert { border-left: none; padding: 0.35rem 0; background: none; color: var(--breach); }
 .feed li.research { color: var(--gain); }
