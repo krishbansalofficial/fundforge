@@ -1,0 +1,237 @@
+{
+  "benchmark": "B5-mutation-score",
+  "commit": "02ff24c",
+  "measured_at": "2026-11-18T13:35:49+00:00",
+  "python": "3.13.12",
+  "machine": "Windows AMD64, Intel64 Family 6 Model 183 Stepping 1, GenuineIntel, 32 logical CPUs",
+  "tool": "scripts/bench_mutation.py (stdlib ast; not mutmut)",
+  "operators": {
+    "cmp": "< <=, > >=, == !=, in/not in, is/is not (one operator per mutant)",
+    "arith": "+ <-> - (binary and augmented)",
+    "const": "int n -> n+1; True <-> False",
+    "bool": "and <-> or; drop `not`; negate if/while/ternary/assert test",
+    "raise": "raise -> pass"
+  },
+  "sample": {
+    "per_module": 40,
+    "seed": 1
+  },
+  "workers": 4,
+  "score_definition": "killed / total; timeouts and survivors both count against the score",
+  "limits": [
+    "equivalent mutants are not filtered; survivors need reading before being called test gaps",
+    "Decimal string literals, annotations and docstrings are not mutated",
+    "each module runs only its listed test files, not the whole suite",
+    "pytest -x: a kill records only that some test failed, not which"
+  ],
+  "wall_seconds": 847.2,
+  "modules": {
+    "shadow": {
+      "file": "backend/src/fundforge/shadow.py",
+      "tests": [
+        "test_shadow",
+        "test_fault_corpus",
+        "test_certificate",
+        "test_golden",
+        "test_settlement_recon"
+      ],
+      "mutants_generated": 131,
+      "total": 40,
+      "sampled": true,
+      "killed": 22,
+      "survived": 10,
+      "timeout": 8,
+      "errors": 0,
+      "score": 0.55,
+      "baseline_seconds": 16.0,
+      "timeout_seconds": 77.9,
+      "wall_seconds": 282.8,
+      "survivors": [
+        "backend/src/fundforge/shadow.py:29:15 const",
+        "backend/src/fundforge/shadow.py:45:21 const",
+        "backend/src/fundforge/shadow.py:46:55 const",
+        "backend/src/fundforge/shadow.py:53:16 const",
+        "backend/src/fundforge/shadow.py:53:36 const",
+        "backend/src/fundforge/shadow.py:66:91 cmp:0",
+        "backend/src/fundforge/shadow.py:67:93 cmp:0",
+        "backend/src/fundforge/shadow.py:103:81 const",
+        "backend/src/fundforge/shadow.py:147:18 const",
+        "backend/src/fundforge/shadow.py:211:86 const"
+      ],
+      "timeouts": [
+        "backend/src/fundforge/shadow.py:202:54 bool:andor",
+        "backend/src/fundforge/shadow.py:202:54 bool:dropnot",
+        "backend/src/fundforge/shadow.py:206:8 bool:negate",
+        "backend/src/fundforge/shadow.py:208:8 bool:negate",
+        "backend/src/fundforge/shadow.py:214:12 bool:negate",
+        "backend/src/fundforge/shadow.py:214:15 cmp:0",
+        "backend/src/fundforge/shadow.py:220:12 bool:negate",
+        "backend/src/fundforge/shadow.py:223:35 bool:negate"
+      ]
+    },
+    "administrator": {
+      "file": "backend/src/fundforge/administrator.py",
+      "tests": [
+        "test_redemption_half_cent",
+        "test_fault_corpus",
+        "test_administrator",
+        "test_prospect"
+      ],
+      "mutants_generated": 79,
+      "total": 40,
+      "sampled": true,
+      "killed": 30,
+      "survived": 10,
+      "timeout": 0,
+      "errors": 0,
+      "score": 0.75,
+      "baseline_seconds": 14.8,
+      "timeout_seconds": 74.3,
+      "wall_seconds": 62.9,
+      "survivors": [
+        "backend/src/fundforge/administrator.py:11:19 const",
+        "backend/src/fundforge/administrator.py:18:7 cmp:0",
+        "backend/src/fundforge/administrator.py:18:16 const",
+        "backend/src/fundforge/administrator.py:19:8 raise",
+        "backend/src/fundforge/administrator.py:29:18 const",
+        "backend/src/fundforge/administrator.py:48:18 const",
+        "backend/src/fundforge/administrator.py:78:66 cmp:0",
+        "backend/src/fundforge/administrator.py:78:76 const",
+        "backend/src/fundforge/administrator.py:108:19 cmp:0",
+        "backend/src/fundforge/administrator.py:158:16 bool:negate"
+      ],
+      "timeouts": []
+    },
+    "broker": {
+      "file": "backend/src/fundforge/broker.py",
+      "tests": [
+        "test_broker",
+        "test_shadow",
+        "test_fault_corpus",
+        "test_certificate"
+      ],
+      "mutants_generated": 173,
+      "total": 40,
+      "sampled": true,
+      "killed": 30,
+      "survived": 10,
+      "timeout": 0,
+      "errors": 0,
+      "score": 0.75,
+      "baseline_seconds": 2.6,
+      "timeout_seconds": 37.9,
+      "wall_seconds": 16.3,
+      "survivors": [
+        "backend/src/fundforge/broker.py:42:27 bool:andor",
+        "backend/src/fundforge/broker.py:47:20 raise",
+        "backend/src/fundforge/broker.py:117:105 const",
+        "backend/src/fundforge/broker.py:157:23 cmp:0",
+        "backend/src/fundforge/broker.py:157:23 cmp:1",
+        "backend/src/fundforge/broker.py:157:23 const",
+        "backend/src/fundforge/broker.py:169:16 raise",
+        "backend/src/fundforge/broker.py:214:39 const",
+        "backend/src/fundforge/broker.py:223:40 cmp:0",
+        "backend/src/fundforge/broker.py:258:63 const"
+      ],
+      "timeouts": []
+    },
+    "settlement_recon": {
+      "file": "backend/src/fundforge/settlement_recon.py",
+      "tests": [
+        "test_shadow",
+        "test_fault_corpus",
+        "test_settlement_recon"
+      ],
+      "mutants_generated": 58,
+      "total": 40,
+      "sampled": true,
+      "killed": 24,
+      "survived": 7,
+      "timeout": 9,
+      "errors": 0,
+      "score": 0.6,
+      "baseline_seconds": 23.5,
+      "timeout_seconds": 100.4,
+      "wall_seconds": 387.4,
+      "survivors": [
+        "backend/src/fundforge/settlement_recon.py:26:18 const",
+        "backend/src/fundforge/settlement_recon.py:46:15 bool:andor",
+        "backend/src/fundforge/settlement_recon.py:46:66 cmp:0",
+        "backend/src/fundforge/settlement_recon.py:46:75 const",
+        "backend/src/fundforge/settlement_recon.py:102:43 bool:andor",
+        "backend/src/fundforge/settlement_recon.py:136:66 bool:negate",
+        "backend/src/fundforge/settlement_recon.py:136:93 const"
+      ],
+      "timeouts": [
+        "backend/src/fundforge/settlement_recon.py:19:15 const",
+        "backend/src/fundforge/settlement_recon.py:49:21 bool:negate",
+        "backend/src/fundforge/settlement_recon.py:56:93 const",
+        "backend/src/fundforge/settlement_recon.py:113:8 bool:negate",
+        "backend/src/fundforge/settlement_recon.py:116:8 bool:negate",
+        "backend/src/fundforge/settlement_recon.py:116:11 cmp:0",
+        "backend/src/fundforge/settlement_recon.py:120:8 bool:negate",
+        "backend/src/fundforge/settlement_recon.py:120:11 cmp:0",
+        "backend/src/fundforge/settlement_recon.py:122:8 bool:negate"
+      ]
+    },
+    "journal": {
+      "file": "backend/src/fundforge/journal.py",
+      "tests": [
+        "test_journal",
+        "test_invariants",
+        "test_engine",
+        "test_golden",
+        "test_fault_corpus"
+      ],
+      "mutants_generated": 40,
+      "total": 40,
+      "sampled": false,
+      "killed": 35,
+      "survived": 5,
+      "timeout": 0,
+      "errors": 0,
+      "score": 0.875,
+      "baseline_seconds": 4.0,
+      "timeout_seconds": 41.9,
+      "wall_seconds": 18.5,
+      "survivors": [
+        "backend/src/fundforge/journal.py:25:18 const",
+        "backend/src/fundforge/journal.py:31:18 const",
+        "backend/src/fundforge/journal.py:43:12 raise",
+        "backend/src/fundforge/journal.py:45:15 bool:andor",
+        "backend/src/fundforge/journal.py:46:16 raise"
+      ],
+      "timeouts": []
+    },
+    "series": {
+      "file": "backend/src/fundforge/series.py",
+      "tests": [
+        "test_series",
+        "test_redemption_half_cent",
+        "test_golden",
+        "test_fault_corpus"
+      ],
+      "mutants_generated": 19,
+      "total": 19,
+      "sampled": false,
+      "killed": 12,
+      "survived": 7,
+      "timeout": 0,
+      "errors": 0,
+      "score": 0.6316,
+      "baseline_seconds": 1.7,
+      "timeout_seconds": 35.0,
+      "wall_seconds": 6.8,
+      "survivors": [
+        "backend/src/fundforge/series.py:12:18 const",
+        "backend/src/fundforge/series.py:47:26 arith",
+        "backend/src/fundforge/series.py:53:53 const",
+        "backend/src/fundforge/series.py:61:11 cmp:0",
+        "backend/src/fundforge/series.py:61:11 cmp:1",
+        "backend/src/fundforge/series.py:61:11 const",
+        "backend/src/fundforge/series.py:62:8 raise"
+      ],
+      "timeouts": []
+    }
+  }
+}
