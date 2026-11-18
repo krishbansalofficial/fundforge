@@ -2212,8 +2212,8 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                "if-none-match"?: string | null;
                 authorization?: string;
+                "if-none-match"?: string | null;
             };
             path: {
                 room_id: string;

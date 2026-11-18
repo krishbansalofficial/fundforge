@@ -390,16 +390,30 @@ class Store:
                 c.execute("update rooms set running=false where id=%s", (room,))
             return None
 
-    def clock_info(self, room: str) -> dict:
-        with self.pool.connection() as c:
-            row = c.execute("select running, speed, next_tick_at, now(),"
-                            " greatest(0, extract(epoch from next_tick_at - now()))::float, version"
-                            " from rooms where id=%s", (room,)).fetchone()
-        if row is None:
-            raise KeyError(room)
+    _CLOCK = ("r.running, r.speed, r.next_tick_at, now(),"
+              " greatest(0, extract(epoch from r.next_tick_at - now()))::float, r.version")
+
+    @staticmethod
+    def _clock(row: Sequence[Any]) -> dict:
         return {"running": row[0], "speed": row[1], "next_tick_at": row[2].isoformat() if row[2] else None,
                 "server_now": row[3].isoformat(), "next_tick_in": row[4],
                 "window_seconds": SECONDS_PER_WINDOW / (row[1] or 1), "version": row[5]}
+
+    def clock_info(self, room: str) -> dict:
+        with self.pool.connection() as c:
+            row = c.execute(f"select {self._CLOCK} from rooms r where r.id=%s", (room,)).fetchone()
+        if row is None:
+            raise KeyError(room)
+        return self._clock(row)
+
+    def seat_clock(self, room: str, token: str) -> tuple[str, dict]:
+        """``auth`` and ``clock_info`` in one round trip: the hot path of every poll, including 304s (B3)."""
+        with self.pool.connection() as c:
+            row = c.execute(f"select s.user_id, {self._CLOCK} from seats s join rooms r on r.id = s.room_id"
+                            " where s.token_hash=%s and s.room_id=%s", (_h(token), room)).fetchone()
+        if not row:
+            raise PermissionError("invalid seat token for this room")
+        return str(row[0]), self._clock(row[1:])
 
     @staticmethod
     def _insert_rows(c: Conn, head: str, rows: Sequence[tuple]) -> None:
