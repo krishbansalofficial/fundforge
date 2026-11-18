@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import presence as presence_rules
+from . import presence_bridge
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import STRATEGIES, project
@@ -85,13 +86,15 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     hub.loop = asyncio.get_running_loop()
     task = asyncio.create_task(clock_loop()) if os.environ.get("FUNDFORGE_CLOCK", "1") == "1" else None
+    bridge = (asyncio.create_task(presence_bridge.run(DSN, hub)) if WORKERS > 1 else None)
     try:
         yield
     finally:
-        if task:
-            task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
+        for t in (task, bridge):
+            if t:
+                t.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await t
         if store.cache_info().currsize:
             await asyncio.to_thread(store().close)
             store.cache_clear()
@@ -99,6 +102,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 MAX_BODY_BYTES = int(os.environ.get("FUNDFORGE_MAX_BODY_BYTES", str(64 * 1024)))
 ROOMS_PER_IP = int(os.environ.get("FUNDFORGE_ROOMS_PER_IP", "20"))
+WORKERS = int(os.environ.get("FUNDFORGE_WORKERS", "1"))  # uvicorn --workers; >1 starts the presence bridge
+DSN = os.environ.get("DATABASE_URL", "postgresql://fundforge:fundforge@localhost:5432/fundforge")
 ROOM_WINDOW_SECONDS = 3600.0
 # Test-only: lets end-to-end runs choose the hidden market variant. Never set in production: a player who
 # picks the variant knows the future market.
@@ -165,7 +170,10 @@ class RateLimit:
             return True
 
 
-room_creations = RateLimit(ROOMS_PER_IP)
+# Worker processes share nothing in memory: each gets its share of the per-address limit, so N workers allow at most
+# ROOMS_PER_IP in total (fewer if one address's requests land unevenly across workers).
+# ponytail: per-process split, move the window into Postgres if uneven routing ever refuses real players.
+room_creations = RateLimit(max(1, ROOMS_PER_IP // WORKERS))
 
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
 app.add_middleware(BodyLimit, limit=MAX_BODY_BYTES)
@@ -252,7 +260,7 @@ async def incompatible_room(_request: Request, error: RoomIncompatible) -> JSONR
 
 @lru_cache
 def store() -> Store:
-    s = Store(os.environ.get("DATABASE_URL", "postgresql://fundforge:fundforge@localhost:5432/fundforge"))
+    s = Store(DSN)
     try:
         s.init()
     except Exception:
@@ -442,7 +450,7 @@ def command(room_id: str, body: CommandBody, user: str = Depends(seat),
         raise ApiError(422, "rejected", str(e) or "command rejected") from e
     except (KeyError, TypeError, ValueError) as e:
         raise ApiError(422, "invalid_command", str(e) or "invalid command") from e
-    if room_id in hub.rooms:  # tell live clients to poll now; the bot's replies are already in this version
+    if room_id in hub.rooms or hub.publish:  # tell live clients (here or on other workers) to poll now
         hub.nudge_threadsafe(room_id, store().clock_info(room_id)["version"])
     return result
 
