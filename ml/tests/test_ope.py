@@ -50,3 +50,11 @@ def test_on_policy_weights_are_one() -> None:
     eps = make(200, np.random.default_rng(1))
     rho = ratios(eps, lambda o, m: np.array([0.5, 0.5]))
     assert all(np.allclose(p, 1.0) for p in rho) and abs(ess(rho) - 200) < 1e-9
+
+
+def test_weighted_pdis_equals_pdis_on_policy_with_unequal_lengths() -> None:
+    """Regression: WPDIS normalised over ended (zero-padded) episodes and inflated long ones."""
+    rng = np.random.default_rng(2)
+    eps = [ep[: int(rng.integers(1, 3))] for ep in make(500, rng)]
+    rho = ratios(eps, lambda o, m: np.array([0.5, 0.5]))
+    assert abs(pdis(eps, rho, weighted=True) - pdis(eps, rho)) < 1e-12

@@ -40,8 +40,11 @@ def pdis(episodes: list[list[Step]], rho: list[np.ndarray], weighted: bool = Fal
     for i, (ep, p) in enumerate(zip(episodes, rho, strict=True)):
         w[i, : len(ep)] = np.cumprod(p)
         r[i, : len(ep)] = [s.reward for s in ep]
-    if weighted:
-        mean = w.mean(axis=0)
+    if weighted:  # normalise over the episodes that reach each step (episodes differ in length)
+        alive = np.zeros_like(w, dtype=bool)
+        for i, ep in enumerate(episodes):
+            alive[i, : len(ep)] = True
+        mean = np.divide(w.sum(axis=0), alive.sum(axis=0), out=np.zeros(horizon), where=alive.sum(axis=0) > 0)
         w = np.divide(w, mean, out=np.zeros_like(w), where=mean > 0)
     return float((w * r).sum(axis=1).mean())
 
