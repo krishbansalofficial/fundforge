@@ -149,3 +149,13 @@ def test_dated_fee_reclassification_detected_even_when_ending_capital_matches():
     e.reconcile()
     assert [b["code"] for b in e.control_report()["administrator"]["breaks"]] == [
         "management_fee_date", "management_fee_date"]
+
+
+def test_split_requires_positive_participation_and_handles_fractional_weights():
+    """B5 mutation survivors: the zero-participation guard and its boundary were never exercised."""
+    from fundforge.administrator import split
+    for weights in ({}, {"A": D(0)}, {"A": D(1), "B": D(-1)}):
+        with pytest.raises(ValueError, match="positive participation"):
+            split(D("1.00"), weights)
+    out = split(D("1.00"), {"A": D("0.25"), "B": D("0.25")})  # total 0.5: positive, below one
+    assert out == {"A": D("0.50"), "B": D("0.50")}
