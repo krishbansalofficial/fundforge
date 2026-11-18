@@ -86,12 +86,24 @@ func request(method: int, path: String, body: Variant = null, key := "", if_none
 		return {"ok": false, "status": 0, "data": null, "network_error": true, "headers": PackedStringArray()}
 	var res: Array = await http.request_completed
 	http.queue_free()
-	var status: int = res[1]
-	var text: String = (res[3] as PackedByteArray).get_string_from_utf8()
-	var data: Variant = JSON.parse_string(text) if text != "" else null
-	return {"ok": res[0] == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300,
-			"status": status, "data": data, "network_error": res[0] != HTTPRequest.RESULT_SUCCESS,
-			"headers": res[2]}
+	return parse_response(res[0], res[1], res[2], res[3])
+
+
+## Shape one HTTP completion. A body that is not JSON (e.g. a proxy's plain-text 500) never reaches the
+## engine's JSON error printer: an error status gets a clean {"detail": "server error (HTTP n)"} instead.
+static func parse_response(result: int, status: int, headers: PackedStringArray, body: PackedByteArray) -> Dictionary:
+	var ok := result == HTTPRequest.RESULT_SUCCESS and status >= 200 and status < 300
+	var data: Variant = parse_json(body.get_string_from_utf8())
+	if data == null and status >= 400 and result == HTTPRequest.RESULT_SUCCESS:  # 304 keeps its empty body
+		data = {"detail": "server error (HTTP %d)" % status}
+	return {"ok": ok, "status": status, "data": data, "network_error": result != HTTPRequest.RESULT_SUCCESS,
+			"headers": headers}
+
+
+## JSON.parse_string prints an engine error on bad input; JSON.new().parse only returns a code.
+static func parse_json(text: String) -> Variant:
+	var json := JSON.new()
+	return json.data if text != "" and json.parse(text) == OK else null
 
 
 func create_room(url: String, pm_name: String, mp_name: String, solo_role := "", scenario := "case1") -> Dictionary:
@@ -207,7 +219,7 @@ func _process(_delta: float) -> void:
 				_ws_opened = true
 				_ws.send_text(JSON.stringify({"type": "hello", "token": token}))
 			while _ws.get_available_packet_count() > 0:
-				var msg: Variant = JSON.parse_string(_ws.get_packet().get_string_from_utf8())
+				var msg: Variant = parse_json(_ws.get_packet().get_string_from_utf8())
 				if msg is Dictionary:
 					handle_presence(msg)
 		WebSocketPeer.STATE_CLOSED:

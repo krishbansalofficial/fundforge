@@ -15,6 +15,7 @@ var _headroom: ProgressBar
 var _feed: RichTextLabel
 var _prompt: Label
 var _toast: Label
+var _replies_seen := {}  # partner package replies already toasted (LpRules.fresh_replies)
 var _panel: PanelContainer
 var _panel_title: Label
 var _panel_body: VBoxContainer
@@ -283,6 +284,9 @@ func apply_view(v: Dictionary) -> void:
 	for i in range(maxi(0, items.size() - 9), items.size()):
 		lines += "[color=#8aa0b8]Day %d[/color]  %s\n" % [items[i][0], items[i][1]]
 	_feed.text = lines
+	var fresh := LpRules.fresh_replies(_replies_seen, v)
+	if not fresh.is_empty():
+		_show_toast("Partner: " + "  /  ".join(fresh))
 	if _panel.visible:
 		_render_panel(_open_location)
 	if v.get("outcome") != null:
@@ -342,6 +346,11 @@ func _text(t: String, size := 15, color := Color("#16263a")) -> Label:
 	l.add_theme_color_override("font_color", color)
 	_panel_body.add_child(l)
 	return l
+
+
+func _replies(texts: Array) -> void:
+	for t in texts:
+		_text("Partner: " + t, 12, Color("#7a4a12"))
 
 
 func _button(t: String, cb: Callable, enabled := true) -> Button:
@@ -431,6 +440,8 @@ func _committee() -> void:
 		var desc := LpRules.package_text(p)
 		_text("%s  proposed by %s  [%s]  hash %s" % [desc, view.get("names", {}).get(p["proposer"], p["proposer"]),
 				str(p["status"]).to_lower().replace("_", " "), str(p["digest"]).substr(0, 10)], 14)
+		if p["status"] == "PENDING_APPROVAL":
+			_replies(LpRules.package_replies(view, str(p["package_id"])))
 		if p["status"] == "PENDING_APPROVAL" and p["proposer"] == other:
 			var digest: String = p["digest"]
 			var pid: String = p["package_id"]
@@ -616,6 +627,7 @@ func _prospect() -> void:
 		row.add_child(b)
 	elif stage == "eligible":
 		_text("Admission unavailable: " + reason, 12, Color("#7a4a12"))
+	_replies(LpRules.open_replies(view, "admission"))
 	var decline := LpRules.decline_reason(view, role)
 	if decline == "":
 		_button("Decline the prospective LP (escrow returns to it)", func(): Api.command({"type": "decline_prospect"}))
@@ -640,6 +652,7 @@ func _lp_inbox() -> void:
 		_text(LpRules.gate_terms_text(terms), 13, Color("#7a4a12"))
 		_button("Propose gate to partner (they must countersign in the committee room)",
 				func(): Api.command({"type": "propose_gate", "package_id": "gate-" + Api.new_key().substr(0, 8)}))
+	_replies(LpRules.open_replies(view, "gate"))
 	if view["investors"].get("gate_elected", false):
 		_text("A gate is elected for the next dealing close.", 13, Color("#7a4a12"))
 
