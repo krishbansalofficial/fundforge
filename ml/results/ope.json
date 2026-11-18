@@ -1,0 +1,213 @@
+{
+ "stage": "5.4 off-policy evaluation vs simulator truth",
+ "commit": "05f52dce88586e08afbc8f1754131e8ca185464a",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train --group forecast python scripts/ope_eval.py --procs 4",
+ "method": "Behaviour data: random-valid play (mu(a|s) = 1 / number of valid actions, known exactly from the mask) on the\npublished hard test split (results/ppo_pm_hard.json ``test_world_order``), --log-runs episodes per world.\nTargets, from closest to the behaviour to farthest: random (on-policy sanity), epsilon-greedy PPO (eps 0.5, 0.2),\ngreedy PPO (hard checkpoint s0, sha256 checked) and always-wait (action 0). Truth: each target played on-policy\non the same worlds with disjoint seeds, --truth-runs episodes per world. Estimators (fundforge_ml.ope): PDIS,\nWPDIS and FQE with a LightGBM regressor. 95% intervals bootstrap whole worlds; FQE's interval resamples\nstart-state values from one fitted model, so it omits model-fit variance.",
+ "scale": {
+  "worlds": 218,
+  "log_runs_per_world": 10,
+  "truth_runs_per_world": 3,
+  "checkpoint": "ppo_pm_hard_lr1e-4_ent0.01_s0.zip",
+  "level": "hard",
+  "gamma": 1.0
+ },
+ "targets": {
+  "random": {
+   "truth": {
+    "value": -0.7426,
+    "ci95": [
+     -1.1197,
+     -0.38
+    ]
+   },
+   "ess_full_episode": 2180.0,
+   "logged_episodes": 2180,
+   "pdis": {
+    "value": -1.3549,
+    "ci95": [
+     -1.6575,
+     -1.0731
+    ],
+    "error": -0.6123,
+    "covers_truth": false
+   },
+   "wpdis": {
+    "value": -1.3549,
+    "ci95": [
+     -1.6722,
+     -1.0704
+    ],
+    "error": -0.6123,
+    "covers_truth": false
+   },
+   "fqe": {
+    "value": -2.0556,
+    "ci95": [
+     -2.1371,
+     -1.9709
+    ],
+    "rounds": 13,
+    "error": -1.313,
+    "covers_truth": false
+   }
+  },
+  "ppo_eps0.5": {
+   "truth": {
+    "value": 6.853,
+    "ci95": [
+     6.647,
+     7.0614
+    ]
+   },
+   "ess_full_episode": 140.5,
+   "logged_episodes": 2180,
+   "pdis": {
+    "value": -0.0452,
+    "ci95": [
+     -0.2007,
+     0.1119
+    ],
+    "error": -6.8982,
+    "covers_truth": false
+   },
+   "wpdis": {
+    "value": -0.9591,
+    "ci95": [
+     -1.5526,
+     -0.323
+    ],
+    "error": -7.8121,
+    "covers_truth": false
+   },
+   "fqe": {
+    "value": -2.3389,
+    "ci95": [
+     -2.4098,
+     -2.276
+    ],
+    "rounds": 13,
+    "error": -9.1919,
+    "covers_truth": false
+   }
+  },
+  "ppo_eps0.2": {
+   "truth": {
+    "value": 7.1533,
+    "ci95": [
+     6.9816,
+     7.3342
+    ]
+   },
+   "ess_full_episode": 109.4,
+   "logged_episodes": 2180,
+   "pdis": {
+    "value": -0.0034,
+    "ci95": [
+     -0.0071,
+     0.0006
+    ],
+    "error": -7.1567,
+    "covers_truth": false
+   },
+   "wpdis": {
+    "value": -0.8647,
+    "ci95": [
+     -1.568,
+     0.0162
+    ],
+    "error": -8.018,
+    "covers_truth": false
+   },
+   "fqe": {
+    "value": -2.7525,
+    "ci95": [
+     -2.8124,
+     -2.6929
+    ],
+    "rounds": 13,
+    "error": -9.9058,
+    "covers_truth": false
+   }
+  },
+  "ppo_greedy": {
+   "truth": {
+    "value": 7.2577,
+    "ci95": [
+     7.083,
+     7.4293
+    ]
+   },
+   "ess_full_episode": 0.0,
+   "logged_episodes": 2180,
+   "pdis": {
+    "value": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "error": -7.2577,
+    "covers_truth": false
+   },
+   "wpdis": {
+    "value": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "error": -7.2577,
+    "covers_truth": false
+   },
+   "fqe": {
+    "value": -2.9458,
+    "ci95": [
+     -3.0,
+     -2.8914
+    ],
+    "rounds": 13,
+    "error": -10.2035,
+    "covers_truth": false
+   }
+  },
+  "wait": {
+   "truth": {
+    "value": -6.2176,
+    "ci95": [
+     -6.5094,
+     -5.9489
+    ]
+   },
+   "ess_full_episode": 0.0,
+   "logged_episodes": 2180,
+   "pdis": {
+    "value": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "error": 6.2176,
+    "covers_truth": false
+   },
+   "wpdis": {
+    "value": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "error": 6.2176,
+    "covers_truth": false
+   },
+   "fqe": {
+    "value": -3.1991,
+    "ci95": [
+     -3.2381,
+     -3.1592
+    ],
+    "rounds": 13,
+    "error": 3.0185,
+    "covers_truth": false
+   }
+  }
+ },
+ "wall_seconds": 406.4
+}
