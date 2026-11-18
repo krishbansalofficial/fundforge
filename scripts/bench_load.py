@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import multiprocessing
 import os
 import platform
 import re
@@ -51,46 +52,86 @@ VIEW_P95_MS, TARGET_ROOMS = 100.0, 100
 
 
 class Stats:
+    """Latencies and status counts for one step; one per step in each client process, merged by the parent."""
+
     def __init__(self) -> None:
         self.lat: dict[str, list[float]] = {"view": [], "command": []}
         self.status: dict[str, dict[str, int]] = {"view": {}, "command": {}}
-        self.errors: dict[str, int] = {}
-        self.on = False
 
     def add(self, kind: str, ms: float, status: int | str) -> None:
-        if self.on:
-            self.lat[kind].append(ms)
-            self.status[kind][str(status)] = self.status[kind].get(str(status), 0) + 1
+        self.lat[kind].append(ms)
+        self.status[kind][str(status)] = self.status[kind].get(str(status), 0) + 1
+
+    def merge(self, other: Stats) -> None:
+        for kind in self.lat:
+            self.lat[kind] += other.lat[kind]
+            for k, v in other.status[kind].items():
+                self.status[kind][k] = self.status[kind].get(k, 0) + v
 
 
-async def call(c: httpx.AsyncClient, st: Stats, kind: str, method: str, url: str, **kw) -> httpx.Response | None:
-    t0 = time.perf_counter()
+class Recorder:
+    """Counts a request only if it started inside a step's measurement window (wall clock, shared by all procs)."""
+
+    def __init__(self, windows: list[tuple[float, float]]) -> None:
+        self.windows, self.steps = windows, [Stats() for _ in windows]
+
+    def add(self, t_start: float, kind: str, ms: float, status: int | str) -> None:
+        for (lo, hi), st in zip(self.windows, self.steps, strict=True):
+            if lo <= t_start < hi:
+                st.add(kind, ms, status)
+                return
+
+
+async def call(c: httpx.AsyncClient, rec: Recorder, kind: str, method: str, url: str, **kw) -> httpx.Response | None:
+    wall, t0 = time.time(), time.perf_counter()
     try:
         r = await c.request(method, url, **kw)
     except httpx.HTTPError as e:
-        st.add(kind, (time.perf_counter() - t0) * 1000, type(e).__name__)
+        rec.add(wall, kind, (time.perf_counter() - t0) * 1000, type(e).__name__)
         return None
-    st.add(kind, (time.perf_counter() - t0) * 1000, r.status_code)
+    rec.add(wall, kind, (time.perf_counter() - t0) * 1000, r.status_code)
     return r
 
 
-async def seat(c: httpx.AsyncClient, st: Stats, prefix: str, token: str, role: str, window: float,
+async def seat(c: httpx.AsyncClient, rec: Recorder, prefix: str, token: str, role: str, window: float,
                stop: asyncio.Event) -> None:
     auth = {"Authorization": f"Bearer {token}"}
     etag, version, finished, next_ready, n = None, 0, False, time.monotonic() + window, 0
     while not stop.is_set():
         t0 = time.monotonic()
         cond = {"If-None-Match": etag} if etag else {}
-        r = await call(c, st, "view", "GET", f"{prefix}/view", headers={**auth, **cond})
+        r = await call(c, rec, "view", "GET", f"{prefix}/view", headers={**auth, **cond})
         if r is not None and r.status_code == 200:
             etag, body = r.headers.get("ETag"), r.json()
             version, finished = body["version"], body.get("outcome") is not None
         if not finished and time.monotonic() >= next_ready:
             n += 1
-            await call(c, st, "command", "POST", f"{prefix}/commands", json={"type": "ready", "version": version},
+            await call(c, rec, "command", "POST", f"{prefix}/commands", json={"type": "ready", "version": version},
                        headers={**auth, "Idempotency-Key": f"load-{role}-{n}"})
             next_ready = time.monotonic() + window
         await asyncio.sleep(max(0.0, POLL_S - (time.monotonic() - t0)))
+
+
+async def client_run(base: str, connections: int, window: float, starts: list[float],
+                     windows: list[tuple[float, float]], rooms: list[list[dict]]) -> Recorder:
+    """One client process: at starts[i] it begins polling its share of the rooms added at step i (rooms[i])."""
+    local = httpx.URL(base).host in ("localhost", "127.0.0.1")  # Caddy's internal CA, as deploy/smoke.sh's curl -k
+    limits = httpx.Limits(max_connections=connections, max_keepalive_connections=connections)
+    rec, stop, tasks = Recorder(windows), asyncio.Event(), []
+    async with httpx.AsyncClient(base_url=base, verify=not local, timeout=10, limits=limits) as c:
+        for at, batch in zip(starts, rooms, strict=True):
+            await asyncio.sleep(max(0.0, at - time.time()))
+            tasks += [asyncio.create_task(seat(c, rec, f"/api/rooms/{room['room_id']}", room["tokens"][role], role,
+                                               window, stop))
+                      for room in batch for role in ("pm", "mp")]
+        await asyncio.sleep(max(0.0, windows[-1][1] - time.time()))
+        stop.set()
+        await asyncio.gather(*tasks, return_exceptions=True)
+    return rec
+
+
+def client_proc(args: tuple) -> list[Stats]:
+    return asyncio.run(client_run(*args)).steps
 
 
 def histogram(text: str, name: str) -> dict[str, float]:
@@ -122,7 +163,19 @@ def docker_cpu() -> dict[str, str]:
                              capture_output=True, text=True, timeout=30).stdout
     except (OSError, subprocess.TimeoutExpired):
         return {}
-    return {ln.split(" ", 1)[0]: ln.split(" ", 1)[1] for ln in out.splitlines() if ln.startswith("fundforge-")}
+    return {ln.split(" ", 1)[0]: ln.split(" ", 1)[1] for ln in out.splitlines() if ln.startswith("fundforge")}
+
+
+def cpu_from_log(path: Path, lo: float, hi: float) -> dict[str, dict]:
+    """Host-sampled `<unix seconds> <container> <cpu%>` lines (docker stats is not reachable from the client
+    container); mean and max per container over samples taken inside [lo, hi)."""
+    per: dict[str, list[float]] = {}
+    for ln in path.read_text(encoding="utf-8").splitlines():
+        parts = ln.split()
+        if len(parts) == 3 and lo <= float(parts[0]) < hi:
+            per.setdefault(parts[1], []).append(float(parts[2].rstrip("%")))
+    return {k: {"mean_cpu_pct": round(sum(v) / len(v), 1), "max_cpu_pct": max(v), "samples": len(v)}
+            for k, v in sorted(per.items())}
 
 
 def summary(st: Stats, seconds: float, rooms: int) -> dict:
@@ -140,44 +193,48 @@ def summary(st: Stats, seconds: float, rooms: int) -> dict:
             "client_saturated": achieved < 0.9 * target, "http_5xx": five, "client_errors": errors}
 
 
-async def run(a: argparse.Namespace) -> dict:
-    # Caddy's internal CA on localhost only (as deploy/smoke.sh's curl -k); anything else keeps verification.
+def run(a: argparse.Namespace) -> dict:
+    """Rooms for every step are created first (the clock is off, so idle rooms cost nothing); then all client
+    processes follow one wall-clock schedule: step i adds its rooms at starts[i] and is measured over
+    [starts[i] + warmup, + step_seconds). The parent scrapes /metrics at the window edges and merges the lists."""
     local = httpx.URL(a.base).host in ("localhost", "127.0.0.1")
-    limits = httpx.Limits(max_connections=a.connections, max_keepalive_connections=a.connections)
-    steps_out, stop = [], asyncio.Event()
-    async with httpx.AsyncClient(base_url=a.base, verify=not local, timeout=10, limits=limits) as c:
-        tasks: list[asyncio.Task] = []
-        rooms = 0
-        for target in a.steps:
-            while rooms < target:
-                r = await c.post("/api/rooms", json={"pm_name": f"Load PM {rooms}", "mp_name": f"Load MP {rooms}"})
-                r.raise_for_status()
-                room = r.json()
-                prefix = f"/api/rooms/{room['room_id']}"
-                tasks += [asyncio.create_task(seat(c, st_ref[0], prefix, room["tokens"][role], role, a.window, stop))
-                          for role in ("pm", "mp")]
-                rooms += 1
-            await asyncio.sleep(a.warmup)
-            st_ref[0].__init__()  # reset counters in place: seats hold this object
+    rooms: list[dict] = []
+    with httpx.Client(base_url=a.base, verify=not local, timeout=10) as c:
+        while len(rooms) < max(a.steps):
+            r = c.post("/api/rooms", json={"pm_name": f"Load PM {len(rooms)}", "mp_name": f"Load MP {len(rooms)}"})
+            r.raise_for_status()
+            rooms.append(r.json())
+    span = a.warmup + a.step_seconds
+    t0 = time.time() + 5 + a.procs  # spawn and import time for the client processes
+    starts = [t0 + i * span for i in range(len(a.steps))]
+    windows = [(s + a.warmup, s + span) for s in starts]
+    bounds = [0, *a.steps]
+    share = [[[room for j, room in enumerate(rooms[bounds[i]:bounds[i + 1]]) if j % a.procs == p]
+              for i in range(len(a.steps))] for p in range(a.procs)]
+    steps_out, server = [], []
+    with multiprocessing.get_context("spawn").Pool(a.procs) as pool:
+        pending = pool.map_async(client_proc, [(a.base, a.connections, a.window, starts, windows, share[p])
+                                               for p in range(a.procs)])
+        for lo, hi in windows:
+            time.sleep(max(0.0, lo - time.time()))
             m0 = histogram(httpx.get(a.metrics, timeout=10).text, "fundforge_command_seconds")
-            st_ref[0].on, t0 = True, time.perf_counter()
-            await asyncio.sleep(a.step_seconds / 2)
-            cpu = docker_cpu()
-            await asyncio.sleep(a.step_seconds / 2)
-            st_ref[0].on, seconds = False, time.perf_counter() - t0
+            time.sleep(max(0.0, (lo + hi) / 2 - time.time()))
+            snap = {} if a.cpu_log else docker_cpu()
+            time.sleep(max(0.0, hi - time.time()))
             m1 = histogram(httpx.get(a.metrics, timeout=10).text, "fundforge_command_seconds")
-            s = {**summary(st_ref[0], seconds, rooms), "server_command_seconds": server_delta(m0, m1),
-                 "docker_cpu": cpu}
-            steps_out.append(s)
-            print(f"{rooms:4d} rooms: view p95 {s['view_ms'].get('p95')} ms, rps {s['view_rps_achieved']}/"
-                  f"{s['view_rps_target']}, 304 {s['ratio_304']}, 5xx {s['http_5xx']}, errors {s['client_errors']}"
-                  f"{' CLIENT SATURATED' if s['client_saturated'] else ''}", flush=True)
-        stop.set()
-        await asyncio.gather(*tasks, return_exceptions=True)
-    return {"steps": steps_out}
-
-
-st_ref = [Stats()]
+            server.append((server_delta(m0, m1), snap))
+        per_proc = pending.get()
+    for i, ((lo, hi), (srv, snap)) in enumerate(zip(windows, server, strict=True)):
+        st = Stats()
+        for proc_steps in per_proc:
+            st.merge(proc_steps[i])
+        s = {**summary(st, hi - lo, a.steps[i]), "server_command_seconds": srv,
+             "docker_cpu": cpu_from_log(a.cpu_log, lo, hi) if a.cpu_log else snap}
+        steps_out.append(s)
+        print(f"{a.steps[i]:4d} rooms: view p95 {s['view_ms'].get('p95')} ms, rps {s['view_rps_achieved']}/"
+              f"{s['view_rps_target']}, 304 {s['ratio_304']}, 5xx {s['http_5xx']}, errors {s['client_errors']}"
+              f"{' CLIENT SATURATED' if s['client_saturated'] else ''}", flush=True)
+    return {"steps": steps_out, "windows_unix": [[round(lo, 1), round(hi, 1)] for lo, hi in windows]}
 
 
 def main() -> int:
@@ -189,9 +246,12 @@ def main() -> int:
     ap.add_argument("--warmup", type=float, default=10)
     ap.add_argument("--window", type=float, default=10, help="seconds between each seat's ready commands")
     ap.add_argument("--connections", type=int, default=400)
+    ap.add_argument("--procs", type=int, default=1, help="client processes; rooms are split round-robin")
+    ap.add_argument("--cpu-log", type=Path, help="host-sampled docker stats lines: <unix s> <container> <cpu%%>")
+    ap.add_argument("--tag", default="", help="suffix for the result file name, e.g. caddy-p4")
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    res = asyncio.run(run(a))
+    res = run(a)
     knee = next((s["rooms"] for s in res["steps"]
                  if (s["view_ms"].get("p95") or 1e9) >= VIEW_P95_MS or s["http_5xx"]), None)
     at_target = next((s for s in res["steps"] if s["rooms"] == TARGET_ROOMS), None)
@@ -206,7 +266,10 @@ def main() -> int:
         "stack": os.environ.get("FUNDFORGE_LOAD_STACK", "deploy/compose.prod.yaml on Docker Desktop (WSL2), client on "
                                 "the Windows host, via Caddy TLS"),
         "method": {"poll_s": POLL_S, "ready_every_s": a.window, "step_seconds": a.step_seconds,
-                   "warmup_s": a.warmup, "steps": a.steps, "client": "one Python process, httpx async, HTTP/1.1"},
+                   "warmup_s": a.warmup, "steps": a.steps, "base": a.base,
+                   "client": f"{a.procs} Python process(es), httpx async, HTTP/1.1, rooms split round-robin, "
+                             "one wall-clock step schedule shared by all processes"},
+        "client_procs": a.procs,
         "target": f"p95 GET /view < {VIEW_P95_MS:g} ms and zero 5xx at {TARGET_ROOMS} rooms",
         "target_met": bool(at_target and (at_target["view_ms"].get("p95") or 1e9) < VIEW_P95_MS
                            and not at_target["http_5xx"] and not at_target["client_saturated"]),
@@ -219,7 +282,8 @@ def main() -> int:
     print(f"knee: {knee}; target met at {TARGET_ROOMS} rooms: {doc['target_met']}")
     if a.out:
         a.out.mkdir(parents=True, exist_ok=True)
-        path = a.out / f"{doc['measured_at'][:10]}-B3-{doc['commit'].replace('+', '_')}.json"
+        suffix = f"-{a.tag}" if a.tag else ""
+        path = a.out / f"{doc['measured_at'][:10]}-B3-{doc['commit'].replace('+', '_')}{suffix}.json"
         path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
         print(f"wrote {path}")
     return 0
