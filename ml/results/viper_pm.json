@@ -1,9 +1,7 @@
 {
-  "status": "SMOKE RUN ONLY: teacher trained 8192 steps on 30 train worlds; 4 val and 2 test worlds. Not the intended ~1 hour scale: the numbers show the pipeline runs end to end, not what a trained teacher distils to.",
-  "comparison_note": "Hand-written from the exported depth-4 tree of this smoke run. It splits first on recall_offer_visible, then on day_frac, phase_EXEC_A, payroll_payable/firm_cash and DART.borrowed_frac, and every leaf is a reduce action (BRIN, GALA, DART, ALTO, FENN, ELAN). bot:v1's PM rules cover recalled BRIN while no replacement borrow is accepted, and sell the largest long on a margin call. The tree's root leaf (reduce BRIN 1.0 while the recall offer is not visible) touches the same name on a different trigger; the tree has no margin-call split. With an 8192-step teacher this is weak evidence either way.",
-  "commit":"bdcbac466163b70b01bbd58e478acf1fe6f04f68",
-  "worktree_dirty": true,
-  "reproduce": "cd ml && uv run --group train --with scikit-learn python scripts/distill_viper.py --steps 8192 --families 40 --workers 16 --depths 2,4 --iterations 2",
+  "commit": "d7ca88cad293698c1d429333cb27449b21ff9cdf",
+  "worktree_dirty": false,
+  "reproduce": "cd ml && uv run --group train --with scikit-learn python scripts/distill_viper.py --teacher results/ppo_pm_lr1e-4_ent0.01_s0.zip --families 400 --workers 6 --depths 2,4,6,8 --iterations 10",
   "versions": {
     "python": "3.13.12",
     "numpy": "2.5.4",
@@ -25,12 +23,12 @@
       3,
       4
     ],
-    "world_families": "ppo-0..ppo-39"
+    "world_families": "ppo-0..ppo-399"
   },
   "scale": {
-    "teacher_steps": 8192,
-    "workers": 16,
-    "teacher_train_seconds": 37.0,
+    "teacher_steps": "loaded",
+    "workers": 6,
+    "teacher_train_seconds": null,
     "teacher_hyperparameters": {
       "net": [
         128,
@@ -42,185 +40,361 @@
       "learning_rate": 0.0003,
       "ent_coef": 0.01
     },
-    "viper_iterations": 2,
-    "families_drawn": 40,
+    "viper_iterations": 10,
+    "families_drawn": 400,
     "families": {
-      "train": 15,
-      "val": 2,
-      "test": 1
+      "train": 153,
+      "val": 16,
+      "test": 15
     },
     "rejected": {
-      "cover_recall_only_does_not_win": 22
+      "cover_recall_only_does_not_win": 216
     },
     "worlds": {
-      "train": 30,
-      "val": 4,
-      "test": 2
+      "train": 306,
+      "val": 32,
+      "test": 30
     }
   },
-  "teacher_sha256": "1d8816dbec3603ebdc4cb86584b6ee4f192d7148fa1965f3be53b4ff0d852826",
+  "teacher_sha256": "47bf3e0f032f89829fa7a71fcdbe03bed2f889a01637e76fd73d3884c40f9e95",
   "weight_proxy": "max minus min masked log-probability of the teacher over valid actions (see distill.py)",
   "selection": "per depth: VIPER iterate with best mean val reward; exported tree: depth <= 4 with best val reward (ties to the shallower)",
   "test_worlds": [
     "ppo-22/base",
-    "ppo-22/rally"
+    "ppo-22/rally",
+    "ppo-96/base",
+    "ppo-96/rally",
+    "ppo-116/base",
+    "ppo-116/rally",
+    "ppo-140/base",
+    "ppo-140/rally",
+    "ppo-142/base",
+    "ppo-142/rally",
+    "ppo-146/base",
+    "ppo-146/rally",
+    "ppo-180/base",
+    "ppo-180/rally",
+    "ppo-235/base",
+    "ppo-235/rally",
+    "ppo-242/base",
+    "ppo-242/rally",
+    "ppo-298/base",
+    "ppo-298/rally",
+    "ppo-303/base",
+    "ppo-303/rally",
+    "ppo-309/base",
+    "ppo-309/rally",
+    "ppo-375/base",
+    "ppo-375/rally",
+    "ppo-377/base",
+    "ppo-377/rally",
+    "ppo-390/base",
+    "ppo-390/rally"
   ],
   "teacher": {
     "summary": {
       "runs": 1,
-      "worlds": 2,
+      "worlds": 30,
       "mean": {
-        "point": 5.8950000000000005,
-        "lo": 5.371,
-        "hi": 6.4190000000000005
+        "point": 8.256666666666668,
+        "lo": 7.617431666666666,
+        "hi": 8.869283333333332
       },
       "iqm": {
-        "point": 5.8950000000000005,
-        "lo": 5.371,
-        "hi": 6.4190000000000005
+        "point": 8.0993125,
+        "lo": 7.0727171874999994,
+        "hi": 9.185043749999998
       }
     },
-    "val_mean_reward": 6.36825,
-    "test_states": 10,
-    "mean_score_bps": 89.5,
+    "val_mean_reward": 8.245593750000001,
+    "test_states": 195,
+    "mean_score_bps": 325.6666666666667,
     "labels": {
-      "WIN": 2
+      "WIN": 30
     }
   },
   "random": {
     "summary": {
       "runs": 5,
-      "worlds": 2,
+      "worlds": 30,
       "mean": {
-        "point": 5.565799999999999,
-        "lo": 5.1011999999999995,
-        "hi": 5.98362
+        "point": 5.714593333333334,
+        "lo": 5.4147005,
+        "hi": 6.018745666666666
       },
       "iqm": {
-        "point": 5.575166666666667,
-        "lo": 5.045,
-        "hi": 6.099333333333334
+        "point": 5.6859210526315795,
+        "lo": 5.403385855263158,
+        "hi": 5.959896381578947
       }
     }
   },
   "depths": {
     "2": {
-      "dataset_states": 304,
-      "picked_iteration": 2,
+      "dataset_states": 18586,
+      "picked_iteration": 1,
       "val_mean_reward_by_iteration": [
-        6.02825,
-        6.278250000000001
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995,
+        6.5618437499999995
       ],
       "tree": {
         "depth": 2,
         "leaves": 3,
         "nodes": 5
       },
-      "fidelity_on_student_states": 0.7,
-      "fidelity_on_teacher_states": 0.6,
-      "test_states_student": 10,
+      "fidelity_on_student_states": 0.8333333333333334,
+      "fidelity_on_teacher_states": 0.6923076923076923,
+      "test_states_student": 180,
       "summary": {
         "runs": 1,
-        "worlds": 2,
+        "worlds": 30,
         "mean": {
-          "point": 5.861000000000001,
-          "lo": 5.413,
-          "hi": 6.309
+          "point": 6.866500000000001,
+          "lo": 6.698791666666667,
+          "hi": 7.014644166666667
         },
         "iqm": {
-          "point": 5.861000000000001,
-          "lo": 5.413,
-          "hi": 6.309
+          "point": 6.896812499999999,
+          "lo": 6.725245312499999,
+          "hi": 7.04569375
         }
       },
       "vs_teacher": {
-        "n_worlds": 2,
+        "n_worlds": 30,
         "diff": {
-          "point": -0.03400000000000025,
-          "lo": -0.11000000000000032,
-          "hi": 0.041999999999999815
+          "point": -1.3901666666666666,
+          "lo": -1.9748675,
+          "hi": -0.7943525
         },
-        "x_better_worlds": 1,
+        "x_better_worlds": 12,
         "ties": 0,
-        "prob_improvement": 0.5
+        "prob_improvement": 0.4
       },
       "vs_random": {
-        "n_worlds": 2,
+        "n_worlds": 30,
         "diff": {
-          "point": 0.2951999999999999,
-          "lo": 0.07500000000000018,
-          "hi": 0.5153999999999996
+          "point": 1.1519066666666664,
+          "lo": 0.7658546666666666,
+          "hi": 1.5205015
         },
-        "x_better_worlds": 2,
+        "x_better_worlds": 28,
         "ties": 0,
-        "prob_improvement": 0.8
+        "prob_improvement": 0.84
       },
-      "mean_score_bps": 86.1,
+      "mean_score_bps": 186.65,
       "labels": {
-        "WIN": 2
+        "WIN": 30
       },
-      "rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- class: reduce:DART:1.0\n",
-      "seconds": 7.4
+      "rules": "|--- gross <= 1.28\n|   |--- short_mv/nav <= 0.13\n|   |   |--- class: reduce:DART:1.0\n|   |--- short_mv/nav >  0.13\n|   |   |--- class: reduce:FENN:1.0\n|--- gross >  1.28\n|   |--- class: reduce:HELI:1.0\n",
+      "seconds": 300.4
     },
     "4": {
-      "dataset_states": 304,
+      "dataset_states": 19981,
       "picked_iteration": 1,
       "val_mean_reward_by_iteration": [
-        6.36825,
-        6.36825
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177,
+        8.177
       ],
       "tree": {
         "depth": 4,
-        "leaves": 6,
-        "nodes": 11
+        "leaves": 5,
+        "nodes": 9
       },
-      "fidelity_on_student_states": 0.9,
-      "fidelity_on_teacher_states": 0.9,
-      "test_states_student": 10,
+      "fidelity_on_student_states": 0.8461538461538461,
+      "fidelity_on_teacher_states": 0.8461538461538461,
+      "test_states_student": 195,
       "summary": {
         "runs": 1,
-        "worlds": 2,
+        "worlds": 30,
         "mean": {
-          "point": 5.9465,
-          "lo": 5.474,
-          "hi": 6.4190000000000005
+          "point": 8.354666666666667,
+          "lo": 7.7356799999999994,
+          "hi": 8.950600833333333
         },
         "iqm": {
-          "point": 5.9465,
-          "lo": 5.474,
-          "hi": 6.4190000000000005
+          "point": 8.286375,
+          "lo": 7.33235625,
+          "hi": 9.2550625
         }
       },
       "vs_teacher": {
-        "n_worlds": 2,
+        "n_worlds": 30,
         "diff": {
-          "point": 0.05149999999999988,
-          "lo": 0.0,
-          "hi": 0.10299999999999976
+          "point": 0.09800000000000002,
+          "lo": -0.011388333333333075,
+          "hi": 0.19493499999999997
         },
-        "x_better_worlds": 1,
-        "ties": 1,
-        "prob_improvement": 0.75
+        "x_better_worlds": 20,
+        "ties": 0,
+        "prob_improvement": 0.6666666666666666
       },
       "vs_random": {
-        "n_worlds": 2,
+        "n_worlds": 30,
         "diff": {
-          "point": 0.38070000000000004,
-          "lo": 0.13600000000000012,
-          "hi": 0.6254
+          "point": 2.640073333333333,
+          "lo": 2.0556335000000003,
+          "hi": 3.1853219999999993
         },
-        "x_better_worlds": 2,
+        "x_better_worlds": 29,
         "ties": 0,
-        "prob_improvement": 0.8
+        "prob_improvement": 0.92
       },
-      "mean_score_bps": 94.65,
+      "mean_score_bps": 335.46666666666675,
       "labels": {
-        "WIN": 2
+        "WIN": 30
       },
-      "rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- phase_EXEC_A <= 0.50\n|   |   |   |--- payroll_payable/firm_cash <= 0.02\n|   |   |   |   |--- class: reduce:DART:1.0\n|   |   |   |--- payroll_payable/firm_cash >  0.02\n|   |   |   |   |--- class: reduce:ALTO:0.5\n|   |   |--- phase_EXEC_A >  0.50\n|   |   |   |--- DART.borrowed_frac <= 0.50\n|   |   |   |   |--- class: reduce:FENN:0.25\n|   |   |   |--- DART.borrowed_frac >  0.50\n|   |   |   |   |--- class: reduce:ELAN:1.0\n",
-      "seconds": 6.4
+      "rules": "|--- gross <= 1.28\n|   |--- short_mv/nav <= 0.13\n|   |   |--- short_mv/nav <= 0.08\n|   |   |   |--- notices <= 0.38\n|   |   |   |   |--- class: reduce:BRIN:1.0\n|   |   |   |--- notices >  0.38\n|   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |--- short_mv/nav >  0.08\n|   |   |   |--- class: reduce:DART:1.0\n|   |--- short_mv/nav >  0.13\n|   |   |--- class: reduce:FENN:1.0\n|--- gross >  1.28\n|   |--- class: reduce:HELI:1.0\n",
+      "seconds": 344.1
+    },
+    "6": {
+      "dataset_states": 19981,
+      "picked_iteration": 2,
+      "val_mean_reward_by_iteration": [
+        8.248843749999999,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001
+      ],
+      "tree": {
+        "depth": 6,
+        "leaves": 10,
+        "nodes": 19
+      },
+      "fidelity_on_student_states": 0.9896907216494846,
+      "fidelity_on_teacher_states": 0.9897435897435898,
+      "test_states_student": 194,
+      "summary": {
+        "runs": 1,
+        "worlds": 30,
+        "mean": {
+          "point": 8.179866666666667,
+          "lo": 7.5258866666666675,
+          "hi": 8.814448333333333
+        },
+        "iqm": {
+          "point": 7.95925,
+          "lo": 6.9628296875,
+          "hi": 9.07165625
+        }
+      },
+      "vs_teacher": {
+        "n_worlds": 30,
+        "diff": {
+          "point": -0.07679999999999995,
+          "lo": -0.2282999999999999,
+          "hi": 0.0
+        },
+        "x_better_worlds": 0,
+        "ties": 28,
+        "prob_improvement": 0.4666666666666667
+      },
+      "vs_random": {
+        "n_worlds": 30,
+        "diff": {
+          "point": 2.465273333333333,
+          "lo": 1.9001938333333335,
+          "hi": 3.0043368333333347
+        },
+        "x_better_worlds": 29,
+        "ties": 0,
+        "prob_improvement": 0.9466666666666667
+      },
+      "mean_score_bps": 317.9866666666666,
+      "labels": {
+        "WIN": 30
+      },
+      "rules": "|--- gross <= 1.28\n|   |--- short_mv/nav <= 0.13\n|   |   |--- short_mv/nav <= 0.08\n|   |   |   |--- notices <= 0.38\n|   |   |   |   |--- JUNO.mv/nav <= 0.10\n|   |   |   |   |   |--- class: reduce:BEAM:0.5\n|   |   |   |   |--- JUNO.mv/nav >  0.10\n|   |   |   |   |   |--- cash/nav <= 0.00\n|   |   |   |   |   |   |--- class: reduce:IONA:1.0\n|   |   |   |   |   |--- cash/nav >  0.00\n|   |   |   |   |   |   |--- class: reduce:BRIN:1.0\n|   |   |   |--- notices >  0.38\n|   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |--- notices <= 0.42\n|   |   |   |   |   |   |--- class: reduce:ELAN:0.25\n|   |   |   |   |   |--- notices >  0.42\n|   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |--- short_mv/nav >  0.08\n|   |   |   |--- class: reduce:DART:1.0\n|   |--- short_mv/nav >  0.13\n|   |   |--- class: reduce:FENN:1.0\n|--- gross >  1.28\n|   |--- class: reduce:HELI:1.0\n",
+      "seconds": 359.1
+    },
+    "8": {
+      "dataset_states": 19990,
+      "picked_iteration": 1,
+      "val_mean_reward_by_iteration": [
+        8.2504375,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001,
+        8.249125000000001
+      ],
+      "tree": {
+        "depth": 8,
+        "leaves": 19,
+        "nodes": 37
+      },
+      "fidelity_on_student_states": 0.9948453608247423,
+      "fidelity_on_teacher_states": 0.9948717948717949,
+      "test_states_student": 194,
+      "summary": {
+        "runs": 1,
+        "worlds": 30,
+        "mean": {
+          "point": 8.181966666666666,
+          "lo": 7.528025,
+          "hi": 8.818555
+        },
+        "iqm": {
+          "point": 7.95925,
+          "lo": 6.9628296875,
+          "hi": 9.075314062499999
+        }
+      },
+      "vs_teacher": {
+        "n_worlds": 30,
+        "diff": {
+          "point": -0.07469999999999999,
+          "lo": -0.22409999999999997,
+          "hi": 0.0
+        },
+        "x_better_worlds": 0,
+        "ties": 29,
+        "prob_improvement": 0.48333333333333334
+      },
+      "vs_random": {
+        "n_worlds": 30,
+        "diff": {
+          "point": 2.467373333333333,
+          "lo": 1.9004283333333334,
+          "hi": 3.0068346666666663
+        },
+        "x_better_worlds": 29,
+        "ties": 0,
+        "prob_improvement": 0.9466666666666667
+      },
+      "mean_score_bps": 318.1966666666666,
+      "labels": {
+        "WIN": 30
+      },
+      "rules": "|--- gross <= 1.28\n|   |--- short_mv/nav <= 0.13\n|   |   |--- short_mv/nav <= 0.08\n|   |   |   |--- notices <= 0.38\n|   |   |   |   |--- JUNO.mv/nav <= 0.10\n|   |   |   |   |   |--- class: reduce:BEAM:0.5\n|   |   |   |   |--- JUNO.mv/nav >  0.10\n|   |   |   |   |   |--- cash/nav <= 0.00\n|   |   |   |   |   |   |--- nav_ret <= -0.08\n|   |   |   |   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |   |   |   |--- class: reduce:IONA:1.0\n|   |   |   |   |   |   |--- nav_ret >  -0.08\n|   |   |   |   |   |   |   |--- GALA.mv/nav <= 0.12\n|   |   |   |   |   |   |   |   |--- class: reduce:IONA:1.0\n|   |   |   |   |   |   |   |--- GALA.mv/nav >  0.12\n|   |   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |--- cash/nav >  0.00\n|   |   |   |   |   |   |--- class: reduce:BRIN:1.0\n|   |   |   |--- notices >  0.38\n|   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |   |--- IONA.mv/nav <= 0.12\n|   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |   |   |--- initial_req/nav <= 0.70\n|   |   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |   |   |--- initial_req/nav >  0.70\n|   |   |   |   |   |   |   |   |--- class: reduce:ELAN:0.25\n|   |   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |   |--- maint_req/nav <= 0.61\n|   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |   |--- maint_req/nav >  0.61\n|   |   |   |   |   |   |   |--- class: reduce:ELAN:0.25\n|   |   |   |   |--- IONA.mv/nav >  0.12\n|   |   |   |   |   |--- BEAM.mv/nav <= 0.19\n|   |   |   |   |   |   |--- payroll_payable/firm_cash <= 0.03\n|   |   |   |   |   |   |   |--- class: reduce:ELAN:0.25\n|   |   |   |   |   |   |--- payroll_payable/firm_cash >  0.03\n|   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |--- BEAM.mv/nav >  0.19\n|   |   |   |   |   |   |--- BRIN.mark_ret <= -0.04\n|   |   |   |   |   |   |   |--- class: reduce:BRIN:1.0\n|   |   |   |   |   |   |--- BRIN.mark_ret >  -0.04\n|   |   |   |   |   |   |   |--- BRIN.mark_ret <= 0.19\n|   |   |   |   |   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |   |   |   |   |   |--- BRIN.mark_ret >  0.19\n|   |   |   |   |   |   |   |   |--- class: reduce:BEAM:0.5\n|   |   |--- short_mv/nav >  0.08\n|   |   |   |--- class: reduce:DART:1.0\n|   |--- short_mv/nav >  0.13\n|   |   |--- class: reduce:FENN:1.0\n|--- gross >  1.28\n|   |--- class: reduce:HELI:1.0\n",
+      "seconds": 350.0
     }
   },
   "exported_depth": 4,
-  "exported_rules": "|--- recall_offer_visible <= 0.50\n|   |--- class: reduce:BRIN:1.0\n|--- recall_offer_visible >  0.50\n|   |--- day_frac <= 0.28\n|   |   |--- class: reduce:GALA:1.0\n|   |--- day_frac >  0.28\n|   |   |--- phase_EXEC_A <= 0.50\n|   |   |   |--- payroll_payable/firm_cash <= 0.02\n|   |   |   |   |--- class: reduce:DART:1.0\n|   |   |   |--- payroll_payable/firm_cash >  0.02\n|   |   |   |   |--- class: reduce:ALTO:0.5\n|   |   |--- phase_EXEC_A >  0.50\n|   |   |   |--- DART.borrowed_frac <= 0.50\n|   |   |   |   |--- class: reduce:FENN:0.25\n|   |   |   |--- DART.borrowed_frac >  0.50\n|   |   |   |   |--- class: reduce:ELAN:1.0\n"
+  "exported_rules": "|--- gross <= 1.28\n|   |--- short_mv/nav <= 0.13\n|   |   |--- short_mv/nav <= 0.08\n|   |   |   |--- notices <= 0.38\n|   |   |   |   |--- class: reduce:BRIN:1.0\n|   |   |   |--- notices >  0.38\n|   |   |   |   |--- class: reduce:ALTO:0.25\n|   |   |--- short_mv/nav >  0.08\n|   |   |   |--- class: reduce:DART:1.0\n|   |--- short_mv/nav >  0.13\n|   |   |--- class: reduce:FENN:1.0\n|--- gross >  1.28\n|   |--- class: reduce:HELI:1.0\n"
 }
