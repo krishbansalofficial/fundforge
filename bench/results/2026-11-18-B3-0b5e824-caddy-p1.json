@@ -1,0 +1,402 @@
+{
+  "benchmark": "B3-api-load",
+  "commit": "0b5e824",
+  "rules_version": "case1-rules-2026.11.1",
+  "measured_at": "2026-11-18T18:49:55+00:00",
+  "machine": "Docker Desktop WSL2 on Intel Core i9-14900HX (32 logical CPUs), Windows 11 laptop",
+  "python": "3.13.18",
+  "stack": "deploy/compose.prod.yaml (project fundforge-bench) on Docker Desktop (WSL2); client container in Caddy's network namespace; base https://localhost",
+  "method": {
+    "poll_s": 0.5,
+    "ready_every_s": 10,
+    "step_seconds": 60,
+    "warmup_s": 10,
+    "steps": [
+      10,
+      25,
+      50,
+      100,
+      200
+    ],
+    "base": "https://localhost",
+    "client": "1 Python process(es), httpx async, HTTP/1.1, rooms split round-robin, one wall-clock step schedule shared by all processes"
+  },
+  "client_procs": 1,
+  "target": "p95 GET /view < 100 ms and zero 5xx at 100 rooms",
+  "target_met": false,
+  "knee_rooms": 25,
+  "limits": [
+    "client and server share one machine, so they compete for CPU",
+    "not the intended production VM size; a laptop under Docker Desktop",
+    "a saturated client under-reports load; such steps are flagged and are not a server limit"
+  ],
+  "steps": [
+    {
+      "rooms": 10,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 2392,
+        "p50": 8.58,
+        "p95": 31.74,
+        "p99": 84.91
+      },
+      "command_ms": {
+        "n": 120,
+        "p50": 20.42,
+        "p95": 56.13,
+        "p99": 89.84
+      },
+      "status": {
+        "view": {
+          "304": 2211,
+          "200": 181
+        },
+        "command": {
+          "200": 104,
+          "422": 16
+        }
+      },
+      "ratio_304": 0.924,
+      "view_rps_target": 40.0,
+      "view_rps_achieved": 39.9,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 120,
+        "mean_ms": 9.52,
+        "p95_ms_bucket_upper": 25.0
+      },
+      "docker_cpu": {
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 10.7,
+          "max_cpu_pct": 32.18,
+          "samples": 29
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 28
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 2.4,
+          "max_cpu_pct": 3.46,
+          "samples": 29
+        },
+        "fundforge-bench-client": {
+          "mean_cpu_pct": 8.6,
+          "max_cpu_pct": 12.23,
+          "samples": 29
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 2.3,
+          "max_cpu_pct": 6.45,
+          "samples": 29
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.1,
+          "max_cpu_pct": 1.92,
+          "samples": 29
+        }
+      }
+    },
+    {
+      "rooms": 25,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 4409,
+        "p50": 227.29,
+        "p95": 1344.37,
+        "p99": 2194.32
+      },
+      "command_ms": {
+        "n": 296,
+        "p50": 218.4,
+        "p95": 1438.1,
+        "p99": 2030.19
+      },
+      "status": {
+        "view": {
+          "304": 3901,
+          "200": 508
+        },
+        "command": {
+          "200": 264,
+          "422": 32
+        }
+      },
+      "ratio_304": 0.885,
+      "view_rps_target": 100.0,
+      "view_rps_achieved": 73.5,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 294,
+        "mean_ms": 12.22,
+        "p95_ms_bucket_upper": 25.0
+      },
+      "docker_cpu": {
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 17.7,
+          "max_cpu_pct": 37.6,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 3.5,
+          "max_cpu_pct": 6.27,
+          "samples": 30
+        },
+        "fundforge-bench-client": {
+          "mean_cpu_pct": 21.4,
+          "max_cpu_pct": 35.78,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 3.6,
+          "max_cpu_pct": 9.39,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.1,
+          "max_cpu_pct": 2.31,
+          "samples": 30
+        }
+      }
+    },
+    {
+      "rooms": 50,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 4013,
+        "p50": 829.86,
+        "p95": 3750.55,
+        "p99": 6221.82
+      },
+      "command_ms": {
+        "n": 488,
+        "p50": 927.7,
+        "p95": 3601.81,
+        "p99": 6314.88
+      },
+      "status": {
+        "view": {
+          "304": 3195,
+          "200": 818
+        },
+        "command": {
+          "200": 421,
+          "422": 67
+        }
+      },
+      "ratio_304": 0.796,
+      "view_rps_target": 200.0,
+      "view_rps_achieved": 66.9,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 489,
+        "mean_ms": 14.9,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 23.4,
+          "max_cpu_pct": 46.5,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 3.8,
+          "max_cpu_pct": 8.12,
+          "samples": 30
+        },
+        "fundforge-bench-client": {
+          "mean_cpu_pct": 28.1,
+          "max_cpu_pct": 44.86,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 5.1,
+          "max_cpu_pct": 11.13,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 30
+        }
+      }
+    },
+    {
+      "rooms": 100,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 2793,
+        "p50": 2197.69,
+        "p95": 10889.03,
+        "p99": 18132.22
+      },
+      "command_ms": {
+        "n": 714,
+        "p50": 2765.33,
+        "p95": 10760.96,
+        "p99": 15003.29
+      },
+      "status": {
+        "view": {
+          "200": 1015,
+          "304": 1778
+        },
+        "command": {
+          "200": 553,
+          "422": 161
+        }
+      },
+      "ratio_304": 0.637,
+      "view_rps_target": 400.0,
+      "view_rps_achieved": 46.5,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 704,
+        "mean_ms": 11.44,
+        "p95_ms_bucket_upper": 25.0
+      },
+      "docker_cpu": {
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 18.9,
+          "max_cpu_pct": 38.2,
+          "samples": 29
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 2.5,
+          "max_cpu_pct": 4.18,
+          "samples": 29
+        },
+        "fundforge-bench-client": {
+          "mean_cpu_pct": 21.7,
+          "max_cpu_pct": 39.67,
+          "samples": 29
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 4.5,
+          "max_cpu_pct": 10.35,
+          "samples": 29
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.03,
+          "samples": 29
+        }
+      }
+    },
+    {
+      "rooms": 200,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 1651,
+        "p50": 5829.78,
+        "p95": 27781.23,
+        "p99": 40038.6
+      },
+      "command_ms": {
+        "n": 842,
+        "p50": 6794.58,
+        "p95": 29089.32,
+        "p99": 41495.68
+      },
+      "status": {
+        "view": {
+          "304": 742,
+          "200": 909
+        },
+        "command": {
+          "200": 586,
+          "422": 256
+        }
+      },
+      "ratio_304": 0.449,
+      "view_rps_target": 800.0,
+      "view_rps_achieved": 27.5,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 762,
+        "mean_ms": 11.01,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 18.6,
+          "max_cpu_pct": 33.0,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 2.3,
+          "max_cpu_pct": 3.88,
+          "samples": 30
+        },
+        "fundforge-bench-client": {
+          "mean_cpu_pct": 24.0,
+          "max_cpu_pct": 39.68,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 4.2,
+          "max_cpu_pct": 7.0,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.13,
+          "samples": 30
+        }
+      }
+    }
+  ],
+  "windows_unix": [
+    [
+      1795027446.9,
+      1795027506.9
+    ],
+    [
+      1795027516.9,
+      1795027576.9
+    ],
+    [
+      1795027586.9,
+      1795027646.9
+    ],
+    [
+      1795027656.9,
+      1795027716.9
+    ],
+    [
+      1795027726.9,
+      1795027786.9
+    ]
+  ]
+}
