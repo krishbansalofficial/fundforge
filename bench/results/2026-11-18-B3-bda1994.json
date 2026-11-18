@@ -1,0 +1,223 @@
+{
+  "benchmark": "B3-api-load",
+  "commit": "bda1994",
+  "rules_version": "case1-rules-2026.11.1",
+  "measured_at": "2026-11-18T18:38:20+00:00",
+  "machine": "Docker Desktop WSL2 on Intel64 Family 6 Model 183 Stepping 1, GenuineIntel 32 logical CPUs",
+  "python": "3.13.18",
+  "stack": "deploy/compose.prod.yaml on Docker Desktop (WSL2); client container in Caddy's network namespace (no Windows port forwarding), via Caddy TLS",
+  "method": {
+    "poll_s": 0.5,
+    "ready_every_s": 10,
+    "step_seconds": 60,
+    "warmup_s": 10,
+    "steps": [
+      10,
+      25,
+      50,
+      100,
+      200
+    ],
+    "client": "one Python process, httpx async, HTTP/1.1"
+  },
+  "target": "p95 GET /view < 100 ms and zero 5xx at 100 rooms",
+  "target_met": false,
+  "knee_rooms": 25,
+  "limits": [
+    "client and server share one machine, so they compete for CPU",
+    "not the intended production VM size; a laptop under Docker Desktop",
+    "a saturated client under-reports load; such steps are flagged and are not a server limit"
+  ],
+  "steps": [
+    {
+      "rooms": 10,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 2387,
+        "p50": 7.51,
+        "p95": 37.6,
+        "p99": 101.02
+      },
+      "command_ms": {
+        "n": 106,
+        "p50": 21.9,
+        "p95": 58.33,
+        "p99": 69.47
+      },
+      "status": {
+        "view": {
+          "200": 146,
+          "304": 2241
+        },
+        "command": {
+          "200": 70,
+          "422": 36
+        }
+      },
+      "ratio_304": 0.939,
+      "view_rps_target": 40.0,
+      "view_rps_achieved": 39.8,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 105,
+        "mean_ms": 10.01,
+        "p95_ms_bucket_upper": 25.0
+      },
+      "docker_cpu": {}
+    },
+    {
+      "rooms": 25,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 5905,
+        "p50": 8.55,
+        "p95": 191.38,
+        "p99": 500.19
+      },
+      "command_ms": {
+        "n": 292,
+        "p50": 25.96,
+        "p95": 188.43,
+        "p99": 304.98
+      },
+      "status": {
+        "view": {
+          "304": 5456,
+          "200": 449
+        },
+        "command": {
+          "200": 249,
+          "422": 43
+        }
+      },
+      "ratio_304": 0.924,
+      "view_rps_target": 100.0,
+      "view_rps_achieved": 98.4,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 292,
+        "mean_ms": 12.29,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {}
+    },
+    {
+      "rooms": 50,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 8293,
+        "p50": 334.01,
+        "p95": 1495.42,
+        "p99": 2372.88
+      },
+      "command_ms": {
+        "n": 517,
+        "p50": 357.23,
+        "p95": 1600.91,
+        "p99": 2376.35
+      },
+      "status": {
+        "view": {
+          "304": 7363,
+          "200": 930
+        },
+        "command": {
+          "200": 465,
+          "422": 52
+        }
+      },
+      "ratio_304": 0.888,
+      "view_rps_target": 200.0,
+      "view_rps_achieved": 138.2,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 517,
+        "mean_ms": 13.03,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {}
+    },
+    {
+      "rooms": 100,
+      "seconds": 60.1,
+      "view_ms": {
+        "n": 5763,
+        "p50": 1154.71,
+        "p95": 5197.41,
+        "p99": 8435.02
+      },
+      "command_ms": {
+        "n": 746,
+        "p50": 1311.7,
+        "p95": 6162.28,
+        "p99": 9339.59
+      },
+      "status": {
+        "view": {
+          "304": 4486,
+          "200": 1277
+        },
+        "command": {
+          "200": 651,
+          "422": 95
+        }
+      },
+      "ratio_304": 0.778,
+      "view_rps_target": 400.0,
+      "view_rps_achieved": 95.8,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 747,
+        "mean_ms": 15.34,
+        "p95_ms_bucket_upper": 50.0
+      },
+      "docker_cpu": {}
+    },
+    {
+      "rooms": 200,
+      "seconds": 60.1,
+      "view_ms": {
+        "n": 4335,
+        "p50": 3198.21,
+        "p95": 13831.65,
+        "p99": 21758.03
+      },
+      "command_ms": {
+        "n": 667,
+        "p50": 3724.21,
+        "p95": 14502.09,
+        "p99": 19253.3
+      },
+      "status": {
+        "view": {
+          "304": 3381,
+          "200": 954
+        },
+        "command": {
+          "200": 510,
+          "422": 157
+        }
+      },
+      "ratio_304": 0.78,
+      "view_rps_target": 800.0,
+      "view_rps_achieved": 72.1,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 667,
+        "mean_ms": 22.11,
+        "p95_ms_bucket_upper": 75.0
+      },
+      "docker_cpu": {}
+    }
+  ]
+}
