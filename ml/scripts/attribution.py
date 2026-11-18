@@ -37,6 +37,7 @@ from fundforge_ml.env import FundForgeEnv
 
 LEVEL, CONFIG = "hard", "lr1e-4_ent0.01"
 PLANS = ("passive", "derisk_floor")
+MIN_DAYS = 5  # per-episode fit needs at least 3 residual degrees of freedom
 
 
 def play_plan(seed: str, variant: str, plan: dict[Any, Any]) -> tuple[Engine, list[dict[str, Any]]]:
@@ -87,8 +88,9 @@ def job(j: tuple[str, str, str, str | None]) -> dict[str, Any]:
     y = [r["ret"] for r in smp]
     return {"policy": policy, "world": f"{seed}/{variant}", "label": outcome["label"], "crisis_day": crisis,
             "sample": smp,
-            "true": A.fit(y, [[r["factor"]] for r in smp], ["beta"]),
-            "proxy": A.fit(y, [[r["proxy"]] for r in smp], ["beta"])}
+            # an intercept and a slope on fewer than MIN_DAYS points is (near) exact interpolation, not a fit
+            "true": A.fit(y, [[r["factor"]] for r in smp], ["beta"]) if len(smp) >= MIN_DAYS else None,
+            "proxy": A.fit(y, [[r["proxy"]] for r in smp], ["beta"]) if len(smp) >= MIN_DAYS else None}
 
 
 def _q(xs: list[float], nd: int = 4) -> dict[str, float]:
@@ -105,9 +107,13 @@ def pooled(eps: list[dict[str, Any]], key: str, worlds_ix: dict[str, int]) -> di
     return {"pre_post": f, "single": one}
 
 
-def per_episode(eps: list[dict[str, Any]], key: str) -> dict[str, Any]:
+def per_episode(eps: list[dict[str, Any]], key: str) -> dict[str, Any] | None:
+    eps = [e for e in eps if e[key] is not None]
+    if len(eps) < 2:
+        return None
     c = [e[key]["coef"] for e in eps]
     return {
+        "episodes_fitted": len(eps),
         "alpha_bp_per_day": _q([x["alpha"]["est"] * 1e4 for x in c], 2),
         "beta": _q([x["beta"]["est"] for x in c]),
         "beta_ci95_width": _q([x["beta"]["hi"] - x["beta"]["lo"] for x in c]),
@@ -120,7 +126,7 @@ def per_episode(eps: list[dict[str, Any]], key: str) -> dict[str, Any]:
 def summarize(eps: list[dict[str, Any]], worlds_ix: dict[str, int]) -> dict[str, Any]:
     days = [r for e in eps for r in e["sample"]]
     net = {p: [r["net"] for r in days if r["post"] == p] for p in (False, True)}
-    gap = [abs(e["true"]["coef"]["beta"]["est"] - e["proxy"]["coef"]["beta"]["est"]) for e in eps]
+    gap = [abs(e["true"]["coef"]["beta"]["est"] - e["proxy"]["coef"]["beta"]["est"]) for e in eps if e["true"]]
     return {
         "episodes": len(eps),
         "days": len(days),
@@ -130,7 +136,7 @@ def summarize(eps: list[dict[str, Any]], worlds_ix: dict[str, int]) -> dict[str,
                                      "post": round(statistics.fmean(net[True]), 4)},
         "per_episode_true": per_episode(eps, "true"),
         "per_episode_proxy": per_episode(eps, "proxy"),
-        "abs_beta_gap_true_vs_proxy": _q(gap),
+        "abs_beta_gap_true_vs_proxy": _q(gap) if len(gap) > 1 else None,
         "pooled_true": pooled(eps, "factor", worlds_ix),
         "pooled_proxy": pooled(eps, "proxy", worlds_ix),
     }
@@ -190,6 +196,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
             "per_episode_se": "HAC Newey-West, Bartlett kernel, maxlags = floor(4*(T/100)^(2/9)) "
             f"(= {A.nw_lags(6)} for T=6..7)",
             "pooled_se": "cluster-robust by world (all policies' and seeds' episodes of a world share a cluster id)",
+            "per_episode_min_days": f"per-episode fits only with >= {MIN_DAYS} usable days; PPO votes to skip quiet "
+            "windows, so its seat has no view on many days and most PPO episodes have too few one-day returns: PPO is "
+            "read from the pooled fit",
             "caveat": "6-7 daily observations per episode: per-episode intervals are very wide and HAC with T<10 "
             "is not reliable; read the per-episode numbers as a distribution, and the pooled fits for structure. "
             "Ex-post descriptive attribution; residual return is not proof of skill.",

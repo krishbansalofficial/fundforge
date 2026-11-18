@@ -49,7 +49,7 @@ def daily(snaps: list[dict[str, Any]]) -> list[dict[str, Any]]:
     first = snaps[0]
     prev_npu = first["opening_nav_per_unit"]  # series are struck at the opening until the first close
     prev_marks: dict[str, Decimal] | None = None
-    rows = []
+    prev_day, rows = None, []
     for d in sorted(last):
         s = last[d]
         npu = s["nav"] / s["units"]
@@ -57,9 +57,9 @@ def daily(snaps: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if prev_marks is not None:
             eq = [s["marks"][k] / prev_marks[k] - 1 for k in s["marks"] if k not in NON_EQUITY]
             proxy = float(sum(eq) / len(eq))
-        rows.append({"day": d, "ret": float(npu / prev_npu - 1), "proxy": proxy, "net": s["net"],
-                     "marks": s["marks"]})
-        prev_npu, prev_marks = npu, s["marks"]
+        rows.append({"day": d, "prev_day": prev_day, "ret": float(npu / prev_npu - 1), "proxy": proxy,
+                     "net": s["net"], "marks": s["marks"]})
+        prev_npu, prev_marks, prev_day = npu, s["marks"], d
     return rows
 
 
@@ -114,11 +114,13 @@ def true_factors(e: Engine, gen_seed: str, spec: Spec | None = None) -> dict[int
 
 
 def sample(rows: list[dict[str, Any]], truth: dict[int, dict[str, Any]], crisis_day: int) -> list[dict[str, Any]]:
-    """Days usable for attribution: the generator drew a factor from the marks the tape printed, and there is a
-    public previous close (so the proxy exists; this drops the first day). ``post`` = after the crisis day."""
+    """Days usable for attribution: the generator drew a factor from the marks the tape printed, and the previous
+    observed close is the day before (drops the first day, which has no public previous close, and multi-day
+    returns when a seat skipped quiet days without a view). ``post`` = after the crisis day."""
     return [{"day": r["day"], "ret": r["ret"], "factor": t["factor"], "proxy": r["proxy"],
              "regime": t["regime"], "post": r["day"] > crisis_day, "net": r["net"]}
-            for r in rows if (t := truth.get(r["day"])) is not None and t["continuous"] and r["proxy"] is not None]
+            for r in rows if (t := truth.get(r["day"])) is not None and t["continuous"]
+            and r["prev_day"] == r["day"] - 1]
 
 
 def nw_lags(n: int) -> int:
