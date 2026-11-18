@@ -1,0 +1,775 @@
+{
+ "question": "what does OLS attribution against the generator's true hidden market factor say about each policy's daily returns, and how far is it from the attribution a player could run on public marks?",
+ "commit": "da8c754ed08901e21599fb49ebb14314570125c5",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train --group attribution python scripts/attribution.py --procs 4 --models C:/Users/krish/fundforge/ml/results",
+ "scale": {
+  "level": "hard",
+  "test_worlds": 218,
+  "source_result": "ppo_pm_hard.json",
+  "source_commit": "805d55ac26f55242ebcee3aa3dc041be8b2e377f",
+  "ppo": "5 published hard checkpoints, sha256 verified against ppo_pm_hard.json"
+ },
+ "method": {
+  "fund_return": "daily change in fund NAV / total series units, end of each day, from public views only (flow-neutral: the LP redemption moves units and NAV together); gross of nothing, so fees, financing, spreads and impact land in alpha",
+  "true_factor": "the generator's market-factor draw for that day's PUBLIC_MARK (exact Decimal replay of generate's SHA-256 stream, checked mark-for-mark against generate's output); equity beta 1, BOND 0",
+  "proxy_factor": "equal-weight mean return of the 11 public equity marks (BOND excluded): what a player could compute as of each mark",
+  "sample": "generated days only: the first day (no public previous close), the authored crisis day and, in the rally variant, the day after it (the generator stepped from crisis marks the tape replaced) are excluded. Public marks also move between PUBLIC_MARK and CLOSE (rival flows and impact in the engine's market model), so even the true factor does not explain public close-to-close moves exactly",
+  "per_episode_se": "HAC Newey-West, Bartlett kernel, maxlags = floor(4*(T/100)^(2/9)) (= 2 for T=6..7)",
+  "pooled_se": "cluster-robust by world (all policies' and seeds' episodes of a world share a cluster id)",
+  "per_episode_min_days": "per-episode fits only with >= 5 usable days; PPO votes to skip quiet windows, so its seat has no view on many days and most PPO episodes have too few one-day returns: PPO is read from the pooled fit",
+  "caveat": "6-7 daily observations per episode: per-episode intervals are very wide and HAC with T<10 is not reliable; read the per-episode numbers as a distribution, and the pooled fits for structure. Ex-post descriptive attribution; residual return is not proof of skill."
+ },
+ "factor_vs_proxy": {
+  "corr": 0.9865,
+  "sd_true": 0.017133,
+  "sd_proxy_minus_true": 0.003664,
+  "days": 1417
+ },
+ "policies": {
+  "passive": {
+   "episodes": 218,
+   "days": 1417,
+   "obs_per_episode": {
+    "6": 109,
+    "7": 109
+   },
+   "labels": {
+    "SURVIVAL": 218
+   },
+   "public_net_exposure_mean": {
+    "pre": 0.9027,
+    "post": 0.5541
+   },
+   "per_episode_true": {
+    "episodes_fitted": 218,
+    "alpha_bp_per_day": {
+     "mean": 46.53,
+     "q1": 26.54,
+     "median": 46.72,
+     "q3": 65.14,
+     "min": -72.91,
+     "max": 250.22
+    },
+    "beta": {
+     "mean": 0.9302,
+     "q1": 0.5962,
+     "median": 0.9772,
+     "q3": 1.3251,
+     "min": -1.4933,
+     "max": 2.9291
+    },
+    "beta_ci95_width": {
+     "mean": 1.0189,
+     "q1": 0.5142,
+     "median": 0.8256,
+     "q3": 1.3523,
+     "min": 0.1832,
+     "max": 5.1499
+    },
+    "share_beta_ci_excludes_0": 0.8119,
+    "share_alpha_ci_excludes_0": 0.2431,
+    "r2": {
+     "mean": 0.5051,
+     "q1": 0.2904,
+     "median": 0.5438,
+     "q3": 0.7353,
+     "min": 0.0,
+     "max": 0.9784
+    }
+   },
+   "per_episode_proxy": {
+    "episodes_fitted": 218,
+    "alpha_bp_per_day": {
+     "mean": 44.98,
+     "q1": 24.09,
+     "median": 44.47,
+     "q3": 60.08,
+     "min": -51.47,
+     "max": 253.36
+    },
+    "beta": {
+     "mean": 0.9236,
+     "q1": 0.6344,
+     "median": 0.9503,
+     "q3": 1.2117,
+     "min": -1.0142,
+     "max": 2.5741
+    },
+    "beta_ci95_width": {
+     "mean": 0.8175,
+     "q1": 0.414,
+     "median": 0.6765,
+     "q3": 0.9813,
+     "min": 0.0919,
+     "max": 3.6658
+    },
+    "share_beta_ci_excludes_0": 0.8807,
+    "share_alpha_ci_excludes_0": 0.2385,
+    "r2": {
+     "mean": 0.5765,
+     "q1": 0.3618,
+     "median": 0.6551,
+     "q3": 0.8004,
+     "min": 0.0009,
+     "max": 0.9871
+    }
+   },
+   "abs_beta_gap_true_vs_proxy": {
+    "mean": 0.1793,
+    "q1": 0.0489,
+    "median": 0.0983,
+    "q3": 0.2073,
+    "min": 0.0025,
+    "max": 1.4818
+   },
+   "pooled_true": {
+    "pre_post": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.004463338240702624,
+       "lo": 0.004185783987674547,
+       "hi": 0.004740892493730701,
+       "se": 0.00014161191492159545
+      },
+      "beta_pre": {
+       "est": 1.1586526685548155,
+       "lo": 1.1212471432550273,
+       "hi": 1.1960581938546038,
+       "se": 0.019084802371287516
+      },
+      "beta_post": {
+       "est": 0.7453611484468239,
+       "lo": 0.6803260119646986,
+       "hi": 0.8103962849289492,
+       "se": 0.03318180180611187
+      }
+     },
+     "r2": 0.574659393541725,
+     "resid_sd": 0.013766083227019488
+    },
+    "single": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.004462626210680184,
+       "lo": 0.0041390816648569995,
+       "hi": 0.004786170756503369,
+       "se": 0.00016507678119356416
+      },
+      "beta": {
+       "est": 0.9110267388700451,
+       "lo": 0.862241928723541,
+       "hi": 0.9598115490165493,
+       "se": 0.02489066663026084
+      }
+     },
+     "r2": 0.5475767444065236,
+     "resid_sd": 0.014192565688656776
+    }
+   },
+   "pooled_proxy": {
+    "pre_post": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.004231991668411056,
+       "lo": 0.004009110365031242,
+       "hi": 0.0044548729717908695,
+       "se": 0.0001137170402812872
+      },
+      "beta_pre": {
+       "est": 1.06440099303745,
+       "lo": 1.0341588819278018,
+       "hi": 1.0946431041470983,
+       "se": 0.015429932053953124
+      },
+      "beta_post": {
+       "est": 0.7499738758988426,
+       "lo": 0.6981787408431033,
+       "hi": 0.8017690109545819,
+       "se": 0.026426574908668093
+      }
+     },
+     "r2": 0.6560879285637584,
+     "resid_sd": 0.012378433215647144
+    },
+    "single": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.004219168726582272,
+       "lo": 0.003947773137513008,
+       "hi": 0.004490564315651537,
+       "se": 0.0001384696816931323
+      },
+      "beta": {
+       "est": 0.8737703548283005,
+       "lo": 0.8341384863288331,
+       "hi": 0.9134022233277678,
+       "se": 0.02022071263149654
+      }
+     },
+     "r2": 0.6363900528906994,
+     "resid_sd": 0.012723492274819082
+    }
+   }
+  },
+  "derisk_floor": {
+   "episodes": 218,
+   "days": 1417,
+   "obs_per_episode": {
+    "6": 109,
+    "7": 109
+   },
+   "labels": {
+    "WIN": 218
+   },
+   "public_net_exposure_mean": {
+    "pre": 0.5048,
+    "post": 0.4778
+   },
+   "per_episode_true": {
+    "episodes_fitted": 218,
+    "alpha_bp_per_day": {
+     "mean": 30.74,
+     "q1": 16.02,
+     "median": 29.95,
+     "q3": 43.32,
+     "min": -58.21,
+     "max": 165.0
+    },
+    "beta": {
+     "mean": 0.652,
+     "q1": 0.4243,
+     "median": 0.6368,
+     "q3": 0.8696,
+     "min": -1.0312,
+     "max": 2.357
+    },
+    "beta_ci95_width": {
+     "mean": 0.665,
+     "q1": 0.314,
+     "median": 0.5014,
+     "q3": 0.8328,
+     "min": 0.0887,
+     "max": 3.5251
+    },
+    "share_beta_ci_excludes_0": 0.8578,
+    "share_alpha_ci_excludes_0": 0.2248,
+    "r2": {
+     "mean": 0.5365,
+     "q1": 0.3289,
+     "median": 0.591,
+     "q3": 0.7661,
+     "min": 0.0006,
+     "max": 0.9783
+    }
+   },
+   "per_episode_proxy": {
+    "episodes_fitted": 218,
+    "alpha_bp_per_day": {
+     "mean": 30.05,
+     "q1": 16.19,
+     "median": 29.03,
+     "q3": 38.95,
+     "min": -22.14,
+     "max": 206.06
+    },
+    "beta": {
+     "mean": 0.6425,
+     "q1": 0.4765,
+     "median": 0.6397,
+     "q3": 0.7946,
+     "min": -0.6439,
+     "max": 2.0334
+    },
+    "beta_ci95_width": {
+     "mean": 0.5068,
+     "q1": 0.2537,
+     "median": 0.3974,
+     "q3": 0.6587,
+     "min": 0.0569,
+     "max": 2.7504
+    },
+    "share_beta_ci_excludes_0": 0.9083,
+    "share_alpha_ci_excludes_0": 0.2294,
+    "r2": {
+     "mean": 0.6213,
+     "q1": 0.4648,
+     "median": 0.694,
+     "q3": 0.8227,
+     "min": 0.0,
+     "max": 0.9905
+    }
+   },
+   "abs_beta_gap_true_vs_proxy": {
+    "mean": 0.1331,
+    "q1": 0.0321,
+    "median": 0.0784,
+    "q3": 0.1482,
+    "min": 0.0002,
+    "max": 1.4154
+   },
+   "pooled_true": {
+    "pre_post": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.0028678884271318493,
+       "lo": 0.002667699021284583,
+       "hi": 0.0030680778329791156,
+       "se": 0.00010213932879702625
+      },
+      "beta_pre": {
+       "est": 0.6338341031550696,
+       "lo": 0.6094555300730058,
+       "hi": 0.6582126762371334,
+       "se": 0.012438276047090082
+      },
+      "beta_post": {
+       "est": 0.612586841999316,
+       "lo": 0.5700218898497146,
+       "hi": 0.6551517941489174,
+       "se": 0.021717211380080623
+      }
+     },
+     "r2": 0.5764093691487979,
+     "resid_sd": 0.009129903095755131
+    },
+    "single": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.0028678518217646887,
+       "lo": 0.002666442115100932,
+       "hi": 0.0030692615284284453,
+       "se": 0.0001027619426950957
+      },
+      "beta": {
+       "est": 0.6211036875985788,
+       "lo": 0.5924569989630871,
+       "hi": 0.6497503762340705,
+       "se": 0.014615926038158415
+      }
+     },
+     "r2": 0.5762473068437608,
+     "resid_sd": 0.009128422140252968
+    }
+   },
+   "pooled_proxy": {
+    "pre_post": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.0027537120703101264,
+       "lo": 0.0025876984932591738,
+       "hi": 0.002919725647361079,
+       "se": 8.470236104359392e-05
+      },
+      "beta_pre": {
+       "est": 0.5837073603973049,
+       "lo": 0.5634991019267878,
+       "hi": 0.603915618867822,
+       "se": 0.010310525412669474
+      },
+      "beta_post": {
+       "est": 0.6017788337641324,
+       "lo": 0.5684268161968191,
+       "hi": 0.6351308513314458,
+       "se": 0.017016648178430693
+      }
+     },
+     "r2": 0.6747171570178163,
+     "resid_sd": 0.008000618713797099
+    },
+    "single": {
+     "n": 1417,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": 0.0027539746311428404,
+       "lo": 0.002589455044657122,
+       "hi": 0.002918494217628559,
+       "se": 8.394010695269298e-05
+      },
+      "beta": {
+       "est": 0.5947374051944404,
+       "lo": 0.5716689145320833,
+       "hi": 0.6178058958567975,
+       "se": 0.011769854366875313
+      }
+     },
+     "r2": 0.674568875491436,
+     "resid_sd": 0.00799961384573748
+    }
+   }
+  },
+  "ppo": {
+   "episodes": 1090,
+   "days": 1457,
+   "obs_per_episode": {
+    "1": 755,
+    "2": 308,
+    "3": 22,
+    "4": 5
+   },
+   "labels": {
+    "WIN": 1090
+   },
+   "public_net_exposure_mean": {
+    "pre": 0.6396,
+    "post": 0.6521
+   },
+   "per_episode_true": null,
+   "per_episode_proxy": null,
+   "abs_beta_gap_true_vs_proxy": null,
+   "pooled_true": {
+    "pre_post": {
+     "n": 1457,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": -0.0008095518619252248,
+       "lo": -0.0013964022877811862,
+       "hi": -0.00022270143606926333,
+       "se": 0.00029941898447367546
+      },
+      "beta_pre": {
+       "est": 0.6341430882159625,
+       "lo": 0.5926661001788249,
+       "hi": 0.6756200762531002,
+       "se": 0.02116211744925053
+      },
+      "beta_post": {
+       "est": 0.6920336644356997,
+       "lo": 0.5709781255275685,
+       "hi": 0.8130892033438308,
+       "se": 0.06176416498619454
+      }
+     },
+     "r2": 0.730185786888269,
+     "resid_sd": 0.006594436278443251
+    },
+    "single": {
+     "n": 1457,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": -0.0007821672544979257,
+       "lo": -0.0013588434516163587,
+       "hi": -0.00020549105737949268,
+       "se": 0.0002942279560579589
+      },
+      "beta": {
+       "est": 0.6552738093813958,
+       "lo": 0.6035040996911666,
+       "hi": 0.707043519071625,
+       "se": 0.026413602545037624
+      }
+     },
+     "r2": 0.7288617604114089,
+     "resid_sd": 0.006608324441917163
+    }
+   },
+   "pooled_proxy": {
+    "pre_post": {
+     "n": 1457,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": -0.00017745175149055687,
+       "lo": -0.0007081479082006023,
+       "hi": 0.00035324440521948856,
+       "se": 0.0002707683206916602
+      },
+      "beta_pre": {
+       "est": 0.66174827099558,
+       "lo": 0.6251509558335289,
+       "hi": 0.6983455861576311,
+       "se": 0.018672442682991158
+      },
+      "beta_post": {
+       "est": 0.7134977048397861,
+       "lo": 0.594135110668312,
+       "hi": 0.8328602990112602,
+       "se": 0.06090040179972234
+      }
+     },
+     "r2": 0.778682528060943,
+     "resid_sd": 0.005972458142246707
+    },
+    "single": {
+     "n": 1457,
+     "se": "cluster-robust by world (218 clusters)",
+     "coef": {
+      "alpha": {
+       "est": -0.0001347676747077227,
+       "lo": -0.00065538669747551,
+       "hi": 0.0003858513480600646,
+       "se": 0.0002656268313470879
+      },
+      "beta": {
+       "est": 0.6800575401362743,
+       "lo": 0.6318449421063602,
+       "hi": 0.7282701381661884,
+       "se": 0.024598716308161232
+      }
+     },
+     "r2": 0.7776633377343366,
+     "resid_sd": 0.005984136781537142
+    }
+   }
+  }
+ },
+ "by_ppo_seed": {
+  "ppo_s0": {
+   "pre_post": {
+    "n": 311,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": -0.002329318009974756,
+      "lo": -0.0028599343895116267,
+      "hi": -0.001798701630437886,
+      "se": 0.0002707276173043508
+     },
+     "beta_pre": {
+      "est": 0.5403410790576606,
+      "lo": 0.4995888065286649,
+      "hi": 0.5810933515866563,
+      "se": 0.020792357844554517
+     },
+     "beta_post": {
+      "est": 0.5881774374156263,
+      "lo": 0.4654533025022311,
+      "hi": 0.7109015723290215,
+      "se": 0.06261550512225099
+     }
+    },
+    "r2": 0.7265514051192963,
+    "resid_sd": 0.005564827242972403
+   },
+   "single": {
+    "n": 311,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": -0.0023230683125617904,
+      "lo": -0.002846674576790098,
+      "hi": -0.001799462048333483,
+      "se": 0.0002671509621393285
+     },
+     "beta": {
+      "est": 0.5559424601571692,
+      "lo": 0.5078398901210779,
+      "hi": 0.6040450301932605,
+      "se": 0.024542578545074446
+     }
+    },
+    "r2": 0.7253648404612631,
+    "resid_sd": 0.005567856387744194
+   }
+  },
+  "ppo_s1": {
+   "pre_post": {
+    "n": 281,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 0.0007345141286485503,
+      "lo": 1.4215928254185037e-05,
+      "hi": 0.0014548123290429155,
+      "se": 0.0003675058348398162
+     },
+     "beta_pre": {
+      "est": 0.641860655694876,
+      "lo": 0.5886196538738329,
+      "hi": 0.6951016575159192,
+      "se": 0.027164275589246212
+     },
+     "beta_post": {
+      "est": 0.7437887028568612,
+      "lo": 0.5908489420280918,
+      "hi": 0.8967284636856305,
+      "se": 0.07803192407367619
+     }
+    },
+    "r2": 0.7028797755697211,
+    "resid_sd": 0.007297910822638971
+   },
+   "single": {
+    "n": 281,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 0.00078262430520635,
+      "lo": 7.510375141351526e-05,
+      "hi": 0.0014901448589991848,
+      "se": 0.0003609865075958878
+     },
+     "beta": {
+      "est": 0.6775014678092186,
+      "lo": 0.614623777146701,
+      "hi": 0.7403791584717362,
+      "se": 0.03208104391636213
+     }
+    },
+    "r2": 0.6992706454821485,
+    "resid_sd": 0.007328931327213011
+   }
+  },
+  "ppo_s2": {
+   "pre_post": {
+    "n": 282,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 7.551882252791529e-05,
+      "lo": -0.0005529501729400856,
+      "hi": 0.0007039878179959161,
+      "se": 0.0003206533387476934
+     },
+     "beta_pre": {
+      "est": 0.7376870618016718,
+      "lo": 0.6924136963334685,
+      "hi": 0.782960427269875,
+      "se": 0.02309908030214524
+     },
+     "beta_post": {
+      "est": 0.7586206093513668,
+      "lo": 0.637618110471307,
+      "hi": 0.8796231082314265,
+      "se": 0.06173710325011688
+     }
+    },
+    "r2": 0.7962988437697519,
+    "resid_sd": 0.006293410379613734
+   },
+   "single": {
+    "n": 282,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 8.70992768470182e-05,
+      "lo": -0.0005325748638499513,
+      "hi": 0.0007067734175439876,
+      "se": 0.0003161660854918152
+     },
+     "beta": {
+      "est": 0.7453297009599751,
+      "lo": 0.6918449002314128,
+      "hi": 0.7988145016885374,
+      "se": 0.027288665072646025
+     }
+    },
+    "r2": 0.7961528086610957,
+    "resid_sd": 0.006284413559231223
+   }
+  },
+  "ppo_s3": {
+   "pre_post": {
+    "n": 302,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": -0.0024964048287754895,
+      "lo": -0.003036155696837806,
+      "hi": -0.001956653960713173,
+      "se": 0.0002753881562721571
+     },
+     "beta_pre": {
+      "est": 0.5304103144626267,
+      "lo": 0.48659677245013416,
+      "hi": 0.5742238564751192,
+      "se": 0.022354258730307365
+     },
+     "beta_post": {
+      "est": 0.6238695559458098,
+      "lo": 0.5347594986561035,
+      "hi": 0.7129796132355162,
+      "se": 0.04546515037653503
+     }
+    },
+    "r2": 0.7511663920026775,
+    "resid_sd": 0.005595630854556788
+   },
+   "single": {
+    "n": 302,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": -0.0024285657919273125,
+      "lo": -0.002937229149179619,
+      "hi": -0.0019199024346750059,
+      "se": 0.0002595268899145997
+     },
+     "beta": {
+      "est": 0.5704288076193976,
+      "lo": 0.5253728980085148,
+      "hi": 0.6154847172302804,
+      "se": 0.02298813139745328
+     }
+    },
+    "r2": 0.7462429719487573,
+    "resid_sd": 0.005641291537760595
+   }
+  },
+  "ppo_s4": {
+   "pre_post": {
+    "n": 281,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 0.00027962527640509546,
+      "lo": -0.0003907965722773102,
+      "hi": 0.0009500471250875011,
+      "se": 0.00034205824901406746
+     },
+     "beta_pre": {
+      "est": 0.7355309915944963,
+      "lo": 0.6901277199374831,
+      "hi": 0.7809342632515095,
+      "se": 0.023165360187813885
+     },
+     "beta_post": {
+      "est": 0.7721098331955446,
+      "lo": 0.6329720271673731,
+      "hi": 0.9112476392237161,
+      "se": 0.07098998100254535
+     }
+    },
+    "r2": 0.7740255647212383,
+    "resid_sd": 0.006683489813837166
+   },
+   "single": {
+    "n": 281,
+    "se": "cluster-robust by world (218 clusters)",
+    "coef": {
+     "alpha": {
+      "est": 0.0002968905392714529,
+      "lo": -0.0003607082630191762,
+      "hi": 0.000954489341562082,
+      "se": 0.00033551575818621394
+     },
+     "beta": {
+      "est": 0.7483213830241624,
+      "lo": 0.6905655101814322,
+      "hi": 0.8060772558668926,
+      "se": 0.029467823540790097
+     }
+    },
+    "r2": 0.7736040695115795,
+    "resid_sd": 0.006677720538843932
+   }
+  }
+ }
+}
