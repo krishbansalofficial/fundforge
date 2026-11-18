@@ -269,3 +269,31 @@ VALID_SEASONS = _valid_seasons()
 def test_valid_seasons_raise_no_break_at_any_barrier(name, tape, script):
     for e in barriers(Engine(tape()), script):
         assert e.control_report()["breaks"] == [], (name, e.ev.day)
+
+
+def test_unsupported_or_empty_confirmations_are_refused_before_any_obligation():
+    """B5 mutation survivors: the side/quantity guard was never exercised."""
+    from dataclasses import replace
+    ok = ExecutionConfirmation(
+        1, "ALTO", "BUY", 1, D("50.000000"), D("50.00"), D("50.000000"), 100000, 0, D(5), D(2000), day=4
+    )
+    assert recon.expected_obligations([ok])["X1"].qty == 1  # one share is a valid confirmation
+    for bad in (replace(ok, side="HOLD"), replace(ok, qty=0), replace(ok, qty=-5)):
+        with pytest.raises(ValueError, match="unsupported confirmation"):
+            recon.expected_obligations([bad])
+
+
+def test_shadow_flags_each_invalid_confirmation_field_independently():
+    """B5 mutation survivors: inspect_book's per-field confirmation guard."""
+    from dataclasses import replace
+
+    from fundforge.shadow import inspect_book
+    ok = ExecutionConfirmation(
+        1, "ALTO", "BUY", 1, D("50.000000"), D("50.00"), D("50.000000"), 100000, 0, D(0), D(0), day=4
+    )
+    marks = {"ALTO": D("50.000000")}
+    for bad in (replace(ok, sym="ZZZZ"), replace(ok, qty=0), replace(ok, volume=0), replace(ok, side="HOLD")):
+        report = inspect_book({}, [bad], {"ALTO": 0}, marks, {"cash": D(0)})
+        assert any(b["code"] == "invalid_confirmation" for b in report["breaks"]), bad
+    report = inspect_book({}, [ok], {"ALTO": 1}, marks, {"cash": D(0)})
+    assert not any(b["code"] == "invalid_confirmation" for b in report["breaks"])
