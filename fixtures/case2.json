@@ -1,0 +1,217 @@
+{
+  "scenario_id": "case2",
+  "title": "Profitable, illiquid, and redeeming",
+  "version": "2.2.0",
+  "source": "docs/SCENARIO_CONTRACTS.md#case2-profitable-illiquid-and-redeeming",
+  "broker_statements": [],
+  "calendar": {
+    "day1": "2026-01-05",
+    "start_day": 39,
+    "end_day": 61
+  },
+  "instruments": [
+    "ALTO",
+    "BRIN",
+    "COVE",
+    "DART",
+    "ELAN",
+    "FENN",
+    "GALA",
+    "HELI",
+    "IONA",
+    "JUNO",
+    "BEAM",
+    "BOND"
+  ],
+  "defaults": {
+    "mark": "100",
+    "volume": 1000000,
+    "half_spread_bps": "5",
+    "impact_bps": "2000",
+    "participation": "0.05",
+    "borrow_rate": "0.02",
+    "debit_rate": "0.06",
+    "credit_limit": "7500000",
+    "extra_borrow_inventory": 50000
+  },
+  "opening": {
+    "fund": {
+      "cash": "2100000",
+      "collateral": "5000000",
+      "debt": "2500000",
+      "payables": {
+        "mgmt_fee_payable": "70000",
+        "interest_payable": "30000"
+      },
+      "payables_due_day": 41,
+      "positions": {
+        "ALTO": 25000,
+        "COVE": 25000,
+        "ELAN": 25000,
+        "GALA": 25000,
+        "IONA": 25000,
+        "JUNO": 25000,
+        "BOND": 25000,
+        "BEAM": 80000,
+        "BRIN": -12500,
+        "DART": -12500,
+        "FENN": -12500,
+        "HELI": -12500
+      },
+      "series": [
+        {
+          "id": "Patient",
+          "units": "80000",
+          "hwm": "120"
+        },
+        {
+          "id": "Seed",
+          "units": "100000",
+          "hwm": "120"
+        },
+        {
+          "id": "Tactical",
+          "units": "70000",
+          "hwm": "120"
+        }
+      ]
+    },
+    "firm": {
+      "cash": "180000",
+      "payroll_payable": "12000",
+      "fee_receivable": "70000"
+    }
+  },
+  "firm": {
+    "payroll_per_business_day": "4000",
+    "pay_every_n_days": 5
+  },
+  "margin_schedule": [
+    {
+      "from_day": 39,
+      "initial": {
+        "long": "0.50",
+        "short": "0.60"
+      },
+      "maintenance": {
+        "long": "0.35",
+        "short": "0.40"
+      }
+    }
+  ],
+  "overrides": [
+    {
+      "day": 40,
+      "event": "EXEC_A",
+      "volume": {
+        "BEAM": 840000
+      }
+    },
+    {
+      "day": 40,
+      "event": "EXEC_B",
+      "volume": {
+        "BEAM": 0
+      }
+    },
+    {
+      "day": 43,
+      "event": "PUBLIC_MARK",
+      "marks": {
+        "BEAM": "104"
+      },
+      "headline": "Broad equity rally: the BEAM index fund marks 104. Single names are unchanged.",
+      "headline_code": "market_rally"
+    },
+    {
+      "day": 60,
+      "event": "PUBLIC_MARK",
+      "marks": {
+        "BEAM": "103"
+      },
+      "headline": "BEAM gives back part of the rally and marks 103.",
+      "headline_code": "market_event"
+    }
+  ],
+  "borrow": {},
+  "research": {
+    "budget": 2,
+    "budget_per_role": 1,
+    "assignments": {
+      "earnings_survey": {"role": "pm", "location": "research"},
+      "liquidity": {"role": "pm", "location": "risk"},
+      "next_window": {"role": "mp", "location": "lp"}
+    },
+    "topics": {
+      "earnings_survey": "Public broad-index earnings survey: demand indicators are improving, with wide uncertainty. It is not a target return.",
+      "liquidity": "Liquidity desk: BEAM's day 40 EXEC_A event trades about 840,000 shares (42,000 for us at 5% participation); BEAM day 40 EXEC_B does not trade. Day 58 EXEC_A is expected at the ordinary 1,000,000 shares. This is capacity, not a price.",
+      "next_window": "Seed and Tactical confirm the next-window plan: any gated units are dealt automatically at the day 60 close at that day's certified value and paid day 61. Their future dollar value is not guaranteed."
+    }
+  },
+  "public_notices": [
+    {
+      "day": 39,
+      "event": "OPEN_ADMIN",
+      "text": "Seed and Tactical each have a $3,000,000 dollar-target redemption (disclosed day 30, noticed day 35) at the day 40 dealing close, payable day 41. Units are fixed at the certified day 40 value.",
+      "code": "redemption_notice"
+    },
+    {
+      "day": 39,
+      "event": "OPEN_ADMIN",
+      "text": "Offering terms: both partners may elect a gate before the day 40 dealing close. At most 20% of pre-flow NAV is dealt, pro rata; deferred units stay invested and are dealt automatically at the day 60 close, payable day 61.",
+      "code": "gate_terms"
+    },
+    {
+      "day": 39,
+      "event": "OPEN_ADMIN",
+      "text": "Treasury: $100,000 of invoiced fees and financing falls due day 41. Short collateral is restricted and cannot fund withdrawals; the credit line is $7,500,000.",
+      "code": "treasury_terms"
+    },
+    {
+      "day": 39,
+      "event": "OPEN_ADMIN",
+      "text": "A prospective LP offers $5,000,000, but diligence completes after day 40 and funding is day 60 at the earliest. It is not cash and cannot fund this window.",
+      "code": "prospect_offer"
+    },
+    {
+      "day": 39,
+      "event": "OPEN_ADMIN",
+      "text": "BEAM has an executable day 40 EXEC_A event before dealing; sale prices are uncertain until each event.",
+      "code": "liquidity_terms"
+    }
+  ],
+  "redemptions": [
+    {
+      "series": "Seed",
+      "amount": "3000000",
+      "disclosed_day": 30,
+      "notice_day": 35,
+      "deal_day": 40
+    },
+    {
+      "series": "Tactical",
+      "amount": "3000000",
+      "disclosed_day": 30,
+      "notice_day": 35,
+      "deal_day": 40
+    }
+  ],
+  "authored_redemptions": {
+    "deferred_deal_day": 60
+  },
+  "lp_agents": "lp-confidence-2026.10.2",
+  "objectives": "Pay every dealt claim on time, keep the post-flow book within the mandate (gross at most 150%, net between -20% and 100%), allocate any gate pro rata, and reach day 61 with no deferred units. Win: positive NAV, no unpaid claims, no forced actions, no deferred units at the end.",
+  "mandate": {
+    "version": "case2-mandate-v1",
+    "gross_min": "0",
+    "gross_max": "1.50",
+    "net_min": "-0.20",
+    "net_max": "1.00",
+    "issuer_max": "0.15",
+    "issuer_exempt": [
+      "BEAM",
+      "BOND"
+    ],
+    "restricted": []
+  }
+}

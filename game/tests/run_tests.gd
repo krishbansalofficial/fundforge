@@ -352,8 +352,8 @@ func _initialize() -> void:
 	check(TerminalRules.prices([], "BRIN").is_empty(), "empty chart safe")
 	check(TerminalRules.pct(null) == "--" and TerminalRules.bps("-12.5") == "-12.5", "undefined and negative analytics formatting")
 	var keys := WorldRules.SCENARIOS.map(func(sc): return sc[0])
-	check(keys == ["case1", "case1-controls", "case1-settlement", "case1-generated", "campaign-v1"],
-			"menu offers standard, broker, settlement, generated and campaign scenarios")
+	check(keys == ["case1", "case1-controls", "case1-settlement", "case1-generated", "campaign-v1", "case2"],
+			"menu offers standard, broker, settlement, generated, campaign and Case 2 scenarios")
 	var frames := PackedFloat64Array()
 	for i in range(1, 101):
 		frames.append(float(i))  # 1..100 ms
