@@ -82,6 +82,8 @@ def main() -> dict[str, Any]:
     ap.add_argument("--steps", type=int, default=200_000)
     ap.add_argument("--families", type=int, default=2800)
     ap.add_argument("--out", default=str(ML / "results"))
+    ap.add_argument("--reuse", action="store_true", help="skip training for models already saved; masked arm may use "
+                    "the published ppo_pm checkpoints (sha256 checked)")
     a = ap.parse_args()
     src = json.loads((ML / "results" / "ppo_pm.json").read_text(encoding="utf-8"))
     published = {r["seed"]: r["sha256"] for r in src["grid"][CONFIG]["runs"]}
@@ -90,8 +92,20 @@ def main() -> dict[str, Any]:
     with ProcessPoolExecutor(a.procs) as pool:
         gated = list(pool.map(gate, [("base", f"ppo-{i}") for i in range(a.families)], chunksize=8))
         train_seeds = [s for _, s, sp, f in gated if sp == "train" and not f]
-        runs = list(pool.map(train, [(arm, k, train_seeds, a.steps, a.out) for arm in ("masked", "penalty")
-                                     for k in range(a.seeds)]))
+        todo, runs = [], []
+        for arm in ("masked", "penalty"):
+            for k in range(a.seeds):
+                path = Path(a.out) / f"mask_ablation_{arm}_s{k}.zip"
+                if a.reuse and arm == "masked" and not path.exists():  # same config/seed/steps/families as ppo_pm.json
+                    path = ML / "results" / f"ppo_pm_{CONFIG}_s{k}.zip"
+                    if hashlib.sha256(path.read_bytes()).hexdigest() != published[k]:
+                        raise SystemExit(f"{path} does not match ppo_pm.json")
+                if a.reuse and path.exists():
+                    runs.append({"arm": arm, "seed": k, "path": str(path), "seconds": None, "reused": True,
+                                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+                else:
+                    todo.append((arm, k, train_seeds, a.steps, a.out))
+        runs += list(pool.map(train, todo))
         jobs = [(r["arm"], r["path"], s, v) for r in runs for s, v in test_ws]
         played = dict(pool.map(evaluate, jobs, chunksize=8))
     arms: dict[str, Any] = {}
@@ -110,7 +124,7 @@ def main() -> dict[str, Any]:
         "stage": "5.6 masking ablation", "commit": _git("rev-parse", "HEAD"),
         "dirty": bool(_git("status", "--porcelain", "--", "src", "scripts")),
         "reproduce": f"cd ml && uv run --group train python scripts/mask_ablation.py --procs {a.procs} "
-                     f"--seeds {a.seeds} --steps {a.steps}",
+                     f"--seeds {a.seeds} --steps {a.steps}" + (" --reuse" if a.reuse else ""),
         "scale": {"config": CONFIG, "seeds": a.seeds, "steps": a.steps, "train_families": len(train_seeds),
                   "test_worlds": len(test_ws), "penalty": PENALTY, "variants": worlds.variant_names()},
         "arms": arms,
