@@ -23,6 +23,7 @@ import platform
 import statistics
 import sys
 import time
+from urllib.parse import urlsplit
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
@@ -159,6 +160,8 @@ def run(dsn: str, rooms: int = 10, samples: int = 20, warmup: int = 2, sizes: tu
         "python": platform.python_version(),
         "machine": machine(),
         "postgres": server,
+        # Windows + Docker Desktop: "localhost" goes via ::1 and the port forwarder, which stalls large inserts
+        "database_host": urlsplit(dsn).hostname,
         "scenario": "case1/base",
         "s2_rooms": rooms,
         "s2_room_version": verifies[0]["version"],
