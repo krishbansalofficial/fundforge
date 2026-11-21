@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
 test("the landing page offers the scenarios and sends the one chosen", async ({ page }) => {
   await page.goto("/");
   const select = page.getByLabel("Scenario");
-  await expect(select.locator("option")).toHaveCount(5);
+  await expect(select.locator("option")).toHaveCount(6);  // case1, three Case1 overlays, campaign-v1, case2
   await expect(select).toHaveValue("case1");
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);

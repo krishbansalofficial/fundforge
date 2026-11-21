@@ -87,7 +87,7 @@ test("terminal: revised label, late responses never replace newer data, failures
 
 test("a generated room: file a regime thesis, play to the end, and read the Brier score in the debrief", async ({ page, request }) => {
   const created = await request.post("/api/rooms", {
-    data: { scenario: "case1-generated", pm_name: "Solo", solo_role: "pm", variant: "seed:research-e2e" },
+    data: { scenario: "case1-generated", pm_name: "Solo", solo_role: "pm", variant: "seed:research-e2e-0" },
   });
   expect(created.status()).toBe(201);
   const { room_id: room, tokens } = await created.json();
