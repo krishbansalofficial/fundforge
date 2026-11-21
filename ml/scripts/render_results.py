@@ -234,8 +234,22 @@ def ope_noise(d: dict[str, Any]) -> Row:
     )
 
 
+def mask_ablation(d: dict[str, Any]) -> Row:
+    x, a = d["masked_vs_penalty"], d["arms"]
+    return (
+        "Masking ablation: MaskablePPO vs PPO with an invalid-action penalty (base worlds)",
+        f"paired reward masked - penalty {_g(x['diff']['point'])} [{_g(x['diff']['lo'])}, {_g(x['diff']['hi'])}], "
+        f"P(masked > penalty) {_g(x['prob_improvement'])}; invalid picks {_g(a['penalty']['invalid_pick_rate'])} "
+        f"(penalty arm) vs {_g(a['masked']['invalid_pick_rate'])}",
+        f"{d['scale']['seeds']} seeds x {d['scale']['steps']} steps per arm; {d['scale']['test_worlds']} test worlds; "
+        "masked arm = the published ppo_pm checkpoints (sha256 checked)",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
     "transfer_matrix.json": transfer,
+    "mask_ablation.json": mask_ablation,
     "ope.json": ope,
     "ope_noise_floor.json": ope_noise,
     "conformal_forecast.json": conformal,

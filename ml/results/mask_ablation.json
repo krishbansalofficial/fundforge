@@ -1,0 +1,123 @@
+{
+ "stage": "5.6 masking ablation",
+ "commit": "4e0dcf391220599c1832c1d7a65c4caa2504604a",
+ "dirty": false,
+ "reproduce": "cd ml && uv run --group train python scripts/mask_ablation.py --procs 6 --seeds 3 --steps 200000 --reuse",
+ "scale": {
+  "config": "lr1e-4_ent0.01",
+  "seeds": 3,
+  "steps": 200000,
+  "train_families": 965,
+  "test_worlds": 274,
+  "penalty": 0.1,
+  "variants": [
+   "base",
+   "rally"
+  ]
+ },
+ "arms": {
+  "masked": {
+   "runs": [
+    {
+     "arm": "masked",
+     "seed": 0,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\ppo_pm_lr1e-4_ent0.01_s0.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "47bf3e0f032f89829fa7a71fcdbe03bed2f889a01637e76fd73d3884c40f9e95"
+    },
+    {
+     "arm": "masked",
+     "seed": 1,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\ppo_pm_lr1e-4_ent0.01_s1.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "ce091acfce99636064e7015d4dbd97b74abe83facb4deff63a258160b684075f"
+    },
+    {
+     "arm": "masked",
+     "seed": 2,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\ppo_pm_lr1e-4_ent0.01_s2.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "c658f660c4477ecbf0adcbb1c440eff53164044f21637c24d22bb03890ec60b3"
+    }
+   ],
+   "worlds": 274,
+   "mean": {
+    "point": 8.161592457420925,
+    "lo": 7.948273844282239,
+    "hi": 8.378400182481753
+   },
+   "iqm": {
+    "point": 8.136075242718446,
+    "lo": 7.741173665048543,
+    "hi": 8.51372936893204
+   },
+   "labels": {
+    "WIN": 822
+   },
+   "invalid_pick_rate": 0.0,
+   "reproduces_published_sha256": {
+    "0": true,
+    "1": true,
+    "2": true
+   }
+  },
+  "penalty": {
+   "runs": [
+    {
+     "arm": "penalty",
+     "seed": 0,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\mask_ablation_penalty_s0.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "b2037a13ef4b40521b4cc93cebeda7ccda5b0b879c574b0175f2a42ec649c254"
+    },
+    {
+     "arm": "penalty",
+     "seed": 1,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\mask_ablation_penalty_s1.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "dfdc3a0a4b19a578a47f1d48d19f20c73018dc60780f77b0c93addb4dbe43aef"
+    },
+    {
+     "arm": "penalty",
+     "seed": 2,
+     "path": "C:\\Users\\krish\\fundforge\\ml\\results\\mask_ablation_penalty_s2.zip",
+     "seconds": null,
+     "reused": true,
+     "sha256": "a18b082f6b67f20360fdac2e97de9a57cf42aa3ddaca84f468ccbc0b96f6bdd2"
+    }
+   ],
+   "worlds": 274,
+   "mean": {
+    "point": 7.874300486618006,
+    "lo": 7.742389385644769,
+    "hi": 8.001848844282238
+   },
+   "iqm": {
+    "point": 7.8165145631067965,
+    "lo": 7.621946177184465,
+    "hi": 8.010680279126214
+   },
+   "labels": {
+    "WIN": 822
+   },
+   "invalid_pick_rate": 0.0054
+  }
+ },
+ "masked_vs_penalty": {
+  "n_worlds": 274,
+  "diff": {
+   "point": 0.28729197080291974,
+   "lo": 0.15112174574209233,
+   "hi": 0.4204725060827249
+  },
+  "x_better_worlds": 162,
+  "ties": 0,
+  "prob_improvement": 0.5965125709651257
+ },
+ "wall_seconds": 509.0
+}
