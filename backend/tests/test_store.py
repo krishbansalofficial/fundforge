@@ -277,3 +277,21 @@ def test_generated_room_is_gated_hidden_until_the_end_and_verifiable():
     assert seed not in json.dumps(gate)
     st._cache.clear()
     assert st.verify(rid)["tape_digest"] == s.e.tape.digest  # re-derived from the stored seed
+
+
+def test_second_worker_catches_up_from_its_cached_older_version(room):
+    """Two Stores model two API workers: B holds an older cached session and replays only the newer commands."""
+    a, rid, u = room
+    b = Store(DSN)
+    _opened.append(b)
+    a.apply(rid, u["pm"], "k1", {"type": "ready", "version": a.session(rid)[0]})
+    v1, s1, _ = b.session(rid)  # B caches v1
+    d1 = s1.e.j.digest()
+    for i, role in enumerate(("mp", "pm", "mp")):
+        a.apply(rid, u[role], f"k{i + 2}", {"type": "ready", "version": a.session(rid)[0]})
+    v2, s2, _ = b.session(rid)
+    assert v2 > v1 and s1.e.j.digest() == d1 != s2.e.j.digest()  # the cached v1 session was not mutated
+    assert b.session(rid)[1] is s2  # exact hit
+    b._cache.clear()
+    full = b.session(rid)[1]
+    assert full.e.j.digest() == s2.e.j.digest() and full.view(u["pm"]) == s2.view(u["pm"])

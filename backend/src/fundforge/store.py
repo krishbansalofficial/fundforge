@@ -186,14 +186,6 @@ class Store:
                             c.execute("insert into schema_migrations (name) values (%s)", (f.name,))
 
     # ---------- cache ----------
-    def _cache_get(self, room: str, version: int) -> Session | None:
-        with self._lock:
-            hit = self._cache.get(room)
-            if hit and hit[0] == version:
-                self._cache.move_to_end(room)
-                return hit[1]
-        return None
-
     def _cache_put(self, room: str, version: int, s: Session) -> None:
         with self._lock:
             hit = self._cache.get(room)
@@ -275,10 +267,22 @@ class Store:
 
     def _replay(self, c: Conn, room: str, version: int, tape: Tape, partners: dict[str, str],
                 bot_role: str | None = None) -> Session:
+        """The session at ``version``: a cached exact hit, else the newest older cached version caught up on the
+        missing commands (another worker applied them; replaying is deterministic), else a full replay."""
+        with self._lock:
+            hit = self._cache.get(room)
+            if hit and hit[0] == version:
+                self._cache.move_to_end(room)
+                return hit[1]
         with timed(REPLAY_SECONDS):
-            s = self._fresh(tape, partners, bot_role)
+            if hit and hit[0] < version and hit[1].e.tape.digest == tape.digest:
+                old = hit[1].e.tape  # tapes are immutable; share it, copy the rest (cached sessions stay read-only)
+                start, s = hit[0], copy.deepcopy(hit[1], {id(old): old})
+            else:
+                start, s = 0, self._fresh(tape, partners, bot_role)
             for uid, key, cmd in c.execute("select user_id, idem_key, command from commands"
-                                           " where room_id=%s and seq<=%s order by seq", (room, version)):
+                                           " where room_id=%s and seq>%s and seq<=%s order by seq",
+                                           (room, start, version)):
                 s.handle(uid, key, cmd)
         return s
 
@@ -298,7 +302,7 @@ class Store:
         with self.pool.connection() as c, c.transaction():
             c.execute("set transaction isolation level repeatable read")
             version, tape, partners, names, bot_role = self._room(c, room)
-            s = self._cache_get(room, version) or self._replay(c, room, version, tape, partners, bot_role)
+            s = self._replay(c, room, version, tape, partners, bot_role)
         self._cache_put(room, version, s)
         return version, s, names
 
@@ -337,7 +341,7 @@ class Store:
                 if (rejected[0], rejected[1]) != (user, json.loads(json.dumps(command))):
                     raise KeyReused(f"idempotency key {key!r} reused for a different command")
                 raise CommandRejected(rejected[2])
-            base = self._cache_get(room, version) or self._replay(c, room, version, tape, partners, bot_role)
+            base = self._replay(c, room, version, tape, partners, bot_role)
             s = copy.deepcopy(base, {id(base.e.tape): base.e.tape})
             before, finished_before = outbox.counts(s), s.e.finished()
             lo = len(s.e.j.entries)
