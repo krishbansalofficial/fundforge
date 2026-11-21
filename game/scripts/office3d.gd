@@ -2,7 +2,8 @@ class_name Office3D
 extends Node3D
 ## 3D fund office and street: Poly Haven PBR materials and HDRI sky, Quaternius humans, Kenney furniture,
 ## Forward+ with SDFGI, SSR, SSIL/SSAO, volumetric fog and a tilt-shift depth of field.
-## FF_QUALITY=low (env var) turns off SDFGI, SSIL, SSR, volumetric fog, lamp shadows and DOF for weaker GPUs.
+## Low quality (FF_QUALITY=low, default on integrated GPUs) turns off SDFGI, SSIL, SSR, SSAO, glow, volumetric fog,
+## lamp shadows, DOF and MSAA, renders 3D at 3/4 scale (FSR) and shrinks the sun shadow map.
 ## Grid coordinates from WorldRules map 1 tile = 1 metre-ish unit: grid (x, y) -> world (x, 0, y).
 ## Pure presentation: reads the server view, never changes economics.
 
@@ -64,7 +65,7 @@ var _halt := false
 var _glow_research := 0.0
 var _towers := {}  # rival id -> {beacon, label, sign, light, status, flash}
 var _look := Vector3.ZERO
-var _high := OS.get_environment("FF_QUALITY").to_lower() != "low"
+var _high := _pick_high()
 var _cam_attr: CameraAttributesPractical  # null on low quality
 var _warm_scenes: Array = []  # keeps event-only character scenes loaded (see _prewarm)
 var _mats := {}  # cache: texture id + tint -> StandardMaterial3D
@@ -79,6 +80,7 @@ func _ready() -> void:
 	_camera.fov = 38.0
 	add_child(_camera)
 	_prewarm()
+	_prewarm_rooms()
 
 
 ## Event-only visitors (broker courier with a letter, tactical LP) first appear mid-crisis. Instancing them at
@@ -97,9 +99,54 @@ func _prewarm() -> void:
 		get_tree().create_timer(3.0).timeout.connect(a.queue_free)
 
 
+## Rooms compile their pipelines the first time they are seen: on the integrated GPU that froze 0.6 s on first
+## entering the lounge, back office and research (B4, 2026-11-21). A hidden viewport with the main viewport's 3D
+## settings visits every room and the street with the gameplay camera angle at load, then is freed.
+func _prewarm_rooms() -> void:
+	if "--no-prewarm" in OS.get_cmdline_args() + OS.get_cmdline_user_args():
+		return
+	var main := get_viewport()
+	var sv := SubViewport.new()
+	sv.size = Vector2i(640, 360)
+	sv.msaa_3d = main.msaa_3d
+	sv.scaling_3d_mode = main.scaling_3d_mode
+	sv.scaling_3d_scale = main.scaling_3d_scale
+	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	var cam := Camera3D.new()
+	cam.fov = _camera.fov
+	sv.add_child(cam)
+	add_child(sv)
+	var shots: Array = [[STREET_CAM, STREET_LOOK]]
+	for key in WorldRules.LOCATIONS:
+		var spot: Vector2 = WorldRules.LOCATIONS[key]["spot"]
+		var target := Vector3(spot.x, 0.5, spot.y)
+		shots.append([target + Vector3(sin(_cam_yaw), 0.95, cos(_cam_yaw)).normalized() * _cam_dist, target])
+	for shot in shots:
+		cam.position = shot[0]
+		cam.look_at(shot[1])
+		for i in 2:
+			await RenderingServer.frame_post_draw
+	sv.queue_free()
+
+
 # ---------------- scene construction ----------------
 
+## FF_QUALITY=high|low wins; otherwise an integrated GPU gets low (B4: UHD Graphics ran ~87 ms of GPU per frame on high).
+static func _pick_high() -> bool:
+	var q := OS.get_environment("FF_QUALITY").to_lower()
+	if q in ["high", "low"]:
+		return q == "high"
+	return RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_INTEGRATED_GPU
+
+
 func _environment() -> void:
+	if not _high:  # weak GPU: no MSAA, 3/4-scale 3D upscaled with FSR, a smaller and cheaper sun shadow map
+		var vp := get_viewport()
+		vp.msaa_3d = Viewport.MSAA_DISABLED
+		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR
+		vp.scaling_3d_scale = 0.75
+		RenderingServer.directional_shadow_atlas_set_size(2048, true)
+		RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_LOW)
 	var we := WorldEnvironment.new()
 	_env = Environment.new()
 	var sky := Sky.new()
@@ -114,7 +161,7 @@ func _environment() -> void:
 	_env.ambient_light_energy = 0.6
 	_env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	_env.tonemap_exposure = 1.0
-	_env.ssao_enabled = true
+	_env.ssao_enabled = _high
 	_env.ssao_radius = 0.5
 	_env.ssao_intensity = 1.2
 	_env.ssao_power = 1.4
@@ -129,7 +176,7 @@ func _environment() -> void:
 	_env.sdfgi_cascades = 3
 	_env.sdfgi_min_cell_size = 0.1
 	_env.sdfgi_energy = 0.8
-	_env.glow_enabled = true
+	_env.glow_enabled = _high
 	_env.glow_intensity = 0.35
 	_env.glow_bloom = 0.03
 	_env.glow_hdr_threshold = 1.2

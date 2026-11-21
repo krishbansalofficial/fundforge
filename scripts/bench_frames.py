@@ -14,6 +14,7 @@ a pytest / bench_* python process is running. Writes bench/results/<date>-B4-<co
 import argparse
 import json
 import platform
+import os
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -59,6 +60,7 @@ def main() -> int:
     ap.add_argument("--tag", required=True, help="short GPU label for the file name, e.g. igpu or dgpu")
     ap.add_argument("--run", type=int, default=1)
     ap.add_argument("--resolution", default="1280x720")
+    ap.add_argument("--quality", choices=("high", "low"), default="high", help="FF_QUALITY for office3d.gd")
     ap.add_argument("--warmup", type=float, default=10)
     ap.add_argument("--seconds", type=float, default=60)
     ap.add_argument("--busy-load", type=float, default=15.0, help="CPU %% above which the run is marked busy")
@@ -76,7 +78,7 @@ def main() -> int:
     cmd = [sys.executable, str(ROOT / "scripts" / "measure_frames.py"), "--server", a.server, "--godot", a.godot,
            "--resolution", a.resolution, "--warmup", str(a.warmup), "--seconds", str(a.seconds), "--route", route,
            "--output", str(raw), f"--engine-args=--rendering-driver {a.rendering_driver} --gpu-index {a.gpu_index}"]
-    subprocess.run(cmd, stdout=subprocess.DEVNULL)  # exits 1 on its own p95 budget; the report is what counts
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, env={**os.environ, "FF_QUALITY": a.quality})  # exits 1 on its own p95 budget; the report is what counts
     if not raw.exists():
         print("measure_frames.py wrote no report", file=sys.stderr)
         return 1
@@ -95,6 +97,7 @@ def main() -> int:
         "label": "one laptop, two GPUs (not two machines)",
         "requested_gpu_index": a.gpu_index,
         "requested_rendering_driver": a.rendering_driver,
+        "quality": a.quality,
         "adapter_used": adapter,  # from RenderingServer.get_video_adapter_name(), not inferred from the index
         "adapter_driver_version": driver,
         "renderer": f"{frames['driver']} / {frames['method']} (API {frames['api_version']})",
