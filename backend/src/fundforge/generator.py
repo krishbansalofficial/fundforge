@@ -38,7 +38,11 @@ from .money import CTX
 GEN_VERSION = "gen-2026.10.1"
 SCENARIO_VERSION = "gen-2026.10.2"  # the scenario randomiser plus the marks generator
 HARD_VERSION = "gen-2026.10.3"  # SCENARIO_VERSION plus a stressed-margin buffer; balance.accept also runs naive play
-RANDOMISED = frozenset({SCENARIO_VERSION, HARD_VERSION})
+# SCENARIO_VERSION plus a drawn market: the authored crisis is a sell-off or, with RALLY_BP probability, the authored
+# rally (a false alarm). Drawn before the marks walk, so prices continue from the crisis that happened (B6).
+FALSE_ALARM_VERSION = "gen-2026.11.1"
+RANDOMISED = frozenset({SCENARIO_VERSION, HARD_VERSION, FALSE_ALARM_VERSION})
+RALLY_BP = {FALSE_ALARM_VERSION: 5000}
 # Stressed-margin buffer points when Spec.margin_buffer_points is None. 20 points takes the authored
 # 80/100% initial, 70/90% maintenance to 100/120%, 90/110% (then +/- margin_points): a cure must be sized.
 MARGIN_BUFFER = {HARD_VERSION: 20}
@@ -237,6 +241,14 @@ def randomise(
     long_mark = long_base + rng.integer(-spec.crisis_points, spec.crisis_points)
     short_mark = short_base + rng.integer(-spec.crisis_points, spec.crisis_points)
     shock["marks"] = {s: str(long_mark if v == long_base else short_mark) for s, v in marks.items()}
+    # market: only versions in RALLY_BP draw it, so older versions' streams are unchanged
+    market = "selloff"
+    if gen_version in RALLY_BP and rng.integer(0, 9_999) < RALLY_BP[gen_version]:
+        market = "rally"  # ponytail: authored rally marks, no severity jitter; jitter them if rally worlds look uniform
+        rally = raw["variants"]["rally"]
+        keys = {(o["day"], o["event"]) for o in rally["overrides"]}
+        raw["overrides"] = [o for o in raw["overrides"] if (o["day"], o["event"]) not in keys] + rally["overrides"]
+        raw["public_notices"] = raw["public_notices"] + rally.get("public_notices", [])
     # stressed margin: both pairs move together, and the public notice is rewritten to match
     stressed = next(m for m in raw["margin_schedule"] if m["from_day"] == d0)
     old_terms = _terms(stressed)
@@ -285,6 +297,8 @@ def randomise(
         "redemption_units": redemption_units,
         "opening_debt": fund["debt"],
     }
+    if gen_version in RALLY_BP:
+        draws["market"] = market
     return raw, draws
 
 

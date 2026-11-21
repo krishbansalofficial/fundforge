@@ -4,7 +4,8 @@ Pinned gate-accepted seeds (measured with scripts/scan_generated_endings.py, 12 
 de-risk line wins, doing nothing survives (forced recall), and adding long and short risk every day while
 never curing ends in DISTRESS (broker collateral shortfalls; NAV stays positive). On all 84 accepted
 GEN_VERSION seeds in seed:1-0..seed:199-0 and all 95 accepted HARD_VERSION seeds in hard-0..hard-199 the
-same three labels held for these three lines.
+same three labels held for these three lines. Rooms moved to gen-2026.11.1 (false-alarm markets) in rules
+2026.11.3; seed:9-0 is the first seed:{i}-0 that the gate accepts and that reaches all three labels there.
 """
 
 import contextlib
@@ -67,7 +68,8 @@ def hard(seed: str) -> Tape:
     return tape
 
 
-@pytest.mark.parametrize("tape_of", [lambda: gen("seed:1-0"), lambda: hard("hard-0")], ids=["gen-seed:1-0", "hard-0"])
+@pytest.mark.parametrize("tape_of", [lambda: gen("seed:9-0"), lambda: hard("hard-0")],
+                         ids=["gen-seed:9-0", "hard-0"])
 @pytest.mark.parametrize(("line", "label"),
                          [("derisk_floor", "WIN"), ("passive", "SURVIVAL"), ("lever_both", "DISTRESS")])
 def test_generated_world_reaches_label(tape_of, line, label):

@@ -15,7 +15,7 @@ from fundforge.schemas import SessionView
 from fundforge.tape import compile_tape
 
 PM, MP = "ana", "ben"
-DRAWDOWN_SEED = "seed:lp-1"  # passive play: Tactical falls to concerned by the day-15 cutoff
+DRAWDOWN_SEED = "seed:lp-3"  # gen-2026.11.1 rooms; passive play: Tactical concerned by the day-15 cutoff
 
 
 def room(variant: str = DRAWDOWN_SEED, tape=None) -> Session:

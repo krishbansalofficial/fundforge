@@ -38,7 +38,7 @@ Leg = tuple[str, Decimal]
 # .11.2: warm-start invoiced payables with a due day, Case2 dollar-target redemptions converted at the struck value,
 # deferred gate units dealt at a later authored close, noticed claims reserved before a debt sweep.
 # Existing scenario journals are unchanged (golden digests).
-RULES_VERSION = "case1-rules-2026.11.2"
+RULES_VERSION = "case1-rules-2026.11.3"
 TENTH = Decimal("0.1")  # basis-point display step
 
 

@@ -27,7 +27,7 @@ from psycopg_pool import ConnectionPool
 
 from . import balance, bot, outbox
 from .engine import RULES_VERSION, CommandRejected, Engine
-from .generator import GEN_VERSION, commitment, generate
+from .generator import FALSE_ALARM_VERSION, commitment, generate
 from .governance import CLOCK, Session, canonical
 from .journal import Entry
 from .lp import POLICY_VERSION as LP_POLICY
@@ -37,6 +37,7 @@ from .tape import Tape, compile_tape, load, variants
 Conn = Connection[tuple[Any, ...]]
 log = logging.getLogger("fundforge.commands")
 
+ROOM_GEN_VERSION = FALSE_ALARM_VERSION  # generated rooms; changing it changes room tapes: bump RULES_VERSION
 FIXTURES = Path(os.environ.get("FUNDFORGE_FIXTURES", Path(__file__).resolve().parents[3] / "fixtures"))
 SCENARIOS = {"case1": "case1.json", "case1-controls": "case1.json", "case1-settlement": "case1.json",
              "case1-generated": "case1.json", "campaign-v1": "campaign_v1.json", "case2": "case2.json"}
@@ -87,7 +88,8 @@ def _tape(scenario: str, variant: str = "base") -> Tape:
             if not variant.startswith("seed:") or len(variant) < 6:
                 raise CommandRejected("generated rooms need a seed variant")
             # LP agents (confidence, generated requests, gates) run only in generated markets
-            return compile_tape({**generate(variant[5:], GEN_VERSION, raw), "variant": variant,
+            # FALSE_ALARM_VERSION: half the seeds rally instead of selling off, so no designed line dominates (B6)
+            return compile_tape({**generate(variant[5:], ROOM_GEN_VERSION, raw), "variant": variant,
                                  "lp_agents": LP_POLICY})
         if scenario == "case1-controls":
             raw["broker_statements"] = json.loads((FIXTURES / "broker_break_example.json").read_text(encoding="utf-8"))
