@@ -70,13 +70,14 @@ def fqe(episodes: list[list[Step]], pi: Callable[[np.ndarray, np.ndarray], np.nd
         probs = np.stack([pi(st.obs, st.mask) for st in states])  # (n, A)
         obs = np.repeat(np.stack([st.obs for st in states]), n_actions, axis=0)
         q = model.predict(np.hstack([obs, np.tile(eye, (len(states), 1))])).reshape(len(states), n_actions)
-        return (probs * q).sum(axis=1)
+        out: np.ndarray = (probs * q).sum(axis=1)
+        return out
 
     live = [i for i, n in enumerate(nxt) if n is not None]
     model = None
     for _ in range(rounds):
         target = r.copy()
-        target[live] += v([nxt[i] for i in live], model)
+        target[live] += v([n for n in nxt if n is not None], model)  # same order as `live`
         model = fit()
         model.fit(x, target)
     starts = v([ep[0] for ep in episodes], model)

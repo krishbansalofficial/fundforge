@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions: { contents: read, packages: write }
     outputs:
       api: ${{ steps.publish.outputs.api }}
@@ -53,7 +53,7 @@ jobs:
   deploy:
     if: ${{ inputs.deploy }}
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     permissions: { contents: read }
     steps:

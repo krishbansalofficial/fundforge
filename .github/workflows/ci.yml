@@ -3,7 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 permissions: { contents: read }  # no job writes to the repo; artifact upload and the cache need no contents: write
 jobs:
   backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     defaults: { run: { working-directory: backend } }
     services:
       postgres:
@@ -27,7 +27,7 @@ jobs:
     # B1 A/B gate (docs/BENCHMARKS.md): PR base and head on the same runner, interleaved; rule in scripts/bench_ab.py.
     # The gate script and threshold come from the trusted base checkout, never from the PR being gated.
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
@@ -38,7 +38,7 @@ jobs:
       - run: cd backend && uv sync --locked --python 3.13
       - run: backend/.venv/bin/python base/scripts/bench_ab.py --base base --head . --rounds 9 --python "$PWD/backend/.venv/bin/python"
   ml:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     defaults: { run: { working-directory: ml } }
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
       - run: uv run pytest -q
   kafka:
     # Postgres outbox -> Debezium -> Kafka: live parity, game unaffected with Kafka stopped, full recovery.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -63,7 +63,7 @@ jobs:
       - if: always()
         run: docker compose -f deploy/kafka/compose.yaml down -v
   frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     defaults: { run: { working-directory: frontend } }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
@@ -77,7 +77,7 @@ jobs:
       - run: npm run build
       - run: python3 ../scripts/check_budgets.py --next .next  # first-load JS size budget
   game:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     defaults: { run: { working-directory: game } }
     env: { GODOT_URL: "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" }
     steps:
@@ -87,14 +87,14 @@ jobs:
       - run: ./godot --headless --path . --script res://tests/run_tests.gd
       - run: ./godot --headless --path . --quit-after 300
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
       - run: deploy/smoke.sh --build
       - if: failure()
         run: FUNDFORGE_DOMAIN=localhost POSTGRES_PASSWORD=unused docker compose -f deploy/compose.prod.yaml logs --no-color
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     services:
       postgres:
         image: postgres:17-alpine
@@ -127,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with: { name: e2e-trace, path: frontend/test-results, retention-days: 7 }
   export:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     services:  # for the co-op acceptance run against the exported build
       postgres:
         image: postgres:17-alpine
@@ -176,7 +176,7 @@ jobs:
         with: { name: fundforge-windows, path: export/windows, retention-days: 3 }
   demo:  # by hand only: record the S2 run and build the README demo GIF as an artifact (nothing is published)
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     services:
       postgres:
         image: postgres:17-alpine
