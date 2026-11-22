@@ -101,7 +101,7 @@ func _prewarm() -> void:
 
 ## Rooms compile their pipelines the first time they are seen: on the integrated GPU that froze 0.6 s on first
 ## entering the lounge, back office and research (B4, 2026-11-21). A hidden viewport with the main viewport's 3D
-## settings visits every room and the street with the gameplay camera angle at load, then is freed.
+## settings visits every room and the street with the gameplay camera angle at load, then stops rendering.
 func _prewarm_rooms() -> void:
 	if "--no-prewarm" in OS.get_cmdline_args() + OS.get_cmdline_user_args():
 		return
@@ -126,7 +126,9 @@ func _prewarm_rooms() -> void:
 		cam.look_at(shot[1])
 		for i in 2:
 			await RenderingServer.frame_post_draw
-	sv.queue_free()
+	# Stop it rendering but keep it: freeing it mid-game made Godot 4.7.2 D3D12 segfault at quit in 5 of 8 runs
+	# (0 of 8 kept, 0 of 6 on Vulkan). It holds one idle 640x360 render target until the scene is freed.
+	sv.render_target_update_mode = SubViewport.UPDATE_DISABLED
 
 
 # ---------------- scene construction ----------------
