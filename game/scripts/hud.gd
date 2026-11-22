@@ -31,6 +31,7 @@ var music: Music
 var _music_button: Button
 var _cure_draft: Array = []
 var _cure_version := -1
+var _draft_kind := "cure"  # "cure" from the RISK lab, "ticket" from the terminal's TKT
 var _cure_sending := false
 const LEDGER_PAGE := 15
 var _ledger_entity := ""  # journal shown in the back office, "" for none
@@ -170,6 +171,12 @@ func _ready() -> void:
 	terminal.cure_draft_requested.connect(func(orders, source_version):
 		_cure_draft = orders
 		_cure_version = source_version
+		_draft_kind = "cure"
+		open_panel("trading"))
+	terminal.ticket_draft_requested.connect(func(orders, source_version):
+		_cure_draft = orders
+		_cure_version = source_version
+		_draft_kind = "ticket"
 		open_panel("trading"))
 
 
@@ -379,15 +386,15 @@ func _render_panel(location: String) -> void:
 func _trading() -> void:
 	_button("Open Forge Terminal: quotes, charts, risk and news [T]", open_terminal)
 	if not _cure_draft.is_empty():
-		_text("HYPOTHETICAL CURE DRAFT / review before proposing", 18)
+		_text(("HYPOTHETICAL CURE DRAFT" if _draft_kind == "cure" else "TERMINAL TICKET DRAFT") + " / review before proposing", 18)
 		for leg in _cure_draft:
 			_text("%s %s shares of %s" % [leg["side"], leg["qty"], leg["sym"]])
 		_text("Market orders at the next live event. Simulated prices are not guaranteed; live mandate and partner approval still apply.", 12)
 		if _cure_version != int(view.get("version", -1)):
-			_text("Fund changed since analysis. Rerun the liquidity lab before proposing.")
+			_text("Fund changed since this draft. " + ("Rerun the liquidity lab" if _draft_kind == "cure" else "Re-open the ticket in the terminal") + " before proposing.")
 		elif not _cure_sending:
-			_button("Propose this cure package to partner", _propose_cure)
-		_button("Discard cure draft", func(): _cure_draft = []; open_panel("trading"))
+			_button("Propose this %s to partner" % ("cure package" if _draft_kind == "cure" else "ticket"), _propose_cure)
+		_button("Discard draft", func(): _cure_draft = []; open_panel("trading"))
 	var rows := ""
 	for p in view.get("positions", []):
 		if int(p.get("qty", 0)) != 0:

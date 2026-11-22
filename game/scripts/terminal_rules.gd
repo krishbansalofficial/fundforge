@@ -4,8 +4,8 @@ extends RefCounted
 
 ## F1-F10 keep the first ten; the rest are reached from the command line or the function bar.
 const PAGES := ["MON", "GP", "PORT", "RISK", "NEWS", "ORDERS", "STREET", "HELP", "REPLAY", "RESEARCH",
-		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL", "CAL", "FIN"]
-const SYMBOL_PAGES := ["GP", "DES", "HP"]  # functions about one security: BRIN DES, DES BRIN
+		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL", "CAL", "FIN", "TKT"]
+const SYMBOL_PAGES := ["GP", "DES", "HP", "TKT"]  # functions about one security: BRIN DES, DES BRIN
 const COMP_MAX := 6
 
 
@@ -122,6 +122,28 @@ static func range_stats(values: PackedFloat32Array) -> Dictionary:
 		lo = minf(lo, v)
 		hi = maxf(hi, v)
 	return {"first": values[0], "last": values[-1], "low": lo, "high": hi}
+
+
+## Ticket preview (presentation only; the server revalidates everything at execution). Warnings, not refusals.
+static func ticket_warnings(side: String, qty: int, position: int, borrowed: int) -> Array:
+	var out: Array = []
+	if qty <= 0:
+		out.append("Quantity must be positive.")
+	elif side == "BUY" and position < 0:
+		out.append("BUY is rejected while short: COVER the short first, then BUY in a separate leg.")
+	elif side == "SHORT" and position > 0:
+		out.append("SHORT is rejected while long: SELL the long first, then SHORT in a separate leg.")
+	elif side == "SELL" and qty > maxi(0, position):
+		out.append("SELL exceeds the long position (%d); use SHORT for the rest." % maxi(0, position))
+	elif side == "COVER" and qty > maxi(0, -position):
+		out.append("COVER exceeds the short position (%d)." % maxi(0, -position))
+	elif side == "SHORT" and qty + maxi(0, -position) > borrowed:
+		out.append("Short beyond current borrow (%d shares): needs new inventory, which may not exist." % borrowed)
+	return out
+
+
+static func position_after(side: String, qty: int, position: int) -> int:
+	return position + (qty if side in ["BUY", "COVER"] else -qty)
 
 
 static func alert_hit(alert: Dictionary, mark: float) -> bool:

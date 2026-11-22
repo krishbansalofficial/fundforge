@@ -359,6 +359,14 @@ func _initialize() -> void:
 	check(TerminalRules.returns(PackedFloat32Array([100, 110, 99])).size() == 2, "event returns")
 	check(TerminalRules.range_stats(PackedFloat32Array([3, 1, 2])) == {"first": 3.0, "last": 2.0, "low": 1.0, "high": 3.0}, "range stats")
 	check(TerminalRules.alert_hit({"op": ">", "level": 10.0}, 10.5) and not TerminalRules.alert_hit({"op": "<", "level": 10.0}, 10.5), "alert trigger")
+	check(TerminalRules.parse("brin tkt", symbols, "ALTO") == {"ok": true, "page": "TKT", "symbol": "BRIN"}, "BRIN TKT opens a ticket")
+	check(TerminalRules.ticket_warnings("SELL", 600, 500, 0).size() == 1 and TerminalRules.ticket_warnings("SELL", 500, 500, 0).is_empty()
+			and TerminalRules.ticket_warnings("COVER", 200, -100, 100).size() == 1
+			and TerminalRules.ticket_warnings("SHORT", 100, -100, 150).size() == 1 and TerminalRules.ticket_warnings("SHORT", 50, -100, 150).is_empty()
+			and TerminalRules.ticket_warnings("BUY", 0, 0, 0).size() == 1
+			and TerminalRules.ticket_warnings("BUY", 100, -5, 0)[0].begins_with("BUY is rejected while short")
+			and TerminalRules.ticket_warnings("SHORT", 100, 5, 999)[0].begins_with("SHORT is rejected while long"), "ticket warnings")
+	check(TerminalRules.position_after("COVER", 100, -500) == -400 and TerminalRules.position_after("SHORT", 100, 0) == -100, "position after ticket")
 	check(TerminalRules.parse("  brin   gp  ", symbols, "ALTO") == {"ok": true, "page": "GP", "symbol": "BRIN"}, "terminal normalizes commands")
 	check(TerminalRules.parse("ALTO", symbols, "BRIN")["page"] == "GP", "symbol opens graph")
 	check(TerminalRules.parse("risk", symbols, "BRIN")["symbol"] == "BRIN", "function preserves selected security")
@@ -675,6 +683,16 @@ func _ui_checks() -> void:
 	check(terminal.page == "NEWS" and terminal._news_query == "RECALL", "NEWS search keeps its query")
 	terminal._command("NEWS")
 	check(terminal._news_query == "", "NEWS alone clears the search")
+	var drafts: Array = []
+	terminal.ticket_draft_requested.connect(func(orders, version): drafts.append([orders, version]))
+	terminal._command("BRIN TKT")
+	terminal._tkt_side = "COVER"
+	terminal._tkt_qty = 500
+	terminal._render()
+	(terminal._body.find_child("TicketSend", true, false) as Button).pressed.emit()
+	check(drafts == [[[{"sym": "BRIN", "side": "COVER", "qty": 500}], 4]] and not terminal.is_open(),
+			"ticket hands an exact draft to the desk and closes the terminal")
+	terminal.open()
 	check(TerminalRules.parse("NEWS brin recall", ["BRIN"], "BRIN")["query"] == "BRIN RECALL", "NEWS query parsed")
 	terminal._entry.text = "BRIN G"
 	terminal.set_view({"version": 4})

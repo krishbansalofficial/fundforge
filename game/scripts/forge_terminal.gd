@@ -4,6 +4,7 @@ extends CanvasLayer
 
 signal trading_requested
 signal cure_draft_requested(orders: Array, source_version: int)
+signal ticket_draft_requested(orders: Array, source_version: int)
 signal open_changed(is_open: bool)
 
 const INK := Color("#dce6ef")
@@ -37,6 +38,8 @@ var _thesis_calm := ""  # survives re-renders while the partner or clock changes
 var _thesis_sending := false
 var _comp: Array = []  # COMP symbols
 var _news_query := ""
+var _tkt_side := "BUY"
+var _tkt_qty := 1000
 var _alerts: Array = []  # {sym, op, level, hit}; this session only, never sent to the server
 var _history := PackedStringArray()
 var _history_at := 0
@@ -303,6 +306,7 @@ func _render() -> void:
 		"PNL": _pnl_page()
 		"CAL": _calendar_page()
 		"FIN": _financing_page()
+		"TKT": _ticket_page()
 
 
 func _replay_page() -> void:
@@ -859,6 +863,58 @@ func _financing_page() -> void:
 	_text("Cash in restricted collateral is not spendable. Borrow fees accrue on calendar days at the stated APR.", MUTED)
 
 
+func _ticket_page() -> void:
+	var q := TerminalRules.quote(data, symbol)
+	if q.is_empty():
+		_text("Select a known symbol: BRIN TKT.", MUTED)
+		return
+	_text("%s / ORDER TICKET (draft)" % symbol, AMBER, 20)
+	_symbol_links(_body)
+	var form := HBoxContainer.new()
+	form.add_theme_constant_override("separation", 12)
+	_body.add_child(form)
+	var side := OptionButton.new()
+	side.name = "TicketSide"
+	for s in ["BUY", "SELL", "SHORT", "COVER"]:
+		side.add_item(s)
+	side.select(["BUY", "SELL", "SHORT", "COVER"].find(_tkt_side))
+	side.item_selected.connect(func(i): _tkt_side = side.get_item_text(i); _render())
+	form.add_child(side)
+	var qty := SpinBox.new()
+	qty.name = "TicketQty"
+	qty.max_value = 1_000_000
+	qty.step = 100
+	qty.value = _tkt_qty
+	qty.custom_minimum_size = Vector2(150, 0)
+	qty.value_changed.connect(func(v): _tkt_qty = int(v); _render())
+	form.add_child(qty)
+	form.add_child(_label("shares of %s at the next execution window" % symbol, MUTED))
+	var mark := float(q["mark"])
+	var pos := int(q["qty"])
+	var after := TerminalRules.position_after(_tkt_side, _tkt_qty, pos)
+	var nav := float(str(data.get("risk", {}).get("nav", "0")))
+	var grid := _grid(["Preview", "Value"])
+	for r in [["Last observed mark", "%.4f" % mark], ["Notional at that mark", WorldRules.money(str(_tkt_qty * mark))],
+			["Position now / after", "%d / %d shares" % [pos, after]],
+			["NAV weight after (at that mark)", "--" if nav <= 0 else "%.2f%%" % (after * mark / nav * 100.0)],
+			["Borrowed now", "%d shares" % int(q["borrowed"])]]:
+		grid.add_child(_label(r[0], MUTED))
+		grid.add_child(_label(r[1]))
+	var warnings := TerminalRules.ticket_warnings(_tkt_side, _tkt_qty, pos, int(q["borrowed"]))
+	for w in warnings:
+		_text("WARNING  " + w, RED)
+	var send := Button.new()
+	send.name = "TicketSend"
+	send.text = "Review at trading desk"
+	send.disabled = _tkt_qty <= 0 or _stale
+	send.pressed.connect(func():
+		close()
+		ticket_draft_requested.emit([{"sym": symbol, "side": _tkt_side, "qty": _tkt_qty}], int(data.get("version", -1))))
+	_body.add_child(send)
+	_text("A draft only. It fills at a later market event with impact, never at the price shown. Your partner must approve "
+			+ "the package, and the mandate, margin and borrow are re-checked at execution.", MUTED)
+
+
 func _alerts_page() -> void:
 	_text("ALRT / PRICE ALERTS (this session)", AMBER, 20)
 	if _alerts.is_empty():
@@ -889,7 +945,8 @@ func _help() -> void:
 			"PNL       Trading P&L by security since the fund opened (server Decimal)",
 			"CAL       Known dates: payroll, recall deadline, published redemption notices",
 			"FIN       Financing: cash, collateral, debt, credit, headroom, borrow book",
-			"NEWS word Search published news (NEWS BRIN, NEWS RECALL)"]:
+			"NEWS word Search published news (NEWS BRIN, NEWS RECALL)",
+			"BRIN TKT  Order ticket: preview notional, position and weight, then send a draft to the trading desk"]:
 		_text(row)
 	_text("F1-F10 switch the first ten functions. Type a command and press Enter (a trailing GO is optional). "
 			+ "Tab completes functions and symbols; Up/Down recall earlier commands. Escape returns to the office.", MUTED)
