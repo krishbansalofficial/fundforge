@@ -1,0 +1,2 @@
+# Shell scripts run inside Linux containers; a CRLF checkout breaks their #! line ("no such file or directory").
+*.sh text eol=lf
