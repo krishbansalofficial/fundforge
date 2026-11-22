@@ -359,6 +359,9 @@ func _initialize() -> void:
 	check(TerminalRules.returns(PackedFloat32Array([100, 110, 99])).size() == 2, "event returns")
 	check(TerminalRules.range_stats(PackedFloat32Array([3, 1, 2])) == {"first": 3.0, "last": 2.0, "low": 1.0, "high": 3.0}, "range stats")
 	check(TerminalRules.alert_hit({"op": ">", "level": 10.0}, 10.5) and not TerminalRules.alert_hit({"op": "<", "level": 10.0}, 10.5), "alert trigger")
+	check(TerminalRules.parse("panels mon gp news pnl", symbols, "ALTO")["panes"] == ["MON", "GP", "NEWS", "PNL"], "PANELS parsed")
+	for bad in ["PANELS MON GP NEWS", "PANELS MON GP NEWS TKT", "PANELS MON GP NEWS XYZ"]:
+		check(not TerminalRules.parse(bad, symbols, "ALTO")["ok"], "PANELS refused: " + bad)
 	check(TerminalRules.parse("brin tkt", symbols, "ALTO") == {"ok": true, "page": "TKT", "symbol": "BRIN"}, "BRIN TKT opens a ticket")
 	check(TerminalRules.ticket_warnings("SELL", 600, 500, 0).size() == 1 and TerminalRules.ticket_warnings("SELL", 500, 500, 0).is_empty()
 			and TerminalRules.ticket_warnings("COVER", 200, -100, 100).size() == 1
@@ -693,6 +696,11 @@ func _ui_checks() -> void:
 	check(drafts == [[[{"sym": "BRIN", "side": "COVER", "qty": 500}], 4]] and not terminal.is_open(),
 			"ticket hands an exact draft to the desk and closes the terminal")
 	terminal.open()
+	terminal._command("PANELS MON PNL CAL FIN")
+	await process_frame
+	var lp_grid: GridContainer = terminal._body.get_child(0)
+	check(terminal.page == "PANELS" and lp_grid.get_child_count() == 4 and terminal._body.get_parent() is ScrollContainer,
+			"PANELS renders four functions and restores the page body")
 	check(TerminalRules.parse("NEWS brin recall", ["BRIN"], "BRIN")["query"] == "BRIN RECALL", "NEWS query parsed")
 	terminal._entry.text = "BRIN G"
 	terminal.set_view({"version": 4})

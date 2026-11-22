@@ -38,6 +38,7 @@ var _thesis_calm := ""  # survives re-renders while the partner or clock changes
 var _thesis_sending := false
 var _comp: Array = []  # COMP symbols
 var _news_query := ""
+var _panes: Array = TerminalRules.PANEL_DEFAULT.duplicate()
 var _tkt_side := "BUY"
 var _tkt_qty := 1000
 var _alerts: Array = []  # {sym, op, level, hit}; this session only, never sent to the server
@@ -205,6 +206,8 @@ func _command(command: String) -> void:
 	if result.has("symbols"):
 		_comp = result["symbols"]
 	_news_query = str(result.get("query", "")) if result["page"] == "NEWS" else _news_query
+	if result.has("panes"):
+		_panes = result["panes"]
 	if result.get("clear", false):
 		_alerts.clear()
 	if result.has("alert"):
@@ -307,6 +310,7 @@ func _render() -> void:
 		"CAL": _calendar_page()
 		"FIN": _financing_page()
 		"TKT": _ticket_page()
+		"PANELS": _launchpad()
 
 
 func _replay_page() -> void:
@@ -863,6 +867,52 @@ func _financing_page() -> void:
 	_text("Cash in restricted collateral is not spendable. Borrow fees accrue on calendar days at the stated APR.", MUTED)
 
 
+## Four functions side by side (2x2). Each panel reuses its full-page renderer by pointing _body at the panel.
+func _launchpad() -> void:
+	var outer := _body
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 16)
+	outer.add_child(grid)
+	var shown := page
+	for p in _panes:
+		var frame := PanelContainer.new()
+		frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		frame.custom_minimum_size = Vector2(0, 360)
+		frame.add_theme_stylebox_override("panel", _box(Color("#0a1520")))
+		grid.add_child(frame)
+		var scroll := ScrollContainer.new()
+		frame.add_child(scroll)
+		var pane := VBoxContainer.new()
+		pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pane.add_theme_constant_override("separation", 6)
+		scroll.add_child(pane)
+		_body = pane
+		page = p
+		match p:
+			"MON": _monitor()
+			"GP": _graph()
+			"PORT": _portfolio()
+			"RISK": _risk()
+			"NEWS": _news()
+			"ORDERS": _orders()
+			"STREET": _street()
+			"DES": _describe()
+			"HP": _history_page()
+			"COMP": _compare()
+			"CORR": _correlations()
+			"IMAP": _heatmap()
+			"ALRT": _alerts_page()
+			"PNL": _pnl_page()
+			"CAL": _calendar_page()
+			"FIN": _financing_page()
+	_body = outer
+	page = shown
+	_text("PANELS %s  /  change them with PANELS A B C D. Panel buttons open the full function." % " ".join(_panes), MUTED)
+
+
 func _ticket_page() -> void:
 	var q := TerminalRules.quote(data, symbol)
 	if q.is_empty():
@@ -946,7 +996,8 @@ func _help() -> void:
 			"CAL       Known dates: payroll, recall deadline, published redemption notices",
 			"FIN       Financing: cash, collateral, debt, credit, headroom, borrow book",
 			"NEWS word Search published news (NEWS BRIN, NEWS RECALL)",
-			"BRIN TKT  Order ticket: preview notional, position and weight, then send a draft to the trading desk"]:
+			"BRIN TKT  Order ticket: preview notional, position and weight, then send a draft to the trading desk",
+			"PANELS    Four functions at once (default GP PNL NEWS CAL); PANELS MON PORT FIN NEWS to choose"]:
 		_text(row)
 	_text("F1-F10 switch the first ten functions. Type a command and press Enter (a trailing GO is optional). "
 			+ "Tab completes functions and symbols; Up/Down recall earlier commands. Escape returns to the office.", MUTED)

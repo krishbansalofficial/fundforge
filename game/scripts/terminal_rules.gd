@@ -4,7 +4,9 @@ extends RefCounted
 
 ## F1-F10 keep the first ten; the rest are reached from the command line or the function bar.
 const PAGES := ["MON", "GP", "PORT", "RISK", "NEWS", "ORDERS", "STREET", "HELP", "REPLAY", "RESEARCH",
-		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL", "CAL", "FIN", "TKT"]
+		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL", "CAL", "FIN", "TKT", "PANELS"]
+const PANEL_DEFAULT := ["GP", "PNL", "NEWS", "CAL"]
+const PANEL_EXCLUDED := ["PANELS", "TKT", "REPLAY", "RESEARCH", "HELP"]  # interactive or long pages stay full-screen
 const SYMBOL_PAGES := ["GP", "DES", "HP", "TKT"]  # functions about one security: BRIN DES, DES BRIN
 const COMP_MAX := 6
 
@@ -29,6 +31,11 @@ static func parse(command: String, symbols: Array, current_symbol: String) -> Di
 		if picked.size() > COMP_MAX:
 			return {"ok": false, "error": "COMP compares at most %d symbols." % COMP_MAX}
 		return {"ok": true, "page": "COMP", "symbol": picked[0], "symbols": picked}
+	if head == "PANELS" and tokens.size() > 1:  # PANELS MON GP NEWS PNL: four panels at once
+		var panes: Array = tokens.slice(1)
+		if panes.size() != 4 or panes.any(func(p): return not p in PAGES or p in PANEL_EXCLUDED):
+			return {"ok": false, "error": "PANELS takes four functions, e.g. PANELS GP PNL NEWS CAL (not %s)." % ", ".join(PANEL_EXCLUDED)}
+		return {"ok": true, "page": "PANELS", "symbol": current_symbol, "panes": panes}
 	if head == "NEWS" and tokens.size() > 1:  # NEWS BRIN / NEWS RECALL: case-insensitive text search
 		return {"ok": true, "page": "NEWS", "symbol": current_symbol, "query": " ".join(tokens.slice(1))}
 	if head == "ALRT" and tokens.size() > 1:
