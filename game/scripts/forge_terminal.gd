@@ -35,6 +35,10 @@ var _replay_data: Dictionary = {}
 var _replay_loading := false
 var _thesis_calm := ""  # survives re-renders while the partner or clock changes the room
 var _thesis_sending := false
+var _comp: Array = []  # COMP symbols
+var _alerts: Array = []  # {sym, op, level, hit}; this session only, never sent to the server
+var _history := PackedStringArray()
+var _history_at := 0
 
 
 func _ready() -> void:
@@ -73,19 +77,20 @@ func _ready() -> void:
 	header.add_child(close_button)
 	_as_of = _label("Connecting to the fund...", MUTED)
 	column.add_child(_as_of)
-	var nav := HBoxContainer.new()
+	var nav := HFlowContainer.new()
 	column.add_child(nav)
 	for i in range(TerminalRules.PAGES.size()):
 		var function: String = TerminalRules.PAGES[i]
 		var b := Button.new()
-		b.text = "F%d %s" % [i + 1, function]
+		b.text = ("F%d %s" % [i + 1, function]) if i < 10 else function
 		b.toggle_mode = true
 		b.pressed.connect(func(): navigate(function))
 		nav.add_child(b)
 		_buttons[function] = b
 	_entry = LineEdit.new()
-	_entry.placeholder_text = "Function or symbol + Enter: MON / BRIN GP / PORT / RISK / NEWS / ORDERS / STREET / HELP / REPLAY / RESEARCH"
+	_entry.placeholder_text = "Command <GO>: BRIN DES / BRIN HP / COMP BRIN COVE / CORR / IMAP / ALRT BRIN > 105   (Tab completes, Up/Down history)"
 	_entry.text_submitted.connect(_command)
+	_entry.gui_input.connect(_entry_key)
 	column.add_child(_entry)
 	_status = _label("", AMBER)
 	column.add_child(_status)
@@ -164,6 +169,7 @@ func _fetch() -> void:
 		return
 	var changed := int(next.get("version", -1)) != int(data.get("version", -1)) or _stale
 	data = next
+	_check_alerts()
 	if _stale:
 		_status.text = ""
 	_stale = false
@@ -179,14 +185,59 @@ func navigate(function: String, selected := "") -> void:
 	_render()
 
 
+func _symbols() -> Array:
+	return data.get("quotes", []).map(func(q): return q["sym"])
+
+
 func _command(command: String) -> void:
-	var symbols: Array = data.get("quotes", []).map(func(q): return q["sym"])
-	var result := TerminalRules.parse(command, symbols, symbol)
+	var result := TerminalRules.parse(command, _symbols(), symbol)
 	if not result["ok"]:
 		_status.text = result["error"]
 		return
+	if _history.is_empty() or _history[-1] != command.strip_edges():
+		_history.append(command.strip_edges())
+	_history_at = _history.size()
 	_entry.clear()
+	if result.has("symbols"):
+		_comp = result["symbols"]
+	if result.get("clear", false):
+		_alerts.clear()
+	if result.has("alert"):
+		_alerts.append(result["alert"].merged({"hit": false}))
 	navigate(result["page"], result["symbol"])
+	if result.has("alert"):
+		_check_alerts()
+
+
+## Tab completes the last word (cycling when ambiguous); Up/Down walk this session's commands.
+func _entry_key(event: InputEvent) -> void:
+	if not event is InputEventKey or not event.pressed:
+		return
+	if event.keycode == KEY_TAB:
+		var options := TerminalRules.complete(_entry.text, _symbols())
+		if not options.is_empty():
+			var words := _entry.text.split(" ")
+			words[-1] = options[0]
+			_entry.text = " ".join(words) + " "
+			_entry.caret_column = _entry.text.length()
+			_status.text = ("Matches: " + " ".join(options.slice(0, 12))) if options.size() > 1 else ""
+		_entry.accept_event()
+	elif event.keycode in [KEY_UP, KEY_DOWN] and not _history.is_empty():
+		_history_at = clampi(_history_at + (-1 if event.keycode == KEY_UP else 1), 0, _history.size())
+		_entry.text = _history[_history_at] if _history_at < _history.size() else ""
+		_entry.caret_column = _entry.text.length()
+		_entry.accept_event()
+
+
+func _check_alerts() -> void:
+	for a in _alerts:
+		var q := TerminalRules.quote(data, a["sym"])
+		if a["hit"] or q.is_empty():
+			continue
+		if TerminalRules.alert_hit(a, float(q["mark"])):
+			a["hit"] = true
+			_status.text = "ALERT  %s %s %.4f  /  observed %.4f on day %d" % [a["sym"], a["op"], a["level"], float(q["mark"]),
+					int(data.get("as_of", {}).get("day", 0))]
 
 
 func _label(text: String, color := INK, font_size := 14) -> Label:
@@ -241,6 +292,12 @@ func _render() -> void:
 		"HELP": _help()
 		"REPLAY": _replay_page()
 		"RESEARCH": _research_page(refocus)
+		"DES": _describe()
+		"HP": _history_page()
+		"COMP": _compare()
+		"CORR": _correlations()
+		"IMAP": _heatmap()
+		"ALRT": _alerts_page()
 
 
 func _replay_page() -> void:
@@ -577,15 +634,183 @@ func _street() -> void:
 	_text("Public performance since the warm start. Rival holdings and unrevealed research are private.", MUTED)
 
 
+func _symbol_links(parent: Node) -> void:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	for f in ["GP", "DES", "HP"]:
+		var b := Button.new()
+		b.text = "%s %s" % [symbol, f]
+		b.disabled = f == page
+		b.pressed.connect(func(): navigate(f))
+		row.add_child(b)
+	var c := Button.new()
+	c.text = "COMP %s" % symbol
+	c.pressed.connect(func(): _comp = [symbol]; navigate("COMP"))
+	row.add_child(c)
+
+
+func _describe() -> void:
+	var q := TerminalRules.quote(data, symbol)
+	if q.is_empty():
+		_text("Select a known symbol from MON.", MUTED)
+		return
+	var s := TerminalRules.range_stats(TerminalRules.prices(data.get("history", []), symbol))
+	var qty := int(q["qty"])
+	var maint: Dictionary = data.get("risk", {}).get("maintenance_rates", {})
+	var side := "short" if qty < 0 else "long"
+	var orders: Array = data.get("orders", []).filter(func(o): return o["sym"] == symbol)
+	var headlines: Array = data.get("news", []).filter(func(n): return symbol in str(n.get("text", "")).to_upper())
+	_text("%s / SECURITY DESCRIPTION" % symbol, AMBER, 20)
+	_symbol_links(_body)
+	var grid := _grid(["Field", "Value"])
+	var rows := [
+		["Last observed mark", "%.4f" % float(q["mark"])],
+		["Mark when this fund opened", "--" if s.is_empty() else "%.4f" % s["first"]],
+		["Observed low / high", "--" if s.is_empty() else "%.4f / %.4f" % [s["low"], s["high"]]],
+		["Change since start / last event", "%s / %s bps" % [TerminalRules.bps(q["since_start_bps"]), TerminalRules.bps(q["change_bps"])]],
+		["Position", "%d shares (%s)" % [qty, "FLAT" if qty == 0 else side.to_upper()]],
+		["Signed market value / NAV weight", "%s / %s" % [WorldRules.money(q["mv"]), TerminalRules.pct(q["weight"])]],
+		["Borrowed / weighted borrow APR", "%d shares / %s" % [int(q["borrowed"]), TerminalRules.pct(q["borrow_rate"])]],
+		["Maintenance margin (%s side, today)" % side, TerminalRules.pct(maint.get(side))],
+		["Last observed event capacity", "%d shares" % int(q.get("observed_event_volume", 0))],
+		["Orders / headlines in this symbol", "%d / %d" % [orders.size(), headlines.size()]],
+	]
+	for r in rows:
+		grid.add_child(_label(r[0], MUTED))
+		grid.add_child(_label(r[1]))
+	_text("Fictional security: every figure comes from observed marks and your fund's own records. "
+			+ "This market publishes no company fundamentals, and capacity is not a promise of the next fill.", MUTED)
+
+
+func _history_page() -> void:
+	if TerminalRules.quote(data, symbol).is_empty():
+		_text("Select a known symbol from MON.", MUTED)
+		return
+	_text("%s / HISTORICAL MARKS (newest first)" % symbol, AMBER, 20)
+	_symbol_links(_body)
+	var grid := _grid(["Day", "Date", "Event", "Mark", "Change bps"])
+	var rows: Array = data.get("history", []).filter(func(o): return o.get("marks", {}).has(symbol))
+	for i in range(rows.size() - 1, -1, -1):
+		var o: Dictionary = rows[i]
+		var mark := float(str(o["marks"][symbol]))
+		var change := "--"
+		var color := MUTED
+		if i > 0:
+			var before := float(str(rows[i - 1]["marks"][symbol]))
+			if before != 0.0:
+				var bp := (mark / before - 1.0) * 10000.0
+				change = "%+.1f" % bp
+				color = GREEN if bp >= 0 else RED
+		for v in ["D%d" % int(o.get("day", 0)), str(o.get("date", "")), str(o.get("phase", "")), "%.4f" % mark]:
+			grid.add_child(_label(v))
+		grid.add_child(_label(change, color))
+	if rows.is_empty():
+		_text("No observations yet.", MUTED)
+	_text("One row per processed market event; these are observed marks, not exchange closes or OHLC bars.", MUTED)
+
+
+func _compare() -> void:
+	var picked: Array = _comp.filter(func(s): return not TerminalRules.quote(data, s).is_empty())
+	if picked.is_empty():
+		picked = [symbol]
+	_text("COMP / RELATIVE PERFORMANCE (rebased to 100)", AMBER, 20)
+	var chart := TerminalChart.new()
+	chart.custom_minimum_size = Vector2(0, 320)
+	var grid_rows: Array = []
+	for s in picked:
+		var vals := TerminalRules.prices(data.get("history", []), s)
+		chart.series[s] = TerminalRules.rebased(vals)
+		grid_rows.append([s, TerminalRules.range_stats(vals)])
+	_body.add_child(chart)
+	var grid := _grid(["Symbol", "First", "Last", "Change", "Low", "High"])
+	for r in grid_rows:
+		var st: Dictionary = r[1]
+		if st.is_empty():
+			continue
+		var change: float = (st["last"] / st["first"] - 1.0) * 100.0 if st["first"] != 0.0 else 0.0
+		for v in [r[0], "%.4f" % st["first"], "%.4f" % st["last"]]:
+			grid.add_child(_label(v))
+		grid.add_child(_label("%+.2f%%" % change, GREEN if change >= 0 else RED))
+		grid.add_child(_label("%.4f" % st["low"]))
+		grid.add_child(_label("%.4f" % st["high"]))
+	_text("Add symbols with COMP BRIN COVE DART (up to %d). Each line starts at 100 at its first observation." % TerminalRules.COMP_MAX, MUTED)
+
+
+func _correlations() -> void:
+	_text("CORR / CORRELATION OF EVENT RETURNS", AMBER, 20)
+	var syms := _symbols()
+	var rets := {}
+	for s in syms:
+		rets[s] = TerminalRules.returns(TerminalRules.prices(data.get("history", []), s))
+	if syms.is_empty() or rets[syms[0]].size() < 3:
+		_text("Correlation needs at least 4 observed events. Check back after the market has moved.", MUTED)
+		return
+	var grid := _grid([""] + syms)
+	for a in syms:
+		grid.add_child(_label(a, AMBER))
+		for b in syms:
+			var c := TerminalRules.correlation(rets[a], rets[b])
+			if is_nan(c):
+				grid.add_child(_label("--", MUTED))
+			else:
+				grid.add_child(_label("%+.2f" % c, GREEN if c >= 0.5 else (RED if c <= -0.5 else INK)))
+	_text("Pearson correlation over %d event-to-event returns. Few observations make these noisy; a squeeze can flip them." % rets[syms[0]].size(), MUTED)
+
+
+func _heatmap() -> void:
+	_text("IMAP / MARKET HEATMAP (change since the fund opened)", AMBER, 20)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	_body.add_child(grid)
+	for q in data.get("quotes", []):
+		var sym: String = q["sym"]
+		var bp: Variant = q["since_start_bps"]
+		var v := 0.0 if bp == null else float(str(bp))
+		var strength := clampf(absf(v) / 1000.0, 0.15, 1.0)
+		var tile := Button.new()
+		tile.custom_minimum_size = Vector2(200, 72)
+		tile.text = "%s\n%s bps%s" % [sym, TerminalRules.bps(bp), "" if int(q["qty"]) == 0 else ("  LONG" if int(q["qty"]) > 0 else "  SHORT")]
+		var base := Color("#0e7a4f") if v >= 0 else Color("#9b2c2c")
+		var box := _box(Color("#101820").lerp(base, strength))
+		for state in ["normal", "hover", "pressed", "focus"]:
+			tile.add_theme_stylebox_override(state, box)
+		tile.pressed.connect(func(): navigate("DES", sym))
+		grid.add_child(tile)
+	_text("Greener is up, redder is down; full colour at +/-1,000 bps. Select a tile for its description.", MUTED)
+
+
+func _alerts_page() -> void:
+	_text("ALRT / PRICE ALERTS (this session)", AMBER, 20)
+	if _alerts.is_empty():
+		_text("No alerts. Type ALRT BRIN > 105.5 or ALRT COVE < 90 and press Enter.", MUTED)
+	var grid := _grid(["Symbol", "Condition", "Last mark", "Status"]) if not _alerts.is_empty() else null
+	for a in _alerts:
+		var q := TerminalRules.quote(data, a["sym"])
+		grid.add_child(_label(a["sym"]))
+		grid.add_child(_label("%s %.4f" % [a["op"], a["level"]]))
+		grid.add_child(_label("--" if q.is_empty() else "%.4f" % float(q["mark"])))
+		grid.add_child(_label("TRIGGERED" if a["hit"] else "WATCHING", AMBER if a["hit"] else MUTED))
+	_text("Alerts check every observed mark while the terminal is running. ALRT CLEAR removes them. They never place orders.", MUTED)
+
+
 func _help() -> void:
 	_text("FUNCTION DIRECTORY", AMBER, 20)
 	for row in ["MON       Market monitor; select a symbol for its chart", "BRIN GP   Observed price history for BRIN (any known symbol works)",
 			"PORT      Signed holdings and NAV weights", "RISK      Static stress and liquidity/cure scenarios",
 			"NEWS      Shared notices and research visible to your seat", "ORDERS    Accepted orders and fill status",
 			"STREET    Rival-fund league table", "REPLAY    Completed-run causal comparisons",
-			"RESEARCH  Regime question, published prior/posterior and your thesis (generated markets)"]:
+			"RESEARCH  Regime question, published prior/posterior and your thesis (generated markets)",
+			"BRIN DES  Security description: marks, range, position, borrow, margin, capacity",
+			"BRIN HP   Historical marks table, newest first",
+			"COMP A B  Relative performance of up to 6 symbols, rebased to 100",
+			"CORR      Correlation matrix of event-to-event returns",
+			"IMAP      Heatmap of every security since the fund opened",
+			"ALRT      Price alerts: ALRT BRIN > 105.5 / ALRT CLEAR"]:
 		_text(row)
-	_text("F1-F10 switch functions. Enter selects a function. Escape returns to the office. T opens the terminal from the world.", MUTED)
+	_text("F1-F10 switch the first ten functions. Type a command and press Enter (a trailing GO is optional). "
+			+ "Tab completes functions and symbols; Up/Down recall earlier commands. Escape returns to the office.", MUTED)
 	_text("Use Trading desk to submit a ticket or propose a package. Your partner's signature and all risk limits still apply.", MUTED)
 
 

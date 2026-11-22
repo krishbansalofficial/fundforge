@@ -74,7 +74,15 @@ func _dev_flags() -> void:
 		for _attempt in range(100):
 			if hud:
 				hud.open_terminal()
-				hud.terminal.navigate(str(args.get("terminal", "MON")))
+				var command := str(args.get("terminal", "MON"))
+				if " " in command:  # a full command such as "COMP BRIN COVE" needs the symbol list first
+					for _wait in range(100):
+						if not hud.terminal.data.get("quotes", []).is_empty():
+							break
+						await get_tree().create_timer(0.1).timeout
+					hud.terminal._command(command)
+				else:
+					hud.terminal.navigate(command)
 				break
 			await get_tree().create_timer(0.1).timeout
 	if args.has("thesis"):  # --terminal=RESEARCH --thesis=0.4: types the calm probability and presses Record
