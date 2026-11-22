@@ -26,14 +26,15 @@ jobs:
   bench-ab:
     # B1 A/B gate (docs/BENCHMARKS.md): PR base and head on the same runner, interleaved; rule in scripts/bench_ab.py.
     # The gate script and threshold come from the trusted base checkout, never from the PR being gated.
-    if: github.event_name == 'pull_request'
+    # On a push to main the base is the previous head (work lands on main without PRs).
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before != '0000000000000000000000000000000000000000')
     runs-on: ubuntu-24.04  # ubuntu-latest moved to 26.04, where Playwright has no Chromium
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with: { persist-credentials: false }
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
-        with: { ref: "${{ github.event.pull_request.base.sha }}", path: base, persist-credentials: false }
+        with: { ref: "${{ github.event.pull_request.base.sha || github.event.before }}", path: base, persist-credentials: false }
       - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5.4.2
       - run: cd backend && uv sync --locked --python 3.13
       - run: backend/.venv/bin/python base/scripts/bench_ab.py --base base --head . --rounds 9 --python "$PWD/backend/.venv/bin/python"
