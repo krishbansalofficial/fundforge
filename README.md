@@ -14,7 +14,9 @@ You can play solo with a deterministic **bot partner**, or with a friend as two 
 
 ## Features
 
-- **Forge Terminal.** Press **T** for a keyboard-driven workstation: market monitor, observed price charts, signed portfolio exposure, hypothetical stress tests, published news, order blotter and rival rankings. Enter `BRIN GP` or switch functions with F1-F9. It reads the simulation's current/past data; trades still use the fund's approval rules.
+- **Forge Terminal.** Press **T** for a keyboard-driven workstation with 20 functions: market monitor, price charts and history (`BRIN GP`, `BRIN HP`), security descriptions (`BRIN DES`), relative performance (`COMP BRIN COVE`), correlations, a heatmap, trading P&L, financing and borrow book, known deadlines, news search, price alerts, an order ticket that drafts to the trading desk, stress tests, rival rankings and a four-panel view (`PANELS`). Tab completes, Up/Down recalls commands. It reads only the simulation's current and past data; trades still use the fund's approval rules.
+
+  ![Forge Terminal four-panel view on day 18](docs/images/forge-terminal-panels.png)
 - **Broker review challenge.** Select it in the Godot menu to investigate an incorrect cash statement. RISK shows dated evidence, linked corrections and an aged break queue. Unresolved discrepancies block new risk and redemption dealing; MP review preserves the original evidence. Independent broker cash and loan-fee calculations check the journal.
 - **Independent LP and fee checks.** RISK reconstructs series capital, daily management fees and performance provisions. Redemption payable, crystallized fee and surviving HWM are checked before units change.
 - **Co-op evidence and analysis.** Role-specific private research with explicit sharing, attention-limited assignments, hypothetical liquidity/cure comparisons, completed-run causal replay, and independent execution/valuation checks.
