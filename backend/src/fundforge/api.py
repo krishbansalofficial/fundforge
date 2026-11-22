@@ -2,11 +2,11 @@
 
 import asyncio
 import contextlib
+import hashlib
 import json
 import logging
 import os
 import re
-import secrets
 import threading
 import time
 import uuid
@@ -14,6 +14,7 @@ from collections import deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect
@@ -340,9 +341,19 @@ def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
         raise HTTPException(422, str(e)) from e
 
 
-# A room can only become incompatible (new rules/tape) across a server restart; a fresh epoch per
-# process makes the first poll after a restart take the full path, which checks compatibility.
-EPOCH = secrets.token_hex(4)
+# A room can only become incompatible (new rules/tape) when the deployed code or data changes; the epoch hashes
+# them, so the first poll after such a deploy takes the full path, which checks compatibility. It must be the same
+# in every worker process: a random per-process token made each of N workers reject the others' ETags (B3 at
+# 4 workers: 30% 304s instead of 93%).
+def _code_epoch() -> str:
+    h = hashlib.sha256()
+    root = Path(__file__).parent
+    for f in sorted(p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts):
+        h.update(f.relative_to(root).as_posix().encode() + b"\0" + f.read_bytes())
+    return h.hexdigest()[:8]
+
+
+EPOCH = _code_epoch()
 
 
 def _etag(version: int, running: bool) -> str:

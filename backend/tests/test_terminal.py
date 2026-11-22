@@ -1,6 +1,8 @@
 """Terminal information boundary, independent stress oracles and economic inertness."""
 
 import os
+import subprocess
+import sys
 from decimal import Decimal, localcontext
 
 import pytest
@@ -195,3 +197,12 @@ def test_terminal_survives_postgres_replay_without_logging_reads():
         assert st.verify(rid) == verification
     finally:
         st.close()
+
+
+def test_view_etag_epoch_is_the_same_in_every_worker_process() -> None:
+    # uvicorn --workers N spawns N processes; a per-process epoch made them reject each other's ETags.
+    import fundforge.api as api
+
+    cmd = [sys.executable, "-c", "from fundforge.api import EPOCH; print(EPOCH)"]
+    first, second = (subprocess.run(cmd, capture_output=True, text=True, check=True).stdout for _ in range(2))
+    assert first == second == api.EPOCH + "\n"
