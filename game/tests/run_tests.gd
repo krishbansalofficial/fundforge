@@ -648,7 +648,9 @@ func _ui_checks() -> void:
 			"pnl": {"rows": [{"sym": "BRIN", "opening_qty": -12500, "reference_mark": "100", "bought": 100, "sold": 0,
 				"paid": "10000", "received": "0", "qty": -12400, "mark": "100", "pnl": "-25.50"},
 				{"sym": "ALTO", "opening_qty": 5, "reference_mark": "1", "bought": 0, "sold": 0, "paid": "0",
-				"received": "0", "qty": 5, "mark": "1", "pnl": null}], "total": "-25.50", "method": "test"}}
+				"received": "0", "qty": 5, "mark": "1", "pnl": null}], "total": "-25.50", "method": "test"},
+			"calendar": [{"day": 13, "kind": "recall", "known_since": 12, "text": "Recall deadline EXEC_B"},
+				{"day": null, "kind": "redemption", "known_since": 12, "text": "Tactical redemption notice"}]}
 	terminal.open()
 	check(terminal.is_open(), "terminal opens over world")
 	for page in TerminalRules.PAGES:
@@ -669,6 +671,11 @@ func _ui_checks() -> void:
 			and terminal._status.text.begins_with("ALERT"), "alert triggers on the current mark")
 	terminal._command("ALRT CLEAR")
 	check(terminal._alerts.is_empty(), "ALRT CLEAR empties alerts")
+	terminal._command("NEWS recall")
+	check(terminal.page == "NEWS" and terminal._news_query == "RECALL", "NEWS search keeps its query")
+	terminal._command("NEWS")
+	check(terminal._news_query == "", "NEWS alone clears the search")
+	check(TerminalRules.parse("NEWS brin recall", ["BRIN"], "BRIN")["query"] == "BRIN RECALL", "NEWS query parsed")
 	terminal._entry.text = "BRIN G"
 	terminal.set_view({"version": 4})
 	terminal._render()

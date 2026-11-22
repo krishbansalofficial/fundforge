@@ -401,6 +401,20 @@ export interface components {
             /** Statement Count */
             statement_count: number;
         };
+        /** CalendarItem */
+        CalendarItem: {
+            /** Day */
+            day: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "payroll" | "recall" | "redemption";
+            /** Known Since */
+            known_since: number | null;
+            /** Text */
+            text: string;
+        };
         /** Cancel */
         Cancel: {
             /** Order Id */
@@ -1808,6 +1822,8 @@ export interface components {
          */
         TerminalView: {
             as_of: components["schemas"]["AsOf"];
+            /** Calendar */
+            calendar: components["schemas"]["CalendarItem"][];
             /** Finished */
             finished: boolean;
             /** History */

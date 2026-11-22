@@ -628,6 +628,54 @@
         "title": "BrokerSummary",
         "type": "object"
       },
+      "CalendarItem": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "kind": {
+            "enum": [
+              "payroll",
+              "recall",
+              "redemption"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "known_since": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Known Since"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day",
+          "kind",
+          "known_since",
+          "text"
+        ],
+        "title": "CalendarItem",
+        "type": "object"
+      },
       "Cancel": {
         "additionalProperties": false,
         "properties": {
@@ -4713,6 +4761,13 @@
           "as_of": {
             "$ref": "#/components/schemas/AsOf"
           },
+          "calendar": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarItem"
+            },
+            "title": "Calendar",
+            "type": "array"
+          },
           "finished": {
             "title": "Finished",
             "type": "boolean"
@@ -4826,6 +4881,7 @@
           "orders",
           "league",
           "pnl",
+          "calendar",
           "macro",
           "regime",
           "version"

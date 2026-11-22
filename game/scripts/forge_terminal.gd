@@ -36,6 +36,7 @@ var _replay_loading := false
 var _thesis_calm := ""  # survives re-renders while the partner or clock changes the room
 var _thesis_sending := false
 var _comp: Array = []  # COMP symbols
+var _news_query := ""
 var _alerts: Array = []  # {sym, op, level, hit}; this session only, never sent to the server
 var _history := PackedStringArray()
 var _history_at := 0
@@ -200,6 +201,7 @@ func _command(command: String) -> void:
 	_entry.clear()
 	if result.has("symbols"):
 		_comp = result["symbols"]
+	_news_query = str(result.get("query", "")) if result["page"] == "NEWS" else _news_query
 	if result.get("clear", false):
 		_alerts.clear()
 	if result.has("alert"):
@@ -299,6 +301,8 @@ func _render() -> void:
 		"IMAP": _heatmap()
 		"ALRT": _alerts_page()
 		"PNL": _pnl_page()
+		"CAL": _calendar_page()
+		"FIN": _financing_page()
 
 
 func _replay_page() -> void:
@@ -601,10 +605,13 @@ func _run_lab() -> void:
 
 
 func _news() -> void:
-	_text("NEWS / PUBLISHED FEED", AMBER, 20)
+	_text("NEWS / PUBLISHED FEED" + ("   search: " + _news_query if _news_query != "" else ""), AMBER, 20)
 	var news: Array = data.get("news", []).duplicate()
 	news.reverse()
-	if news.is_empty(): _text("No published news yet.", MUTED)
+	if _news_query != "":
+		news = news.filter(func(n): return _news_query in str(n.get("text", "")).to_upper())
+		_text("%d matching item(s). Type NEWS alone to clear the search." % news.size(), MUTED)
+	if news.is_empty(): _text("No published news yet." if _news_query == "" else "Nothing published matches.", MUTED)
 	for n in news:
 		_text("D%d %s / %s   %s / %s" % [int(n["day"]), n["date"], n["phase"], str(n["kind"]).to_upper(),
 				str(n.get("visibility", "shared")).to_upper()], AMBER)
@@ -803,6 +810,55 @@ func _pnl_page() -> void:
 	_text(str(pnl.get("method", "")), MUTED)
 
 
+func _calendar_page() -> void:
+	_text("CAL / KNOWN DATES (soonest first)", AMBER, 20)
+	var today := int(data.get("as_of", {}).get("day", 0))
+	var items: Array = data.get("calendar", [])
+	if items.is_empty():
+		_text("Nothing scheduled that your seat knows about.", MUTED)
+	var grid := _grid(["Day", "In", "Kind", "Known since", "Detail"]) if not items.is_empty() else null
+	for x in items:
+		var d: Variant = x["day"]
+		grid.add_child(_label("see text" if d == null else "D%d" % int(d)))
+		grid.add_child(_label("--" if d == null else ("today" if int(d) == today else "%+d days" % (int(d) - today)),
+				RED if d != null and int(d) - today <= 1 else INK))
+		grid.add_child(_label(str(x["kind"]).to_upper(), AMBER))
+		grid.add_child(_label("rule" if x["known_since"] == null else "D%d" % int(x["known_since"])))
+		var detail := _label(str(x["text"]))
+		detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		detail.custom_minimum_size = Vector2(600, 0)
+		grid.add_child(detail)
+	_text("Only dates already announced to your seat or fixed by public rules. Nothing is read ahead of the clock.", MUTED)
+
+
+func _financing_page() -> void:
+	_text("FIN / FINANCING AND BORROW BOOK", AMBER, 20)
+	var r: Dictionary = data.get("risk", {})
+	var grid := _grid(["Item", "Value"])
+	for row in [["Cash", WorldRules.money(r.get("cash", 0))], ["Restricted short collateral", WorldRules.money(r.get("restricted_collateral", 0))],
+			["Debt", WorldRules.money(r.get("debt", 0))], ["Credit left", WorldRules.money(r.get("credit_left", 0))],
+			["Maintenance requirement", WorldRules.money(r.get("maintenance_req", 0))], ["Headroom", WorldRules.money(r.get("headroom", 0))]]:
+		grid.add_child(_label(row[0], MUTED))
+		grid.add_child(_label(row[1], RED if row[0] == "Headroom" and float(str(r.get("headroom", 0))) < 0 else INK))
+	var rates: Dictionary = r.get("maintenance_rates", {})
+	_text("Maintenance rates today: long %s / short %s" % [TerminalRules.pct(rates.get("long")), TerminalRules.pct(rates.get("short"))])
+	_text("BORROWED SHARES", AMBER)
+	var b := _grid(["Symbol", "Short position", "Borrowed", "Weighted APR", "Covered by borrow"])
+	var any := false
+	for q in data.get("quotes", []):
+		if int(q["borrowed"]) == 0 and int(q["qty"]) >= 0:
+			continue
+		any = true
+		for v in [q["sym"], str(int(q["qty"])), str(int(q["borrowed"])), TerminalRules.pct(q["borrow_rate"])]:
+			b.add_child(_label(v))
+		var short := maxi(0, -int(q["qty"]))
+		b.add_child(_label("yes" if int(q["borrowed"]) >= short else "NO: %d short of borrow" % (short - int(q["borrowed"])),
+				INK if int(q["borrowed"]) >= short else RED))
+	if not any:
+		_text("No borrowed shares.", MUTED)
+	_text("Cash in restricted collateral is not spendable. Borrow fees accrue on calendar days at the stated APR.", MUTED)
+
+
 func _alerts_page() -> void:
 	_text("ALRT / PRICE ALERTS (this session)", AMBER, 20)
 	if _alerts.is_empty():
@@ -830,7 +886,10 @@ func _help() -> void:
 			"CORR      Correlation matrix of event-to-event returns",
 			"IMAP      Heatmap of every security since the fund opened",
 			"ALRT      Price alerts: ALRT BRIN > 105.5 / ALRT CLEAR",
-			"PNL       Trading P&L by security since the fund opened (server Decimal)"]:
+			"PNL       Trading P&L by security since the fund opened (server Decimal)",
+			"CAL       Known dates: payroll, recall deadline, published redemption notices",
+			"FIN       Financing: cash, collateral, debt, credit, headroom, borrow book",
+			"NEWS word Search published news (NEWS BRIN, NEWS RECALL)"]:
 		_text(row)
 	_text("F1-F10 switch the first ten functions. Type a command and press Enter (a trailing GO is optional). "
 			+ "Tab completes functions and symbols; Up/Down recall earlier commands. Escape returns to the office.", MUTED)

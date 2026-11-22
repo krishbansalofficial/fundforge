@@ -249,3 +249,33 @@ def test_trading_pnl_before_any_trade_is_mark_move_on_the_opening_book():
     for sym, r in rows.items():
         assert r["bought"] == r["sold"] == 0
         assert Decimal(r["pnl"]) == (r["qty"] * (e.marks[sym] - Decimal(r["reference_mark"]))).quantize(Decimal("0.01"))
+
+
+def test_calendar_shows_the_recall_only_from_its_announcement_day():
+    e = fresh()
+    rc = e.tape.raw["borrow"]["recall"]
+    assert e.ev.day < rc["announce_day"]
+    before = snapshot(e)
+    assert not [x for x in before["calendar"] if x["kind"] == "recall"]
+    saved = dict(rc)
+    rc.update(deadline_day=999, qty=987654)  # unannounced details must not be read
+    assert snapshot(e) == before
+    rc.clear()
+    rc.update(saved)
+    while e.ev.day < rc["announce_day"]:
+        e.advance()
+    recall = [x for x in snapshot(e)["calendar"] if x["kind"] == "recall"]
+    assert len(recall) == 1 and recall[0]["day"] == rc["deadline_day"]
+    assert recall[0]["known_since"] == rc["announce_day"]
+
+
+def test_calendar_payroll_follows_the_public_rule_and_redemptions_come_from_published_notices():
+    e = fresh()
+    n = e.tape.raw["firm"]["pay_every_n_days"]
+    cal = snapshot(e)["calendar"]
+    pay = [x["day"] for x in cal if x["kind"] == "payroll"]
+    assert len(pay) == 2 and all(d > e.ev.day and d % n == 0 for d in pay) and pay[1] - pay[0] == n
+    published = [x for x in e.visible_notices() if x["code"] == "redemption_notice"]
+    assert [x["text"] for x in cal if x["kind"] == "redemption"] == [x["text"] for x in published]
+    days = [x["day"] for x in cal if x["day"] is not None]
+    assert days == sorted(days)

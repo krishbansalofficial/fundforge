@@ -616,6 +616,13 @@ class TerminalPnl(Strict):
     method: str
 
 
+class CalendarItem(Strict):
+    day: int | None  # None when the published notice states its date only in text
+    kind: Literal["payroll", "recall", "redemption"]
+    known_since: int | None
+    text: str
+
+
 class TerminalView(Strict):
     """``GET /api/rooms/{id}/terminal``: read-only as-of analytics at one room version."""
     schema_: Literal["forge-terminal-v1"] = Field(alias="schema")
@@ -632,6 +639,7 @@ class TerminalView(Strict):
     orders: list[TerminalOrder]
     league: list[LeagueRow]
     pnl: TerminalPnl
+    calendar: list[CalendarItem]
     macro: list[MacroPrint]  # empty in authored markets
     regime: RegimeQuestion | None  # generated markets only
     version: int

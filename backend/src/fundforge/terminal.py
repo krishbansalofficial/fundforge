@@ -80,6 +80,29 @@ def trading_pnl(e: Engine) -> dict[str, Any]:
                           "Excludes borrow fees, financing, fund expenses and fees."}
 
 
+def calendar(e: Engine, role: str | None = None) -> list[dict[str, Any]]:
+    """Dates the seat already knows, soonest first. Only: the public payroll rule, a recall deadline from its
+    announcement day, and redemption notices already published to this seat (structured date when the notice
+    carries one, otherwise its own text). No future tape row, margin change or unannounced flow is read."""
+    day, out = e.ev.day, []
+    firm = e.tape.raw["firm"]
+    n = int(firm["pay_every_n_days"])
+    nxt = day + (n - day % n if day % n else n)
+    for d in (nxt, nxt + n):
+        out.append({"day": d, "kind": "payroll", "known_since": None,
+                    "text": f"Firm payroll ({firm['payroll_per_business_day']}/business day) is paid from firm cash"})
+    rc = e.tape.raw.get("borrow", {}).get("recall")
+    if rc and day >= rc["announce_day"]:
+        state = "open" if e.recall_open else f"resolved ({e.recall_resolved_by})"
+        out.append({"day": rc["deadline_day"], "kind": "recall", "known_since": rc["announce_day"],
+                    "text": f"Recall deadline {rc['deadline_event']}: {rc['qty']} {rc['sym']} shares; {state}"})
+    for note in e.visible_notices(role):
+        if note.get("code") == "redemption_notice":
+            out.append({"day": note.get("refs", {}).get("deal_day"), "kind": "redemption", "known_since": note["day"],
+                        "text": note["text"]})
+    return sorted(out, key=lambda x: (x["day"] is None, x["day"] or 0))
+
+
 def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
     """Projection from observed state only; private research is filtered by seat role.
 
@@ -141,6 +164,7 @@ def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
                         "forced": o.forced, "fills": [dict(f) for f in o.fills]} for o in e.orders[-100:]],
             "league": [dict(r) for r in e.league()],
             "pnl": trading_pnl(e),
+            "calendar": calendar(e, role),
             # Indicator prints published by today; a later revision stays hidden until its own day.
             "macro": [{"series": o.instrument, "period_day": o.event_time, "published_day": o.available_at,
                        "revision": o.revision, "value": str(o.value)} for o in e.tape.macro.known(e.ev.day)],

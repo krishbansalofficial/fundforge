@@ -4,7 +4,7 @@ extends RefCounted
 
 ## F1-F10 keep the first ten; the rest are reached from the command line or the function bar.
 const PAGES := ["MON", "GP", "PORT", "RISK", "NEWS", "ORDERS", "STREET", "HELP", "REPLAY", "RESEARCH",
-		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL"]
+		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL", "CAL", "FIN"]
 const SYMBOL_PAGES := ["GP", "DES", "HP"]  # functions about one security: BRIN DES, DES BRIN
 const COMP_MAX := 6
 
@@ -29,6 +29,8 @@ static func parse(command: String, symbols: Array, current_symbol: String) -> Di
 		if picked.size() > COMP_MAX:
 			return {"ok": false, "error": "COMP compares at most %d symbols." % COMP_MAX}
 		return {"ok": true, "page": "COMP", "symbol": picked[0], "symbols": picked}
+	if head == "NEWS" and tokens.size() > 1:  # NEWS BRIN / NEWS RECALL: case-insensitive text search
+		return {"ok": true, "page": "NEWS", "symbol": current_symbol, "query": " ".join(tokens.slice(1))}
 	if head == "ALRT" and tokens.size() > 1:
 		return _alert(tokens, symbols, current_symbol)
 	if tokens.size() == 1:
