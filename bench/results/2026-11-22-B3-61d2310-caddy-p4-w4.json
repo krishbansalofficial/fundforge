@@ -1,0 +1,433 @@
+{
+  "benchmark": "B3-api-load",
+  "commit": "61d2310",
+  "rules_version": "case1-rules-2026.11.3",
+  "measured_at": "2026-11-22T01:23:18+00:00",
+  "machine": "Docker Desktop WSL2, Intel i9-14900HX laptop, 32 logical CPUs",
+  "python": "3.13.18",
+  "client_libs": {
+    "httpx": "0.28.1",
+    "httpcore": "1.0.9",
+    "anyio": "4.6.2",
+    "h11": "0.16.0"
+  },
+  "stack": "deploy/compose.prod.yaml on Docker Desktop (WSL2), client on the Windows host, via Caddy TLS",
+  "method": {
+    "poll_s": 0.5,
+    "ready_every_s": 10,
+    "step_seconds": 60.0,
+    "warmup_s": 10,
+    "steps": [
+      10,
+      25,
+      50,
+      100,
+      200
+    ],
+    "base": "https://localhost",
+    "client": "4 Python process(es), httpx async, HTTP/1.1, rooms split round-robin, one wall-clock step schedule shared by all processes"
+  },
+  "client_procs": 4,
+  "target": "p95 GET /view < 100 ms and zero 5xx at 100 rooms",
+  "target_met": true,
+  "knee_rooms": 200,
+  "limits": [
+    "client and server share one machine, so they compete for CPU",
+    "not the intended production VM size; a laptop under Docker Desktop",
+    "a saturated client under-reports load; such steps are flagged and are not a server limit"
+  ],
+  "steps": [
+    {
+      "rooms": 10,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 2422,
+        "p50": 8.17,
+        "p95": 24.07,
+        "p99": 45.05
+      },
+      "command_ms": {
+        "n": 120,
+        "p50": 35.04,
+        "p95": 78.81,
+        "p99": 97.81
+      },
+      "status": {
+        "view": {
+          "304": 2242,
+          "200": 180
+        },
+        "command": {
+          "200": 79,
+          "422": 41
+        }
+      },
+      "ratio_304": 0.926,
+      "view_rps_target": 40.0,
+      "view_rps_achieved": 40.4,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 30,
+        "mean_ms": 24.24,
+        "p95_ms_bucket_upper": 75.0
+      },
+      "docker_cpu": {
+        "dreamy_wu": {
+          "mean_cpu_pct": 4.9,
+          "max_cpu_pct": 11.1,
+          "samples": 30
+        },
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 12.2,
+          "max_cpu_pct": 30.37,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 1.5,
+          "max_cpu_pct": 3.93,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 1.8,
+          "max_cpu_pct": 7.09,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 30
+        },
+        "fundforge-db-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.49,
+          "samples": 30
+        }
+      }
+    },
+    {
+      "rooms": 25,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 6030,
+        "p50": 11.88,
+        "p95": 33.99,
+        "p99": 66.51
+      },
+      "command_ms": {
+        "n": 300,
+        "p50": 41.83,
+        "p95": 85.61,
+        "p99": 97.0
+      },
+      "status": {
+        "view": {
+          "304": 5528,
+          "200": 502
+        },
+        "command": {
+          "200": 236,
+          "422": 64
+        }
+      },
+      "ratio_304": 0.917,
+      "view_rps_target": 100.0,
+      "view_rps_achieved": 100.5,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 14,
+        "mean_ms": 4.57,
+        "p95_ms_bucket_upper": 25.0
+      },
+      "docker_cpu": {
+        "dreamy_wu": {
+          "mean_cpu_pct": 13.5,
+          "max_cpu_pct": 31.22,
+          "samples": 30
+        },
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 30.3,
+          "max_cpu_pct": 64.61,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 3.6,
+          "max_cpu_pct": 8.44,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 4.4,
+          "max_cpu_pct": 11.39,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.02,
+          "samples": 30
+        },
+        "fundforge-db-1": {
+          "mean_cpu_pct": 0.1,
+          "max_cpu_pct": 0.45,
+          "samples": 30
+        }
+      }
+    },
+    {
+      "rooms": 50,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 12034,
+        "p50": 10.59,
+        "p95": 40.47,
+        "p99": 90.95
+      },
+      "command_ms": {
+        "n": 597,
+        "p50": 90.91,
+        "p95": 151.0,
+        "p99": 173.37
+      },
+      "status": {
+        "view": {
+          "304": 11192,
+          "200": 842
+        },
+        "command": {
+          "200": 404,
+          "422": 193
+        }
+      },
+      "ratio_304": 0.93,
+      "view_rps_target": 200.0,
+      "view_rps_achieved": 200.6,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 147,
+        "mean_ms": 53.94,
+        "p95_ms_bucket_upper": 250.0
+      },
+      "docker_cpu": {
+        "dreamy_wu": {
+          "mean_cpu_pct": 27.0,
+          "max_cpu_pct": 33.81,
+          "samples": 29
+        },
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 60.6,
+          "max_cpu_pct": 149.1,
+          "samples": 29
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 28
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 6.9,
+          "max_cpu_pct": 12.0,
+          "samples": 29
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 9.6,
+          "max_cpu_pct": 36.45,
+          "samples": 29
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.04,
+          "samples": 29
+        },
+        "fundforge-db-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.13,
+          "samples": 29
+        }
+      }
+    },
+    {
+      "rooms": 100,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 23993,
+        "p50": 7.23,
+        "p95": 95.02,
+        "p99": 191.22
+      },
+      "command_ms": {
+        "n": 1090,
+        "p50": 201.97,
+        "p95": 339.67,
+        "p99": 487.65
+      },
+      "status": {
+        "view": {
+          "304": 22794,
+          "200": 1199
+        },
+        "command": {
+          "422": 487,
+          "200": 603
+        }
+      },
+      "ratio_304": 0.95,
+      "view_rps_target": 400.0,
+      "view_rps_achieved": 399.9,
+      "client_saturated": false,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 164,
+        "mean_ms": 111.78,
+        "p95_ms_bucket_upper": 250.0
+      },
+      "docker_cpu": {
+        "dreamy_wu": {
+          "mean_cpu_pct": 74.0,
+          "max_cpu_pct": 127.9,
+          "samples": 30
+        },
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 112.4,
+          "max_cpu_pct": 354.66,
+          "samples": 30
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 16.8,
+          "max_cpu_pct": 48.3,
+          "samples": 30
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 16.7,
+          "max_cpu_pct": 49.69,
+          "samples": 30
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.03,
+          "samples": 30
+        },
+        "fundforge-db-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.01,
+          "samples": 30
+        }
+      }
+    },
+    {
+      "rooms": 200,
+      "seconds": 60.0,
+      "view_ms": {
+        "n": 21557,
+        "p50": 486.56,
+        "p95": 2976.02,
+        "p99": 4606.96
+      },
+      "command_ms": {
+        "n": 1890,
+        "p50": 740.58,
+        "p95": 2637.41,
+        "p99": 3616.1
+      },
+      "status": {
+        "view": {
+          "304": 18664,
+          "200": 2893
+        },
+        "command": {
+          "200": 1516,
+          "422": 374
+        }
+      },
+      "ratio_304": 0.866,
+      "view_rps_target": 800.0,
+      "view_rps_achieved": 359.3,
+      "client_saturated": true,
+      "http_5xx": 0,
+      "client_errors": 0,
+      "server_command_seconds": {
+        "count": 588,
+        "mean_ms": 58.44,
+        "p95_ms_bucket_upper": 250.0
+      },
+      "docker_cpu": {
+        "dreamy_wu": {
+          "mean_cpu_pct": 371.0,
+          "max_cpu_pct": 401.22,
+          "samples": 29
+        },
+        "fundforge-bench-api-1": {
+          "mean_cpu_pct": 173.7,
+          "max_cpu_pct": 504.75,
+          "samples": 29
+        },
+        "fundforge-bench-backup-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 28
+        },
+        "fundforge-bench-caddy-1": {
+          "mean_cpu_pct": 28.0,
+          "max_cpu_pct": 88.13,
+          "samples": 29
+        },
+        "fundforge-bench-db-1": {
+          "mean_cpu_pct": 25.6,
+          "max_cpu_pct": 63.93,
+          "samples": 29
+        },
+        "fundforge-bench-web-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.0,
+          "samples": 29
+        },
+        "fundforge-db-1": {
+          "mean_cpu_pct": 0.0,
+          "max_cpu_pct": 0.36,
+          "samples": 29
+        }
+      }
+    }
+  ],
+  "windows_unix": [
+    [
+      1795310257.9,
+      1795310317.9
+    ],
+    [
+      1795310327.9,
+      1795310387.9
+    ],
+    [
+      1795310397.9,
+      1795310457.9
+    ],
+    [
+      1795310467.9,
+      1795310527.9
+    ],
+    [
+      1795310537.9,
+      1795310597.9
+    ]
+  ]
+}
