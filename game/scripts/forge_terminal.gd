@@ -298,6 +298,7 @@ func _render() -> void:
 		"CORR": _correlations()
 		"IMAP": _heatmap()
 		"ALRT": _alerts_page()
+		"PNL": _pnl_page()
 
 
 func _replay_page() -> void:
@@ -781,6 +782,27 @@ func _heatmap() -> void:
 	_text("Greener is up, redder is down; full colour at +/-1,000 bps. Select a tile for its description.", MUTED)
 
 
+func _pnl_page() -> void:
+	_text("PNL / TRADING P&L SINCE THE FUND OPENED", AMBER, 20)
+	var pnl: Dictionary = data.get("pnl", {})
+	if pnl.is_empty():
+		_text("P&L is not available from this server.", MUTED)
+		return
+	var grid := _grid(["Symbol", "Opening qty", "Opening mark", "Bought", "Sold", "Qty now", "Mark", "P&L"])
+	for r in pnl.get("rows", []):
+		if int(r["opening_qty"]) == 0 and int(r["bought"]) == 0 and int(r["sold"]) == 0:
+			continue
+		for v in [r["sym"], str(int(r["opening_qty"])), "%.4f" % float(r["reference_mark"]), str(int(r["bought"])),
+				str(int(r["sold"])), str(int(r["qty"])), "%.4f" % float(r["mark"])]:
+			grid.add_child(_label(v))
+		var p: Variant = r["pnl"]
+		grid.add_child(_label("does not reconcile" if p == null else WorldRules.money(p),
+				AMBER if p == null else (GREEN if float(str(p)) >= 0 else RED)))
+	var total := float(str(pnl.get("total", "0")))
+	_text("Total trading P&L %s" % WorldRules.money(pnl.get("total", "0")), GREEN if total >= 0 else RED, 18)
+	_text(str(pnl.get("method", "")), MUTED)
+
+
 func _alerts_page() -> void:
 	_text("ALRT / PRICE ALERTS (this session)", AMBER, 20)
 	if _alerts.is_empty():
@@ -807,7 +829,8 @@ func _help() -> void:
 			"COMP A B  Relative performance of up to 6 symbols, rebased to 100",
 			"CORR      Correlation matrix of event-to-event returns",
 			"IMAP      Heatmap of every security since the fund opened",
-			"ALRT      Price alerts: ALRT BRIN > 105.5 / ALRT CLEAR"]:
+			"ALRT      Price alerts: ALRT BRIN > 105.5 / ALRT CLEAR",
+			"PNL       Trading P&L by security since the fund opened (server Decimal)"]:
 		_text(row)
 	_text("F1-F10 switch the first ten functions. Type a command and press Enter (a trailing GO is optional). "
 			+ "Tab completes functions and symbols; Up/Down recall earlier commands. Escape returns to the office.", MUTED)

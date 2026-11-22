@@ -596,6 +596,26 @@ class RegimeQuestion(Strict):
     method: str
 
 
+class PnlRow(Strict):
+    sym: str
+    opening_qty: int
+    reference_mark: DecOut
+    bought: int
+    sold: int
+    paid: DecOut
+    received: DecOut
+    qty: int
+    mark: DecOut
+    pnl: DecOut | None  # None when the position does not reconcile with opening + fills
+
+
+class TerminalPnl(Strict):
+    """Trading P&L since the fund opened at observed marks; excludes financing, borrow fees, expenses and fees."""
+    rows: list[PnlRow]
+    total: DecOut
+    method: str
+
+
 class TerminalView(Strict):
     """``GET /api/rooms/{id}/terminal``: read-only as-of analytics at one room version."""
     schema_: Literal["forge-terminal-v1"] = Field(alias="schema")
@@ -611,6 +631,7 @@ class TerminalView(Strict):
     incidents: list[IncidentEvent]
     orders: list[TerminalOrder]
     league: list[LeagueRow]
+    pnl: TerminalPnl
     macro: list[MacroPrint]  # empty in authored markets
     regime: RegimeQuestion | None  # generated markets only
     version: int

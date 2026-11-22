@@ -206,3 +206,46 @@ def test_view_etag_epoch_is_the_same_in_every_worker_process() -> None:
     cmd = [sys.executable, "-c", "from fundforge.api import EPOCH; print(EPOCH)"]
     first, second = (subprocess.run(cmd, capture_output=True, text=True, check=True).stdout for _ in range(2))
     assert first == second == api.EPOCH + "\n"
+
+
+def _pnl_oracle(e):
+    """Independent of terminal.trading_pnl: rebuilt from execution confirmations, not order fills."""
+    from fundforge.execution import BUY_SIDES
+
+    opening = e.tape.raw["opening"]["fund"]["positions"]
+    ref = e.tape.events[0].marks
+    out = {}
+    with localcontext(fundforge_ctx()):
+        for sym in e.marks:
+            flows = [(c.qty if c.side in BUY_SIDES else -c.qty, c.amount) for c in e.confirmations if c.sym == sym]
+            assert opening.get(sym, 0) + sum(q for q, _ in flows) == e.pos[sym]
+            cash = sum((a if q > 0 else -a for q, a in flows), Decimal(0))
+            value_now, value_open = e.pos[sym] * e.marks[sym], opening.get(sym, 0) * Decimal(ref[sym])
+            out[sym] = (value_now - value_open - cash).quantize(Decimal("0.01"))
+    return out
+
+
+def fundforge_ctx():
+    from fundforge.money import CTX
+    return CTX
+
+
+@pytest.mark.parametrize("script", ["s2", "f2"])
+def test_trading_pnl_matches_confirmations_after_player_and_forced_trades(script):
+    import test_engine as te
+
+    plans = {"s2": te.S2, "f2": {(12, "EXEC_A"): te.s2_research, (14, "EXEC_A"): te.s2_accept}}
+    e = te.run(plans[script])
+    assert e.confirmations, "the scenario must actually trade"
+    pnl = snapshot(e)["pnl"]
+    oracle = _pnl_oracle(e)
+    assert {r["sym"]: Decimal(r["pnl"]) for r in pnl["rows"]} == oracle
+    assert Decimal(pnl["total"]) == sum(oracle.values(), Decimal(0))
+
+
+def test_trading_pnl_before_any_trade_is_mark_move_on_the_opening_book():
+    e = fresh()
+    rows = {r["sym"]: r for r in snapshot(e)["pnl"]["rows"]}
+    for sym, r in rows.items():
+        assert r["bought"] == r["sold"] == 0
+        assert Decimal(r["pnl"]) == (r["qty"] * (e.marks[sym] - Decimal(r["reference_mark"]))).quantize(Decimal("0.01"))

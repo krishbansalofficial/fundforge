@@ -2756,6 +2756,77 @@
         "title": "Pause",
         "type": "object"
       },
+      "PnlRow": {
+        "additionalProperties": false,
+        "properties": {
+          "bought": {
+            "title": "Bought",
+            "type": "integer"
+          },
+          "mark": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Mark",
+            "type": "string"
+          },
+          "opening_qty": {
+            "title": "Opening Qty",
+            "type": "integer"
+          },
+          "paid": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Paid",
+            "type": "string"
+          },
+          "pnl": {
+            "anyOf": [
+              {
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pnl"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "received": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Received",
+            "type": "string"
+          },
+          "reference_mark": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Reference Mark",
+            "type": "string"
+          },
+          "sold": {
+            "title": "Sold",
+            "type": "integer"
+          },
+          "sym": {
+            "title": "Sym",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sym",
+          "opening_qty",
+          "reference_mark",
+          "bought",
+          "sold",
+          "paid",
+          "received",
+          "qty",
+          "mark",
+          "pnl"
+        ],
+        "title": "PnlRow",
+        "type": "object"
+      },
       "Position": {
         "additionalProperties": false,
         "properties": {
@@ -4507,6 +4578,35 @@
         "title": "TerminalOrder",
         "type": "object"
       },
+      "TerminalPnl": {
+        "additionalProperties": false,
+        "description": "Trading P&L since the fund opened at observed marks; excludes financing, borrow fees, expenses and fees.",
+        "properties": {
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PnlRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "total": {
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rows",
+          "total",
+          "method"
+        ],
+        "title": "TerminalPnl",
+        "type": "object"
+      },
       "TerminalRisk": {
         "additionalProperties": false,
         "properties": {
@@ -4663,6 +4763,9 @@
             "title": "Orders",
             "type": "array"
           },
+          "pnl": {
+            "$ref": "#/components/schemas/TerminalPnl"
+          },
           "quotes": {
             "items": {
               "$ref": "#/components/schemas/Quote"
@@ -4722,6 +4825,7 @@
           "incidents",
           "orders",
           "league",
+          "pnl",
           "macro",
           "regime",
           "version"

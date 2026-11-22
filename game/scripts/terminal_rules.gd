@@ -4,7 +4,7 @@ extends RefCounted
 
 ## F1-F10 keep the first ten; the rest are reached from the command line or the function bar.
 const PAGES := ["MON", "GP", "PORT", "RISK", "NEWS", "ORDERS", "STREET", "HELP", "REPLAY", "RESEARCH",
-		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT"]
+		"DES", "HP", "COMP", "CORR", "IMAP", "ALRT", "PNL"]
 const SYMBOL_PAGES := ["GP", "DES", "HP"]  # functions about one security: BRIN DES, DES BRIN
 const COMP_MAX := 6
 

@@ -1134,6 +1134,29 @@ export interface components {
              */
             type: "pause";
         };
+        /** PnlRow */
+        PnlRow: {
+            /** Bought */
+            bought: number;
+            /** Mark */
+            mark: string;
+            /** Opening Qty */
+            opening_qty: number;
+            /** Paid */
+            paid: string;
+            /** Pnl */
+            pnl: string | null;
+            /** Qty */
+            qty: number;
+            /** Received */
+            received: string;
+            /** Reference Mark */
+            reference_mark: string;
+            /** Sold */
+            sold: number;
+            /** Sym */
+            sym: string;
+        };
         /** Position */
         Position: {
             /** Borrowed */
@@ -1736,6 +1759,18 @@ export interface components {
             /** Sym */
             sym: string;
         };
+        /**
+         * TerminalPnl
+         * @description Trading P&L since the fund opened at observed marks; excludes financing, borrow fees, expenses and fees.
+         */
+        TerminalPnl: {
+            /** Method */
+            method: string;
+            /** Rows */
+            rows: components["schemas"]["PnlRow"][];
+            /** Total */
+            total: string;
+        };
         /** TerminalRisk */
         TerminalRisk: {
             /** Cash */
@@ -1789,6 +1824,7 @@ export interface components {
             news: components["schemas"]["NewsItem"][];
             /** Orders */
             orders: components["schemas"]["TerminalOrder"][];
+            pnl: components["schemas"]["TerminalPnl"];
             /** Quotes */
             quotes: components["schemas"]["Quote"][];
             regime: components["schemas"]["RegimeQuestion"] | null;

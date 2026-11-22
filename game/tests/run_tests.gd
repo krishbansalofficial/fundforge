@@ -644,7 +644,11 @@ func _ui_checks() -> void:
 			"news": [{"day": 12, "date": "2026-01-20", "phase": "PUBLIC_MARK", "kind": "alert", "text": "BRIN recall"}],
 			"orders": [{"sym": "BRIN", "side": "COVER", "qty": 500, "filled": 100, "remaining": 400,
 				"status": "PARTIALLY_FILLED", "forced": null, "order_id": "x", "fills": [{"price": "100"}]}],
-			"league": [{"id": "you", "status": "active", "return_bps": "0", "style": "long_short"}]}
+			"league": [{"id": "you", "status": "active", "return_bps": "0", "style": "long_short"}],
+			"pnl": {"rows": [{"sym": "BRIN", "opening_qty": -12500, "reference_mark": "100", "bought": 100, "sold": 0,
+				"paid": "10000", "received": "0", "qty": -12400, "mark": "100", "pnl": "-25.50"},
+				{"sym": "ALTO", "opening_qty": 5, "reference_mark": "1", "bought": 0, "sold": 0, "paid": "0",
+				"received": "0", "qty": 5, "mark": "1", "pnl": null}], "total": "-25.50", "method": "test"}}
 	terminal.open()
 	check(terminal.is_open(), "terminal opens over world")
 	for page in TerminalRules.PAGES:
@@ -657,6 +661,14 @@ func _ui_checks() -> void:
 	check(terminal.page == old_page and terminal._status.text != "", "invalid command preserves current page")
 	terminal._command("RISK")
 	check(terminal.page == "RISK" and terminal._status.text == "", "valid command navigates")
+	terminal.navigate("PNL")
+	check(terminal._body.find_children("*", "Label", true, false).any(func(l): return l.text == "does not reconcile"),
+			"unreconciled P&L row is labelled, not given a number")
+	terminal._command("ALRT BRIN < 101")
+	check(terminal.page == "ALRT" and terminal._alerts.size() == 1 and terminal._alerts[0]["hit"]
+			and terminal._status.text.begins_with("ALERT"), "alert triggers on the current mark")
+	terminal._command("ALRT CLEAR")
+	check(terminal._alerts.is_empty(), "ALRT CLEAR empties alerts")
 	terminal._entry.text = "BRIN G"
 	terminal.set_view({"version": 4})
 	terminal._render()

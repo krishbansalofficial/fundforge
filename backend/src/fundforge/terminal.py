@@ -10,6 +10,7 @@ from decimal import Decimal, localcontext
 from typing import Any
 
 from .engine import Engine, Loan
+from .execution import BUY_SIDES
 from .generator import MACRO_SERIES, Spec
 from .money import CTX, D, cents
 from .research import regime_question
@@ -42,6 +43,41 @@ def stress(e: Engine, long_shock: str, short_shock: str) -> dict[str, str | bool
             "gross": str(((lm * (1 + sl) + sm * (1 + ss)) / nav).quantize(D("0.0001")))
                      if nav > 0 else None,
         }
+
+
+def trading_pnl(e: Engine) -> dict[str, Any]:
+    """Per-security trading P&L since the fund opened, at observed marks: value now - value at the opening
+    reference marks - cash paid for buys/covers + cash received for sells/shorts (fill amounts, incl. impact).
+    Excludes borrow fees, financing, fund expenses and fees. A security whose position does not reconcile with
+    opening + fills reports pnl None instead of a number."""
+    with localcontext(CTX):
+        opening: dict[str, int] = e.tape.raw["opening"]["fund"]["positions"]
+        ref = e.tape.events[0].marks
+        rows, total = [], Decimal(0)
+        for sym in sorted(e.marks):
+            bought = sold = 0
+            paid = received = Decimal(0)
+            for o in e.orders:
+                if o.sym != sym:
+                    continue
+                for f in o.fills:
+                    if "qty" not in f:  # a rejection record, not a fill
+                        continue
+                    if o.side in BUY_SIDES:
+                        bought, paid = bought + f["qty"], paid + D(f["amount"])
+                    else:
+                        sold, received = sold + f["qty"], received + D(f["amount"])
+            q0, qty, mark = opening.get(sym, 0), e.pos[sym], e.marks[sym]
+            ok = q0 + bought - sold == qty
+            pnl = cents(qty * mark - q0 * D(ref[sym]) - paid + received) if ok else None
+            if pnl is not None:
+                total += pnl
+            rows.append({"sym": sym, "opening_qty": q0, "reference_mark": str(ref[sym]), "bought": bought, "sold": sold,
+                         "paid": str(paid), "received": str(received), "qty": qty, "mark": str(mark),
+                         "pnl": None if pnl is None else str(pnl)})
+        return {"rows": rows, "total": str(cents(total)),
+                "method": "Value now - value at opening reference marks - buys + sells (fill amounts). "
+                          "Excludes borrow fees, financing, fund expenses and fees."}
 
 
 def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
@@ -104,6 +140,7 @@ def snapshot(e: Engine, role: str | None = None) -> dict[str, Any]:
                         "filled": o.filled, "remaining": o.remaining, "status": o.status,
                         "forced": o.forced, "fills": [dict(f) for f in o.fills]} for o in e.orders[-100:]],
             "league": [dict(r) for r in e.league()],
+            "pnl": trading_pnl(e),
             # Indicator prints published by today; a later revision stays hidden until its own day.
             "macro": [{"series": o.instrument, "period_day": o.event_time, "published_day": o.available_at,
                        "revision": o.revision, "value": str(o.value)} for o in e.tape.macro.known(e.ev.day)],
