@@ -8,7 +8,6 @@ hash, the journal entries and their SQL-checked lines atomically. ``verify`` re-
 everything from scratch and compares it with what was stored.
 """
 
-import copy
 import hashlib
 import json
 import logging
@@ -28,7 +27,7 @@ from psycopg_pool import ConnectionPool
 from . import balance, bot, outbox
 from .engine import RULES_VERSION, CommandRejected, Engine
 from .generator import FALSE_ALARM_VERSION, commitment, generate
-from .governance import CLOCK, Session, canonical
+from .governance import CLOCK, Session, canonical, restore, snapshot
 from .journal import Entry
 from .lp import POLICY_VERSION as LP_POLICY
 from .observability import COMMAND_SECONDS, REPLAY_SECONDS, command_type, context, timed
@@ -151,6 +150,12 @@ def _draw_variant(scenario: str) -> tuple[str, dict[str, Any]]:
     raise CommandRejected("could not generate a balanced market; try again")
 
 
+def _copy(s: Session) -> Session:
+    """An independent copy sharing the immutable tape; a pickle round-trip is ~3x cheaper than deepcopy."""
+    tape = s.e.tape
+    return restore(snapshot(s, tape), tape)  # type: ignore[no-any-return]
+
+
 def chain(prev: str, seq: int, key: str, user: str, command: dict, result: object, digest_after: str) -> str:
     blob = canonical([prev, seq, key, user, command, result, digest_after])
     return hashlib.sha256(blob.encode()).hexdigest()
@@ -164,7 +169,7 @@ class Store:
         self.dsn = dsn
         self.ttl_hours = ROOM_TTL_HOURS
         self.pool = ConnectionPool(dsn, min_size=1, max_size=10, open=True)
-        # Cached sessions are only ever read; apply() works on a private deep copy.
+        # Cached sessions are only ever read; apply() works on a private copy (_copy).
         self._cache: OrderedDict[str, tuple[int, Session]] = OrderedDict()
         self._lock = threading.Lock()
 
@@ -276,8 +281,7 @@ class Store:
                 return hit[1]
         with timed(REPLAY_SECONDS):
             if hit and hit[0] < version and hit[1].e.tape.digest == tape.digest:
-                old = hit[1].e.tape  # tapes are immutable; share it, copy the rest (cached sessions stay read-only)
-                start, s = hit[0], copy.deepcopy(hit[1], {id(old): old})
+                start, s = hit[0], _copy(hit[1])  # cached sessions stay read-only
             else:
                 start, s = 0, self._fresh(tape, partners, bot_role)
             for uid, key, cmd in c.execute("select user_id, idem_key, command from commands"
@@ -342,7 +346,7 @@ class Store:
                     raise KeyReused(f"idempotency key {key!r} reused for a different command")
                 raise CommandRejected(rejected[2])
             base = self._replay(c, room, version, tape, partners, bot_role)
-            s = copy.deepcopy(base, {id(base.e.tape): base.e.tape})
+            s = _copy(base)
             before, finished_before = outbox.counts(s), s.e.finished()
             lo = len(s.e.j.entries)
             result = json.loads(json.dumps(s.handle(user, key, command)))
