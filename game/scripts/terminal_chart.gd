@@ -7,6 +7,7 @@ const COLORS := [Color("#ffbb55"), Color("#6cdfaa"), Color("#7cb8ff"), Color("#f
 
 var values := PackedFloat32Array()
 var series: Dictionary = {}
+var x_range: Array = []  # optional [first label, last label], e.g. ["D12", "D18"]
 
 
 func _ready() -> void:
@@ -62,8 +63,14 @@ func _draw() -> void:
 			var tag := "%s %.2f" % [key, vals[-1]]
 			draw_string(font, Vector2(legend_x, 14), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, color)
 			legend_x += font.get_string_size(tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 18
+	if x_range.size() == 2:
+		draw_string(font, Vector2(area.position.x, area.end.y + 16), str(x_range[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
+		var last := str(x_range[1])
+		draw_string(font, Vector2(area.end.x - font.get_string_size(last, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x, area.end.y + 16),
+				last, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
 	var footer := "%d observed events" % longest
 	if lines.size() == 1:
 		var only: PackedFloat32Array = lines.values()[0]
 		footer += "   /   latest %.4f" % only[-1]
-	draw_string(font, Vector2(area.position.x, size.y - 8), footer, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)
+	var fw := font.get_string_size(footer, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	draw_string(font, Vector2(area.position.x + (area.size.x - fw) / 2.0, size.y - 8), footer, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, ink)

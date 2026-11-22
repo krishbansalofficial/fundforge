@@ -416,6 +416,7 @@ func _graph() -> void:
 		return
 	_text("%s / PRICE HISTORY    %.4f" % [symbol, float(q["mark"])], AMBER, 20)
 	var chart := TerminalChart.new()
+	chart.x_range = _x_range()
 	chart.values = TerminalRules.prices(data.get("history", []), symbol)
 	_body.add_child(chart)
 	_text("Event-spaced observations / no invented candles. History begins when this fund opened.", MUTED)
@@ -650,6 +651,14 @@ func _street() -> void:
 	_text("Public performance since the warm start. Rival holdings and unrevealed research are private.", MUTED)
 
 
+## "D12".."D18" for the chart's time axis, from the same observations it draws.
+func _x_range() -> Array:
+	var h: Array = data.get("history", [])
+	if h.is_empty() or not h[0].has("day"):
+		return []
+	return ["D%d %s" % [int(h[0]["day"]), h[0].get("phase", "")], "D%d %s" % [int(h[-1]["day"]), h[-1].get("phase", "")]]
+
+
 func _symbol_links(parent: Node) -> void:
 	var row := HBoxContainer.new()
 	parent.add_child(row)
@@ -732,6 +741,7 @@ func _compare() -> void:
 	_text("COMP / RELATIVE PERFORMANCE (rebased to 100)", AMBER, 20)
 	var chart := TerminalChart.new()
 	chart.custom_minimum_size = Vector2(0, 320)
+	chart.x_range = _x_range()
 	var grid_rows: Array = []
 	for s in picked:
 		var vals := TerminalRules.prices(data.get("history", []), s)
@@ -777,6 +787,7 @@ func _heatmap() -> void:
 	_text("IMAP / MARKET HEATMAP (change since the fund opened)", AMBER, 20)
 	var grid := GridContainer.new()
 	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	_body.add_child(grid)
@@ -786,7 +797,8 @@ func _heatmap() -> void:
 		var v := 0.0 if bp == null else float(str(bp))
 		var strength := clampf(absf(v) / 1000.0, 0.15, 1.0)
 		var tile := Button.new()
-		tile.custom_minimum_size = Vector2(200, 72)
+		tile.custom_minimum_size = Vector2(120, 64)
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tile.text = "%s\n%s bps%s" % [sym, TerminalRules.bps(bp), "" if int(q["qty"]) == 0 else ("  LONG" if int(q["qty"]) > 0 else "  SHORT")]
 		var base := Color("#0e7a4f") if v >= 0 else Color("#9b2c2c")
 		var box := _box(Color("#101820").lerp(base, strength))
