@@ -12,6 +12,9 @@ single client process can saturate before the server: the step is flagged `clien
 the target), server-side fundforge_command_seconds from /metrics (delta of the histogram over the step),
 and container CPU from `docker stats`. Target: p95 GET /view < 100 ms and zero 5xx at 100 rooms; the knee
 is the first step that misses it.
+
+Pin the client: anyio 4.16.0 made this client ~15x slower (10 rooms p95 410 ms vs 26 ms with anyio 4.6.2, same
+server, 2026-11-22), which looked like a server regression. Use: pip install httpx==0.28.1 anyio==4.6.2
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ import subprocess
 import sys
 import time
 from datetime import UTC, datetime
+from importlib.metadata import version
 from pathlib import Path
 
 import httpx
@@ -263,6 +267,7 @@ def main() -> int:
         "benchmark": "B3-api-load", "commit": commit(), "rules_version": RULES_VERSION,
         "measured_at": datetime.now(UTC).isoformat(timespec="seconds"), "machine": machine(),
         "python": sys.version.split()[0],
+        "client_libs": {m: version(m) for m in ("httpx", "httpcore", "anyio", "h11")},
         "stack": os.environ.get("FUNDFORGE_LOAD_STACK", "deploy/compose.prod.yaml on Docker Desktop (WSL2), client on "
                                 "the Windows host, via Caddy TLS"),
         "method": {"poll_s": POLL_S, "ready_every_s": a.window, "step_seconds": a.step_seconds,
