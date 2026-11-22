@@ -50,6 +50,10 @@ func check(cond: bool, name: String) -> void:
 
 
 func _initialize() -> void:
+	check(Office3D.is_integrated(RenderingDevice.DEVICE_TYPE_DISCRETE_GPU, "Intel(R) UHD Graphics"), "D3D12 Intel UHD counts as integrated")
+	check(Office3D.is_integrated(RenderingDevice.DEVICE_TYPE_DISCRETE_GPU, "AMD Radeon(TM) Graphics"), "AMD APU counts as integrated")
+	check(not Office3D.is_integrated(RenderingDevice.DEVICE_TYPE_DISCRETE_GPU, "Intel(R) Arc(TM) A770 Graphics"), "Intel Arc is discrete")
+	check(not Office3D.is_integrated(RenderingDevice.DEVICE_TYPE_DISCRETE_GPU, "NVIDIA GeForce RTX 4070 Laptop GPU"), "RTX is discrete")
 	check(InvestorRecordRules.lines(null).is_empty(), "optional investor record omitted")
 	var lp_record := {"policy": "lp-test", "final": {"Patient": {"confidence": "72.123456789", "band": "stable"}},
 		"carried_units": {"Patient": "9007199254740993.000001"}, "checkpoints": []}

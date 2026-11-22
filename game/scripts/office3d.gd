@@ -136,7 +136,20 @@ static func _pick_high() -> bool:
 	var q := OS.get_environment("FF_QUALITY").to_lower()
 	if q in ["high", "low"]:
 		return q == "high"
-	return RenderingServer.get_video_adapter_type() != RenderingDevice.DEVICE_TYPE_INTEGRATED_GPU
+	return not _integrated()
+
+
+static func _integrated() -> bool:
+	return is_integrated(RenderingServer.get_video_adapter_type(), RenderingServer.get_video_adapter_name())
+
+
+## Godot 4.7.2's D3D12 driver reports Intel UHD as DISCRETE (Vulkan says INTEGRATED), so the name decides too.
+# ponytail: name heuristic (Intel except Arc, AMD "Radeon(TM) Graphics" APUs); extend when a new iGPU slips through
+static func is_integrated(type: int, adapter: String) -> bool:
+	if type == RenderingDevice.DEVICE_TYPE_INTEGRATED_GPU:
+		return true
+	var n := adapter.to_lower()
+	return (n.begins_with("intel") and not "arc" in n) or n.ends_with("radeon(tm) graphics") or n.ends_with("radeon graphics")
 
 
 func _environment() -> void:
@@ -171,7 +184,7 @@ func _environment() -> void:
 	_env.ssr_enabled = _high
 	_env.ssr_max_steps = 48
 	_env.ssr_depth_tolerance = 0.3
-	_env.sdfgi_enabled = _high
+	_env.sdfgi_enabled = _high and not _integrated()  # SDFGI washes the scene out to white on Intel UHD, even forced high
 	_env.sdfgi_use_occlusion = true
 	_env.sdfgi_cascades = 3
 	_env.sdfgi_min_cell_size = 0.1
