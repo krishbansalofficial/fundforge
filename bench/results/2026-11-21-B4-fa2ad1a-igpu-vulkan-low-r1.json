@@ -1,0 +1,176 @@
+{
+ "benchmark": "B4-frame-time",
+ "commit": "fa2ad1a",
+ "dirty": false,
+ "measured_at": "2026-11-22T01:31:14+00:00",
+ "godot": "4.7.2-stable (official)",
+ "machine": "Windows 11 (10.0.26300), Intel(R) Core(TM) i9-14900HX",
+ "label": "one laptop, two GPUs (not two machines)",
+ "requested_gpu_index": 1,
+ "requested_rendering_driver": "vulkan",
+ "quality": "low",
+ "adapter_used": "Intel(R) RaptorLake-S Mobile Graphics Controller",
+ "adapter_driver_version": null,
+ "renderer": "vulkan / forward_plus (API 1.4.312)",
+ "resolution": "1280x720",
+ "vsync": false,
+ "route": "trading@0,committee@4,risk@8,lp@12,backoffice@16,research@20,street@24,broker@28,trading@34,trading@36,committee@40,risk@44,lp@48,backoffice@52,research@56,street@60,broker@64,trading@70",
+ "settle_s": 10,
+ "steady_s": 60,
+ "machine_busy": false,
+ "cpu_load_pct_at_start": 8.7,
+ "busy_python_pids": [],
+ "power_source": "AC",
+ "power_plan": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+ "gpus": [
+  {
+   "Name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+   "DriverVersion": "32.0.15.6094"
+  },
+  {
+   "Name": "Intel(R) UHD Graphics",
+   "DriverVersion": "32.0.101.6881"
+  }
+ ],
+ "settle_first_10s": {
+  "frames": 708,
+  "mean_fps": 70.9,
+  "mean_ms": 14.109,
+  "over_100ms": 1,
+  "over_33_3ms": 2,
+  "p50_ms": 12.429,
+  "p95_ms": 15.474,
+  "p99_ms": 16.78,
+  "process_ms_p99": 38.939,
+  "worst_ms": 917.314
+ },
+ "steady": {
+  "frames": 4990,
+  "p50_ms": 12.319,
+  "p95_ms": 15.207,
+  "p99_ms": 16.221,
+  "worst_ms": 17.686,
+  "mean_ms": 12.027,
+  "mean_fps": 83.1,
+  "over_33_3ms": 0,
+  "over_100ms": 0,
+  "process_ms_p50": 15.98,
+  "process_ms_p99": 17.13,
+  "gpu_ms_mean": 9.544,
+  "gpu_ms_p95": 12.207,
+  "slowest": [
+   {
+    "at_s": 47.42,
+    "ms": 17.7
+   },
+   {
+    "at_s": 44.84,
+    "ms": 17.2
+   },
+   {
+    "at_s": 45.85,
+    "ms": 17.2
+   },
+   {
+    "at_s": 10.24,
+    "ms": 17.2
+   },
+   {
+    "at_s": 48.88,
+    "ms": 17.2
+   }
+  ]
+ },
+ "target": {
+  "p99_ms_max": 16.7,
+  "steady_frame_ms_max": 100.0,
+  "applies_to": "integrated GPU at 1280x720",
+  "met": true
+ },
+ "raw": {
+  "adapter": "Intel(R) RaptorLake-S Mobile Graphics Controller",
+  "api_version": "1.4.312",
+  "cpu": "Intel(R) Core(TM) i9-14900HX",
+  "driver": "vulkan",
+  "events": [
+   {
+    "event": "lp_visitor",
+    "event_at_s": -18.34,
+    "spans": [
+     "sfx 0.01 ms",
+     "office.apply_view 0.97 ms",
+     "hud.apply_view 0.71 ms"
+    ],
+    "worst_at_s": -1.0,
+    "worst_ms": -1.0
+   }
+  ],
+  "frames": 4990,
+  "godot": "4.7.2-stable (official)",
+  "gpu_ms_mean": 9.544,
+  "gpu_ms_p95": 12.207,
+  "max_draw_calls": 549,
+  "max_objects": 1677,
+  "max_primitives": 161386,
+  "mean_draw_calls": 405.53,
+  "mean_fps": 83.1,
+  "mean_ms": 12.027,
+  "mean_objects": 1337.14,
+  "mean_physics_ms": 0.06,
+  "mean_primitives": 98107.24,
+  "mean_process_ms": 15.38,
+  "method": "forward_plus",
+  "os": "Windows",
+  "over_100ms": 0,
+  "over_33_3ms": 0,
+  "p50_ms": 12.319,
+  "p95_ms": 15.207,
+  "p99_ms": 16.221,
+  "process_ms_p50": 15.98,
+  "process_ms_p99": 17.13,
+  "resolution": "1600x900",
+  "seconds": 60.0,
+  "settle": {
+   "frames": 708,
+   "mean_fps": 70.9,
+   "mean_ms": 14.109,
+   "over_100ms": 1,
+   "over_33_3ms": 2,
+   "p50_ms": 12.429,
+   "p95_ms": 15.474,
+   "p99_ms": 16.78,
+   "process_ms_p99": 38.939,
+   "worst_ms": 917.314
+  },
+  "slowest": [
+   {
+    "at_s": 47.42,
+    "ms": 17.7
+   },
+   {
+    "at_s": 44.84,
+    "ms": 17.2
+   },
+   {
+    "at_s": 45.85,
+    "ms": 17.2
+   },
+   {
+    "at_s": 10.24,
+    "ms": 17.2
+   },
+   {
+    "at_s": 48.88,
+    "ms": 17.2
+   }
+  ],
+  "vendor": "Intel",
+  "vsync": false,
+  "warmup_s": 10.0,
+  "window": "1280x720",
+  "world_at_s": 12.41,
+  "worst_ms": 17.686,
+  "budget_p95_ms": 16.7,
+  "pass": true
+ }
+}
