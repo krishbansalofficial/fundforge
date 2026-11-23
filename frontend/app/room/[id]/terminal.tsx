@@ -8,9 +8,10 @@ import { api, complement, money, num, type Command, type Forecast, type Terminal
 type Snapshot = TerminalView;
 type Sample = Snapshot["history"][number];
 type Regime = NonNullable<Snapshot["regime"]>;
-type Page = "MON" | "ORDERS" | "STREET" | "RISK";
+type Page = "MON" | "PNL" | "CAL" | "NEWS" | "ORDERS" | "STREET" | "RISK";
 const PAGES: { id: Page; label: string }[] = [
-  { id: "MON", label: "MON market monitor" }, { id: "ORDERS", label: "ORDERS blotter" }, { id: "STREET", label: "STREET league" },
+  { id: "MON", label: "MON market monitor" }, { id: "PNL", label: "PNL trading P&L" }, { id: "CAL", label: "CAL known dates" },
+  { id: "NEWS", label: "NEWS search" }, { id: "ORDERS", label: "ORDERS blotter" }, { id: "STREET", label: "STREET league" },
   { id: "RISK", label: "RISK certification" },
 ];
 /** A thesis this seat sent (from the view's decision log). */
@@ -66,6 +67,9 @@ export function Terminal({ roomId, token, version, theses, send, busy }: {
           <button key={p.id} type="button" className={page === p.id ? "on" : ""} aria-pressed={page === p.id} onClick={() => setPage(p.id)}>{p.label}</button>
         ))}
       </nav>
+      {page === "PNL" && <Pnl pnl={t.pnl} />}
+      {page === "CAL" && <Calendar items={t.calendar} day={t.as_of.day} />}
+      {page === "NEWS" && <News news={t.news} />}
       {page === "ORDERS" && <Blotter orders={t.orders} />}
       {page === "STREET" && <Street league={t.league} />}
       {page === "RISK" && <><Certification report={r.certification} />
@@ -228,6 +232,58 @@ function Chart({ sym, history, truncated }: { sym: string; history: Sample[]; tr
 export type Send = (cmd: Command, done?: string) => Promise<string | null>;
 
 /** ORDERS: accepted orders with their fill records, newest first. Unsigned proposals stay in the desk's packages. */
+/** Trading P&L since open, per name, as the server reconciles it; a null row could not be reconciled. */
+function Pnl({ pnl }: { pnl: Snapshot["pnl"] }) {
+  return (
+    <table aria-label="Trading P&L since open">
+      <caption className="muted">{pnl.method}</caption>
+      <thead><tr><th scope="col">Name</th><th scope="col" className="n">Opening qty</th><th scope="col" className="n">Bought</th>
+        <th scope="col" className="n">Sold</th><th scope="col" className="n">Qty</th><th scope="col" className="n">Mark</th>
+        <th scope="col" className="n">P&amp;L</th></tr></thead>
+      <tbody>
+        {pnl.rows.map((r) => (
+          <tr key={r.sym}><th scope="row">{r.sym}</th><td className="n">{num(r.opening_qty)}</td><td className="n">{num(r.bought)}</td>
+            <td className="n">{num(r.sold)}</td><td className="n">{num(r.qty)}</td><td className="n">{Number(r.mark).toFixed(2)}</td>
+            <td className="n">{r.pnl == null ? "not reconciled" : money(r.pnl)}</td></tr>
+        ))}
+      </tbody>
+      <tfoot><tr><th scope="row" colSpan={6}>Total</th><td className="n">{money(pnl.total)}</td></tr></tfoot>
+    </table>
+  );
+}
+
+/** Dates already known to this seat: payroll rule, announced recalls, published redemption notices. */
+function Calendar({ items, day }: { items: Snapshot["calendar"]; day: number }) {
+  if (items.length === 0) return <p className="muted">No known dates.</p>;
+  return (
+    <table aria-label="Known dates">
+      <thead><tr><th scope="col">Day</th><th scope="col">Kind</th><th scope="col">Event</th><th scope="col">Known since</th></tr></thead>
+      <tbody>
+        {[...items].sort((a, b) => (a.day ?? Infinity) - (b.day ?? Infinity)).map((c, i) => (
+          <tr key={i} className={c.day != null && c.day < day ? "muted" : ""}><th scope="row">{c.day == null ? "rule" : `Day ${c.day}`}</th>
+            <td>{c.kind}</td><td>{c.text}</td><td>{c.known_since == null ? "" : `Day ${c.known_since}`}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/** Every published headline, newest first, filtered by keywords (all must match, case-insensitive). */
+function News({ news }: { news: Snapshot["news"] }) {
+  const [q, setQ] = useState("");
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = news.filter((n) => words.every((w) => n.text.toLowerCase().includes(w))).reverse();
+  return (
+    <div>
+      <label>Search headlines <input type="search" value={q} onChange={(e) => setQ(e.target.value)} /></label>
+      <p className="muted" role="status">{hits.length} of {news.length} headlines</p>
+      <ul aria-label="Matching headlines, newest first">
+        {hits.map((n, i) => <li key={i}><span className="when">Day {n.day}</span> {n.text}</li>)}
+      </ul>
+    </div>
+  );
+}
+
 function Blotter({ orders }: { orders: Snapshot["orders"] }) {
   if (orders.length === 0) return <p className="muted">No accepted orders yet. Unsigned proposals are listed under Orders and packages.</p>;
   return (

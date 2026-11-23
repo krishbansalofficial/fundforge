@@ -94,4 +94,22 @@ test("ORDERS blotter, STREET league and a debrief replay without the ticket", as
   const ranks = (await league.locator("tbody tr td:first-child").allTextContents()).map(Number);
   expect(ranks).toEqual(ranks.map((_, i) => i + 1));
   await accessible(page, "terminal (street)");
+
+  await functions.getByRole("button", { name: "PNL trading P&L" }).click();
+  const pnl = page.getByRole("table", { name: "Trading P&L since open" });
+  await expect(pnl.getByRole("row", { name: /^ALTO / })).toContainText("1,000");
+  await expect(pnl.getByRole("row", { name: /^Total/ })).toBeVisible();
+  await accessible(page, "terminal (pnl)");
+
+  await functions.getByRole("button", { name: "CAL known dates" }).click();
+  await expect(page.getByRole("table", { name: "Known dates" }).getByRole("row", { name: /payroll/ }).first()).toBeVisible();
+  await accessible(page, "terminal (cal)");
+
+  await functions.getByRole("button", { name: "NEWS search" }).click();
+  const status = page.getByRole("status").filter({ hasText: /headlines$/ });
+  const all = Number((await status.textContent())!.match(/of (\d+)/)![1]);
+  expect(all).toBeGreaterThan(0);
+  await page.getByRole("searchbox", { name: "Search headlines" }).fill("zzqx-no-such-word");
+  await expect(status).toHaveText(`0 of ${all} headlines`);
+  await accessible(page, "terminal (news)");
 });
