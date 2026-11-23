@@ -74,6 +74,18 @@ strict = true
 module = ["fundforge.*"]
 follow_imports = "silent"
 
+[[tool.mypy.overrides]]
+# torch is in the optional train group: CI type-checks without it, and its Distribution API is untyped
+module = ["torch", "torch.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["fundforge_ml.ppo"]
+disallow_untyped_calls = false
+disallow_subclassing_any = false
+disallow_untyped_decorators = false
+warn_return_any = false
+
 # The integrity boundary (DECISIONS.md, 13 Oct 2026): the engine and everything that serves it
 # must never depend on ML. CI runs `lint-imports`; tests/test_boundary.py checks the same rule by source scan.
 [tool.importlinter]

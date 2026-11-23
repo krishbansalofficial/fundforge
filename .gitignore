@@ -33,6 +33,7 @@ logs/
 next-env.d.ts
 mlflow.db
 ml/results/*.zip
+ml/results/*.pt
 deploy/kafka/plugins/
 ml/.venv-train/
 # Local tool caches
