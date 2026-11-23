@@ -247,7 +247,21 @@ def mask_ablation(d: dict[str, Any]) -> Row:
     )
 
 
+def ppo_scratch(d: dict[str, Any]) -> Row:
+    x, a = d["scratch_vs_sb3"], d["arms"]
+    return (
+        "PPO written from scratch vs SB3 MaskablePPO (base worlds, same config)",
+        f"paired reward scratch - SB3 {_g(x['diff']['point'])} [{_g(x['diff']['lo'])}, {_g(x['diff']['hi'])}], "
+        f"P(scratch > SB3) {_g(x['prob_improvement'])}; IQM scratch {_g(a['scratch']['iqm']['point'])} vs SB3 "
+        f"{_g(a['sb3']['iqm']['point'])}; not worse than SB3: {d['not_worse_than_sb3']}",
+        f"{d['scale']['seeds']} seeds x {d['scale']['steps']} steps per arm; {d['scale']['test_worlds']} test worlds; "
+        "SB3 arm = the published ppo_pm checkpoints (sha256 checked)",
+        d["reproduce"],
+    )
+
+
 RENDERERS: dict[str, Callable[[dict[str, Any]], Row]] = {
+    "ppo_scratch.json": ppo_scratch,
     "transfer_matrix.json": transfer,
     "mask_ablation.json": mask_ablation,
     "ope.json": ope,

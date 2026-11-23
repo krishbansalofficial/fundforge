@@ -2,11 +2,21 @@
 
 ## What this is
 
-<!-- owner writes: what this lane is, in your own words -->
+FundForge is a deterministic hedge-fund simulator: Decimal accounting, an immutable journal, exact replay. This lane treats it as a lab for machine learning where the ground truth is known. The generator knows the hidden market regime, the exact Bayes posterior can be computed, and any policy can be replayed on any world. That makes it possible to check ML claims against truth, which real finance data never allows.
+
+Models only advise or play a disclosed seat through the same commands a human uses (`Session.handle`). They never own fills, balances, NAV, fees, risk or approvals. Inputs come from the player's view or from as-of features with an explicit `available_at`. A leak-canary test plants future information and fails if any feature can see it.
+
+What is here, in one line each:
+
+- **Reinforcement learning:** a Gymnasium env with action masks. MaskablePPO is evaluated over 5 seeds with bootstrap intervals, and a PPO written from scratch (`src/fundforge_ml/ppo.py`) is compared with it. Also a masking ablation, a base/hard transfer matrix and VIPER distillation into a decision tree.
+- **Forecasting:** a regime forecaster compared with the exact Bayes filter, with split-conformal prediction sets on top.
+- **Evaluation methods:** off-policy evaluation (PDIS, WPDIS, FQE) checked against simulator truth, and value of information (does a better belief help the policy?).
+- **Data:** a point-in-time dataset, anomaly detection on the books against rule-based controls, and OLS attribution against the generator's true factor.
+- **Streaming:** Postgres outbox, then Debezium, then Kafka, with streamed features matching batch features byte for byte. The game runs with Kafka stopped.
 
 ## Architecture
 
-<!-- owner writes: walk through the diagram below -->
+Read the diagram left to right. The engine generates a world and runs the game. `env.py` wraps a `Session` as a Gymnasium env: an action becomes a governed command, the bot partner signs and readies, and the observation is the encoded player view. Policies (SB3 MaskablePPO, the from-scratch PPO, scripted baselines) only touch the env. The forecaster reads published macro prints, and the exact Bayes filter in the engine gives its ceiling. Episodes become point-in-time dataset rows. The same outbox rows that Postgres writes are streamed through Kafka and folded into features that must equal the batch ones.
 
 Drawn from `src/fundforge_ml/` and `scripts/`. The engine (`fundforge`) never imports this package (`lint-imports`).
 
@@ -28,6 +38,7 @@ flowchart LR
     encode["encoding.py"]
     env["env.py FundForgeEnv"]
     ppo["scripts/train_ppo.py MaskablePPO"]
+    scratch["ppo.py PPO from scratch"]
     base["scripts/env_baselines.py wait / random"]
   end
 
@@ -52,6 +63,7 @@ flowchart LR
   env -- "Session.handle" --> sess
   bot --> env
   env --> ppo
+  env --> scratch
   env --> base
 
   gen --> tape --> ffeat --> models
@@ -68,7 +80,17 @@ flowchart LR
 
 ## How to reproduce
 
-<!-- owner writes: setup steps and how to run each experiment (commands are in the table below) -->
+Needs Python 3.13 and [uv](https://docs.astral.sh/uv/). Everything runs on CPU; no paid services.
+
+```sh
+cd ml
+uv sync                                    # core + dev tools (what CI runs)
+uv run pytest -q                           # tests; training tests skip without the train group
+uv run --group train pytest -q             # include torch / SB3 tests
+uv run python scripts/render_results.py --check   # README table matches results/*.json
+```
+
+Each row in the table below has its exact command in the "Reproduce" column. Extra dependency groups: `train` (torch, SB3), `forecast` (LightGBM), `anomaly` (scikit-learn), `attribution` (statsmodels), `stream` (Kafka client). Model checkpoints (`results/*.zip`, `results/*.pt`) are git-ignored; each result JSON records the sha256 of the checkpoints it used.
 
 ## Results
 
@@ -97,8 +119,22 @@ Generated from `results/*.json` by `scripts/render_results.py`; CI-style check: 
 
 ## What I built vs what AI built
 
-<!-- owner writes: what you wrote, what Claude generated, what you rewrote, one AI suggestion you rejected and why -->
+Draft written with Claude on 23 Nov 2026; the owner should rewrite it in their own words before using it in an application.
+
+- **Claude generated** most of the code in this lane: the env, scripts, tests and the from-scratch PPO, including its clipped loss (the owner handed Stage 2 off on 23 Nov 2026).
+- **The owner directed** the scope and the order of the experiments (docs/ML_SHOWCASE.md), and set the rules every result follows: several seeds, held-out world families, bootstrap intervals, and no number that is not in a result file.
+- **Rejected or dropped AI suggestions:**
+  - Spark, Ray, Kubernetes, MAPPO and PAIRED were proposed and cut: none was needed to answer a question here.
+  - Behaviour cloning with DAgger (Stage 5.5) was dropped because the scripted expert is open-loop, so DAgger would have no state-dependent labels.
+- **Bugs found before publishing:** a unit test caught an off-by-one in the conformal-set quantile, and WPDIS was fixed to normalise only over episodes that reach each step (commit `05f52dc`).
 
 ## Limitations
 
-<!-- owner writes: what these results do not show -->
+- **Synthetic worlds only.** Every number comes from generated markets with known rules. Nothing here says anything about real markets.
+- **Base worlds are easy.** Random valid play also wins every base test world, so base-level win rates do not separate policies; reward does. Hard worlds are where random play wins only about half the time.
+- **Negative results are reported as negative:**
+  - No OPE estimator recovers PPO's value from random-play logs: effective sample size collapses.
+  - Adding the belief state does not improve PPO (value of information is within noise, or negative for the learned belief).
+  - IsolationForest catches no injected fault at the held-out false-positive rate.
+- **Small scales in places.** VIPER uses 1 seed and 30 test worlds. Value of information uses 3 seeds × 100k steps. Anomaly detection uses 1 model seed.
+- **One machine.** Throughput numbers are from a single i9-14900HX laptop and are not portable.
