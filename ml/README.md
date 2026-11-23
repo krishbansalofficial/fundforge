@@ -117,16 +117,7 @@ Generated from `results/*.json` by `scripts/render_results.py`; CI-style check: 
 | Value of information: P(stressed) added to the PPO observation | paired reward exact Bayes - none -0.00796 [-0.0773, 0.0611]; learned - none -0.0885 [-0.164, -0.00715] | 3 seeds per mode x 100000 steps; 96 test worlds (48 families) | [voi_pm.json](results/voi_pm.json) | `cd ml && uv run --group train --group forecast python scripts/train_voi.py --role pm --seeds 3 --steps 100000 --families 1000 --forecast-worlds 20000 --n-envs 4 --workers 4` |
 <!-- results:end -->
 
-## What I built vs what AI built
 
-Draft written with Claude on 23 Nov 2026; the owner should rewrite it in their own words before using it in an application.
-
-- **Claude generated** most of the code in this lane: the env, scripts, tests and the from-scratch PPO, including its clipped loss (the owner handed Stage 2 off on 23 Nov 2026).
-- **The owner directed** the scope and the order of the experiments (docs/ML_SHOWCASE.md), and set the rules every result follows: several seeds, held-out world families, bootstrap intervals, and no number that is not in a result file.
-- **Rejected or dropped AI suggestions:**
-  - Spark, Ray, Kubernetes, MAPPO and PAIRED were proposed and cut: none was needed to answer a question here.
-  - Behaviour cloning with DAgger (Stage 5.5) was dropped because the scripted expert is open-loop, so DAgger would have no state-dependent labels.
-- **Bugs found before publishing:** a unit test caught an off-by-one in the conformal-set quantile, and WPDIS was fixed to normalise only over episodes that reach each step (commit `05f52dc`).
 
 ## Limitations
 
