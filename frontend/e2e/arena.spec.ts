@@ -38,3 +38,25 @@ test("host, join with the code, and play one round together", async ({ browser }
   const reused = await guest.request.post("/api/join", { data: { code } });
   expect(reused.status()).toBe(404);  // single use
 });
+
+test("a finished game is verified, ranked, and replayable from the leaderboard", async ({ page, request }) => {
+  const room = await (await request.post("/api/rooms", { data: { solo_role: "pm" } })).json();
+  const auth = { Authorization: `Bearer ${room.tokens.pm}` };
+  for (let i = 0; i < 200; i++) {  // the bot readies itself; drive the human seat to the end over the API
+    const v = await (await request.get(`/api/rooms/${room.room_id}/view`, { headers: auth })).json();
+    if (v.outcome) break;
+    await request.post(`/api/rooms/${room.room_id}/commands`,
+      { headers: { ...auth, "Idempotency-Key": `r-${v.version}` }, data: { type: "ready", version: v.version } });
+  }
+  await page.goto(`/room/${room.room_id}#t=${room.tokens.pm}`);
+  await expect(page.getByText(/Verified and ranked with score/)).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("link", { name: "Public replay" }).click();
+  await page.getByRole("button", { name: "Replay and verify now" }).click();
+  await expect(page.getByText("Verified: the command log replays to the same journal digest.")).toBeVisible();
+
+  await page.getByRole("link", { name: "Leaderboard" }).click();
+  await expect(page.getByRole("heading", { name: "Leaderboard" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Replay [0-9a-f]+$/ }).first()).toBeVisible();
+  const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+});

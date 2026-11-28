@@ -8,6 +8,7 @@ import { LEDGER_PAGE, mergePage, olderCursor, type Journal } from "../../journal
 import { LABELS } from "../../card";
 import { admissionAmounts, packageTerms } from "../../prospect";
 import { EndingCard } from "./ending-card";
+import { Ranked } from "../../ranked";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
 // Ten days at a time, anchored so Case 1 always shows 12-21; the campaign pages through 1-10, 2-11, 12-21, 22-31.
@@ -818,6 +819,7 @@ function RunRecord({ v, roomId, token }: { v: View; roomId: string; token: strin
   // The card needs only the outcome; research rows join it when the run record arrives and drop if it fails.
   return <>
     {v.outcome && <EndingCard o={v.outcome} names={v.names} research={d?.research} roomId={roomId} token={token} version={v.version} />}
+    {v.outcome && <Ranked roomId={roomId} token={token} />}
     {loading ? <p role="status">Loading run record…</p>
       : error ? <div><p role="alert">Run record unavailable: {error}</p>
         <button type="button" onClick={() => { setLoading(true); setAttempt(a => a + 1); }}>Retry run record</button></div>

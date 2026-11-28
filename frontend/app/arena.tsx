@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { exclusive } from "./exclusive";
-import { api, type NewRoom } from "./lib";
+import { call } from "./account";
+import type { NewRoom } from "./lib";
 
 type Invite = { code: string; role: string };
 type Joined = { room_id: string; role: string; token: string };
@@ -36,20 +37,20 @@ export function Arena() {
     });
 
   const solo = () => run("start a solo game", async () => {
-    const r: NewRoom = await api("/api/rooms", undefined, { scenario: "case1", pm_name: "You", solo_role: "pm" });
+    const r = await call<NewRoom>("/api/rooms", { body: { scenario: "case1", pm_name: "You", solo_role: "pm" } });
     window.location.assign(seatUrl(r.room_id, r.tokens.pm));
   });
 
   const host = () => run("open a co-op room", async () => {
-    const r: NewRoom = await api("/api/rooms", undefined, { scenario: "case1", pm_name: "Host", mp_name: "Guest" });
-    const inv: Invite = await api(`/api/rooms/${r.room_id}/invite`, r.tokens.pm, {});
+    const r = await call<NewRoom>("/api/rooms", { body: { scenario: "case1", pm_name: "Host", mp_name: "Guest" } });
+    const inv = await call<Invite>(`/api/rooms/${r.room_id}/invite`, { body: {}, seat: r.tokens.pm });
     setHosted({ room: r.room_id, token: r.tokens.pm, code: inv.code });
   });
 
   const join = (e: React.FormEvent) => {
     e.preventDefault();
     run("join", async () => {
-      const j: Joined = await api("/api/join", undefined, { code });
+      const j = await call<Joined>("/api/join", { body: { code } });
       window.location.assign(seatUrl(j.room_id, j.token));
     });
   };

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Arena } from "./arena";
+import { Nav } from "./nav";
 import { exclusive } from "./exclusive";
 import { api, SCENARIOS } from "./lib";
 
@@ -36,6 +37,7 @@ export default function Home() {
 
   return (
     <main className="landing">
+      <Nav />
       <header className="landing-head">
         <p className="wordmark">FundForge</p>
         <h1>Ten trading days. One recalled borrow. Twenty-five million dollars that isn&rsquo;t yours.</h1>
