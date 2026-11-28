@@ -34,6 +34,7 @@ export function useRoomSocket(roomId: string, token: string | null, onNudge: () 
     let timer: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
     let stopped = false;
+    let refused = false; // 4401/4429: the server will not take this seat again, so never reconnect
 
     const open = () => {
       ws = new WebSocket(socketUrl(roomId, window.location.origin));
@@ -51,6 +52,7 @@ export function useRoomSocket(roomId: string, token: string | null, onNudge: () 
       ws.onclose = (e) => {
         if (stopped) return;
         if (e.code === UNAUTHORIZED || e.code === TOO_MANY) {
+          refused = true;
           setLink("polling");
           return;
         }
@@ -59,9 +61,8 @@ export function useRoomSocket(roomId: string, token: string | null, onNudge: () 
       };
     };
     const wake = () => { // back online or back on the tab: retry now instead of waiting out the backoff
-      if (ws?.readyState === WebSocket.CLOSED) {
-        clearTimeout(timer);
-        attempt = 0;
+      if (!refused && !stopped && ws?.readyState === WebSocket.CLOSED) {
+        clearTimeout(timer); // keep `attempt`: tab switches must not reset the backoff
         open();
       }
       nudge.current();
