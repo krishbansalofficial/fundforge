@@ -345,6 +345,17 @@ class NewRoomResponse(Strict):
     bot_role: str | None
 
 
+class InviteResponse(Strict):
+    code: str  # six characters; single use, 24 hours
+    role: str  # the seat the code opens
+
+
+class JoinResponse(Strict):
+    room_id: str
+    role: str
+    token: str  # the seat token; the code is spent
+
+
 # ---------- terminal (GET /api/rooms/{id}/terminal) ----------
 
 class AsOf(Strict):

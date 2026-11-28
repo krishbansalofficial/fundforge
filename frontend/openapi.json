@@ -1754,6 +1754,64 @@
         "title": "Investors",
         "type": "object"
       },
+      "InviteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "role"
+        ],
+        "title": "InviteResponse",
+        "type": "object"
+      },
+      "JoinRequest": {
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "JoinRequest",
+        "type": "object"
+      },
+      "JoinResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_id",
+          "role",
+          "token"
+        ],
+        "title": "JoinResponse",
+        "type": "object"
+      },
       "JournalEntry": {
         "additionalProperties": false,
         "properties": {
@@ -5185,6 +5243,44 @@
         "summary": "Health"
       }
     },
+    "/api/join": {
+      "post": {
+        "operationId": "join_api_join_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Join"
+      }
+    },
     "/api/ready": {
       "get": {
         "description": "Readiness: the schema is migrated and the database answers. Deploy healthchecks gate on this.",
@@ -5374,6 +5470,56 @@
           }
         },
         "summary": "Debrief"
+      }
+    },
+    "/api/rooms/{room_id}/invite": {
+      "post": {
+        "description": "A seated partner asks for a short join code for the other seat.",
+        "operationId": "invite_api_rooms__room_id__invite_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite"
       }
     },
     "/api/rooms/{room_id}/ledger": {

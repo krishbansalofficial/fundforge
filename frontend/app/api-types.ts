@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join */
+        post: operations["join_api_join_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ready": {
         parameters: {
             query?: never;
@@ -86,6 +103,26 @@ export interface paths {
         put?: never;
         /** Debrief */
         post: operations["debrief_api_rooms__room_id__debrief_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rooms/{room_id}/invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invite
+         * @description A seated partner asks for a short join code for the other seat.
+         */
+        post: operations["invite_api_rooms__room_id__invite_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -776,6 +813,27 @@ export interface components {
             lps: components["schemas"]["LpRow"][];
             /** Policy */
             policy: string;
+        };
+        /** InviteResponse */
+        InviteResponse: {
+            /** Code */
+            code: string;
+            /** Role */
+            role: string;
+        };
+        /** JoinRequest */
+        JoinRequest: {
+            /** Code */
+            code: string;
+        };
+        /** JoinResponse */
+        JoinResponse: {
+            /** Role */
+            role: string;
+            /** Room Id */
+            room_id: string;
+            /** Token */
+            token: string;
         };
         /** JournalEntry */
         JournalEntry: {
@@ -1987,6 +2045,39 @@ export interface operations {
             };
         };
     };
+    join_api_join_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ready_api_ready_get: {
         parameters: {
             query?: never;
@@ -2106,6 +2197,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Debrief"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invite_api_rooms__room_id__invite_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteResponse"];
                 };
             };
             /** @description Validation Error */

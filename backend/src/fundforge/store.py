@@ -69,6 +69,16 @@ def _h(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+JOIN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I: codes are read aloud and typed
+JOIN_CODE_LENGTH = 6
+JOIN_CODE_TTL_HOURS = 24
+
+
+def normalize_code(code: str) -> str:
+    """'abc-23f' -> 'ABC23F': players type codes in any case, with dashes or spaces."""
+    return "".join(ch for ch in code.upper() if ch.isalnum())
+
+
 def _tape(scenario: str, variant: str = "base") -> Tape:
     if scenario not in SCENARIOS:
         raise CommandRejected(f"unknown scenario {scenario!r}")
@@ -248,6 +258,41 @@ class Store:
         if not row:
             raise PermissionError("invalid seat token for this room")
         return str(row[0])
+
+    # ---------- join codes (lobby) ----------
+    def invite(self, room: str, token: str) -> dict[str, str]:
+        """A short join code for the other seat; the same open code is returned until it is claimed or expires."""
+        role = self.seat_role(room, token)
+        other = "mp" if role == "pm" else "pm"
+        with self.pool.connection() as c, c.transaction():
+            row = c.execute("select bot_role from rooms where id=%s for update", (room,)).fetchone()
+            if row is None or row[0] == other:
+                raise CommandRejected("the other seat is played by the bot; there is nobody to invite")
+            open_ = c.execute("select code from join_codes where room_id=%s and role=%s and claimed_at is null"
+                              " and created_at > now() - make_interval(hours => %s)",
+                              (room, other, JOIN_CODE_TTL_HOURS)).fetchone()
+            if open_:
+                return {"code": open_[0], "role": other}
+            while True:  # 32^6 codes: a collision is rare, and the primary key catches it
+                code = "".join(secrets.choice(JOIN_ALPHABET) for _ in range(JOIN_CODE_LENGTH))
+                if c.execute("insert into join_codes (code, room_id, role) values (%s,%s,%s)"
+                             " on conflict do nothing", (code, room, other)).rowcount:
+                    return {"code": code, "role": other}
+
+    def join(self, code: str) -> dict[str, str]:
+        """Claim a join code once: rotate that seat's token and return it. Unknown, used or expired codes fail alike."""
+        code = normalize_code(code)
+        token = secrets.token_urlsafe(24)
+        with self.pool.connection() as c, c.transaction():
+            row = c.execute("select room_id, role from join_codes where code=%s and claimed_at is null"
+                            " and created_at > now() - make_interval(hours => %s) for update",
+                            (code, JOIN_CODE_TTL_HOURS)).fetchone()
+            if not row:
+                raise PermissionError("unknown, used or expired join code")
+            room, role = row
+            c.execute("update seats set token_hash=%s where room_id=%s and role=%s", (_h(token), room, role))
+            c.execute("update join_codes set claimed_at=now() where code=%s", (code,))
+        return {"room_id": room, "role": role, "token": token}
 
     # ---------- replay ----------
     @staticmethod

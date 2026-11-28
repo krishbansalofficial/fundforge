@@ -37,6 +37,8 @@ from .schemas import (
     DECIMAL_PATTERN,
     CommandBody,
     Debrief,
+    InviteResponse,
+    JoinResponse,
     LedgerPage,
     NewRoomResponse,
     RoomView,
@@ -177,6 +179,8 @@ class RateLimit:
 # ROOMS_PER_IP in total (fewer if one address's requests land unevenly across workers).
 # ponytail: per-process split, move the window into Postgres if uneven routing ever refuses real players.
 room_creations = RateLimit(max(1, ROOMS_PER_IP // WORKERS))
+# Join attempts per address and hour: with 32^6 codes, guessing a live one at this rate is hopeless.
+join_attempts = RateLimit(max(1, int(os.environ.get("FUNDFORGE_JOINS_PER_IP", "30")) // WORKERS))
 
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
 app.add_middleware(BodyLimit, limit=MAX_BODY_BYTES)
@@ -339,6 +343,31 @@ def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
         return store().create_room(body.scenario, body.pm_name, body.mp_name, variant, solo_role=body.solo_role)
     except CommandRejected as e:
         raise HTTPException(422, str(e)) from e
+
+
+@app.post("/api/rooms/{room_id}/invite", response_model=InviteResponse)
+def invite(room_id: str, authorization: str = Header("")) -> dict[str, str]:
+    """A seated partner asks for a short join code for the other seat."""
+    try:
+        return store().invite(room_id, authorization.removeprefix("Bearer ").strip())
+    except PermissionError as e:
+        raise HTTPException(401, str(e)) from e
+    except CommandRejected as e:
+        raise HTTPException(422, str(e)) from e
+
+
+class JoinRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=16)
+
+
+@app.post("/api/join", response_model=JoinResponse)
+def join(body: JoinRequest, request: Request) -> dict[str, str]:
+    if not join_attempts.allow(request.client.host if request.client else "unknown"):
+        raise ApiError(429, "rate_limited", f"at most {join_attempts.per_window} join attempts per hour per address")
+    try:
+        return store().join(body.code)
+    except PermissionError as e:
+        raise ApiError(404, "not_found", str(e)) from e
 
 
 # A room can only become incompatible (new rules/tape) when the deployed code or data changes; the epoch hashes
