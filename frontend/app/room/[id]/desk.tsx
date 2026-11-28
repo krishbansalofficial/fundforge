@@ -9,6 +9,8 @@ import { LABELS } from "../../card";
 import { admissionAmounts, packageTerms } from "../../prospect";
 import { EndingCard } from "./ending-card";
 import { Ranked } from "../../ranked";
+import { useRoomSocket, type Link } from "../../live";
+import { Clock } from "./clock";
 import { Terminal, type Send, type Thesis } from "./terminal";
 
 // Ten days at a time, anchored so Case 1 always shows 12-21; the campaign pages through 1-10, 2-11, 12-21, 22-31.
@@ -62,9 +64,10 @@ export default function Desk({ roomId }: { roomId: string }) {
     }
   }, [roomId, token]);
 
+  const link = useRoomSocket(roomId, token, refresh); // nudges make changes show at once; polling stays the fallback
   useEffect(() => {
     refresh();
-    const t = setInterval(refresh, 1500); // polling is enough for two players; no socket until it isn't
+    const t = setInterval(refresh, 1500);
     return () => clearInterval(t);
   }, [refresh]);
 
@@ -160,7 +163,7 @@ export default function Desk({ roomId }: { roomId: string }) {
         <Feed v={v} />
         <fieldset className="contents" disabled={busy} aria-busy={busy}>
           <Actions v={v} me={me} send={send} />
-          <Partners v={v} me={me} partner={partner} send={send} flash={flash} />
+          <Partners v={v} me={me} partner={partner} send={send} flash={flash} link={link} />
           <Chat v={v} send={send} />
         </fieldset>
       </div>
@@ -372,7 +375,7 @@ function Actions({ v, me, send }: { v: View; me: string; send: Send }) {
   );
 }
 
-function Partners({ v, me, partner, send, flash }: { v: View; me: string; partner: string; send: Send; flash: string }) {
+function Partners({ v, me, partner, send, flash, link }: { v: View; me: string; partner: string; send: Send; flash: string; link: Link }) {
   const ready = v.ready.includes(me);
   const waiting = v.packages.filter((p) => p.status === "PENDING_APPROVAL" && p.proposer === partner);
   const winddown = v.winddown != null;
@@ -403,6 +406,7 @@ function Partners({ v, me, partner, send, flash }: { v: View; me: string; partne
         </div>
       )}
       {winddown && !v.clock.finished && <p>Winddown declared: sell longs and cover shorts so every unit can be redeemed.</p>}
+      <Clock v={v} send={send} link={link} />
       {!v.clock.finished && (
         <button type="button" className="ready" disabled={ready} onClick={() => send({ type: "ready", version: v.version }, "")}>
           {ready ? `Waiting for ${v.names[partner]}` : `Ready: advance to ${v.clock.next ? PHASE_LABEL[v.clock.next.phase].toLowerCase() : "the end"}`}

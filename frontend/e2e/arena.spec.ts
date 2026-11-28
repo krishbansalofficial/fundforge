@@ -60,3 +60,14 @@ test("a finished game is verified, ranked, and replayable from the leaderboard",
   const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
   expect(axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
 });
+
+test("the round timer starts and pauses through logged commands, over a live socket", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Play solo" }).click();
+  const timer = page.getByLabel("Round timer");
+  await expect(timer.getByText(/Live/)).toBeVisible({ timeout: 10_000 });  // presence socket welcomed this seat
+  await timer.getByRole("button", { name: "Start timer 1x" }).click();
+  await expect(timer.getByText(/Round timer 1x: next window in \d+ s/)).toBeVisible();
+  await timer.getByRole("button", { name: "Pause" }).click();
+  await expect(timer.getByText("Timer paused: Paused by the portfolio manager.")).toBeVisible();
+});
