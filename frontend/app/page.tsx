@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Arena } from "./arena";
 import { exclusive } from "./exclusive";
 import { api, SCENARIOS } from "./lib";
 
@@ -45,6 +46,8 @@ export default function Home() {
         </p>
       </header>
 
+      <Arena />
+
       <section className="roles">
         <div>
           <h2>Portfolio manager</h2>
@@ -56,6 +59,7 @@ export default function Home() {
         </div>
       </section>
 
+      <h2>Two seats, one screen</h2>
       {!room ? (
         <form className="open-form" onSubmit={create}>
           <label>
