@@ -57,3 +57,28 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             out["exc"] = self.formatException(record.exc_info)
         return json.dumps(out, separators=(",", ":"), default=str)
+
+
+def scrub(event: dict[str, Any], _hint: Any = None) -> dict[str, Any]:
+    """Sentry before_send: drop request headers, cookies, query strings and bodies. Seat tokens travel in
+    Authorization, account sessions in X-Session and magic links in bodies; none may leave the server."""
+    req = event.get("request")
+    if isinstance(req, dict):
+        for k in ("headers", "cookies", "query_string", "data", "env"):
+            req.pop(k, None)
+    return event
+
+
+def init_sentry() -> bool:
+    """Error reporting when SENTRY_DSN is set (Sentry's free tier); a no-op otherwise, including in tests."""
+    import os
+
+    dsn = os.environ.get("SENTRY_DSN")
+    if not dsn:
+        return False
+    import sentry_sdk
+
+    sentry_sdk.init(dsn=dsn, before_send=scrub,  # type: ignore[arg-type]  # default data_collection: no PII
+                    environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
+                    traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0")))
+    return True

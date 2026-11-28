@@ -30,7 +30,7 @@ from . import presence as presence_rules
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import STRATEGIES, project
-from .observability import REJECTIONS, JsonFormatter, context, request_id
+from .observability import REJECTIONS, JsonFormatter, context, init_sentry, request_id
 from .presence import hub
 from .schemas import (
     COMMAND_TAGS,
@@ -189,6 +189,7 @@ login_requests = RateLimit(max(1, int(os.environ.get("FUNDFORGE_LOGINS_PER_IP", 
 public_verifies = RateLimit(max(1, 60 // WORKERS))  # a public re-verify replays a whole room
 join_attempts = RateLimit(max(1, int(os.environ.get("FUNDFORGE_JOINS_PER_IP", "30")) // WORKERS))
 
+init_sentry()  # before the app exists, so the FastAPI integration instruments it
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
 app.add_middleware(BodyLimit, limit=MAX_BODY_BYTES)
 

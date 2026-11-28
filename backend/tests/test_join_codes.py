@@ -54,3 +54,47 @@ def test_unknown_code_is_not_found(client):
 
 def test_normalize_code():
     assert normalize_code(" ab c-23f ") == "ABC23F"
+
+
+def test_lobby_socket_flow_join_nudge_and_reconnect(client):
+    """The joined guest's socket is welcomed, the rotated token is refused, and a reconnect resumes at the
+    current version (missed nudges are recovered from the welcome, never replayed)."""
+    from starlette.websockets import WebSocketDisconnect
+
+    from fundforge import presence
+
+    r = client.post("/api/rooms", json={"pm_name": "Ana", "mp_name": "Ben"}).json()
+    rid, pm, old_mp = r["room_id"], r["tokens"]["pm"], r["tokens"]["mp"]
+    code = client.post(f"/api/rooms/{rid}/invite", headers=h(pm)).json()["code"]
+    mp = client.post("/api/join", json={"code": code}).json()["token"]
+
+    with client.websocket_connect(f"/api/rooms/{rid}/presence") as ws:
+        ws.send_json({"type": "hello", "token": old_mp})
+        with pytest.raises(WebSocketDisconnect) as closed:
+            ws.receive_json()
+        assert closed.value.code == presence.UNAUTHORIZED
+
+    with client.websocket_connect(f"/api/rooms/{rid}/presence") as host:
+        host.send_json({"type": "hello", "token": pm})
+        assert host.receive_json()["version"] == 0
+        with client.websocket_connect(f"/api/rooms/{rid}/presence") as guest:
+            guest.send_json({"type": "hello", "token": mp})
+            assert guest.receive_json() == {"type": "welcome", "role": "mp", "version": 0, "partners": {}}
+            client.post(f"/api/rooms/{rid}/commands", headers={**h(mp), "Idempotency-Key": "g1"},
+                        json={"type": "ready", "version": 0})
+            assert host.receive_json() == {"type": "version", "version": 1} == guest.receive_json()
+        # guest dropped; the host acts while it is away
+        client.post(f"/api/rooms/{rid}/commands", headers={**h(pm), "Idempotency-Key": "h1"},
+                    json={"type": "ready", "version": 1})
+        assert host.receive_json()["type"] in ("left", "version")
+    with client.websocket_connect(f"/api/rooms/{rid}/presence") as back:  # reconnect
+        back.send_json({"type": "hello", "token": mp})
+        assert back.receive_json()["version"] == client.get(f"/api/rooms/{rid}/view", headers=h(mp)).json()["version"]
+
+
+def test_sentry_events_carry_no_tokens():
+    from fundforge.observability import scrub
+
+    event = {"request": {"url": "/api/join", "headers": {"Authorization": "Bearer s", "X-Session": "x"},
+                         "data": {"token": "magic"}, "query_string": "t=1"}}
+    assert scrub(event) == {"request": {"url": "/api/join"}}
