@@ -933,3 +933,63 @@ class CommandBody(RootModel[Command]):
 
 
 COMMAND_TAGS = {get_args(m.model_fields["type"].annotation)[0] for m in get_args(get_args(Command)[0])}
+
+
+# ---------- Arena: accounts, verified results, leaderboard ----------
+
+class SessionResponse(Strict):
+    session: str  # account session token; send as X-Session
+    user_id: str
+
+
+class GameRow(Strict):
+    room_id: str
+    scenario: str
+    role: str
+    created_at: str
+    label: str | None  # None until the finished room is verified and recorded
+    score: str | None
+
+
+class Profile(Strict):
+    user_id: str
+    display_name: str
+    email: str
+    games: list[GameRow]
+
+
+class ResultRow(Strict):
+    room_id: str
+    scenario: str
+    label: str
+    score: str
+    excess_bps: str
+    nav: str
+    solo: bool
+    journal_digest: str
+    chain_head: str
+    rules_version: str
+    verified_at: str
+    players: dict[str, str]  # seat -> display name, "Guest" or "Bot"
+
+
+class LeaderRow(ResultRow):
+    rank: int
+
+
+class TimelineItem(Strict):
+    seq: int
+    actor: str  # pm, mp, clock or the bot's seat
+    type: str
+    at: str
+
+
+class ResultDetail(ResultRow):
+    timeline: list[TimelineItem]
+
+
+class Reverify(Strict):
+    ok: bool
+    journal_digest: str | None
+    matches_recorded: bool
+    error: str | None

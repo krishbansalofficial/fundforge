@@ -516,6 +516,10 @@ class Store:
     # ---------- audit ----------
     def verify(self, room: str) -> dict:
         """Re-derive the room from its tape and command log and compare with everything stored."""
+        return self.verified(room)[0]
+
+    def verified(self, room: str) -> tuple[dict, Session]:
+        """``verify``'s report plus the session it replayed, for callers that need the replayed outcome."""
         with self.pool.connection() as c, c.transaction():
             c.execute("set transaction isolation level repeatable read")
             version, tape, partners, _, bot_role = self._room(c, room)
@@ -543,4 +547,4 @@ class Store:
         if sql_tb != py_tb:
             raise ReplayDivergence("SQL trial balance differs from the engine's balances")
         return {"room": room, "version": version, "journal_digest": s.e.j.digest(), "chain_head": prev,
-                "entries": len(replayed), "rules_version": RULES_VERSION, "tape_digest": tape.digest}
+                "entries": len(replayed), "rules_version": RULES_VERSION, "tape_digest": tape.digest}, s

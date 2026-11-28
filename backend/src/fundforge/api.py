@@ -25,8 +25,8 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import arena, presence_bridge
 from . import presence as presence_rules
-from . import presence_bridge
 from .debrief import replay
 from .engine import CommandRejected
 from .liquidity import STRATEGIES, project
@@ -39,9 +39,14 @@ from .schemas import (
     Debrief,
     InviteResponse,
     JoinResponse,
+    LeaderRow,
     LedgerPage,
     NewRoomResponse,
+    Profile,
+    ResultDetail,
+    Reverify,
     RoomView,
+    SessionResponse,
     TerminalView,
 )
 from .store import (
@@ -180,6 +185,8 @@ class RateLimit:
 # ponytail: per-process split, move the window into Postgres if uneven routing ever refuses real players.
 room_creations = RateLimit(max(1, ROOMS_PER_IP // WORKERS))
 # Join attempts per address and hour: with 32^6 codes, guessing a live one at this rate is hopeless.
+login_requests = RateLimit(max(1, int(os.environ.get("FUNDFORGE_LOGINS_PER_IP", "10")) // WORKERS))
+public_verifies = RateLimit(max(1, 60 // WORKERS))  # a public re-verify replays a whole room
 join_attempts = RateLimit(max(1, int(os.environ.get("FUNDFORGE_JOINS_PER_IP", "30")) // WORKERS))
 
 app = FastAPI(title="FundForge", version="0.1.0", lifespan=lifespan)
@@ -335,14 +342,17 @@ def pinned_variant(scenario: str, requested: str | None, enabled: bool) -> str |
 
 
 @app.post("/api/rooms", status_code=201, response_model=NewRoomResponse)
-def create_room(body: NewRoom, request: Request) -> dict[str, Any]:
+def create_room(body: NewRoom, request: Request, x_session: str = Header("")) -> dict[str, Any]:
     if not room_creations.allow(request.client.host if request.client else "unknown"):
         raise ApiError(429, "rate_limited", f"at most {room_creations.per_window} new rooms per hour from one address")
     variant = pinned_variant(body.scenario, body.variant, TEST_VARIANTS)
     try:
-        return store().create_room(body.scenario, body.pm_name, body.mp_name, variant, solo_role=body.solo_role)
+        room = store().create_room(body.scenario, body.pm_name, body.mp_name, variant, solo_role=body.solo_role)
     except CommandRejected as e:
         raise HTTPException(422, str(e)) from e
+    # a signed-in creator takes their solo seat, or the PM seat of a hosted room
+    arena.link_seat(store(), room["room_id"], body.solo_role or "pm", arena.account(store(), x_session))
+    return room
 
 
 @app.post("/api/rooms/{room_id}/invite", response_model=InviteResponse)
@@ -361,13 +371,118 @@ class JoinRequest(BaseModel):
 
 
 @app.post("/api/join", response_model=JoinResponse)
-def join(body: JoinRequest, request: Request) -> dict[str, str]:
+def join(body: JoinRequest, request: Request, x_session: str = Header("")) -> dict[str, str]:
     if not join_attempts.allow(request.client.host if request.client else "unknown"):
         raise ApiError(429, "rate_limited", f"at most {join_attempts.per_window} join attempts per hour per address")
     try:
-        return store().join(body.code)
+        seat_ = store().join(body.code)
     except PermissionError as e:
         raise ApiError(404, "not_found", str(e)) from e
+    arena.link_seat(store(), seat_["room_id"], seat_["role"], arena.account(store(), x_session))
+    return seat_
+
+
+# ---------- Arena accounts (email magic link), verified results and leaderboard ----------
+
+def account(x_session: str = Header("")) -> str:
+    user = arena.account(store(), x_session)
+    if user is None:
+        raise ApiError(401, "unauthorized", "sign in first")
+    return user
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
+class TokenBody(BaseModel):
+    token: str = Field(min_length=10, max_length=100)
+
+
+class Rename(BaseModel):
+    display_name: str = Field(min_length=2, max_length=24)
+
+
+@app.post("/api/auth/request", status_code=202)
+def auth_request(body: LoginRequest, request: Request) -> dict[str, bool]:
+    """Email a sign-in link. The answer is the same for known and unknown addresses."""
+    if not login_requests.allow(request.client.host if request.client else "unknown"):
+        raise ApiError(429, "rate_limited", f"at most {login_requests.per_window} sign-in emails per hour per address")
+    try:
+        arena.request_login(store(), body.email)
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+    return {"ok": True}
+
+
+@app.post("/api/auth/verify", response_model=SessionResponse)
+def auth_verify(body: TokenBody) -> dict[str, str]:
+    try:
+        return arena.verify_login(store(), body.token)
+    except arena.AuthError as e:
+        raise HTTPException(401, str(e)) from e
+
+
+@app.post("/api/auth/signout", status_code=204)
+def auth_signout(x_session: str = Header("")) -> Response:
+    arena.sign_out(store(), x_session)
+    return Response(status_code=204)
+
+
+@app.get("/api/me", response_model=Profile)
+def me(user: str = Depends(account)) -> dict[str, Any]:
+    return arena.profile(store(), user)
+
+
+@app.patch("/api/me", response_model=Profile)
+def rename_me(body: Rename, user: str = Depends(account)) -> dict[str, Any]:
+    try:
+        arena.rename(store(), user, body.display_name)
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+    return arena.profile(store(), user)
+
+
+@app.post("/api/rooms/{room_id}/result", response_model=ResultDetail)
+def submit_result(room_id: str, user: str = Depends(seat)) -> dict[str, Any]:
+    """Rank a finished room. The server replays and verifies it; the client sends no score."""
+    try:
+        return arena.record_result(store(), room_id)
+    except ValueError as e:
+        raise HTTPException(409, str(e)) from e
+    except (ReplayDivergence, RoomIncompatible) as e:
+        raise ApiError(409, "conflict", f"the room did not verify, so it is not ranked: {e}") from e
+
+
+@app.get("/api/leaderboard", response_model=list[LeaderRow])
+def leaderboard(scenario: str = Query("case1", max_length=40),
+                limit: int = Query(20, ge=1, le=100)) -> list[dict[str, Any]]:
+    return arena.leaderboard(store(), scenario, limit)
+
+
+@app.get("/api/results/{room_id}", response_model=ResultDetail)
+def public_result(room_id: str) -> dict[str, Any]:
+    """A recorded result and its public command timeline (chat excluded); anyone may read it."""
+    try:
+        return arena.result(store(), room_id)
+    except KeyError as e:
+        raise HTTPException(404, "no recorded result for this room") from e
+
+
+@app.post("/api/results/{room_id}/verify", response_model=Reverify)
+def public_reverify(room_id: str, request: Request) -> dict[str, Any]:
+    """Replay a ranked room again from its command log and compare with the recorded digest."""
+    if not public_verifies.allow(request.client.host if request.client else "unknown"):
+        raise ApiError(429, "rate_limited", f"at most {public_verifies.per_window} verifications per hour")
+    try:
+        recorded = arena.result(store(), room_id)["journal_digest"]
+    except KeyError as e:
+        raise HTTPException(404, "no recorded result for this room") from e
+    try:
+        digest = store().verify(room_id)["journal_digest"]
+    except (ReplayDivergence, RoomIncompatible) as e:
+        return {"ok": False, "journal_digest": None, "matches_recorded": False, "error": str(e)}
+    return {"ok": True, "journal_digest": digest, "matches_recorded": digest == recorded, "error": None}
 
 
 # A room can only become incompatible (new rules/tape) when the deployed code or data changes; the epoch hashes

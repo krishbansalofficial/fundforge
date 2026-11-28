@@ -4,6 +4,60 @@
  */
 
 export interface paths {
+    "/api/auth/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auth Request
+         * @description Email a sign-in link. The answer is the same for known and unknown addresses.
+         */
+        post: operations["auth_request_api_auth_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auth Signout */
+        post: operations["auth_signout_api_auth_signout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auth Verify */
+        post: operations["auth_verify_api_auth_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -38,6 +92,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leaderboard */
+        get: operations["leaderboard_api_leaderboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename Me */
+        patch: operations["rename_me_api_me_patch"];
+        trace?: never;
+    };
     "/api/ready": {
         parameters: {
             query?: never;
@@ -52,6 +141,46 @@ export interface paths {
         get: operations["ready_api_ready_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/results/{room_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public Result
+         * @description A recorded result and its public command timeline (chat excluded); anyone may read it.
+         */
+        get: operations["public_result_api_results__room_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/results/{room_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Public Reverify
+         * @description Replay a ranked room again from its command log and compare with the recorded digest.
+         */
+        post: operations["public_reverify_api_results__room_id__verify_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -160,6 +289,26 @@ export interface paths {
         put?: never;
         /** Liquidity */
         post: operations["liquidity_api_rooms__room_id__liquidity_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rooms/{room_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Result
+         * @description Rank a finished room. The server replays and verifies it; the client sends no score.
+         */
+        post: operations["submit_result_api_rooms__room_id__result_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -761,6 +910,21 @@ export interface components {
             /** Short Mv */
             short_mv: string;
         };
+        /** GameRow */
+        GameRow: {
+            /** Created At */
+            created_at: string;
+            /** Label */
+            label: string | null;
+            /** Role */
+            role: string;
+            /** Room Id */
+            room_id: string;
+            /** Scenario */
+            scenario: string;
+            /** Score */
+            score: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -851,6 +1015,37 @@ export interface components {
                 string
             ][];
         };
+        /** LeaderRow */
+        LeaderRow: {
+            /** Chain Head */
+            chain_head: string;
+            /** Excess Bps */
+            excess_bps: string;
+            /** Journal Digest */
+            journal_digest: string;
+            /** Label */
+            label: string;
+            /** Nav */
+            nav: string;
+            /** Players */
+            players: {
+                [key: string]: string;
+            };
+            /** Rank */
+            rank: number;
+            /** Room Id */
+            room_id: string;
+            /** Rules Version */
+            rules_version: string;
+            /** Scenario */
+            scenario: string;
+            /** Score */
+            score: string;
+            /** Solo */
+            solo: boolean;
+            /** Verified At */
+            verified_at: string;
+        };
         /** LeagueRow */
         LeagueRow: {
             /** Id */
@@ -907,6 +1102,11 @@ export interface components {
              * @default 1
              */
             volume_scale?: string;
+        };
+        /** LoginRequest */
+        LoginRequest: {
+            /** Email */
+            email: string;
         };
         /**
          * LpDebrief
@@ -1242,6 +1442,17 @@ export interface components {
             /** Sym */
             sym: string;
         };
+        /** Profile */
+        Profile: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Games */
+            games: components["schemas"]["GameRow"][];
+            /** User Id */
+            user_id: string;
+        };
         /** Propose */
         Propose: {
             /** Orders */
@@ -1434,6 +1645,11 @@ export interface components {
             /** Type */
             type: string;
         };
+        /** Rename */
+        Rename: {
+            /** Display Name */
+            display_name: string;
+        };
         /** Research */
         Research: {
             /** Assignments */
@@ -1502,6 +1718,48 @@ export interface components {
             type: "resolve_statement";
             /** Version */
             version: number;
+        };
+        /** ResultDetail */
+        ResultDetail: {
+            /** Chain Head */
+            chain_head: string;
+            /** Excess Bps */
+            excess_bps: string;
+            /** Journal Digest */
+            journal_digest: string;
+            /** Label */
+            label: string;
+            /** Nav */
+            nav: string;
+            /** Players */
+            players: {
+                [key: string]: string;
+            };
+            /** Room Id */
+            room_id: string;
+            /** Rules Version */
+            rules_version: string;
+            /** Scenario */
+            scenario: string;
+            /** Score */
+            score: string;
+            /** Solo */
+            solo: boolean;
+            /** Timeline */
+            timeline: components["schemas"]["TimelineItem"][];
+            /** Verified At */
+            verified_at: string;
+        };
+        /** Reverify */
+        Reverify: {
+            /** Error */
+            error: string | null;
+            /** Journal Digest */
+            journal_digest: string | null;
+            /** Matches Recorded */
+            matches_recorded: boolean;
+            /** Ok */
+            ok: boolean;
         };
         /** ReviewCheckpoint */
         ReviewCheckpoint: {
@@ -1634,6 +1892,13 @@ export interface components {
             provision: string;
             /** Units */
             units: string;
+        };
+        /** SessionResponse */
+        SessionResponse: {
+            /** Session */
+            session: string;
+            /** User Id */
+            user_id: string;
         };
         /** SetReserve */
         SetReserve: {
@@ -1969,6 +2234,17 @@ export interface components {
              */
             type: "ticket";
         };
+        /** TimelineItem */
+        TimelineItem: {
+            /** Actor */
+            actor: string;
+            /** At */
+            at: string;
+            /** Seq */
+            seq: number;
+            /** Type */
+            type: string;
+        };
         /** TimelineStep */
         TimelineStep: {
             after: components["schemas"]["BranchState"];
@@ -1988,6 +2264,11 @@ export interface components {
             status: "accepted" | "rejected" | "omitted";
             /** Type */
             type: string;
+        };
+        /** TokenBody */
+        TokenBody: {
+            /** Token */
+            token: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -2023,6 +2304,103 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    auth_request_api_auth_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_signout_api_auth_signout_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-session"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_verify_api_auth_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_health_get: {
         parameters: {
             query?: never;
@@ -2048,7 +2426,9 @@ export interface operations {
     join_api_join_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "x-session"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2065,6 +2445,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JoinResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    leaderboard_api_leaderboard_get: {
+        parameters: {
+            query?: {
+                scenario?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaderRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_me_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-session"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_me_api_me_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-session"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Rename"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Profile"];
                 };
             };
             /** @description Validation Error */
@@ -2100,10 +2578,74 @@ export interface operations {
             };
         };
     };
-    create_room_api_rooms_post: {
+    public_result_api_results__room_id__get: {
         parameters: {
             query?: never;
             header?: never;
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    public_reverify_api_results__room_id__verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reverify"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_room_api_rooms_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-session"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2305,6 +2847,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_result_api_rooms__room_id__result_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+            };
+            path: {
+                room_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultDetail"];
                 };
             };
             /** @description Validation Error */

@@ -1611,6 +1611,59 @@
         "title": "Fund",
         "type": "object"
       },
+      "GameRow": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "required": [
+          "room_id",
+          "scenario",
+          "role",
+          "created_at",
+          "label",
+          "score"
+        ],
+        "title": "GameRow",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1859,6 +1912,83 @@
         "title": "JournalEntry",
         "type": "object"
       },
+      "LeaderRow": {
+        "additionalProperties": false,
+        "properties": {
+          "chain_head": {
+            "title": "Chain Head",
+            "type": "string"
+          },
+          "excess_bps": {
+            "title": "Excess Bps",
+            "type": "string"
+          },
+          "journal_digest": {
+            "title": "Journal Digest",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "players": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Players",
+            "type": "object"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          },
+          "solo": {
+            "title": "Solo",
+            "type": "boolean"
+          },
+          "verified_at": {
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_id",
+          "scenario",
+          "label",
+          "score",
+          "excess_bps",
+          "nav",
+          "solo",
+          "journal_digest",
+          "chain_head",
+          "rules_version",
+          "verified_at",
+          "players",
+          "rank"
+        ],
+        "title": "LeaderRow",
+        "type": "object"
+      },
       "LeagueRow": {
         "additionalProperties": false,
         "properties": {
@@ -1975,6 +2105,21 @@
           "version"
         ],
         "title": "LiquidityRequest",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "LoginRequest",
         "type": "object"
       },
       "LpDebrief": {
@@ -2967,6 +3112,38 @@
         "title": "Position",
         "type": "object"
       },
+      "Profile": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/GameRow"
+            },
+            "title": "Games",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name",
+          "email",
+          "games"
+        ],
+        "title": "Profile",
+        "type": "object"
+      },
       "Propose": {
         "additionalProperties": false,
         "properties": {
@@ -3536,6 +3713,21 @@
         "title": "RejectedStep",
         "type": "object"
       },
+      "Rename": {
+        "properties": {
+          "display_name": {
+            "maxLength": 24,
+            "minLength": 2,
+            "title": "Display Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name"
+        ],
+        "title": "Rename",
+        "type": "object"
+      },
       "Research": {
         "additionalProperties": false,
         "properties": {
@@ -3709,6 +3901,129 @@
           "version"
         ],
         "title": "ResolveStatement",
+        "type": "object"
+      },
+      "ResultDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "chain_head": {
+            "title": "Chain Head",
+            "type": "string"
+          },
+          "excess_bps": {
+            "title": "Excess Bps",
+            "type": "string"
+          },
+          "journal_digest": {
+            "title": "Journal Digest",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "nav": {
+            "title": "Nav",
+            "type": "string"
+          },
+          "players": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Players",
+            "type": "object"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          },
+          "solo": {
+            "title": "Solo",
+            "type": "boolean"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineItem"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "verified_at": {
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_id",
+          "scenario",
+          "label",
+          "score",
+          "excess_bps",
+          "nav",
+          "solo",
+          "journal_digest",
+          "chain_head",
+          "rules_version",
+          "verified_at",
+          "players",
+          "timeline"
+        ],
+        "title": "ResultDetail",
+        "type": "object"
+      },
+      "Reverify": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "journal_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Journal Digest"
+          },
+          "matches_recorded": {
+            "title": "Matches Recorded",
+            "type": "boolean"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "journal_digest",
+          "matches_recorded",
+          "error"
+        ],
+        "title": "Reverify",
         "type": "object"
       },
       "ReviewCheckpoint": {
@@ -4135,6 +4450,25 @@
           "nav_per_unit"
         ],
         "title": "Series",
+        "type": "object"
+      },
+      "SessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "title": "Session",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session",
+          "user_id"
+        ],
+        "title": "SessionResponse",
         "type": "object"
       },
       "SetReserve": {
@@ -5079,6 +5413,35 @@
         "title": "Ticket",
         "type": "object"
       },
+      "TimelineItem": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "at": {
+            "title": "At",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "actor",
+          "type",
+          "at"
+        ],
+        "title": "TimelineItem",
+        "type": "object"
+      },
       "TimelineStep": {
         "additionalProperties": false,
         "properties": {
@@ -5142,6 +5505,21 @@
           "after"
         ],
         "title": "TimelineStep",
+        "type": "object"
+      },
+      "TokenBody": {
+        "properties": {
+          "token": {
+            "maxLength": 100,
+            "minLength": 10,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "TokenBody",
         "type": "object"
       },
       "ValidationError": {
@@ -5221,6 +5599,120 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/auth/request": {
+      "post": {
+        "description": "Email a sign-in link. The answer is the same for known and unknown addresses.",
+        "operationId": "auth_request_api_auth_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Auth Request Api Auth Request Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auth Request"
+      }
+    },
+    "/api/auth/signout": {
+      "post": {
+        "operationId": "auth_signout_api_auth_signout_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-session",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Session",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auth Signout"
+      }
+    },
+    "/api/auth/verify": {
+      "post": {
+        "operationId": "auth_verify_api_auth_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auth Verify"
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "health_api_health_get",
@@ -5246,6 +5738,18 @@
     "/api/join": {
       "post": {
         "operationId": "join_api_join_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-session",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Session",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5281,6 +5785,151 @@
         "summary": "Join"
       }
     },
+    "/api/leaderboard": {
+      "get": {
+        "operationId": "leaderboard_api_leaderboard_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scenario",
+            "required": false,
+            "schema": {
+              "default": "case1",
+              "maxLength": 40,
+              "title": "Scenario",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LeaderRow"
+                  },
+                  "title": "Response Leaderboard Api Leaderboard Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Leaderboard"
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "me_api_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-session",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Session",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Me"
+      },
+      "patch": {
+        "operationId": "rename_me_api_me_patch",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-session",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Session",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rename"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename Me"
+      }
+    },
     "/api/ready": {
       "get": {
         "description": "Readiness: the schema is migrated and the database answers. Deploy healthchecks gate on this.",
@@ -5304,9 +5953,101 @@
         "summary": "Ready"
       }
     },
+    "/api/results/{room_id}": {
+      "get": {
+        "description": "A recorded result and its public command timeline (chat excluded); anyone may read it.",
+        "operationId": "public_result_api_results__room_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Public Result"
+      }
+    },
+    "/api/results/{room_id}/verify": {
+      "post": {
+        "description": "Replay a ranked room again from its command log and compare with the recorded digest.",
+        "operationId": "public_reverify_api_results__room_id__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reverify"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Public Reverify"
+      }
+    },
     "/api/rooms": {
       "post": {
         "operationId": "create_room_api_rooms_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-session",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Session",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -5658,6 +6399,56 @@
           }
         },
         "summary": "Liquidity"
+      }
+    },
+    "/api/rooms/{room_id}/result": {
+      "post": {
+        "description": "Rank a finished room. The server replays and verifies it; the client sends no score.",
+        "operationId": "submit_result_api_rooms__room_id__result_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "room_id",
+            "required": true,
+            "schema": {
+              "title": "Room Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Authorization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Result"
       }
     },
     "/api/rooms/{room_id}/terminal": {
